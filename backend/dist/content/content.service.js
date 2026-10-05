@@ -30,7 +30,7 @@ let ContentService = class ContentService {
         return this.prisma.cmsPage.delete({ where: { id } });
     }
     async getBanners() {
-        return this.prisma.banner.findMany({ orderBy: { updatedAt: 'desc' } });
+        return this.prisma.banner.findMany({ orderBy: { updatedAt: 'desc' }, take: 5 });
     }
     async getBannerById(id) {
         return this.prisma.banner.findUnique({ where: { id } });
@@ -45,7 +45,7 @@ let ContentService = class ContentService {
         return this.prisma.banner.delete({ where: { id } });
     }
     async getBlogPosts() {
-        return this.prisma.blogPost.findMany({ orderBy: { updatedAt: 'desc' } });
+        return this.prisma.blogPost.findMany({ orderBy: { updatedAt: 'desc' }, take: 5 });
     }
     async getBlogPostById(id) {
         return this.prisma.blogPost.findUnique({ where: { id } });

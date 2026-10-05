@@ -7,7 +7,7 @@ export class CommercialService {
 
   // Advertisements
   async getAdvertisements() {
-    return this.prisma.advertisement.findMany({ orderBy: { createdAt: 'desc' } });
+    return this.prisma.advertisement.findMany({ orderBy: { createdAt: 'desc' }, take: 5 });
   }
   async getAdvertisement(id: string) {
     const item = await this.prisma.advertisement.findUnique({ where: { id } });

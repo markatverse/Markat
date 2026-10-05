@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
+import * as bcrypt from 'bcryptjs';
+import { BadRequestException } from '@nestjs/common';
 
 import { PrismaService } from '../prisma.service.js';
 import { IdGeneratorService } from '../id-generator/id-generator.service.js';
@@ -50,6 +52,34 @@ export class UsersService {
     });
     
     return updated;
+  }
+
+  async updatePassword(id: string, currentPassword?: string, newPassword?: string) {
+    if (!currentPassword || !newPassword) {
+      throw new BadRequestException('Current and new password are required');
+    }
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new BadRequestException('User not found');
+    
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) throw new BadRequestException('Current password is incorrect');
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    await this.prisma.user.update({
+      where: { id },
+      data: { password: hashedPassword }
+    });
+
+    this.events.logAction({
+      action: 'UPDATE_PASSWORD',
+      entityType: 'User',
+      entityId: id,
+      actorRole: 'USER',
+      details: { message: 'User changed their password' }
+    });
+
+    return { message: 'Password updated successfully' };
   }
 
   async remove(id: string) {
@@ -108,5 +138,49 @@ export class UsersService {
 
     // Delete the user itself
     return this.prisma.user.delete({ where: { id } });
+  }
+
+  async getAddresses(userId: string) {
+    return this.prisma.shippingAddress.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async addAddress(userId: string, data: any) {
+    if (data.isDefault) {
+      await this.prisma.shippingAddress.updateMany({
+        where: { userId },
+        data: { isDefault: false }
+      });
+    } else {
+      const count = await this.prisma.shippingAddress.count({ where: { userId } });
+      if (count === 0) data.isDefault = true;
+    }
+    return this.prisma.shippingAddress.create({
+      data: { ...data, userId }
+    });
+  }
+
+  async updateAddress(addressId: string, data: any) {
+    if (data.isDefault) {
+      const address = await this.prisma.shippingAddress.findUnique({ where: { id: addressId } });
+      if (address) {
+        await this.prisma.shippingAddress.updateMany({
+          where: { userId: address.userId },
+          data: { isDefault: false }
+        });
+      }
+    }
+    return this.prisma.shippingAddress.update({
+      where: { id: addressId },
+      data
+    });
+  }
+
+  async deleteAddress(addressId: string) {
+    return this.prisma.shippingAddress.delete({
+      where: { id: addressId }
+    });
   }
 }

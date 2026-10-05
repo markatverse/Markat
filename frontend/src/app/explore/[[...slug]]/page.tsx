@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useProducts } from '@/context/ProductContext';
 import { ChevronRight, Filter, Search } from 'lucide-react';
 import SidebarBannerWidget from '@/components/SidebarBannerWidget';
+import CategoryIcon from '@/components/CategoryIcon';
 
 export default function DynamicExplorePage({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { products, categories } = useProducts();
@@ -186,8 +187,8 @@ export default function DynamicExplorePage({ params }: { params: Promise<{ slug?
             const gradient = gradients[index % gradients.length];
             return (
               <Link key={cat.id} href={`/explore/${mainType}/${businessType}/${cat.name.toLowerCase()}`} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col items-center text-center gap-4 group">
-                <div className={`w-20 h-20 rounded-2xl ${gradient} flex items-center justify-center text-4xl group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500 shadow-inner`}>
-                  {cat.icon || '📁'}
+                <div className={`w-20 h-20 rounded-2xl ${gradient} flex items-center justify-center group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500 shadow-inner`}>
+                  <CategoryIcon name={cat.icon || '📁'} className="w-9 h-9" />
                 </div>
                 <div className="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors">{cat.name}</div>
               </Link>

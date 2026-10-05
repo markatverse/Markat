@@ -31,8 +31,23 @@ let UsersController = class UsersController {
     update(id, updateUserDto) {
         return this.usersService.update(id, updateUserDto);
     }
+    updatePassword(id, body) {
+        return this.usersService.updatePassword(id, body.currentPassword, body.newPassword);
+    }
     remove(id) {
         return this.usersService.remove(id);
+    }
+    getAddresses(id) {
+        return this.usersService.getAddresses(id);
+    }
+    addAddress(id, body) {
+        return this.usersService.addAddress(id, body);
+    }
+    updateAddress(addressId, body) {
+        return this.usersService.updateAddress(addressId, body);
+    }
+    deleteAddress(addressId) {
+        return this.usersService.deleteAddress(addressId);
     }
 };
 __decorate([
@@ -64,12 +79,50 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "update", null);
 __decorate([
+    Patch(':id/password'),
+    __param(0, Param('id')),
+    __param(1, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "updatePassword", null);
+__decorate([
     Delete(':id'),
     __param(0, Param('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "remove", null);
+__decorate([
+    Get(':id/addresses'),
+    __param(0, Param('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "getAddresses", null);
+__decorate([
+    Post(':id/addresses'),
+    __param(0, Param('id')),
+    __param(1, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "addAddress", null);
+__decorate([
+    Patch('addresses/:addressId'),
+    __param(0, Param('addressId')),
+    __param(1, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "updateAddress", null);
+__decorate([
+    Delete('addresses/:addressId'),
+    __param(0, Param('addressId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "deleteAddress", null);
 UsersController = __decorate([
     Controller('users'),
     __metadata("design:paramtypes", [UsersService])

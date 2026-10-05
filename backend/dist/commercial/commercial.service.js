@@ -15,7 +15,7 @@ let CommercialService = class CommercialService {
         this.prisma = prisma;
     }
     async getAdvertisements() {
-        return this.prisma.advertisement.findMany({ orderBy: { createdAt: 'desc' } });
+        return this.prisma.advertisement.findMany({ orderBy: { createdAt: 'desc' }, take: 5 });
     }
     async getAdvertisement(id) {
         const item = await this.prisma.advertisement.findUnique({ where: { id } });

@@ -8,6 +8,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { Injectable } from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
+import { BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
 import { IdGeneratorService } from '../id-generator/id-generator.service.js';
 import { EventsService } from '../events/events.service.js';
@@ -51,6 +53,30 @@ let UsersService = class UsersService {
         });
         return updated;
     }
+    async updatePassword(id, currentPassword, newPassword) {
+        if (!currentPassword || !newPassword) {
+            throw new BadRequestException('Current and new password are required');
+        }
+        const user = await this.prisma.user.findUnique({ where: { id } });
+        if (!user)
+            throw new BadRequestException('User not found');
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch)
+            throw new BadRequestException('Current password is incorrect');
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await this.prisma.user.update({
+            where: { id },
+            data: { password: hashedPassword }
+        });
+        this.events.logAction({
+            action: 'UPDATE_PASSWORD',
+            entityType: 'User',
+            entityId: id,
+            actorRole: 'USER',
+            details: { message: 'User changed their password' }
+        });
+        return { message: 'Password updated successfully' };
+    }
     async remove(id) {
         this.events.logAction({
             action: 'DELETE_USER',
@@ -92,6 +118,48 @@ let UsersService = class UsersService {
         await this.prisma.product.deleteMany({ where: { sellerId: id } });
         await this.prisma.listing.deleteMany({ where: { sellerId: id } });
         return this.prisma.user.delete({ where: { id } });
+    }
+    async getAddresses(userId) {
+        return this.prisma.shippingAddress.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' }
+        });
+    }
+    async addAddress(userId, data) {
+        if (data.isDefault) {
+            await this.prisma.shippingAddress.updateMany({
+                where: { userId },
+                data: { isDefault: false }
+            });
+        }
+        else {
+            const count = await this.prisma.shippingAddress.count({ where: { userId } });
+            if (count === 0)
+                data.isDefault = true;
+        }
+        return this.prisma.shippingAddress.create({
+            data: { ...data, userId }
+        });
+    }
+    async updateAddress(addressId, data) {
+        if (data.isDefault) {
+            const address = await this.prisma.shippingAddress.findUnique({ where: { id: addressId } });
+            if (address) {
+                await this.prisma.shippingAddress.updateMany({
+                    where: { userId: address.userId },
+                    data: { isDefault: false }
+                });
+            }
+        }
+        return this.prisma.shippingAddress.update({
+            where: { id: addressId },
+            data
+        });
+    }
+    async deleteAddress(addressId) {
+        return this.prisma.shippingAddress.delete({
+            where: { id: addressId }
+        });
     }
 };
 UsersService = __decorate([

@@ -28,7 +28,7 @@ export class ContentService {
 
   // --- Banners ---
   async getBanners() {
-    return this.prisma.banner.findMany({ orderBy: { updatedAt: 'desc' } });
+    return this.prisma.banner.findMany({ orderBy: { updatedAt: 'desc' }, take: 5 });
   }
 
   async getBannerById(id: string) {
@@ -49,7 +49,7 @@ export class ContentService {
 
   // --- Blog Posts ---
   async getBlogPosts() {
-    return this.prisma.blogPost.findMany({ orderBy: { updatedAt: 'desc' } });
+    return this.prisma.blogPost.findMany({ orderBy: { updatedAt: 'desc' }, take: 5 });
   }
 
   async getBlogPostById(id: string) {

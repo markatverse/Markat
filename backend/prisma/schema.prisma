@@ -28,6 +28,7 @@ model User {
 
   // V2 Relations
   listings    Listing[] @relation("UserListings")
+  addresses   ShippingAddress[]
 }
 
 model Business {
@@ -795,3 +796,24 @@ model NotificationLog {
   status      String   @default("SENT") // SENT, FAILED
   createdAt   DateTime @default(now())
 }
+
+model ShippingAddress {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  label     String   @default("Home") // Home, Office, etc.
+  isDefault Boolean  @default(false)
+  name      String
+  street    String
+  city      String
+  state     String
+  pinCode   String
+  country   String   @default("India")
+  phone     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+

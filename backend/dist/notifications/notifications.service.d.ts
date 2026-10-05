@@ -4,11 +4,11 @@ export declare class NotificationsService {
     constructor(prisma: PrismaService);
     getSmsTemplates(): Promise<{
         id: string;
-        title: string;
-        message: string;
         status: string;
         createdAt: Date;
+        message: string;
         updatedAt: Date;
+        title: string;
     }[]>;
     createSmsTemplate(data: {
         title: string;
@@ -16,35 +16,35 @@ export declare class NotificationsService {
         status?: string;
     }): Promise<{
         id: string;
-        title: string;
-        message: string;
         status: string;
         createdAt: Date;
+        message: string;
         updatedAt: Date;
+        title: string;
     }>;
     updateSmsTemplate(id: string, data: any): Promise<{
         id: string;
-        title: string;
-        message: string;
         status: string;
         createdAt: Date;
+        message: string;
         updatedAt: Date;
+        title: string;
     }>;
     deleteSmsTemplate(id: string): Promise<{
         id: string;
-        title: string;
-        message: string;
         status: string;
         createdAt: Date;
+        message: string;
         updatedAt: Date;
+        title: string;
     }>;
     getPushTemplates(): Promise<{
         id: string;
-        title: string;
-        message: string;
         status: string;
         createdAt: Date;
+        message: string;
         updatedAt: Date;
+        title: string;
     }[]>;
     createPushTemplate(data: {
         title: string;
@@ -52,35 +52,35 @@ export declare class NotificationsService {
         status?: string;
     }): Promise<{
         id: string;
-        title: string;
-        message: string;
         status: string;
         createdAt: Date;
+        message: string;
         updatedAt: Date;
+        title: string;
     }>;
     updatePushTemplate(id: string, data: any): Promise<{
         id: string;
-        title: string;
-        message: string;
         status: string;
         createdAt: Date;
+        message: string;
         updatedAt: Date;
+        title: string;
     }>;
     deletePushTemplate(id: string): Promise<{
         id: string;
-        title: string;
-        message: string;
         status: string;
         createdAt: Date;
+        message: string;
         updatedAt: Date;
+        title: string;
     }>;
     getEmailTemplates(): Promise<{
         id: string;
-        title: string;
-        message: string;
         status: string;
         createdAt: Date;
+        message: string;
         updatedAt: Date;
+        title: string;
     }[]>;
     createEmailTemplate(data: {
         title: string;
@@ -88,27 +88,27 @@ export declare class NotificationsService {
         status?: string;
     }): Promise<{
         id: string;
-        title: string;
-        message: string;
         status: string;
         createdAt: Date;
+        message: string;
         updatedAt: Date;
+        title: string;
     }>;
     updateEmailTemplate(id: string, data: any): Promise<{
         id: string;
-        title: string;
-        message: string;
         status: string;
         createdAt: Date;
+        message: string;
         updatedAt: Date;
+        title: string;
     }>;
     deleteEmailTemplate(id: string): Promise<{
         id: string;
-        title: string;
-        message: string;
         status: string;
         createdAt: Date;
+        message: string;
         updatedAt: Date;
+        title: string;
     }>;
     sendNotification(payload: {
         type: string;

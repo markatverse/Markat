@@ -578,9 +578,17 @@ export default function DynamicFormEngine({ initialData, onSave, onCancel, isSer
         {catRules.businessModels.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 mb-4 px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-100">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-1">Admin-approved:</span>
-            {catRules.businessModels.map(bm => (
-              <span key={bm} className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full font-semibold">{bm}</span>
-            ))}
+            {catRules.businessModels.map(bm => {
+              let colors = "bg-slate-100 text-slate-700 border-slate-200";
+              if (bm === 'B2C') colors = "bg-emerald-50 text-emerald-700 border-emerald-200";
+              if (bm === 'B2B') colors = "bg-blue-50 text-blue-700 border-blue-200";
+              if (bm === 'Appointment') colors = "bg-amber-50 text-amber-700 border-amber-200";
+              if (bm === 'Token') colors = "bg-violet-50 text-violet-700 border-violet-200";
+              
+              return (
+                <span key={bm} className={`text-xs border px-2.5 py-1 rounded-full font-semibold ${colors}`}>{bm}</span>
+              );
+            })}
           </div>
         )}
 
@@ -605,24 +613,25 @@ export default function DynamicFormEngine({ initialData, onSave, onCancel, isSer
                 </div>
               </div>
             )}
-            
-            <div className={`space-y-2 ${isService ? 'md:col-span-3 lg:col-span-1' : ''}`}>
-              <label className="text-sm font-semibold text-slate-700">{isService ? 'Service Charge / Price (₹)' : 'Final Selling Price (₹)'}</label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">₹</span>
-                <input required={options.length === 0} type="number" min="0" value={b2cPrice} onChange={e => {
-                  const val = e.target.value; 
-                  setB2cPrice(val === '' ? '' : Math.max(0, Number(val)).toString());
-                  if (!isService && val && costPrice) {
-                    const cost = Number(costPrice);
-                    const sell = Number(val);
-                    if (cost > 0 && cost >= sell) {
-                      setDiscountPct(((cost - sell) / cost * 100).toFixed(0));
+            {!(isService && options.length > 0) && (
+              <div className={`space-y-2 ${isService ? 'md:col-span-3 lg:col-span-1' : ''}`}>
+                <label className="text-sm font-semibold text-slate-700">{isService ? 'Service Charge / Price (₹)' : 'Final Selling Price (₹)'}</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">₹</span>
+                  <input required={options.length === 0} type="number" min="0" value={b2cPrice} onChange={e => {
+                    const val = e.target.value; 
+                    setB2cPrice(val === '' ? '' : Math.max(0, Number(val)).toString());
+                    if (!isService && val && costPrice) {
+                      const cost = Number(costPrice);
+                      const sell = Number(val);
+                      if (cost > 0 && cost >= sell) {
+                        setDiscountPct(((cost - sell) / cost * 100).toFixed(0));
+                      }
                     }
-                  }
-                }} placeholder="0.00" className="w-full pl-8 pr-4 py-3 rounded-xl border border-slate-300 focus:border-blue-500 outline-none text-slate-900 font-medium" />
+                  }} placeholder="0.00" className="w-full pl-8 pr-4 py-3 rounded-xl border border-slate-300 focus:border-blue-500 outline-none text-slate-900 font-medium" />
+                </div>
               </div>
-            </div>
+            )}
 
             {!isService && (
               <div className="space-y-2">
@@ -645,19 +654,28 @@ export default function DynamicFormEngine({ initialData, onSave, onCancel, isSer
             {isService && (
               <div className="col-span-1 md:col-span-3 mt-4 space-y-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
                 <label className="text-sm font-semibold text-slate-700">Service Booking Model</label>
-                <div className="flex gap-4">
-                  <label className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${(parameters['bookingModel'] as string) === 'TOKEN' || !parameters['bookingModel'] ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-500'}`}>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <label className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all ${(parameters['bookingModel'] as string) === 'TOKEN' || !parameters['bookingModel'] ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-slate-200 bg-white text-slate-500 hover:border-violet-200'}`}>
                     <input type="radio" name="bookingModel" value="TOKEN" checked={(parameters['bookingModel'] as string) === 'TOKEN' || !parameters['bookingModel']} onChange={() => setParameters(p => ({...p, bookingModel: 'TOKEN'}))} className="hidden" />
                     <div className="text-center">
-                      <div className="font-bold">Live Token (Queue)</div>
-                      <div className="text-[10px] opacity-80 mt-1">Walk-ins & Live Tracking</div>
+                      <div className="font-bold">Live Token</div>
+                      <div className="text-[10px] opacity-80 mt-1">Walk-ins only</div>
                     </div>
                   </label>
-                  <label className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${(parameters['bookingModel'] as string) === 'APPOINTMENT' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-500'}`}>
+                  
+                  <label className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all ${(parameters['bookingModel'] as string) === 'APPOINTMENT' ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-slate-200 bg-white text-slate-500 hover:border-amber-200'}`}>
                     <input type="radio" name="bookingModel" value="APPOINTMENT" checked={(parameters['bookingModel'] as string) === 'APPOINTMENT'} onChange={() => setParameters(p => ({...p, bookingModel: 'APPOINTMENT'}))} className="hidden" />
                     <div className="text-center">
-                      <div className="font-bold">Scheduled Appointment</div>
+                      <div className="font-bold">Appointment</div>
                       <div className="text-[10px] opacity-80 mt-1">Fixed time slots</div>
+                    </div>
+                  </label>
+
+                  <label className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all ${(parameters['bookingModel'] as string) === 'HYBRID' ? 'border-fuchsia-500 bg-fuchsia-50 text-fuchsia-700' : 'border-slate-200 bg-white text-slate-500 hover:border-fuchsia-200'}`}>
+                    <input type="radio" name="bookingModel" value="HYBRID" checked={(parameters['bookingModel'] as string) === 'HYBRID'} onChange={() => setParameters(p => ({...p, bookingModel: 'HYBRID'}))} className="hidden" />
+                    <div className="text-center">
+                      <div className="font-bold">Hybrid (Both)</div>
+                      <div className="text-[10px] opacity-80 mt-1">Walk-ins + Appointments</div>
                     </div>
                   </label>
                 </div>

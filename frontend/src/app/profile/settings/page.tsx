@@ -6,8 +6,9 @@ import { useAuth } from '@/context/AuthContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useProducts } from '@/context/ProductContext';
 import { useCart } from '@/context/CartContext';
-import { User, CreditCard, MapPin, Package, Settings, Camera, ShieldCheck, Bell, ChevronRight, ChevronLeft, LogOut, Edit3, Trash2, Plus, Star, Heart, ShoppingBag, Key, Smartphone, Laptop, Download, Lock } from 'lucide-react';
+import { User, CreditCard, MapPin, Package, Settings, Camera, ShieldCheck, Bell, ChevronRight, ChevronLeft, LogOut, Edit3, Trash2, Plus, Star, Heart, ShoppingBag, Key, Smartphone, Laptop, Download, Lock, Monitor } from 'lucide-react';
 import toast from 'react-hot-toast';
+import ShippingAddressesTab from '@/components/ShippingAddressesTab';
 
 const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
 
@@ -86,13 +87,36 @@ export default function ProfileSettings() {
     }
   }, []);
 
-  const handlePasswordUpdate = () => {
+  const handlePasswordUpdate = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) return toast.error('Please fill all password fields');
     if (newPassword !== confirmPassword) return toast.error('New passwords do not match');
-    toast.success('Password updated successfully!');
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
+    
+    setIsUpdating(true);
+    try {
+      const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
+      const res = await fetch(`${API_URL}/users/${user?.id}/password`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+      
+      if (res.ok) {
+        toast.success('Password updated successfully!');
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        const data = await res.json();
+        toast.error(data.message || 'Failed to update password');
+      }
+    } catch (error) {
+      toast.error('An error occurred');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const handleRevokeSession = (id: string) => {
@@ -471,57 +495,7 @@ export default function ProfileSettings() {
             )}
 
             {activeTab === 'shipping' && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="flex justify-between items-end mb-8 border-b border-slate-800 pb-6">
-                  <div>
-                    <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">Shipping Addresses</h2>
-                    <p className="text-slate-400 text-sm">Manage where your orders get delivered.</p>
-                  </div>
-                  <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm transition-colors shadow-lg shadow-blue-600/20 flex items-center gap-2">
-                    <Plus className="w-4 h-4" /> Add Address
-                  </button>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Address 1 - Default */}
-                  <div className="bg-slate-950/50 border border-amber-500/40 rounded-2xl p-6 relative shadow-[0_0_15px_rgba(245,158,11,0.05)]">
-                    <div className="absolute top-0 right-0 bg-amber-500 text-amber-950 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-bl-xl rounded-tr-2xl">Default</div>
-                    <div className="flex items-center gap-3 mb-4 text-white font-bold text-lg">
-                      <MapPin className="w-5 h-5 text-amber-500" /> Home
-                    </div>
-                    <div className="text-slate-300 text-sm leading-relaxed mb-6">
-                      <span className="text-white font-semibold">{firstName} {lastName}</span><br/>
-                      123 Tech Park, Phase 2, Whitefield<br/>
-                      Bengaluru, Karnataka 560066<br/>
-                      India<br/>
-                      {phone}
-                    </div>
-                    <div className="flex gap-4 border-t border-slate-800 pt-4">
-                      <button className="text-sm font-semibold text-blue-400 hover:text-blue-300">Edit</button>
-                      <button className="text-sm font-semibold text-slate-500 hover:text-red-400">Remove</button>
-                    </div>
-                  </div>
-
-                  {/* Address 2 */}
-                  <div className="bg-slate-950/50 border border-slate-800 rounded-2xl p-6 relative hover:border-slate-600 transition-colors group">
-                    <div className="flex items-center gap-3 mb-4 text-white font-bold text-lg">
-                      <BuildingIcon className="w-5 h-5 text-slate-500" /> Office
-                    </div>
-                    <div className="text-slate-400 text-sm leading-relaxed mb-6">
-                      <span className="text-white font-semibold">{firstName} {lastName} (Global Exports LLC)</span><br/>
-                      45 Business Center, MG Road<br/>
-                      Bengaluru, Karnataka 560001<br/>
-                      India<br/>
-                      +91 99999 88888
-                    </div>
-                    <div className="flex gap-4 border-t border-slate-800 pt-4">
-                      <button className="text-sm font-semibold text-blue-400 hover:text-blue-300">Edit</button>
-                      <button className="text-sm font-semibold text-slate-500 hover:text-red-400">Remove</button>
-                      <button className="text-sm font-semibold text-slate-500 hover:text-white ml-auto opacity-0 group-hover:opacity-100 transition-opacity">Set Default</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <ShippingAddressesTab user={user} />
             )}
 
             {/* ORDERS TAB (Placeholder) */}
@@ -588,126 +562,116 @@ export default function ProfileSettings() {
 
             {/* SECURITY TAB */}
             {activeTab === 'security' && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
-                <div>
-                  <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                    <ShieldCheck className="w-7 h-7 text-blue-500" /> Security & Privacy
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="mb-6 border-b border-slate-800 pb-4">
+                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-blue-500" /> Security & Privacy
                   </h2>
-                  <p className="text-slate-400 mt-1">Manage your password, 2FA, and data privacy.</p>
+                  <p className="text-slate-400 text-xs mt-1">Manage your password, 2FA, and data privacy.</p>
                 </div>
 
-                {/* Change Password */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6 lg:p-8">
-                  <div className="flex items-center gap-4 mb-6 border-b border-slate-800 pb-4">
-                    <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center">
-                      <Key className="w-6 h-6 text-slate-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-white">Change Password</h3>
-                      <p className="text-slate-400 text-sm mt-1">Ensure your account is using a long, random password to stay secure.</p>
-                    </div>
-                  </div>
-                  <div className="space-y-4 max-w-xl">
-                    <div>
-                      <label className="text-sm font-semibold text-slate-400 mb-2 block">Current Password</label>
-                      <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} placeholder="••••••••" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-semibold text-slate-400 mb-2 block">New Password</label>
-                      <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="••••••••" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-semibold text-slate-400 mb-2 block">Confirm New Password</label>
-                      <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="••••••••" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all" />
-                    </div>
-                    <button onClick={handlePasswordUpdate} className="mt-2 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl transition-colors w-full sm:w-auto">
-                      Update Password
-                    </button>
-                  </div>
-                </div>
-
-                {/* Two Factor Authentication */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6 lg:p-8 flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-emerald-900/30 rounded-xl flex items-center justify-center border border-emerald-800/50">
-                      <Smartphone className="w-6 h-6 text-emerald-500" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-white">Two-Factor Authentication (2FA)</h3>
-                      <p className="text-slate-400 text-sm mt-1 max-w-md">Add an extra layer of security to your account by requiring a code upon login.</p>
-                    </div>
-                  </div>
-                  <button onClick={() => { setIs2FAEnabled(!is2FAEnabled); toast.success(is2FAEnabled ? '2FA Disabled' : '2FA Enabled successfully'); }} className={`${is2FAEnabled ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-500 border border-emerald-600/50'} font-bold py-2.5 px-6 rounded-xl transition-colors shrink-0`}>
-                    {is2FAEnabled ? 'Enabled' : 'Enable 2FA'}
-                  </button>
-                </div>
-
-                {/* Active Sessions */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6 lg:p-8">
-                  <div className="flex items-center justify-between mb-6 border-b border-slate-800 pb-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center">
-                        <Laptop className="w-6 h-6 text-slate-400" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-white">Active Sessions</h3>
-                        <p className="text-slate-400 text-sm mt-1">Devices that are currently logged into your account.</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {sessions.map(session => (
-                      <div key={session.id} className="flex justify-between items-center bg-slate-950/50 p-4 rounded-2xl border border-slate-800/50">
-                        <div>
-                          <div className="text-white font-semibold flex items-center gap-2">
-                            {session.device} {session.isCurrent && <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-[10px] rounded-full uppercase tracking-wider font-bold">Current Device</span>}
-                          </div>
-                          <div className="text-slate-400 text-xs mt-1">{session.browser} - {session.location} - Last active: {session.lastActive}</div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                  {/* Left Column */}
+                  <div className="space-y-5">
+                    {/* Change Password */}
+                    <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center">
+                          <Key className="w-4 h-4 text-slate-400" />
                         </div>
-                        {!session.isCurrent && (
-                          <button onClick={() => handleRevokeSession(session.id)} className="text-sm font-semibold text-slate-500 hover:text-red-400 transition-colors">Revoke</button>
+                        <div>
+                          <h3 className="text-sm font-bold text-white">Change Password</h3>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} placeholder="Current Password" className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-sm focus:border-blue-500 outline-none" />
+                        <div className="grid grid-cols-2 gap-3">
+                          <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="New Password" className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-sm focus:border-blue-500 outline-none" />
+                          <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm Password" className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-sm focus:border-blue-500 outline-none" />
+                        </div>
+                        <button onClick={handlePasswordUpdate} disabled={isUpdating} className="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-2 rounded-lg transition-colors">
+                          {isUpdating ? 'Updating...' : 'Update Password'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Two Factor Authentication */}
+                    <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-emerald-900/30 rounded-lg flex items-center justify-center border border-emerald-800/50">
+                          <Smartphone className="w-4 h-4 text-emerald-500" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-bold text-white">Two-Factor Auth (2FA)</h3>
+                          <p className="text-slate-400 text-[10px] mt-0.5 max-w-[200px]">Require a code upon login.</p>
+                        </div>
+                      </div>
+                      <button onClick={() => { setIs2FAEnabled(!is2FAEnabled); toast.success(is2FAEnabled ? '2FA Disabled' : '2FA Enabled successfully'); }} className={`${is2FAEnabled ? 'bg-emerald-600 text-white' : 'bg-emerald-600/10 text-emerald-500 border border-emerald-600/50'} text-xs font-bold py-1.5 px-3 rounded-lg`}>
+                        {is2FAEnabled ? 'Enabled' : 'Enable'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Right Column */}
+                  <div className="space-y-5">
+                    {/* Active Sessions */}
+                    <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center">
+                          <Laptop className="w-4 h-4 text-slate-400" />
+                        </div>
+                        <h3 className="text-sm font-bold text-white">Active Sessions</h3>
+                      </div>
+                      <div className="space-y-2">
+                        {sessions.map(session => (
+                          <div key={session.id} className="flex justify-between items-center bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/50">
+                            <div className="flex items-center gap-2">
+                              {session.device.includes('Phone') ? <Smartphone className="w-4 h-4 text-slate-400" /> : <Monitor className="w-4 h-4 text-slate-400" />}
+                              <div>
+                                <div className="text-white text-xs font-bold flex items-center gap-2">
+                                  {session.device} 
+                                  {session.isCurrent && <span className="text-[8px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded uppercase">Current</span>}
+                                </div>
+                                <div className="text-[10px] text-slate-500">{session.location}</div>
+                              </div>
+                            </div>
+                            {!session.isCurrent && (
+                              <button onClick={() => handleRevokeSession(session.id)} className="text-xs font-semibold text-slate-500 hover:text-red-400">Revoke</button>
+                            )}
+                          </div>
+                        ))}
+                        {sessions.length === 0 && <p className="text-slate-500 text-xs">No active sessions found.</p>}
+                      </div>
+                    </div>
+
+                    {/* Data & Privacy */}
+                    <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center">
+                          <Lock className="w-4 h-4 text-slate-400" />
+                        </div>
+                        <h3 className="text-sm font-bold text-white">Data & Privacy</h3>
+                      </div>
+                      <div className="flex gap-3">
+                        <button onClick={() => toast.success('Data export started.')} className="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-3 hover:border-slate-700 text-left transition-colors">
+                          <Download className="w-4 h-4 text-blue-400 mb-1.5" />
+                          <div className="text-xs font-bold text-white">Export Data</div>
+                        </button>
+                        {!showDeleteConfirm ? (
+                          <button onClick={() => setShowDeleteConfirm(true)} className="flex-1 bg-slate-950 border border-red-900/30 rounded-xl p-3 hover:border-red-900/50 text-left transition-colors">
+                            <Trash2 className="w-4 h-4 text-red-400 mb-1.5" />
+                            <div className="text-xs font-bold text-white">Delete Account</div>
+                          </button>
+                        ) : (
+                          <div className="flex-1 bg-slate-950 border border-red-900/50 rounded-xl p-2 animate-in fade-in">
+                            <input type="text" placeholder="Type DELETE" value={deleteText} onChange={(e) => setDeleteText(e.target.value)} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 mb-2 text-white text-[10px]" />
+                            <div className="flex gap-1">
+                              <button onClick={handleDeleteAccount} className="flex-1 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold py-1 rounded">Confirm</button>
+                              <button onClick={() => { setShowDeleteConfirm(false); setDeleteText(''); }} className="flex-1 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold py-1 rounded">Cancel</button>
+                            </div>
+                          </div>
                         )}
                       </div>
-                    ))}
-                    {sessions.length === 0 && <p className="text-slate-500 text-sm">No active sessions found.</p>}
-                  </div>
-                </div>
-
-                {/* Privacy & Data */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6 lg:p-8">
-                  <div className="flex items-center gap-4 mb-6 border-b border-slate-800 pb-4">
-                    <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center">
-                      <Lock className="w-6 h-6 text-slate-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-white">Data & Privacy</h3>
-                      <p className="text-slate-400 text-sm mt-1">Manage your personal data and account deletion.</p>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-colors">
-                      <Download className="w-5 h-5 text-slate-400 mb-3" />
-                      <h4 className="text-white font-bold mb-1">Download Your Data</h4>
-                      <p className="text-slate-400 text-xs mb-4">Get a copy of your personal data, orders, and wishlist.</p>
-                      <button onClick={() => toast.success('Data export started. You will receive an email shortly.')} className="text-sm font-bold text-blue-400 hover:text-blue-300">Request Data Export →</button>
-                    </div>
-                    <div className="bg-slate-950 border border-red-900/30 rounded-2xl p-5 hover:border-red-900/50 transition-colors">
-                      <Trash2 className="w-5 h-5 text-red-400 mb-3" />
-                      <h4 className="text-white font-bold mb-1">Delete Account</h4>
-                      <p className="text-slate-400 text-xs mb-4">Permanently remove your account and all associated data.</p>
-                      {!showDeleteConfirm ? (
-                        <button onClick={() => setShowDeleteConfirm(true)} className="text-sm font-bold text-red-400 hover:text-red-300">Delete Account...</button>
-                      ) : (
-                        <div className="mt-2 space-y-2">
-                          <input type="text" placeholder="Type DELETE" value={deleteText} onChange={(e) => setDeleteText(e.target.value)} className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none" />
-                          <div className="flex gap-2">
-                            <button onClick={handleDeleteAccount} className="bg-red-600 hover:bg-red-500 text-white text-xs font-bold py-2 px-4 rounded-lg w-full transition-colors">Confirm Delete</button>
-                            <button onClick={() => { setShowDeleteConfirm(false); setDeleteText(''); }} className="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-2 px-4 rounded-lg w-full transition-colors">Cancel</button>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
