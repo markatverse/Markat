@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { TrendingUp, DollarSign, Users, Store, Activity, CalendarDays, RefreshCcw, ShieldCheck } from 'lucide-react';
+import { TrendingUp, DollarSign, Users, Activity, CalendarDays, RefreshCcw, ShieldCheck } from 'lucide-react';
 import { useAdminRole } from '@/context/AdminRoleContext';
 
 export default function AnalyticsPage() {

@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { Clock, ChevronRight, X, Ticket } from 'lucide-react';
+import { Clock, ChevronRight, X } from 'lucide-react';
 import Link from 'next/link';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";

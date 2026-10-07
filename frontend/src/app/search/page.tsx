@@ -7,6 +7,7 @@ import SidebarBannerWidget from '@/components/SidebarBannerWidget';
 import AdvertisementWidget from '@/components/AdvertisementWidget';
 import { useState, useEffect, Suspense, useMemo } from 'react';
 import { SlidersHorizontal, MapPin } from 'lucide-react';
+import { isServiceProduct, matchesProductSearch } from '@/utils/productSearch';
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -32,17 +33,17 @@ function SearchContent() {
 
   // Sync with URL if it changes
   useEffect(() => {
-    setQ(searchParams.get('q') || '');
+    setQ((searchParams.get('q') || '').trim());
     const cat = searchParams.get('category') || searchParams.get('cat');
-    if (cat && cat !== 'All Categories') setSelectedCategory(cat);
-    
+    setSelectedCategory(cat && cat !== 'All Categories' ? cat : '');
+    setLocationFilter(searchParams.get('loc') || '');
+
     const filter = searchParams.get('filter');
-    if (filter === 'top_deals') setSortBy('discount');
-    if (filter === 'b2b') setB2BOnly(true);
-    if (filter === 'top_picks') setSortBy('recommended'); // Default behavior
+    setSortBy(filter === 'top_deals' ? 'discount' : 'recommended');
+    setB2BOnly(filter === 'b2b');
 
     const type = searchParams.get('type');
-    if (type === 'services') setProductType('services');
+    setProductType(type === 'services' ? 'services' : type === 'products' ? 'products' : 'all');
   }, [searchParams]);
 
   // Derived filtered products
@@ -50,9 +51,7 @@ function SearchContent() {
     let result = products;
     
     // Search Query
-    if (q) {
-      result = result.filter(p => p.name.toLowerCase().includes(q.toLowerCase()) || p.seller.toLowerCase().includes(q.toLowerCase()));
-    }
+    if (q.trim()) result = result.filter(product => matchesProductSearch(product, q));
     
     // Location Filter (from text input)
     if (locationFilter) {
@@ -62,7 +61,7 @@ function SearchContent() {
     // Type Filter
     if (productType !== 'all') {
       result = result.filter(p => {
-        const isService = p.category === 'Services' || p.category === 'Home Services' || p.category === 'Transport';
+        const isService = isServiceProduct(p);
         if (productType === 'services') return isService;
         if (productType === 'products') return !isService;
         return true;
@@ -358,7 +357,7 @@ function SearchContent() {
         </div>
         {isLoading ? (
           <ProductGridSkeleton count={12} />
-        ) : selectedCategory === 'Services' || selectedCategory === 'Home Services' ? (
+        ) : productType === 'services' || categories.some(category => category.name === selectedCategory && category.primaryType === 'SERVICE') || selectedCategory === 'Services' || selectedCategory === 'Home Services' ? (
           <ServiceDirectoryList products={filteredProducts} />
         ) : (
           <ProductGrid products={filteredProducts} />

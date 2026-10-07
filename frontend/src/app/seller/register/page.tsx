@@ -339,7 +339,7 @@ export default function SellerRegistrationPage() {
                         }, token);
                       }
 
-                      window.location.href = '/seller/dashboard';
+                      router.push('/seller/dashboard');
                     } catch (err: any) {
                       setError(err.message || 'Registration failed. Please try again.');
                       setSubmitting(false);

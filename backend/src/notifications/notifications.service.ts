@@ -71,6 +71,14 @@ export class NotificationsService {
     });
   }
 
+  findHistoryForUser(userId: string) {
+    return this.prisma.notificationLog.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+  }
+
   async createEmailTemplate(data: { title: string; message: string; status?: string }) {
     return this.prisma.emailTemplate.create({
       data: {
@@ -128,4 +136,3 @@ export class NotificationsService {
     return { success: true, pushMessage: pushMsgToSend, smsMessage: smsMsgToSend };
   }
 }
-

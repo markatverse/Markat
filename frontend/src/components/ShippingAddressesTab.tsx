@@ -1,31 +1,62 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { MapPin, Plus, Building2, Trash2 } from 'lucide-react';
+import React, { useCallback, useState, useEffect } from 'react';
+import { MapPin, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export default function ShippingAddressesTab({ user }: { user: any }) {
-  const [addresses, setAddresses] = useState<any[]>([]);
+type ShippingAddress = {
+  id: string;
+  label: string;
+  isDefault: boolean;
+  name: string;
+  street: string;
+  city: string;
+  state: string;
+  pinCode: string;
+  country: string;
+  phone: string;
+};
+
+export default function ShippingAddressesTab({ user }: { user: { id?: string } | null }) {
+  const [addresses, setAddresses] = useState<ShippingAddress[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [editingAddress, setEditingAddress] = useState<any>(null);
+  const [editingAddress, setEditingAddress] = useState<ShippingAddress | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL
+    || (typeof window !== 'undefined' ? `http://${window.location.hostname}:3001` : 'http://localhost:3001');
 
-  const fetchAddresses = async () => {
-    try {
-      const res = await fetch(`${API_URL}/users/${user.id}/addresses`);
-      if (res.ok) setAddresses(await res.json());
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  const fetchAddresses = useCallback(async (): Promise<ShippingAddress[]> => {
+    if (!user?.id) return [];
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('Your session has expired. Please sign in again.');
+    const res = await fetch(`${API_URL}/users/${encodeURIComponent(user.id)}/addresses`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error(`Could not load addresses (${res.status})`);
+    const data = await res.json();
+    if (!Array.isArray(data)) throw new Error('Unexpected address response');
+    return data;
+  }, [API_URL, user]);
 
   useEffect(() => {
-    if (user) fetchAddresses();
-  }, [user]);
+    if (!user?.id) return;
+    fetchAddresses()
+      .then((data) => {
+        setAddresses(data);
+        setLoadError('');
+      })
+      .catch((error: unknown) => setLoadError(error instanceof Error ? error.message : 'Could not load addresses.'))
+      .finally(() => setIsLoading(false));
+  }, [fetchAddresses, user?.id]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!user?.id) {
+      toast.error('Your account could not be identified.');
+      return;
+    }
     setIsSubmitting(true);
     const formData = new FormData(e.currentTarget);
     const data = {
@@ -41,28 +72,34 @@ export default function ShippingAddressesTab({ user }: { user: any }) {
     };
 
     try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Your session has expired. Please sign in again.');
       const url = editingAddress 
         ? `${API_URL}/users/addresses/${editingAddress.id}`
-        : `${API_URL}/users/${user.id}/addresses`;
+        : `${API_URL}/users/${encodeURIComponent(user.id)}/addresses`;
       
       const method = editingAddress ? 'PATCH' : 'POST';
       
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(data),
       });
 
-      if (res.ok) {
-        toast.success(editingAddress ? 'Address updated' : 'Address added');
-        setShowModal(false);
-        setEditingAddress(null);
-        fetchAddresses();
-      } else {
-        toast.error('Failed to save address');
+      if (!res.ok) {
+        const result = await res.json().catch(() => null);
+        throw new Error(result?.message || 'Failed to save address');
       }
+      setAddresses(await fetchAddresses());
+      setLoadError('');
+      toast.success(editingAddress ? 'Address updated' : 'Address added');
+      setShowModal(false);
+      setEditingAddress(null);
     } catch (error) {
-      toast.error('An error occurred');
+      toast.error(error instanceof Error ? error.message : 'Failed to save address');
     } finally {
       setIsSubmitting(false);
     }
@@ -71,29 +108,39 @@ export default function ShippingAddressesTab({ user }: { user: any }) {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to remove this address?')) return;
     try {
-      const res = await fetch(`${API_URL}/users/addresses/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        toast.success('Address removed');
-        fetchAddresses();
-      }
-    } catch (e) {
-      toast.error('Failed to remove address');
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Your session has expired. Please sign in again.');
+      const res = await fetch(`${API_URL}/users/addresses/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error(`Failed to remove address (${res.status})`);
+      setAddresses(await fetchAddresses());
+      setLoadError('');
+      toast.success('Address removed');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to remove address');
     }
   };
 
-  const handleSetDefault = async (address: any) => {
+  const handleSetDefault = async (address: ShippingAddress) => {
     try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Your session has expired. Please sign in again.');
       const res = await fetch(`${API_URL}/users/addresses/${address.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ isDefault: true }),
       });
-      if (res.ok) {
-        toast.success('Default address updated');
-        fetchAddresses();
-      }
-    } catch (e) {
-      toast.error('Failed to update address');
+      if (!res.ok) throw new Error(`Failed to update default address (${res.status})`);
+      setAddresses(await fetchAddresses());
+      setLoadError('');
+      toast.success('Default address updated');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to update address');
     }
   };
 
@@ -113,7 +160,30 @@ export default function ShippingAddressesTab({ user }: { user: any }) {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {addresses.map((addr) => (
+        {isLoading ? (
+          <div className="col-span-full py-10 text-center text-slate-400">Loading addresses…</div>
+        ) : loadError ? (
+          <div className="col-span-full py-10 text-center">
+            <p role="alert" className="mb-3 text-red-300">{loadError}</p>
+            <button
+              type="button"
+              onClick={() => {
+                setIsLoading(true);
+                setLoadError('');
+                fetchAddresses()
+                  .then((data) => {
+                    setAddresses(data);
+                    setLoadError('');
+                  })
+                  .catch((error: unknown) => setLoadError(error instanceof Error ? error.message : 'Could not load addresses.'))
+                  .finally(() => setIsLoading(false));
+              }}
+              className="text-sm font-semibold text-blue-400 hover:text-blue-300"
+            >
+              Try again
+            </button>
+          </div>
+        ) : addresses.map((addr) => (
           <div key={addr.id} className={`border rounded-2xl p-6 relative transition-colors group ${addr.isDefault ? 'bg-slate-950/50 border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.05)]' : 'bg-slate-950/50 border-slate-800 hover:border-slate-600'}`}>
             {addr.isDefault && (
               <div className="absolute top-0 right-0 bg-amber-500 text-amber-950 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-bl-xl rounded-tr-2xl">Default</div>
@@ -137,7 +207,7 @@ export default function ShippingAddressesTab({ user }: { user: any }) {
             </div>
           </div>
         ))}
-        {addresses.length === 0 && (
+        {!isLoading && !loadError && addresses.length === 0 && (
           <div className="col-span-full text-center text-slate-500 py-10">
             No shipping addresses found. Add one to get started!
           </div>

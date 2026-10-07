@@ -57,7 +57,7 @@ export default function AdminStaffPage() {
       } else {
         alert("Failed to add staff member.");
       }
-    } catch (err) {
+    } catch {
       alert("Network error.");
     }
   };
@@ -75,7 +75,7 @@ export default function AdminStaffPage() {
       } else {
         alert("Failed to remove staff.");
       }
-    } catch (err) {
+    } catch {
       alert("Network error.");
     }
   };

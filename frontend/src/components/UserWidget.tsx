@@ -1,9 +1,11 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 export default function UserWidget() {
+  const router = useRouter();
   const { user, logout } = useAuth();
 
   if (!user) {
@@ -99,7 +101,7 @@ export default function UserWidget() {
           className="action-btn" 
           onClick={() => {
             logout();
-            window.location.href = '/login';
+            router.push('/login');
           }}
           style={{ cursor: 'pointer', borderTop: '1px solid #f1f5f9', marginTop: '8px', paddingTop: '8px' }}
         >

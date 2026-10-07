@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { X, Smartphone, CreditCard, Banknote, ShieldCheck, CheckCircle2, Loader2, Building2 } from 'lucide-react';
+import { X, Smartphone, CreditCard, ShieldCheck, CheckCircle2, Loader2, Building2 } from 'lucide-react';
 
 interface MockPaymentGatewayProps {
   amount: number;

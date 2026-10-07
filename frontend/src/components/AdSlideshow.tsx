@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function AdSlideshow({ ads }: { ads: any[] }) {

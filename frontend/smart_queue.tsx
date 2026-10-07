@@ -164,7 +164,7 @@ export default function SellerStorefront() {
                     ⓘ About
                   </button>
                   <button className="flex-1 text-gray-500 hover:bg-gray-50 py-3 rounded-xl font-bold text-sm transition">
-                    ✓ What's Included
+                    ✓ What&apos;s Included
                   </button>
                   <button className="flex-1 text-gray-500 hover:bg-gray-50 py-3 rounded-xl font-bold text-sm transition">
                     📸 Gallery
@@ -234,7 +234,7 @@ export default function SellerStorefront() {
                       <div className="absolute top-4 right-4 text-indigo-100 font-black text-xl">01</div>
                       <div className="text-3xl mb-4">🚶</div>
                       <h4 className="font-bold text-gray-900 mb-2">Walk In Anytime</h4>
-                      <p className="text-xs text-gray-500 leading-relaxed">No appointment. Show up whenever it's convenient.</p>
+                      <p className="text-xs text-gray-500 leading-relaxed">No appointment. Show up whenever it&apos;s convenient.</p>
                     </div>
                     <div className="bg-white rounded-2xl p-6 shadow-sm relative overflow-hidden">
                       <div className="absolute top-4 right-4 text-indigo-100 font-black text-xl">02</div>
@@ -492,7 +492,7 @@ export default function SellerStorefront() {
               <div className="py-24 text-center bg-white rounded-2xl border border-gray-200 border-dashed">
                 <div className="text-6xl mb-6">📦</div>
                 <h3 className="text-xl font-bold text-gray-900">No products found</h3>
-                <p className="text-gray-500 mt-2">This seller hasn't added any products to their catalog yet.</p>
+                <p className="text-gray-500 mt-2">This seller hasn&apos;t added any products to their catalog yet.</p>
               </div>
             )}
           </div>

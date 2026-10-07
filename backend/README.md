@@ -59,6 +59,14 @@ $ npm run test:cov
 
 ## Deployment
 
+In local development, the backend generates a random, in-memory JWT secret when `JWT_SECRET` is unset. This invalidates local sessions when the backend restarts. Production requires `JWT_SECRET`. Generate a new 256-bit secret with:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Set the resulting 64-character hexadecimal value in the deployment environment. For Docker Compose, provide it through the shell environment or a root `.env` file; never commit the value. Previously exposed signing secrets must be rotated, which invalidates existing sessions.
+
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
 
 If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:

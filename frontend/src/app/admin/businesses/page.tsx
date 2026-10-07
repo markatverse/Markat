@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Search, Briefcase, Store } from 'lucide-react';
+import { Search, Store } from 'lucide-react';
 
 export default function BusinessesPage() {
   const [businesses, setBusinesses] = useState<any[]>([]);

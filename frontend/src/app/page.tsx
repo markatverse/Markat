@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { ShieldCheck, Award, RefreshCw, Zap } from 'lucide-react';
-import UserWidget from "@/components/UserWidget";
+import { ShieldCheck, Award, RefreshCw } from 'lucide-react';
 import JoinSellerButton from "@/components/JoinSellerButton";
 import LiveBookingWidget from "@/components/LiveBookingWidget";
 import dynamic from 'next/dynamic';

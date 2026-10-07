@@ -131,7 +131,7 @@ export default function SellerOnboarding() {
         else if (nomData.address.path) localParts.push(nomData.address.path);
         else if (nomData.address.footway) localParts.push(nomData.address.footway);
         
-        let streetAddress = localParts.join(', ');
+        const streetAddress = localParts.join(', ');
         
         if (newPin) setPinCode(newPin);
         if (newCity) setCity(newCity);

@@ -1,13 +1,10 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
-import { useProducts } from '@/context/ProductContext';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import {  useRouter } from 'next/navigation';
 import {
-  MapPin, Star, ShieldCheck, Clock, Calendar, CheckCircle2, PhoneCall,
-  Info, Camera, Users, Ticket, ChevronRight, Loader2, RefreshCw,
-  Scissors, ArrowLeft, Share2, Heart, Zap, TrendingUp, CalendarClock, Sparkles
+  MapPin, Clock, Users, Ticket, ChevronRight, Loader2, RefreshCw, CalendarClock, Sparkles
 } from 'lucide-react';
 
 // ─── Dynamic Walk-in Services ───────────────────────────────────────────────────
@@ -111,7 +108,7 @@ export default function SmartQueueWidget({ service }: { service: any }) {
   const [err, setErr] = useState('');
 
   useEffect(() => {
-    let isMounted = true;
+    const isMounted = { current: true };
     const fetchQ = async () => {
       try {
         let list: QueueSummary[] = [];
@@ -151,18 +148,21 @@ export default function SmartQueueWidget({ service }: { service: any }) {
           if (newQueue && newQueue.id) list = [newQueue];
         }
 
-        if (isMounted) {
+        if (isMounted.current) {
           setQueues(list);
           if (list.length > 0) setSelected(list[0]);
         }
       } catch (e) {
         console.error(e);
       } finally {
-        setLoadingQ(false);
+        if (isMounted.current) setLoadingQ(false);
       }
     };
     fetchQ();
-  }, [service.sellerId, service.seller]);
+    return () => {
+      isMounted.current = false;
+    };
+  }, [service.name, service.sellerId, service.seller]);
 
   const fetchStatus = useCallback(async (showRefresh = false, isMounted = { current: true }) => {
     if (!selected) return;
@@ -173,13 +173,13 @@ export default function SmartQueueWidget({ service }: { service: any }) {
         const st = await r.json();
         if (isMounted.current) setStatus(st);
       }
-    } catch (e) {} finally {
+    } catch {} finally {
       if (showRefresh && isMounted.current) setRefreshing(false);
     }
   }, [selected]);
 
   useEffect(() => {
-    let isMounted = { current: true };
+    const isMounted = { current: true };
     fetchStatus(false, isMounted);
     const i = setInterval(() => fetchStatus(false, isMounted), 12000);
     return () => {

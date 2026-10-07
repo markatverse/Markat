@@ -10,6 +10,7 @@ import { MapPin, Heart, Share2 } from 'lucide-react';
 import { useUserTrends } from '@/hooks/useUserTrends';
 import StarRating from './StarRating';
 import ProductGridSkeleton from './ProductGridSkeleton';
+import { isServiceProduct } from '@/utils/productSearch';
 
 export default function ProductGrid({ products: propProducts, limit, category, personalized, recent, serviceOnly }: { products?: Product[], limit?: number, category?: string, personalized?: boolean, recent?: boolean, serviceOnly?: boolean }) {
   const { products: contextProducts, isLoading, userLocation, userLat, userLng, radiusFilter, setRadiusFilter } = useProducts();
@@ -34,10 +35,7 @@ export default function ProductGrid({ products: propProducts, limit, category, p
   
   const productsToRender = [...(items || [])].filter(p => {
     if (category && p.category !== category) return false;
-    if (serviceOnly) {
-      const isService = ['Services', 'Home Services', 'Transport', 'Rentals', 'Organizers'].includes(p.category);
-      if (!isService) return false;
-    }
+    if (serviceOnly && !isServiceProduct(p)) return false;
     return true;
   });
 
@@ -100,7 +98,7 @@ export default function ProductGrid({ products: propProducts, limit, category, p
   }
 
   if (finalProducts.length === 0) {
-    return <div className="text-center p-10 text-slate-400">No products found.</div>;
+    return <div className="text-center p-10 text-slate-400">No {serviceOnly ? 'services' : 'products'} found.</div>;
   }
 
   return (
@@ -135,7 +133,7 @@ export default function ProductGrid({ products: propProducts, limit, category, p
       )}
       <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 sm:gap-4">
       {finalProducts.map(product => {
-        const isService = ['Services', 'Home Services', 'Transport', 'Rentals', 'Organizers'].includes(product.category);
+        const isService = isServiceProduct(product);
         const route = isService ? `/service/${product.id}` : `/product/${product.id}`;
         return (
         <div key={product.id} onClick={() => router.push(route)} className="cursor-pointer no-underline text-inherit group">

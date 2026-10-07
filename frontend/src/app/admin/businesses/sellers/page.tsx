@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAdminRole } from '@/context/AdminRoleContext';
-import { ShieldAlert, Search, Check, X, Store, Info, Phone, Mail, Settings } from 'lucide-react';
+import { ShieldAlert, Search, Check, X, Store, Phone, Mail, Settings } from 'lucide-react';
 
 export default function AdminSellersPage() {
   const { canEdit } = useAdminRole();

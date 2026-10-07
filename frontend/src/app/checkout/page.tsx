@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useCart } from '@/context/CartContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MapPin, CreditCard, CheckCircle2, ChevronRight, Lock, Package, ArrowRight, Smartphone, Banknote, Building2 } from 'lucide-react';
+import { MapPin, CreditCard, CheckCircle2, Lock, Package, ArrowRight, Smartphone, Banknote } from 'lucide-react';
 import MockPaymentGateway from '@/components/MockPaymentGateway';
 import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
@@ -58,7 +58,7 @@ export default function CheckoutPage() {
             setCity(`${cityName}, ${data.principalSubdivision || ''}`);
             toast.success("Location fetched automatically!");
           }
-        } catch (error) {
+        } catch {
           toast.error("Failed to fetch location");
         } finally {
           setIsFetchingPin(false);
@@ -150,7 +150,7 @@ export default function CheckoutPage() {
             <Package className="w-10 h-10 text-blue-500" />
           </div>
           <h2 className="text-2xl font-bold text-slate-800 mb-2">Your Cart is Empty</h2>
-          <p className="text-slate-500 mb-8">Looks like you haven't added anything to your cart yet.</p>
+          <p className="text-slate-500 mb-8">Looks like you haven&apos;t added anything to your cart yet.</p>
           <Link href="/">
             <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-6 rounded-xl transition-colors shadow-lg shadow-blue-500/20">
               Continue Shopping

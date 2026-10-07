@@ -401,7 +401,7 @@ function LoginContent() {
               </form>
 
               <p className="text-center text-sm text-slate-500 mt-6">
-                Don't have an account?{' '}
+                Don&apos;t have an account?{' '}
                 <button onClick={() => { setView('register'); clearErrors(); }} className="text-blue-600 font-semibold hover:underline">
                   Create one free
                 </button>
@@ -514,7 +514,7 @@ function LoginContent() {
                     </button>
                   </div>
                   {regConfirmPassword && regPassword !== regConfirmPassword && (
-                    <p className="text-xs text-red-500 mt-1">Passwords don't match</p>
+                    <p className="text-xs text-red-500 mt-1">Passwords don&apos;t match</p>
                   )}
                   {regConfirmPassword && regPassword === regConfirmPassword && regPassword.length >= 6 && (
                     <p className="text-xs text-emerald-500 mt-1 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Passwords match</p>
@@ -557,8 +557,8 @@ function LoginContent() {
                 </div>
                 <h2 className="text-3xl font-bold text-slate-900 mb-1">Verify Email</h2>
                 <p className="text-slate-500 text-sm">
-                  We've sent an OTP to <span className="font-semibold text-slate-700">{regEmail}</span>
-                  <br /><span className="text-xs text-amber-600 mt-1 inline-block">If you don't see it in your inbox, please check your <strong>spam folder</strong>.</span>
+                  We&apos;ve sent an OTP to <span className="font-semibold text-slate-700">{regEmail}</span>
+                  <br /><span className="text-xs text-amber-600 mt-1 inline-block">If you don&apos;t see it in your inbox, please check your <strong>spam folder</strong>.</span>
                 </p>
               </div>
 
@@ -592,7 +592,7 @@ function LoginContent() {
 
                 <div className="flex items-center justify-between text-sm mt-4">
                   <p className="text-slate-500">
-                    Didn't receive it?{' '}
+                    Didn&apos;t receive it?{' '}
                     <button type="button" onClick={handleRegisterInit as any} className="text-blue-600 font-semibold hover:underline">
                       Resend OTP
                     </button>
@@ -621,7 +621,7 @@ function LoginContent() {
                   <Lock className="w-7 h-7 text-blue-600" />
                 </div>
                 <h2 className="text-3xl font-bold text-slate-900 mb-1">Forgot password?</h2>
-                <p className="text-slate-500 text-sm">Enter your registered email or phone and we'll send you an OTP to reset your password.</p>
+                <p className="text-slate-500 text-sm">Enter your registered email or phone and we&apos;ll send you an OTP to reset your password.</p>
               </div>
 
               {error && (
@@ -697,7 +697,7 @@ function LoginContent() {
 
                 <div className="flex items-center justify-between text-sm">
                   <p className="text-slate-500">
-                    Didn't receive it?{' '}
+                    Didn&apos;t receive it?{' '}
                     <button type="button" onClick={handleForgotSend as any} className="text-blue-600 font-semibold hover:underline">
                       Resend OTP
                     </button>
@@ -759,7 +759,7 @@ function LoginContent() {
                     </button>
                   </div>
                   {fpConfirmPassword && fpNewPassword !== fpConfirmPassword && (
-                    <p className="text-xs text-red-500 mt-1">Passwords don't match</p>
+                    <p className="text-xs text-red-500 mt-1">Passwords don&apos;t match</p>
                   )}
                 </div>
 

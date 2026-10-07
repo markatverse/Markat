@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Store, Users, ShoppingBag, Settings, Tag, ShieldAlert, Zap, Box, FileText, Banknote, Command } from 'lucide-react';
+import { Search, Store, Users, ShoppingBag, Settings, Tag, ShieldAlert, Zap, Box, FileText, Banknote } from 'lucide-react';
 
 const STATIC_ROUTES = [
   { name: 'Dashboard Overview', path: '/admin', icon: <Zap className="w-4 h-4 text-amber-500" /> },
@@ -95,8 +95,8 @@ export default function OmniSearch() {
           ) : (
             <div className="py-10 text-center flex flex-col items-center">
               <Search className="w-10 h-10 text-slate-700 mb-3" />
-              <p className="text-slate-400 font-medium text-sm">No results found for "{query}"</p>
-              <p className="text-slate-600 text-xs mt-1">Try searching for "Orders" or "Sellers"</p>
+              <p className="text-slate-400 font-medium text-sm">No results found for &quot;{query}&quot;</p>
+              <p className="text-slate-600 text-xs mt-1">Try searching for &quot;Orders&quot; or &quot;Sellers&quot;</p>
             </div>
           )}
         </div>

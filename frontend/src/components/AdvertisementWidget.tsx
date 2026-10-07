@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
 import AdSlideshow from '@/components/AdSlideshow';
 
 export default function AdvertisementWidget({ position, className = "" }: { position: string, className?: string }) {

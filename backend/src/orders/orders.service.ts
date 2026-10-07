@@ -92,6 +92,14 @@ export class OrdersService {
     }));
   }
 
+  findByBuyer(buyerId: string) {
+    return this.prisma.order.findMany({
+      where: { buyerId },
+      include: { items: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   findOne(id: string) {
     return this.prisma.order.findUnique({ where: { id } });
   }

@@ -57,7 +57,7 @@ export default function AdminResourcesPage() {
       } else {
         alert("Failed to add resource.");
       }
-    } catch (err) {
+    } catch {
       alert("Network error.");
     }
   };
@@ -75,7 +75,7 @@ export default function AdminResourcesPage() {
       } else {
         alert("Failed to remove resource.");
       }
-    } catch (err) {
+    } catch {
       alert("Network error.");
     }
   };

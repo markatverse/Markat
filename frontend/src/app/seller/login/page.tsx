@@ -89,11 +89,11 @@ export default function SellerLoginPage() {
 
       // If seller role but no business record yet, send to onboarding to complete setup
       if (!data.user.business) {
-        window.location.href = '/seller/onboarding';
+        router.push('/seller/onboarding');
         return;
       }
 
-      window.location.href = '/seller/dashboard';
+      router.push('/seller/dashboard');
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -432,7 +432,7 @@ export default function SellerLoginPage() {
                       className={inputCls} />
                   </div>
                   {fpConfirmPassword && fpNewPassword !== fpConfirmPassword && (
-                    <p className="text-xs text-red-500 mt-1">Passwords don't match</p>
+                    <p className="text-xs text-red-500 mt-1">Passwords don&apos;t match</p>
                   )}
                 </div>
                 <button type="submit" className={btnPrimary} disabled={isLoading || fpNewPassword.length < 6}>

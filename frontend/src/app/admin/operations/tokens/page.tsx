@@ -30,7 +30,7 @@ export default function AdminTokensPage() {
       } else {
         setError("Token not found or invalid.");
       }
-    } catch (err) {
+    } catch {
       setError("Failed to fetch token data from the server.");
     } finally {
       setLoading(false);
@@ -54,7 +54,7 @@ export default function AdminTokensPage() {
       } else {
         alert(`Failed to execute ${action}`);
       }
-    } catch (e) {
+    } catch {
       alert("Network error.");
     }
   };

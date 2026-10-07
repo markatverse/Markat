@@ -3,8 +3,8 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Ticket, ArrowLeft, ArrowRight, Clock, Stethoscope, Scissors, Wrench, MapPin, 
-  Search, Filter, ChevronDown, User, Calendar, AlertCircle, CheckCircle2,
-  XCircle, Edit, ExternalLink
+  Search, User, Calendar, AlertCircle, CheckCircle2,
+  XCircle, ExternalLink
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -94,7 +94,7 @@ export default function CustomerBookingsDashboard() {
               estimatedWaitMin: data.estimatedWaitMin || 0,
               ahead: data.ahead || 0
             } as TokenItem;
-          } catch (e) {
+          } catch {
             return null;
           }
         });

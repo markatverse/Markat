@@ -39,7 +39,7 @@ export default function AdminBookingsPage() {
       } else {
         alert("Failed to update queue status");
       }
-    } catch (e) {
+    } catch {
       alert("Error updating queue");
     }
   };

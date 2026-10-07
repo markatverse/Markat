@@ -221,7 +221,7 @@ export default function SellerStorefront() {
               <div className="py-24 text-center bg-white rounded-2xl border border-gray-200 border-dashed">
                 <div className="text-6xl mb-6">📦</div>
                 <h3 className="text-xl font-bold text-gray-900">No products found</h3>
-                <p className="text-gray-500 mt-2">This seller hasn't added any products to their catalog yet.</p>
+                <p className="text-gray-500 mt-2">This seller hasn&apos;t added any products to their catalog yet.</p>
               </div>
             )}
           </div>

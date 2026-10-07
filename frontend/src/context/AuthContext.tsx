@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         setUser(JSON.parse(cached));
         setIsLoading(false);
-      } catch (e) {}
+      } catch {}
     }
 
     fetch(`${API_URL}/auth/me`, {

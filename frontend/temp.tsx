@@ -61,7 +61,7 @@ export default function CategoryRelationsPage() {
   const setFeatureState = (feature: FeatureRule, state: 'allowed' | 'optional' | 'notApplicable' | 'none') => {
     if (!hasEditPermission) return;
     const remove = (arr: FeatureRule[] | undefined) => (arr || []).filter(f => f !== feature);
-    let next = {
+    const next = {
       allowedFeatures: remove(draft.allowedFeatures) as FeatureRule[],
       notApplicable: remove(draft.notApplicable) as FeatureRule[],
       optionalFeatures: remove(draft.optionalFeatures) as FeatureRule[],
@@ -449,7 +449,7 @@ export default function CategoryRelationsPage() {
                     <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-12 flex flex-col items-center justify-center text-slate-500 border-dashed">
                       <Tags className="w-12 h-12 mb-4 opacity-50" />
                       <p className="font-bold">No custom attributes.</p>
-                      <p className="text-sm">Click "Add Attribute" to build dynamic forms for this category.</p>
+                      <p className="text-sm">Click &quot;Add Attribute&quot; to build dynamic forms for this category.</p>
                     </div>
                   ) : (
                     <div className="space-y-4">

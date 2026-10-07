@@ -5,6 +5,7 @@ import { PrismaModule } from '../prisma.module.js';
 import { JwtModule } from '@nestjs/jwt';
 import { SecurityModule } from '../security/security.module.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
+import { getJwtSecret } from './jwt-secret.js';
 
 @Module({
   imports: [
@@ -12,12 +13,12 @@ import { NotificationsService } from '../notifications/notifications.service.js'
     SecurityModule,
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_SECRET || 'markatverse_jwt_super_secret_2026_do_not_share',
+      secret: getJwtSecret(),
       signOptions: { expiresIn: '7d' },
     }),
   ],
   providers: [AuthService, NotificationsService],
   controllers: [AuthController],
-  exports: [AuthService],
+  exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

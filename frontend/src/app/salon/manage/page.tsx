@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
-  Scissors, Users, User, Clock, TrendingUp, ChevronRight, Plus, RefreshCw,
+  Scissors, Users, User, Clock, TrendingUp, Plus, RefreshCw,
   PlayCircle, XCircle, CheckCircle2, Settings, Loader2, IndianRupee,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";

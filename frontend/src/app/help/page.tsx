@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { 
   Search, 
   Package, 
@@ -76,7 +75,7 @@ export default function HelpCenterPage() {
             setChatMessages([]);
           }
         }
-      } catch (e) {
+      } catch {
         setChatMessages([]);
       }
     };
@@ -91,7 +90,7 @@ export default function HelpCenterPage() {
           if (myChat) {
             setChatMessages(myChat.messages || []);
           }
-        } catch(e) {}
+        } catch {}
       }
     };
 
@@ -192,7 +191,7 @@ export default function HelpCenterPage() {
             try {
               const currentStored = localStorage.getItem('MV_LIVE_CHATS');
               if (currentStored) {
-                let currentChats = JSON.parse(currentStored);
+                const currentChats = JSON.parse(currentStored);
                 if (Array.isArray(currentChats)) {
                   const idx = currentChats.findIndex((c: any) => c.id === 'CH-ME');
                   if (idx >= 0) {
@@ -203,7 +202,7 @@ export default function HelpCenterPage() {
                   }
                 }
               }
-            } catch(e) {}
+            } catch {}
           }
         }, 1000);
       }
@@ -365,7 +364,7 @@ export default function HelpCenterPage() {
                 <Mail className="w-4 h-4 text-slate-400" /> Email Support
               </h4>
               <p className="text-sm text-slate-500 mb-4">
-                Send us an email and we'll get back to you within 24 hours.
+                Send us an email and we&apos;ll get back to you within 24 hours.
               </p>
               <a href="mailto:support@markatverse.com" className="text-blue-600 font-bold hover:underline">
                 support@markatverse.com

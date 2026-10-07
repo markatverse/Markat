@@ -1,9 +1,36 @@
-import { Controller, Get, Post, Put, Delete, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Headers, ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { NotificationsService } from './notifications.service.js';
 
 @Controller('admin/notifications')
 export class NotificationsController {
-  constructor(private readonly notificationsService: NotificationsService) { }
+  constructor(
+    private readonly notificationsService: NotificationsService,
+    private readonly jwtService: JwtService,
+  ) { }
+
+  @Get('history/:userId')
+  async getHistory(
+    @Param('userId') userId: string,
+    @Headers('authorization') authorization?: string,
+  ) {
+    const token = authorization?.startsWith('Bearer ')
+      ? authorization.slice(7)
+      : undefined;
+    if (!token) throw new UnauthorizedException('Authentication required');
+
+    let authenticatedUserId: string;
+    try {
+      authenticatedUserId = this.jwtService.verify<{ sub: string }>(token).sub;
+    } catch {
+      throw new UnauthorizedException('Invalid or expired session');
+    }
+    if (authenticatedUserId !== userId) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    return this.notificationsService.findHistoryForUser(userId);
+  }
 
   @Get('sms')
   async getSmsTemplates() {

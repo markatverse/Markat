@@ -122,7 +122,7 @@ export default function NotificationsTemplatesPage() {
               {loading ? (
                 <tr><td colSpan={5} className="p-4 text-center text-slate-400">Loading templates...</td></tr>
               ) : items.length === 0 ? (
-                <tr><td colSpan={5} className="p-4 text-center text-slate-400">No templates found. Add some like "ORDER_PROCESSING".</td></tr>
+                <tr><td colSpan={5} className="p-4 text-center text-slate-400">No templates found. Add some like &quot;ORDER_PROCESSING&quot;.</td></tr>
               ) : (
                 items.map(item => (
                   <tr key={item.id} className="hover:bg-slate-700/50 transition-all group">

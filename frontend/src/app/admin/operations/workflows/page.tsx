@@ -58,7 +58,7 @@ export default function OperationsWorkflowsPage() {
       let parsedSteps;
       try {
         parsedSteps = JSON.parse(newWorkflow.steps);
-      } catch (err) {
+      } catch {
         alert('Invalid JSON in steps');
         setSubmitting(false);
         return;

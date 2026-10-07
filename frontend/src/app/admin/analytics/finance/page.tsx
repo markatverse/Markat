@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { DollarSign, ArrowUpRight, ArrowDownRight, Wallet, TrendingUp, Download } from 'lucide-react';
+import { DollarSign, ArrowUpRight, Wallet, TrendingUp, Download } from 'lucide-react';
 
 export default function AnalyticsFinancePage() {
   const [data, setData] = useState<any>(null);

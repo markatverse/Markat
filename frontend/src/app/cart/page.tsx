@@ -14,7 +14,7 @@ export default function CartPage() {
           <ShoppingBag className="w-16 h-16 text-slate-400" strokeWidth={1.5} />
         </div>
         <h2 className="text-3xl font-bold text-slate-800 mb-4">Your Shopping Cart is Empty</h2>
-        <p className="text-slate-500 mb-8 max-w-md text-center text-lg">Discover amazing products and services in our global marketplace. There's so much to explore!</p>
+        <p className="text-slate-500 mb-8 max-w-md text-center text-lg">Discover amazing products and services in our global marketplace. There&apos;s so much to explore!</p>
         <Link href="/">
           <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-colors shadow-lg shadow-blue-600/20 flex items-center gap-2">
             Start Shopping <ArrowRight className="w-5 h-5" />

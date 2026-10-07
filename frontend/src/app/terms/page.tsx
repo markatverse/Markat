@@ -32,7 +32,7 @@ export default function TermsPage() {
             
             <h2 className="text-xl mt-8 mb-4">5. Disclaimer of Warranties</h2>
             <p>
-              The materials on MarkatVerse's website are provided on an 'as is' basis. MarkatVerse makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
+              The materials on MarkatVerse&apos;s website are provided on an &apos;as is&apos; basis. MarkatVerse makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
             </p>
           </div>
         </div>

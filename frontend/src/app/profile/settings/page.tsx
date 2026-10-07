@@ -1,20 +1,40 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useProducts } from '@/context/ProductContext';
 import { useCart } from '@/context/CartContext';
-import { User, CreditCard, MapPin, Package, Settings, Camera, ShieldCheck, Bell, ChevronRight, ChevronLeft, LogOut, Edit3, Trash2, Plus, Star, Heart, ShoppingBag, Key, Smartphone, Laptop, Download, Lock, Monitor } from 'lucide-react';
+import { User, CreditCard, MapPin, Package, Camera, ShieldCheck, Bell, ChevronRight, ChevronLeft, LogOut, Edit3, Trash2, Star, Heart, ShoppingBag, Key, Smartphone, Laptop, Download, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ShippingAddressesTab from '@/components/ShippingAddressesTab';
+
+type ProfileNotification = {
+  id: string;
+  triggerType: string;
+  title?: string | null;
+  message: string;
+  createdAt: string;
+};
+
+type ProfileOrder = {
+  id: string;
+  orderNumber?: string | null;
+  createdAt: string;
+  status: string;
+  total: number;
+  items: { id: string; productName?: string | null; quantity: number; price: number }[];
+};
 
 const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
 
 export default function ProfileSettings() {
   const [activeTab, setActiveTab] = useState('personal');
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<ProfileNotification[]>([]);
+  const [orders, setOrders] = useState<ProfileOrder[]>([]);
+  const [profileDataError, setProfileDataError] = useState('');
+  const [isProfileDataLoading, setIsProfileDataLoading] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const { user, login, logout, isLoading } = useAuth();
@@ -26,11 +46,8 @@ export default function ProfileSettings() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [is2FAEnabled, setIs2FAEnabled] = useState(false);
-  const [sessions, setSessions] = useState<{ id: string, device: string, location: string, browser: string, isCurrent: boolean, lastActive: string }[]>([]);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleteText, setDeleteText] = useState('');
   const router = useRouter();
+  const profileFormRef = useRef<HTMLFormElement>(null);
 
   React.useEffect(() => {
     if (!isLoading && !user) {
@@ -39,53 +56,40 @@ export default function ProfileSettings() {
   }, [isLoading, user, router]);
 
   React.useEffect(() => {
-    if (activeTab === 'notifications' && user) {
-      const fetchNotifications = async () => {
-        try {
-          const res = await fetch(`${API_URL}/admin/notifications/history`);
-          if (res.ok) {
-            const data = await res.json();
-            const myLogs = data.filter((n: any) => n.userId === user.id || n.userId === user.markatId).slice(0, 10);
-            setNotifications(myLogs);
-          }
-        } catch (error) {
-          console.error("Failed to load notifications", error);
-        }
-      };
-      fetchNotifications();
-    }
+    if ((activeTab !== 'notifications' && activeTab !== 'orders') || !user?.id) return;
+
+    const loadProfileData = async () => {
+      setProfileDataError('');
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setProfileDataError('Your session has expired. Please sign in again.');
+        return;
+      }
+
+      setIsProfileDataLoading(true);
+      const isOrdersTab = activeTab === 'orders';
+      const resource = isOrdersTab ? 'orders' : 'notifications';
+      const endpoint = isOrdersTab
+        ? `${API_URL}/orders/buyer/${encodeURIComponent(user.id!)}`
+        : `${API_URL}/admin/notifications/history/${encodeURIComponent(user.id!)}`;
+      try {
+        const res = await fetch(endpoint, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error(`Could not load ${resource} (${res.status})`);
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error(`Unexpected ${resource} response`);
+        if (isOrdersTab) setOrders(data);
+        else setNotifications(data);
+      } catch (error) {
+        setProfileDataError(error instanceof Error ? error.message : `Could not load ${resource}.`);
+      } finally {
+        setIsProfileDataLoading(false);
+      }
+    };
+
+    void loadProfileData();
   }, [activeTab, user]);
-
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const userAgent = window.navigator.userAgent;
-      
-      let browser = 'Unknown Browser';
-      if (userAgent.indexOf("Firefox") > -1) browser = "Firefox";
-      else if (userAgent.indexOf("Opera") > -1 || userAgent.indexOf("OPR") > -1) browser = "Opera";
-      else if (userAgent.indexOf("Trident") > -1) browser = "Internet Explorer";
-      else if (userAgent.indexOf("Edge") > -1 || userAgent.indexOf("Edg") > -1) browser = "Edge";
-      else if (userAgent.indexOf("Chrome") > -1) browser = "Chrome";
-      else if (userAgent.indexOf("Safari") > -1) browser = "Safari";
-      
-      let device = 'Unknown Device';
-      if (userAgent.indexOf("Win") > -1) device = "Windows PC";
-      else if (userAgent.indexOf("Mac") > -1) device = "Mac";
-      else if (userAgent.indexOf("Linux") > -1) device = "Linux PC";
-      else if (userAgent.indexOf("Android") > -1) device = "Android Device";
-      else if (userAgent.indexOf("iPhone") > -1) device = "iPhone";
-      else if (userAgent.indexOf("iPad") > -1) device = "iPad";
-
-      setSessions([{
-        id: 'current-session',
-        device: device,
-        location: 'Current Location',
-        browser: browser,
-        isCurrent: true,
-        lastActive: 'Just now'
-      }]);
-    }
-  }, []);
 
   const handlePasswordUpdate = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) return toast.error('Please fill all password fields');
@@ -93,7 +97,8 @@ export default function ProfileSettings() {
     
     setIsUpdating(true);
     try {
-      const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Your session has expired. Please sign in again.');
       const res = await fetch(`${API_URL}/users/${user?.id}/password`, {
         method: 'PATCH',
         headers: { 
@@ -113,23 +118,12 @@ export default function ProfileSettings() {
         toast.error(data.message || 'Failed to update password');
       }
     } catch (error) {
-      toast.error('An error occurred');
+      toast.error(error instanceof Error ? error.message : 'Failed to update password');
     } finally {
       setIsUpdating(false);
     }
   };
 
-  const handleRevokeSession = (id: string) => {
-    setSessions(sessions.filter(s => s.id !== id));
-    toast.success('Session revoked');
-  };
-
-  const handleDeleteAccount = () => {
-    if (deleteText !== 'DELETE') return toast.error('Type DELETE to confirm');
-    toast.success('Account deleted successfully');
-    logout();
-  };
-  
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -168,7 +162,8 @@ export default function ProfileSettings() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/users/${user.id}`, {
+      if (!token) throw new Error('Your session has expired. Please sign in again.');
+      const res = await fetch(`${API_URL}/users/${user.id}`, {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',
@@ -190,7 +185,7 @@ export default function ProfileSettings() {
         toast.error(data.message || 'Failed to update profile');
       }
     } catch (error) {
-      toast.error('An error occurred');
+      toast.error(error instanceof Error ? error.message : 'Failed to update profile');
     } finally {
       setIsUpdating(false);
     }
@@ -246,7 +241,7 @@ export default function ProfileSettings() {
                 </div>
               )}
               <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-xs font-semibold text-slate-300">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Fully Verified
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Account
               </div>
             </div>
             
@@ -279,7 +274,7 @@ export default function ProfileSettings() {
               <button 
                 onClick={() => {
                   logout();
-                  window.location.href = '/login';
+                  router.push('/login');
                 }}
                 className="w-full flex items-center gap-3 p-4 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors font-semibold text-sm">
                 <LogOut className="w-5 h-5" /> Sign Out
@@ -310,12 +305,17 @@ export default function ProfileSettings() {
                     <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">Personal Information</h2>
                     <p className="text-slate-400 text-sm">Update your profile details and contact information.</p>
                   </div>
-                  <button className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors border border-slate-700">
+                  <button type="button" onClick={() => profileFormRef.current?.querySelector<HTMLInputElement>('input[name="firstName"]')?.focus()} aria-label="Edit personal information" className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors border border-slate-700">
                     <Edit3 className="w-5 h-5" />
                   </button>
                 </div>
 
-                <form className="grid grid-cols-1 md:grid-cols-2 gap-8" onSubmit={handleProfileUpdate}>
+                <form
+                  key={`${user.name}:${email}:${phone}`}
+                  ref={profileFormRef}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-8"
+                  onSubmit={handleProfileUpdate}
+                >
                   <div className="group">
                     <label className="block mb-2 text-xs font-bold tracking-widest uppercase text-slate-400 group-focus-within:text-blue-400 transition-colors">First Name</label>
                     <input 
@@ -362,7 +362,7 @@ export default function ProfileSettings() {
                   </div>
 
                   <div className="md:col-span-2 mt-4 pt-6 border-t border-slate-800 flex justify-end gap-4">
-                    <button type="button" className="px-6 py-3 rounded-xl font-bold text-slate-300 hover:text-white transition-colors">
+                    <button type="button" onClick={() => profileFormRef.current?.reset()} className="px-6 py-3 rounded-xl font-bold text-slate-300 hover:text-white transition-colors">
                       Cancel
                     </button>
                     <button type="submit" disabled={isUpdating} className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 flex items-center gap-2">
@@ -426,11 +426,8 @@ export default function ProfileSettings() {
                           <div className="text-5xl font-bold text-white mb-2">₹1,999</div>
                           <div className="text-slate-500 text-xs mb-6">per year, billed annually</div>
                           
-                          <button 
-                            className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-900 rounded-xl font-bold text-lg transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] hover:-translate-y-0.5 active:translate-y-0"
-                            onClick={() => alert("Redirecting to Elite payment gateway...")}
-                          >
-                            Upgrade to Elite
+                          <button disabled className="w-full cursor-not-allowed rounded-xl bg-slate-700 py-4 text-lg font-bold text-slate-300 opacity-70" title="Membership checkout is not configured">
+                            Membership checkout unavailable
                           </button>
                         </div>
                       </div>
@@ -443,53 +440,9 @@ export default function ProfileSettings() {
             {activeTab === 'payment' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">Payment Methods</h2>
-                <p className="text-slate-400 text-sm mb-8 border-b border-slate-800 pb-6">Manage your saved cards and preferred payment options securely.</p>
-                
-                <h3 className="text-sm font-bold tracking-widest uppercase text-slate-400 mb-4">Saved Credit/Debit Cards</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                  {/* Mock Card */}
-                  <div className="relative p-6 bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl border border-indigo-500/30 shadow-xl overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl -mr-10 -mt-10"></div>
-                    <div className="flex justify-between items-start mb-8 relative z-10">
-                      <div className="text-indigo-300 font-bold tracking-widest">HDFC VISA</div>
-                      <button className="text-slate-400 hover:text-red-400 transition-colors p-1 bg-slate-900/50 rounded-md backdrop-blur-md opacity-0 group-hover:opacity-100">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <div className="text-2xl font-mono text-white tracking-widest mb-6 relative z-10">**** **** **** 4111</div>
-                    <div className="flex justify-between items-end relative z-10">
-                      <div>
-                        <div className="text-[10px] text-indigo-300 uppercase tracking-widest mb-1">Card Holder</div>
-                        <div className="text-white font-medium text-sm">{firstName} {lastName}</div>
-                      </div>
-                      <div>
-                        <div className="text-[10px] text-indigo-300 uppercase tracking-widest mb-1">Expires</div>
-                        <div className="text-white font-medium text-sm">12/28</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Add New Card Button */}
-                  <button className="flex flex-col items-center justify-center gap-3 p-6 border-2 border-dashed border-slate-700 rounded-2xl text-slate-400 hover:border-blue-500 hover:text-blue-400 hover:bg-blue-500/5 transition-all group">
-                    <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-blue-500/20 group-hover:scale-110 transition-all">
-                      <Plus className="w-6 h-6" />
-                    </div>
-                    <span className="font-bold text-sm">Add New Card</span>
-                  </button>
-                </div>
-
-                <h3 className="text-sm font-bold tracking-widest uppercase text-slate-400 mb-4">Saved UPI IDs</h3>
-                <div className="bg-slate-950/50 border border-slate-800 rounded-xl p-4 flex items-center justify-between max-w-md">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-emerald-500/20 text-emerald-400 rounded-lg flex items-center justify-center font-bold">U</div>
-                    <div>
-                      <div className="text-white font-medium">{email.split('@')[0]}@okicici</div>
-                      <div className="text-xs text-slate-500">Verified</div>
-                    </div>
-                  </div>
-                  <button className="text-slate-400 hover:text-red-400 transition-colors p-2">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                <p className="text-slate-400 text-sm mb-8 border-b border-slate-800 pb-6">Saved payment methods are unavailable because secure payment-method management is not configured.</p>
+                <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-6 text-sm text-slate-400">
+                  No payment details are stored in this profile. Payment information is collected only through an enabled checkout provider.
                 </div>
               </div>
             )}
@@ -498,14 +451,45 @@ export default function ProfileSettings() {
               <ShippingAddressesTab user={user} />
             )}
 
-            {/* ORDERS TAB (Placeholder) */}
+            {/* ORDERS TAB */}
             {activeTab === 'orders' && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col items-center justify-center py-20 text-center">
-                <div className="w-20 h-20 bg-slate-900 rounded-full flex items-center justify-center mb-6 shadow-inner border border-slate-800">
-                  <Package className="w-10 h-10 text-slate-600" />
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="mb-8 border-b border-slate-800 pb-6">
+                  <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">Order History</h2>
+                  <p className="text-slate-400 text-sm">Your recent orders and their current status.</p>
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-2 tracking-tight capitalize">Orders Details</h3>
-                <p className="text-slate-400 max-w-sm">This section is currently being updated. Please check back later for your detailed orders information.</p>
+                {isProfileDataLoading ? (
+                  <p className="py-10 text-center text-slate-400">Loading your orders…</p>
+                ) : profileDataError ? (
+                  <p role="alert" className="py-10 text-center text-red-300">{profileDataError}</p>
+                ) : orders.length === 0 ? (
+                  <p className="py-10 text-center text-slate-400">No orders found for this account.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {orders.map((order) => (
+                      <article key={order.id} className="rounded-xl border border-slate-800 bg-slate-950/50 p-5">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <h3 className="font-bold text-white">Order {order.orderNumber || order.id}</h3>
+                            <p className="mt-1 text-xs text-slate-400">{new Date(order.createdAt).toLocaleDateString()}</p>
+                          </div>
+                          <span className="rounded-full bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-300">{order.status}</span>
+                        </div>
+                        <div className="mt-4 space-y-2">
+                          {order.items.map((item) => (
+                            <div key={item.id} className="flex justify-between gap-4 text-sm text-slate-300">
+                              <span>{item.productName || 'Item'} × {item.quantity}</span>
+                              <span>₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-4 border-t border-slate-800 pt-3 text-right font-bold text-white">
+                          Total: ₹{Number(order.total || 0).toLocaleString('en-IN')}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -519,22 +503,23 @@ export default function ProfileSettings() {
                     </h2>
                     <p className="text-slate-400 text-sm">Stay updated with your orders, messages, and account security.</p>
                   </div>
-                  <button onClick={() => toast.success('All notifications marked as read!')} className="text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors bg-blue-500/10 hover:bg-blue-500/20 px-4 py-2 rounded-lg border border-blue-500/20 active:scale-95">
-                    Mark All as Read
-                  </button>
                 </div>
 
                 <div className="space-y-4">
-                  {notifications.length === 0 ? (
+                  {isProfileDataLoading ? (
+                    <div className="py-10 text-center text-slate-400">Loading notifications…</div>
+                  ) : profileDataError ? (
+                    <div role="alert" className="py-10 text-center text-red-300">{profileDataError}</div>
+                  ) : notifications.length === 0 ? (
                     <div className="text-center text-slate-400 py-10">
                       No notifications yet.
                     </div>
                   ) : (
-                    notifications.map((notif: any, i: number) => {
+                    notifications.map((notif) => {
                       const isSecurity = notif.triggerType.includes('LOGIN') || notif.triggerType.includes('SECURITY');
                       const isOrder = notif.triggerType.includes('ORDER');
                       return (
-                        <div key={i} className="bg-slate-900/40 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-colors flex gap-4 items-start relative overflow-hidden group">
+                        <div key={notif.id} className="bg-slate-900/40 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-colors flex gap-4 items-start relative overflow-hidden group">
                           {isOrder && <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>}
                           {isSecurity && <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500"></div>}
                           
@@ -606,8 +591,8 @@ export default function ProfileSettings() {
                           <p className="text-slate-400 text-[10px] mt-0.5 max-w-[200px]">Require a code upon login.</p>
                         </div>
                       </div>
-                      <button onClick={() => { setIs2FAEnabled(!is2FAEnabled); toast.success(is2FAEnabled ? '2FA Disabled' : '2FA Enabled successfully'); }} className={`${is2FAEnabled ? 'bg-emerald-600 text-white' : 'bg-emerald-600/10 text-emerald-500 border border-emerald-600/50'} text-xs font-bold py-1.5 px-3 rounded-lg`}>
-                        {is2FAEnabled ? 'Enabled' : 'Enable'}
+                      <button disabled title="Multi-factor authentication is not configured" className="cursor-not-allowed rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-bold text-slate-500">
+                        Not available
                       </button>
                     </div>
                   </div>
@@ -622,26 +607,9 @@ export default function ProfileSettings() {
                         </div>
                         <h3 className="text-sm font-bold text-white">Active Sessions</h3>
                       </div>
-                      <div className="space-y-2">
-                        {sessions.map(session => (
-                          <div key={session.id} className="flex justify-between items-center bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/50">
-                            <div className="flex items-center gap-2">
-                              {session.device.includes('Phone') ? <Smartphone className="w-4 h-4 text-slate-400" /> : <Monitor className="w-4 h-4 text-slate-400" />}
-                              <div>
-                                <div className="text-white text-xs font-bold flex items-center gap-2">
-                                  {session.device} 
-                                  {session.isCurrent && <span className="text-[8px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded uppercase">Current</span>}
-                                </div>
-                                <div className="text-[10px] text-slate-500">{session.location}</div>
-                              </div>
-                            </div>
-                            {!session.isCurrent && (
-                              <button onClick={() => handleRevokeSession(session.id)} className="text-xs font-semibold text-slate-500 hover:text-red-400">Revoke</button>
-                            )}
-                          </div>
-                        ))}
-                        {sessions.length === 0 && <p className="text-slate-500 text-xs">No active sessions found.</p>}
-                      </div>
+                      <p className="text-slate-500 text-xs">
+                        Only this browser session is available. Remote session management is not configured.
+                      </p>
                     </div>
 
                     {/* Data & Privacy */}
@@ -653,24 +621,14 @@ export default function ProfileSettings() {
                         <h3 className="text-sm font-bold text-white">Data & Privacy</h3>
                       </div>
                       <div className="flex gap-3">
-                        <button onClick={() => toast.success('Data export started.')} className="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-3 hover:border-slate-700 text-left transition-colors">
+                        <button disabled title="Data export is not configured" className="flex-1 cursor-not-allowed rounded-xl border border-slate-800 bg-slate-950 p-3 text-left opacity-60">
                           <Download className="w-4 h-4 text-blue-400 mb-1.5" />
-                          <div className="text-xs font-bold text-white">Export Data</div>
+                          <div className="text-xs font-bold text-white">Export unavailable</div>
                         </button>
-                        {!showDeleteConfirm ? (
-                          <button onClick={() => setShowDeleteConfirm(true)} className="flex-1 bg-slate-950 border border-red-900/30 rounded-xl p-3 hover:border-red-900/50 text-left transition-colors">
-                            <Trash2 className="w-4 h-4 text-red-400 mb-1.5" />
-                            <div className="text-xs font-bold text-white">Delete Account</div>
-                          </button>
-                        ) : (
-                          <div className="flex-1 bg-slate-950 border border-red-900/50 rounded-xl p-2 animate-in fade-in">
-                            <input type="text" placeholder="Type DELETE" value={deleteText} onChange={(e) => setDeleteText(e.target.value)} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 mb-2 text-white text-[10px]" />
-                            <div className="flex gap-1">
-                              <button onClick={handleDeleteAccount} className="flex-1 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold py-1 rounded">Confirm</button>
-                              <button onClick={() => { setShowDeleteConfirm(false); setDeleteText(''); }} className="flex-1 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold py-1 rounded">Cancel</button>
-                            </div>
-                          </div>
-                        )}
+                        <button disabled title="Account deletion must be implemented with secure ownership checks" className="flex-1 cursor-not-allowed rounded-xl border border-red-900/30 bg-slate-950 p-3 text-left opacity-60">
+                          <Trash2 className="w-4 h-4 text-red-400 mb-1.5" />
+                          <div className="text-xs font-bold text-white">Deletion unavailable</div>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -687,7 +645,7 @@ export default function ProfileSettings() {
                     <h2 className="text-2xl font-bold text-white flex items-center gap-3">
                       <Heart className="w-7 h-7 text-red-500" /> My Wishlist
                     </h2>
-                    <p className="text-slate-400 mt-1">Items you've saved for later.</p>
+                    <p className="text-slate-400 mt-1">Items you&apos;ve saved for later.</p>
                   </div>
                 </div>
 
@@ -735,12 +693,11 @@ export default function ProfileSettings() {
                                     id: product.id,
                                     name: product.name,
                                     price: product.price || 0,
-                                    quantity: 1,
                                     image: product.image,
                                     sellerId: product.sellerId || product.seller
                                   });
                                   removeFromWishlist(id);
-                                  alert('Moved to cart!');
+                                  toast.success('Moved to cart');
                                 }}
                                 className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shadow-lg shadow-blue-900/20"
                               >
@@ -764,28 +721,10 @@ export default function ProfileSettings() {
 }
 
 // Helper icons missing from standard import
-function PhoneIcon(props: any) {
+function PhoneIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-    </svg>
-  );
-}
-
-function BuildingIcon(props: any) {
-  return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
-      <path d="M9 22v-4h6v4"/>
-      <path d="M8 6h.01"/>
-      <path d="M16 6h.01"/>
-      <path d="M12 6h.01"/>
-      <path d="M12 10h.01"/>
-      <path d="M12 14h.01"/>
-      <path d="M16 10h.01"/>
-      <path d="M16 14h.01"/>
-      <path d="M8 10h.01"/>
-      <path d="M8 14h.01"/>
     </svg>
   );
 }

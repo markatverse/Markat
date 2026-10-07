@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 
 export default function CommercialgtAdvertisementsPage() {
   const [items, setItems] = useState<any[]>([]);

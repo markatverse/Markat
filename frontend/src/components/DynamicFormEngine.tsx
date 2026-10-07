@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { PlusCircle, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
-import { useProducts, Category, FormField, useCategoryRules, BusinessModel } from '@/context/ProductContext';
+import { useProducts, FormField, useCategoryRules, BusinessModel } from '@/context/ProductContext';
 import { useAuth } from '@/context/AuthContext';
 
 interface DynamicFormEngineProps {

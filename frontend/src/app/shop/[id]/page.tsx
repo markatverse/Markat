@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MapPin, Star, Shield, Phone, Mail, Clock, CheckCircle, Ticket, ShoppingCart, ArrowRight, Calendar, Stethoscope, Scissors, Wrench } from 'lucide-react';
+import { MapPin, Star, Shield, Phone, Mail, Clock, CheckCircle, Ticket, ShoppingCart, Calendar, Stethoscope, Scissors, Wrench } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import ProductGridSkeleton from '@/components/ProductGridSkeleton';
 

@@ -76,9 +76,9 @@ export default function Recommendations() {
         <div className="flex justify-between items-end border-b border-slate-200 pb-3 mb-4">
           <h2 className="text-xl lg:text-2xl font-bold text-slate-900">Recommended For You</h2>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory">
           {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} className="bg-slate-200 rounded-xl h-40 animate-pulse" />
+            <div key={i} className="w-[145px] sm:w-[170px] shrink-0 bg-slate-200 rounded-xl h-32 animate-pulse snap-start" />
           ))}
         </div>
       </section>
@@ -101,15 +101,15 @@ export default function Recommendations() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory">
         {realItems.map((item) => (
           <div
             key={item.id}
-            className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-md hover:border-indigo-300 transition-all group cursor-pointer"
+            className="w-[145px] sm:w-[170px] shrink-0 snap-start bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-md hover:border-indigo-300 transition-all group cursor-pointer"
             onMouseEnter={() => handleMouseEnter(item)}
             onClick={() => handleClick(item)}
           >
-            <div className="aspect-[4/3] bg-slate-100 relative overflow-hidden">
+            <div className="h-24 sm:h-28 bg-slate-100 relative overflow-hidden">
               <img
                 src={item.images[0]}
                 alt={item.name || item.title}

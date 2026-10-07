@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useProducts } from '@/context/ProductContext';
 import { useAuth } from '@/context/AuthContext';
 import { useWishlist } from '@/context/WishlistContext';
@@ -7,8 +7,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import {
   MapPin, Star, ShieldCheck, Clock, Calendar, CheckCircle2, PhoneCall,
-  Info, Camera, Users, Ticket, ChevronRight, Loader2, RefreshCw,
-  Scissors, ArrowLeft, Share2, Heart, Zap, TrendingUp, CalendarClock
+  Info, Camera, Ticket, ArrowLeft, Share2, Heart, Zap, TrendingUp
 } from 'lucide-react';
 import SmartQueueWidget from '@/components/SmartQueueWidget';
 import { useUserTrends } from '@/hooks/useUserTrends';

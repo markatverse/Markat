@@ -114,8 +114,8 @@ export default function AdminLocationsPage() {
               <div>
                 <h2 className="text-lg font-bold text-white">H3 Hexagonal Spatial Indexing</h2>
                 <p className="text-sm text-slate-400 mt-1 max-w-xl">
-                  When enabled, the platform uses Uber's H3 Hexagonal Grid system to partition geographic areas. 
-                  This significantly speeds up "nearest to me" searches for products and services.
+                  When enabled, the platform uses Uber&apos;s H3 Hexagonal Grid system to partition geographic areas.
+                  This significantly speeds up &quot;nearest to me&quot; searches for products and services.
                 </p>
               </div>
             </div>
@@ -138,7 +138,7 @@ export default function AdminLocationsPage() {
                 <Check className="w-4 h-4" /> Hexagonal Sorting is Active
               </div>
               <p className="text-xs text-slate-500">
-                Search queries will first locate the user's current H3 hexagon, then expand search outwards to neighboring rings. 
+                Search queries will first locate the user&apos;s current H3 hexagon, then expand search outwards to neighboring rings.
                 Products inside the inner hexagon rings are always prioritized in search results.
               </p>
             </div>

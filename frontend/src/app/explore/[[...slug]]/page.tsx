@@ -282,7 +282,7 @@ export default function DynamicExplorePage({ params }: { params: Promise<{ slug?
               <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
                 <div className="text-6xl mb-4">🔍</div>
                 <h3 className="text-xl font-bold text-slate-900 mb-2">No listings found</h3>
-                <p className="text-slate-500">We couldn't find any active listings in the {sector} sector for {businessType.replace('-', ' ')}s.</p>
+                <p className="text-slate-500">We couldn&apos;t find any active listings in the {sector} sector for {businessType.replace('-', ' ')}s.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

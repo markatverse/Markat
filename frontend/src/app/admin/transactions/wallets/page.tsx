@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAdminRole } from '@/context/AdminRoleContext';
-import { ShieldAlert, Search, Wallet, ArrowDownRight, ArrowUpRight, Building2, CreditCard } from 'lucide-react';
+import { ShieldAlert, Wallet, ArrowDownRight, ArrowUpRight, Building2, CreditCard } from 'lucide-react';
 
 export default function AdminWalletsPage() {
   const { canEdit } = useAdminRole();
@@ -73,7 +73,7 @@ export default function AdminWalletsPage() {
       } else {
         alert("Failed to deduct platform fee");
       }
-    } catch (e) {
+    } catch {
       alert("Error processing transaction");
     }
   };

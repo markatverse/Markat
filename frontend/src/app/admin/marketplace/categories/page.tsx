@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useProducts, Category } from '@/context/ProductContext';
 import { useAdminRole } from '@/context/AdminRoleContext';
-import { ShieldAlert, Search, Trash2, Edit2, Plus, ListTree, Check, X, RefreshCw, Smartphone, Hammer, Tractor, Scissors, HeartPulse, Home, Shirt, Car, Pizza, Wrench, Box } from 'lucide-react';
+import { ShieldAlert, Search, Trash2, Edit2, Check, X, RefreshCw, Smartphone, Hammer, Tractor, Scissors, HeartPulse, Home, Shirt, Car, Pizza, Wrench, Box } from 'lucide-react';
 import HierarchyBuilder from './HierarchyBuilder';
 
 export default function AdminCategoriesPage() {
@@ -88,7 +88,7 @@ export default function AdminCategoriesPage() {
     let parsedParameters = [];
     try {
       parsedParameters = JSON.parse(parametersJson);
-    } catch (e) {
+    } catch {
       return alert('Invalid JSON in Parameters or Subcategories. Please fix the formatting.');
     }
 
@@ -276,7 +276,7 @@ export default function AdminCategoriesPage() {
                   <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase flex justify-between">
                     <span>Parameters (JSON)</span>
                     <button type="button" onClick={() => {
-                      try { setParametersJson(JSON.stringify(JSON.parse(parametersJson), null, 2)); } catch(e) { alert("Invalid JSON"); }
+                      try { setParametersJson(JSON.stringify(JSON.parse(parametersJson), null, 2)); } catch { alert("Invalid JSON"); }
                     }} className="text-indigo-400 hover:text-indigo-300 normal-case">Format JSON</button>
                   </label>
                   <textarea

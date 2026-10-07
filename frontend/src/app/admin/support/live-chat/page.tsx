@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Search, Send, CheckCircle, Clock, MessageCircle, PhoneCall, Filter, User } from 'lucide-react';
+import { Search, Send, CheckCircle, MessageCircle, PhoneCall, Filter, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 type ChatSession = {
@@ -49,7 +49,7 @@ export default function LiveChatDeskPage() {
           localStorage.setItem('MV_LIVE_CHATS', JSON.stringify([]));
           setSessions([]);
         }
-      } catch(e) {
+      } catch {
         setSessions([]);
       }
     };
@@ -63,7 +63,7 @@ export default function LiveChatDeskPage() {
           if (Array.isArray(parsed)) {
             setSessions(parsed);
           }
-        } catch(e) {}
+        } catch {}
       }
     };
 

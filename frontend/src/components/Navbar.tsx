@@ -1,30 +1,103 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useProducts } from "@/context/ProductContext";
-import { Search, MapPin, Headphones, Store, MessageSquare, Bell, Heart, ShoppingCart, User, ChevronDown } from "lucide-react";
+import { Search, MapPin, Headphones, Store, ShoppingCart, User, ChevronDown, Package } from "lucide-react";
 import LiveTokenToggle from "@/components/LiveTokenToggle";
+import { isServiceProduct, matchesProductSearch } from '@/utils/productSearch';
 
 export default function Navbar() {
   const { items } = useCart();
   const { user, isLoading } = useAuth();
-  const { userLocation, setUserLocation, setUserLat, setUserLng } = useProducts();
+  const { userLocation, setUserLocation, setUserLat, setUserLng, products, categories } = useProducts();
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   const [isLocationPopupOpen, setIsLocationPopupOpen] = useState(false);
   const [locationInput, setLocationInput] = useState("");
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [activeSuggestion, setActiveSuggestion] = useState(-1);
+  const searchRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
+
+  const suggestions = useMemo(() => {
+    const query = searchQuery.trim();
+    if (query.length < 2) return [];
+    const matchingProducts = products
+      .filter(product => matchesProductSearch(product, query))
+      .slice(0, 5)
+      .map(product => ({
+        id: product.id,
+        label: product.name,
+        detail: [product.category, product.seller].filter(Boolean).join(' · '),
+        href: isServiceProduct(product) ? `/service/${product.id}` : `/product/${product.id}`,
+        type: 'listing' as const,
+      }));
+    const matchingCategories = categories
+      .filter(category => category.name.toLocaleLowerCase().includes(query.toLocaleLowerCase()))
+      .slice(0, 3)
+      .map(category => ({
+        id: category.id,
+        label: category.name,
+        detail: `Browse ${category.name}`,
+        href: `/search?cat=${encodeURIComponent(category.name)}`,
+        type: 'category' as const,
+      }));
+
+    return [...matchingCategories, ...matchingProducts].slice(0, 7);
+  }, [categories, products, searchQuery]);
+
+  useEffect(() => {
+    const closeSuggestions = (event: MouseEvent) => {
+      if (!searchRef.current?.contains(event.target as Node)) {
+        setIsSearchFocused(false);
+        setActiveSuggestion(-1);
+      }
+    };
+    document.addEventListener('mousedown', closeSuggestions);
+    return () => document.removeEventListener('mousedown', closeSuggestions);
+  }, []);
+
+  const openSuggestion = (suggestion: (typeof suggestions)[number]) => {
+    setIsSearchFocused(false);
+    setSearchQuery('');
+    router.push(suggestion.href);
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    const query = searchQuery.trim();
+    if (!query) return;
     const params = new URLSearchParams();
-    if (searchQuery) params.set("q", searchQuery);
+    params.set("q", query);
+    setIsSearchFocused(false);
+    setActiveSuggestion(-1);
     router.push(`/search?${params.toString()}`);
+  };
+
+  const handleSearchKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!isSearchFocused || suggestions.length === 0) {
+      if (event.key === 'Escape') setIsSearchFocused(false);
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setActiveSuggestion(index => (index + 1) % suggestions.length);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setActiveSuggestion(index => (index <= 0 ? suggestions.length - 1 : index - 1));
+    } else if (event.key === 'Enter' && activeSuggestion >= 0) {
+      event.preventDefault();
+      openSuggestion(suggestions[activeSuggestion]);
+    } else if (event.key === 'Escape') {
+      setIsSearchFocused(false);
+      setActiveSuggestion(-1);
+    }
   };
 
   return (
@@ -148,18 +221,64 @@ export default function Navbar() {
           </div>
 
           {/* 3. Search Bar (Bottom Row on Mobile, Middle on Desktop) */}
-          <form onSubmit={handleSearch} className="flex order-3 md:order-2 w-full md:flex-1 md:max-w-[700px] bg-slate-50 rounded-xl overflow-hidden md:mx-6 border border-slate-300 hover:border-blue-400 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all shadow-inner">
+          <form ref={searchRef} onSubmit={handleSearch} className="relative flex order-3 md:order-2 w-full md:flex-1 md:max-w-[700px] bg-slate-50 rounded-xl md:mx-6 border border-slate-300 hover:border-blue-400 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all shadow-inner">
             <input
               type="text"
               placeholder="Search for products, brands, services..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setActiveSuggestion(-1);
+              }}
+              onFocus={() => setIsSearchFocused(true)}
+              onKeyDown={handleSearchKeyDown}
+              role="combobox"
+              aria-autocomplete="list"
+              aria-expanded={isSearchFocused && suggestions.length > 0}
+              aria-controls="navbar-search-suggestions"
+              aria-activedescendant={activeSuggestion >= 0 ? `search-suggestion-${activeSuggestion}` : undefined}
               className="flex-1 bg-transparent text-slate-800 border-none py-2.5 px-4 outline-none placeholder:text-slate-400 text-sm"
             />
 
-            <button type="submit" className="cursor-pointer px-5 md:px-6 bg-blue-600 hover:bg-blue-700 text-white border-none flex items-center justify-center transition-colors shrink-0">
+            <button type="submit" aria-label="Search" className="cursor-pointer px-5 md:px-6 bg-blue-600 hover:bg-blue-700 text-white border-none flex items-center justify-center transition-colors shrink-0">
               <Search className="w-5 h-5" strokeWidth={2.5} />
             </button>
+            {isSearchFocused && suggestions.length > 0 && (
+              <div
+                id="navbar-search-suggestions"
+                role="listbox"
+                className="absolute left-0 right-0 top-full z-[110] mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white py-2 shadow-xl"
+              >
+                {suggestions.map((suggestion, index) => (
+                  <button
+                    id={`search-suggestion-${index}`}
+                    key={`${suggestion.type}-${suggestion.id}`}
+                    type="button"
+                    role="option"
+                    aria-selected={activeSuggestion === index}
+                    onMouseEnter={() => setActiveSuggestion(index)}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => openSuggestion(suggestion)}
+                    className={`flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                      activeSuggestion === index ? 'bg-blue-50' : 'hover:bg-slate-50'
+                    }`}
+                  >
+                    {suggestion.type === 'category' ? (
+                      <Search className="h-4 w-4 shrink-0 text-slate-400" />
+                    ) : (
+                      <Package className="h-4 w-4 shrink-0 text-blue-500" />
+                    )}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold text-slate-800">{suggestion.label}</span>
+                      <span className="block truncate text-xs text-slate-500">{suggestion.detail}</span>
+                    </span>
+                  </button>
+                ))}
+                <div className="border-t border-slate-100 px-4 pt-2 text-xs text-slate-500">
+                  Press Enter to search for “{searchQuery.trim()}”
+                </div>
+              </div>
+            )}
           </form>
         </>
       )}

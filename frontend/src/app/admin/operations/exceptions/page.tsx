@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, CheckCircle, Search, Filter, MessageSquare, ArrowRight } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Search, MessageSquare } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
 

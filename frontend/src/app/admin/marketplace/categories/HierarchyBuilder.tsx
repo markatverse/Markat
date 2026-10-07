@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, ChevronRight, ChevronDown } from 'lucide-react';
-import { Subcategory, NestedSubcategory } from '@/context/ProductContext';
+import { Subcategory } from '@/context/ProductContext';
 
 interface Props {
   subcategories: Subcategory[];

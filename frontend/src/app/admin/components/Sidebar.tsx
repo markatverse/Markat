@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { ChevronRight, ArrowLeft, ShieldCheck, Activity, Users, Store, Box, Network, Settings, CheckCircle, ListTree, LogOut, Receipt, Briefcase, BarChart3, Bell, LayoutDashboard, Headset } from 'lucide-react';
+import { ChevronRight, ArrowLeft, ShieldCheck, Users, Store, Box, Network, Settings, ListTree, LogOut, Receipt, Briefcase, BarChart3, Bell, LayoutDashboard, Headset } from 'lucide-react';
 
 type NavItem = {
   name: string;
@@ -15,6 +15,7 @@ type NavItem = {
 
 export default function Sidebar({ currentAdminRole, setCurrentAdminRole, isMobileMenuOpen, setIsMobileMenuOpen }: any) {
   const pathname = usePathname();
+  const router = useRouter();
   const { logout } = useAuth();
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({
     'Dashboard': true,
@@ -199,7 +200,7 @@ export default function Sidebar({ currentAdminRole, setCurrentAdminRole, isMobil
             <button 
               onClick={() => {
                 logout();
-                window.location.href = '/admin/login';
+                router.push('/admin/login');
               }}
               className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all duration-300 cursor-pointer"
             >

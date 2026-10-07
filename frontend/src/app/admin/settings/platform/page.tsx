@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useSettings } from '@/context/SettingsContext';
 import { useAdminRole } from '@/context/AdminRoleContext';
 import { useProducts } from '@/context/ProductContext';
-import { ShieldAlert, Info, Edit2, X, Check, Database, MapPin, Zap, Settings2 } from 'lucide-react';
+import { ShieldAlert, Edit2, X, Check, Database, MapPin, Zap, Settings2 } from 'lucide-react';
 
 export default function SettingsPlatformPage() {
   const { sectors, toggleSector, editSector, systemConfig, updateSystemConfig } = useSettings();
@@ -49,7 +49,7 @@ export default function SettingsPlatformPage() {
     try {
       await editSector(id, { name: editName, description: editDesc });
       setEditingSectorId(null);
-    } catch (e) {
+    } catch {
       alert("Failed to update sector");
     }
   };
@@ -65,7 +65,7 @@ export default function SettingsPlatformPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enable })
       });
-    } catch (e) {
+    } catch {
       setIsDummyActive(!enable);
       alert('Failed to toggle dummy data');
     }

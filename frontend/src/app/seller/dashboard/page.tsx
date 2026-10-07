@@ -1,9 +1,9 @@
 "use client";
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useProducts } from '@/context/ProductContext';
-import { Store, BarChart3, Package, PlusCircle, ArrowLeft, Trash2, Edit2, CheckCircle2, CalendarClock, Crown, Settings, Menu, X, Users, TrendingUp, Ticket, Clock, Ban, Search, Filter, Phone, Mail, FileText, Share2, Printer, MapPin, ChevronDown, Activity, Scissors, User, UserPlus, Sparkles, Palette, Droplet, Briefcase, Eye, ShieldCheck } from 'lucide-react';
+import { Store, BarChart3, Package, PlusCircle, ArrowLeft, Trash2, Edit2, CheckCircle2, CalendarClock, Settings, Menu, X, Users, TrendingUp, Ticket, Clock, Ban, Search, Phone, Mail, FileText, MapPin, ChevronDown, Activity, Scissors, User, UserPlus, Sparkles, Palette, Droplet, Briefcase, Eye, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Suspense } from 'react';
 import StaffResourceManagementModal from '@/components/StaffResourceManagementModal';
@@ -13,6 +13,7 @@ import LocationPicker from '@/components/LocationPicker';
 const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
 
 function DashboardContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const isAdding = searchParams.get('action') === 'add';
   const [activeTab, setActiveTab] = useState(isAdding ? 'add' : 'overview');
@@ -109,13 +110,13 @@ function DashboardContent() {
       const fallbackName = user.business?.name || user.name || '';
 
       // 1. Fetch all queues by sellerId
-      let res = await fetch(`${API_URL}/service-queue/seller/${user.id}`);
+      const res = await fetch(`${API_URL}/service-queue/seller/${user.id}`);
       if (!res.ok) {
         if (res.status === 429) return; // Rate limited, ignore and retry later
         throw new Error(`Failed to fetch queues: ${res.statusText}`);
       }
-      let text = await res.text();
-      let data = text ? JSON.parse(text) : null;
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : null;
       let queues = Array.isArray(data) ? data : (data ? [data] : []);
 
       let activeQueueId = forceQueueId || selectedQueueId;
@@ -475,12 +476,12 @@ function DashboardContent() {
           <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">🏪</div>
           <h2 className="text-2xl font-bold text-slate-900 mb-3">Business Setup Incomplete</h2>
           <p className="text-slate-500 text-base mb-2">
-            Your seller account is active (<span className="font-semibold text-slate-700">{user.markatId}</span>), but your business profile hasn't been created yet.
+            Your seller account is active (<span className="font-semibold text-slate-700">{user.markatId}</span>), but your business profile hasn&apos;t been created yet.
           </p>
           <p className="text-slate-400 text-sm mb-8">Complete the quick setup to start selling on MarkatVerse.</p>
-          <a href="/seller/onboarding" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-2xl font-bold text-base hover:opacity-90 transition-opacity shadow-md">
+          <Link href="/seller/onboarding" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-2xl font-bold text-base hover:opacity-90 transition-opacity shadow-md">
             Complete Business Setup →
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -571,7 +572,7 @@ function DashboardContent() {
                 <span className="text-xs font-mono font-bold text-slate-700">
                   {user?.business?.businessCode
                     ? user.business.businessCode
-                    : <a href="/seller/onboarding" className="text-amber-600 font-bold text-xs hover:underline">Complete Setup →</a>
+                    : <Link href="/seller/onboarding" className="text-amber-600 font-bold text-xs hover:underline">Complete Setup →</Link>
                   }
                 </span>
               </div>
@@ -725,7 +726,7 @@ function DashboardContent() {
           <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-slate-900">Dashboard Overview</h1>
-              <p className="text-slate-500 mt-2">Welcome back, {user?.name || user?.business?.name || 'Seller'}. Here's what's happening today.</p>
+              <p className="text-slate-500 mt-2">Welcome back, {user?.name || user?.business?.name || 'Seller'}. Here&apos;s what&apos;s happening today.</p>
               
               {/* Phase 2: Verification Status Banner */}
               {user?.business && (
@@ -834,7 +835,7 @@ function DashboardContent() {
           <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-slate-900">Earnings & Performance</h1>
-              <p className="text-slate-500 mt-2">Track your shop's revenue, collections, and staff performance.</p>
+              <p className="text-slate-500 mt-2">Track your shop&apos;s revenue, collections, and staff performance.</p>
             </div>
             
             {/* Performance Analytics Section */}
@@ -844,14 +845,14 @@ function DashboardContent() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-center relative overflow-hidden group hover:border-emerald-300 hover:shadow-md transition-all">
                     <div className="absolute -top-4 -right-4 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110"><TrendingUp className="w-32 h-32 text-emerald-500" /></div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 relative z-10">Today's Collection</div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 relative z-10">Today&apos;s Collection</div>
                     <div className="text-4xl font-black text-emerald-600 relative z-10">₹{queueAnalytics.totalTodayCollection.toLocaleString('en-IN')}</div>
                     <div className="text-xs font-semibold text-emerald-500/70 mt-3 flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5"/> Live updates</div>
                   </div>
                   
                   <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-center relative overflow-hidden group hover:border-blue-300 hover:shadow-md transition-all">
                     <div className="absolute -top-4 -right-4 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110"><BarChart3 className="w-32 h-32 text-blue-500" /></div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 relative z-10">Month's Collection</div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 relative z-10">Month&apos;s Collection</div>
                     <div className="text-4xl font-black text-blue-600 relative z-10">₹{queueAnalytics.totalMonthCollection.toLocaleString('en-IN')}</div>
                     <div className="text-xs font-semibold text-blue-500/70 mt-3 flex items-center gap-1.5"><CalendarClock className="w-3.5 h-3.5"/> This month</div>
                   </div>
@@ -908,10 +909,10 @@ function DashboardContent() {
                     <thead>
                       <tr className="bg-slate-50/50 border-b border-slate-100 text-slate-500 text-xs font-bold uppercase tracking-wider">
                         <th className="p-4 pl-6">Staff Member</th>
-                        <th className="p-4 text-center">Today's Customers</th>
-                        <th className="p-4 text-right">Today's Earnings</th>
-                        <th className="p-4 text-center">Month's Customers</th>
-                        <th className="p-4 text-right pr-6">Month's Earnings</th>
+                        <th className="p-4 text-center">Today&apos;s Customers</th>
+                        <th className="p-4 text-right">Today&apos;s Earnings</th>
+                        <th className="p-4 text-center">Month&apos;s Customers</th>
+                        <th className="p-4 text-right pr-6">Month&apos;s Earnings</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -1956,7 +1957,7 @@ function DashboardContent() {
               <Package className="w-8 h-8" />
             </div>
             <h2 className="text-3xl font-bold text-slate-800 mb-4 capitalize">{activeTab} Management</h2>
-            <p className="text-slate-500">This feature is part of your sector's advanced workflow and is currently being built.</p>
+            <p className="text-slate-500">This feature is part of your sector&apos;s advanced workflow and is currently being built.</p>
           </div>
         )}
 
@@ -2202,7 +2203,7 @@ function DashboardContent() {
                   });
                   if (res.ok) alert('Profile updated successfully!');
                   else alert('Failed to update profile.');
-                } catch(err) {
+                } catch {
                   alert('Error updating profile.');
                 }
               }}>
@@ -2261,11 +2262,11 @@ function DashboardContent() {
                       const res = await fetch(`${API_URL}/sellers/user/${user?.id}`, { method: 'DELETE' });
                       if(res.ok) {
                         alert('Account successfully deleted.');
-                        window.location.href = '/seller/login';
+                        router.push('/seller/login');
                       } else {
                         alert('Failed to delete account.');
                       }
-                    } catch(err) {
+                    } catch {
                       alert('Error deleting account.');
                     }
                   } else if (confirmText !== null) {

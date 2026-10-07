@@ -189,7 +189,7 @@ export default function SellerStorefront() {
                     ⓘ About
                   </button>
                   <button className="flex-1 min-w-[140px] text-gray-500 hover:bg-gray-50 py-2.5 md:py-3 rounded-xl font-bold text-xs md:text-sm transition">
-                    ✓ What's Included
+                    ✓ What&apos;s Included
                   </button>
                   <button className="flex-1 min-w-[120px] text-gray-500 hover:bg-gray-50 py-2.5 md:py-3 rounded-xl font-bold text-xs md:text-sm transition">
                     📸 Gallery
@@ -306,7 +306,7 @@ export default function SellerStorefront() {
                       <div className="absolute top-3 right-3 text-indigo-100 font-black text-lg md:text-xl">01</div>
                       <div className="text-2xl md:text-3xl mb-3">🚶</div>
                       <h4 className="font-bold text-sm md:text-base text-gray-900 mb-1 md:mb-2">Walk In Anytime</h4>
-                      <p className="text-[10px] md:text-xs text-gray-500 leading-relaxed">No appointment. Show up whenever it's convenient.</p>
+                      <p className="text-[10px] md:text-xs text-gray-500 leading-relaxed">No appointment. Show up whenever it&apos;s convenient.</p>
                     </div>
                     <div className="bg-white rounded-2xl p-5 shadow-sm relative overflow-hidden">
                       <div className="absolute top-3 right-3 text-indigo-100 font-black text-lg md:text-xl">02</div>
@@ -532,7 +532,7 @@ export default function SellerStorefront() {
               <div className="py-16 sm:py-24 text-center bg-white rounded-2xl border border-gray-200 border-dashed mx-2 sm:mx-0">
                 <div className="text-4xl sm:text-6xl mb-4 sm:mb-6">📦</div>
                 <h3 className="text-lg sm:text-xl font-bold text-gray-900">No products found</h3>
-                <p className="text-xs sm:text-sm text-gray-500 mt-2">This seller hasn't added any products to their catalog yet.</p>
+                <p className="text-xs sm:text-sm text-gray-500 mt-2">This seller hasn&apos;t added any products to their catalog yet.</p>
               </div>
             )}
           </div>

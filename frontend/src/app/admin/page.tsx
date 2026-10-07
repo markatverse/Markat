@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Activity, Users, ShoppingBag, Store, ArrowUpRight, TrendingUp, DollarSign, Wallet, ShieldCheck, Zap, Database } from 'lucide-react';
-import { SettingsContext } from '@/context/SettingsContext';
+import { Activity, Users, Store, TrendingUp, DollarSign } from 'lucide-react';
 import { useAdminRole } from '@/context/AdminRoleContext';
 
 const defaultSettings = {

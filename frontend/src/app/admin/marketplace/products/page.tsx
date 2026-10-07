@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useProducts, Product } from '@/context/ProductContext';
 import { useAdminRole } from '@/context/AdminRoleContext';
-import { ShieldAlert, Search, Trash2, Edit2, Box, Plus, Check, X } from 'lucide-react';
+import { ShieldAlert, Search, Trash2, Edit2, Box, Check } from 'lucide-react';
 
 export default function AdminProductsPage() {
   const { allProducts, deleteProduct, updateProduct, addProduct, categories } = useProducts();
