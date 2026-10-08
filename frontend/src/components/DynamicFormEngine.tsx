@@ -164,10 +164,11 @@ export default function DynamicFormEngine({ initialData, onSave, onCancel, isSer
   const availableNestedSubcategories = selectedSubcategory?.nestedSubcategories || [];
   const selectedNestedSubcategory = availableNestedSubcategories.find(n => n.name === nestedSubcategory);
 
-  const activeParameters: FormField[] = selectedNestedSubcategory?.parameters 
+  const activeParametersRaw = selectedNestedSubcategory?.parameters 
     || selectedSubcategory?.parameters 
     || selectedCategory?.parameters 
     || [];
+  const activeParameters: FormField[] = Array.isArray(activeParametersRaw) ? activeParametersRaw : [];
   const hasPricelist = activeParameters.some(p => p.type === 'pricelist');
 
   useEffect(() => {
