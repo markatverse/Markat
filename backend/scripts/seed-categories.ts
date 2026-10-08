@@ -185,6 +185,28 @@ const categories = [
     defaultCommissionRate: 5.0,
     defaultFlatRate: 999.0,
   },
+  // ── FOOD & DINING ──
+  {
+    id: 's6',
+    primaryType: 'SERVICE',
+    name: 'Food & Dining',
+    theme: 'bg-rose-50 text-rose-600',
+    icon: 'Utensils',
+    allowedListingTypes: ['Service'],
+    businessModels: ['B2C', 'Appointment'],
+    workflow: 'Restaurant Booking Workflow',
+    allowedFeatures: ['Service', 'Appointment', 'B2C'],
+    notApplicable: ['Product Stock', 'Vehicle Test Drive', 'RFQ', 'Bulk Pricing', 'B2B', 'Token'],
+    optionalFeatures: ['Meeting'],
+    subcategories: [
+      { name: 'Restaurant', parameters: [{ name: 'Booking Options', type: 'checkbox', options: ['Table Booking', 'Private Dining'] }] },
+      { name: 'Cafe', parameters: [{ name: 'Booking Options', type: 'checkbox', options: ['Table Booking', 'Event Space'] }] },
+      { name: 'Food Shop', parameters: [{ name: 'Type', type: 'radio', options: ['Bakery', 'Sweet Shop', 'Grocery'] }] }
+    ],
+    parameters: [],
+    defaultCommissionRate: 5.0,
+    defaultFlatRate: 999.0,
+  },
   // ── VEHICLE ──
   {
     id: 'v1',
