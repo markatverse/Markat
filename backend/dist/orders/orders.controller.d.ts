@@ -1,9 +1,11 @@
+import { JwtService } from '@nestjs/jwt';
 import { OrdersService } from './orders.service.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { UpdateOrderDto } from './dto/update-order.dto.js';
 export declare class OrdersController {
     private readonly ordersService;
-    constructor(ordersService: OrdersService);
+    private readonly jwtService;
+    constructor(ordersService: OrdersService, jwtService: JwtService);
     create(createOrderDto: CreateOrderDto): Promise<{
         items: {
             id: string;
@@ -44,6 +46,27 @@ export declare class OrdersController {
         status: string;
         customerId: string | null;
     }[]>;
+    findByBuyer(buyerId: string, authorization?: string): Promise<({
+        items: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            sellerId: string | null;
+            price: number;
+            productId: string;
+            productName: string | null;
+            quantity: number;
+            orderId: string;
+        }[];
+    } & {
+        id: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        buyerId: string | null;
+        orderNumber: string | null;
+        total: number;
+    })[]>;
     findOne(id: string): import(".prisma/client").Prisma.Prisma__OrderClient<{
         id: string;
         status: string;

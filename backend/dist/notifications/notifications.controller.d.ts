@@ -1,7 +1,21 @@
+import { JwtService } from '@nestjs/jwt';
 import { NotificationsService } from './notifications.service.js';
 export declare class NotificationsController {
     private readonly notificationsService;
-    constructor(notificationsService: NotificationsService);
+    private readonly jwtService;
+    constructor(notificationsService: NotificationsService, jwtService: JwtService);
+    getHistory(userId: string, authorization?: string): Promise<{
+        id: string;
+        userId: string | null;
+        status: string;
+        createdAt: Date;
+        message: string;
+        title: string | null;
+        userType: string | null;
+        channel: string;
+        triggerType: string;
+        recipient: string;
+    }[]>;
     getSmsTemplates(): Promise<{
         id: string;
         status: string;

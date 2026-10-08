@@ -110,12 +110,12 @@ export default function LiveBookingWidget({ compact = false, onClose }: LiveBook
   }
 
   return (
-    <div className="bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 rounded-2xl p-4 sm:p-5 text-white shadow-xl relative overflow-hidden w-full group animate-in slide-in-from-top-4 fade-in duration-500">
+    <div className="bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 rounded-2xl p-3 sm:p-5 text-white shadow-xl relative overflow-hidden w-full group animate-in slide-in-from-top-4 fade-in duration-500">
       <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_20%_80%,_white_1px,_transparent_1px)]" style={{backgroundSize:'30px 30px'}} />
-      <div className="relative z-10 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+      <div className="relative z-10 flex flex-row justify-between items-center gap-2 sm:gap-4">
         
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center border border-white/30 text-2xl font-black shadow-sm group-hover:scale-105 transition-transform">
+        <div className="flex items-center gap-3 sm:gap-4 flex-1">
+          <div className="w-10 h-10 sm:w-14 sm:h-14 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center border border-white/30 text-lg sm:text-2xl font-black shadow-sm group-hover:scale-105 transition-transform shrink-0">
             {token.bookingMode === 'APPOINTMENT' ? 'Apt' : `#${token.tokenNumber}`}
           </div>
           <div>
@@ -124,9 +124,10 @@ export default function LiveBookingWidget({ compact = false, onClose }: LiveBook
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span className="text-[10px] text-purple-200 font-bold uppercase tracking-widest">Live Queue • {queue?.shopName}</span>
+              <span className="text-[10px] text-purple-200 font-bold uppercase tracking-widest hidden sm:inline">Live Queue • {queue?.shopName}</span>
+              <span className="text-[10px] text-purple-200 font-bold uppercase tracking-widest sm:hidden">Live • {queue?.shopName}</span>
             </div>
-            <div className="text-lg font-bold flex items-center gap-2">
+            <div className="text-sm sm:text-lg font-bold flex items-center gap-2 leading-tight">
               {ahead === 0 ? "🎉 You're next in line!" : `${ahead} people ahead of you`}
             </div>
             <div className="text-xs text-white/80 mt-1 flex items-center gap-1 font-medium bg-black/20 w-fit px-2 py-0.5 rounded-full">
@@ -135,9 +136,10 @@ export default function LiveBookingWidget({ compact = false, onClose }: LiveBook
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Link href={`/salon/token/${token.id}`} className="flex-1 sm:flex-none bg-white/20 hover:bg-white/30 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 border border-white/20 backdrop-blur shadow-lg">
-            Track Live <ChevronRight className="w-4 h-4" />
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <Link href={`/salon/token/${token.id}`} className="bg-white/20 hover:bg-white/30 text-white text-xs sm:text-sm font-bold px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-2 border border-white/20 backdrop-blur shadow-lg whitespace-nowrap">
+            <span className="hidden sm:inline">Track Live</span>
+            <span className="sm:hidden">Track</span> <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
           </Link>
           <button 
             onClick={() => {

@@ -201,7 +201,7 @@ let AuthService = AuthService_1 = class AuthService {
             },
             include: { business: true }
         });
-        if (!user) {
+        if (!user || !user.password) {
             throw new UnauthorizedException('Invalid credentials');
         }
         const isMatch = await bcrypt.compare(data.password, user.password);

@@ -10,12 +10,33 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Controller, Get, Post, Put, Delete, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Headers, ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { NotificationsService } from './notifications.service.js';
 let NotificationsController = class NotificationsController {
     notificationsService;
-    constructor(notificationsService) {
+    jwtService;
+    constructor(notificationsService, jwtService) {
         this.notificationsService = notificationsService;
+        this.jwtService = jwtService;
+    }
+    async getHistory(userId, authorization) {
+        const token = authorization?.startsWith('Bearer ')
+            ? authorization.slice(7)
+            : undefined;
+        if (!token)
+            throw new UnauthorizedException('Authentication required');
+        let authenticatedUserId;
+        try {
+            authenticatedUserId = this.jwtService.verify(token).sub;
+        }
+        catch {
+            throw new UnauthorizedException('Invalid or expired session');
+        }
+        if (authenticatedUserId !== userId) {
+            throw new ForbiddenException('Access denied');
+        }
+        return this.notificationsService.findHistoryForUser(userId);
     }
     async getSmsTemplates() {
         return this.notificationsService.getSmsTemplates();
@@ -54,6 +75,14 @@ let NotificationsController = class NotificationsController {
         return this.notificationsService.deleteEmailTemplate(id);
     }
 };
+__decorate([
+    Get('history/:userId'),
+    __param(0, Param('userId')),
+    __param(1, Headers('authorization')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], NotificationsController.prototype, "getHistory", null);
 __decorate([
     Get('sms'),
     __metadata("design:type", Function),
@@ -140,7 +169,8 @@ __decorate([
 ], NotificationsController.prototype, "deleteEmailTemplate", null);
 NotificationsController = __decorate([
     Controller('admin/notifications'),
-    __metadata("design:paramtypes", [NotificationsService])
+    __metadata("design:paramtypes", [NotificationsService,
+        JwtService])
 ], NotificationsController);
 export { NotificationsController };
 //# sourceMappingURL=notifications.controller.js.map

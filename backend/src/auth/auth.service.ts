@@ -215,7 +215,7 @@ export class AuthService {
       include: { business: true }
     });
 
-    if (!user) {
+    if (!user || !user.password) {
       throw new UnauthorizedException('Invalid credentials');
     }
 

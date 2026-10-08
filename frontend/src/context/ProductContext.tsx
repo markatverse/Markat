@@ -78,6 +78,7 @@ export type Category = {
   workflow?: string;
   allowedFeatures?: FeatureRule[];
   notApplicable?: FeatureRule[];
+  sectorId?: string;
   optionalFeatures?: FeatureRule[];
   defaultCommissionRate?: number;
   defaultFlatRate?: number;

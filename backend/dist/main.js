@@ -22,7 +22,7 @@ async function bootstrap() {
         const limiter = rateLimit({
             windowMs: 15 * 60 * 1000,
             max: 1000,
-            message: 'Too many requests from this IP, please try again later.',
+            message: { message: 'Too many requests from this IP, please try again later.', statusCode: 429 },
             standardHeaders: true,
             legacyHeaders: false,
         });

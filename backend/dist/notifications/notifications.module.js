@@ -8,11 +8,12 @@ import { Module } from '@nestjs/common';
 import { NotificationsController } from './notifications.controller.js';
 import { NotificationsService } from './notifications.service.js';
 import { PrismaModule } from '../prisma.module.js';
+import { AuthModule } from '../auth/auth.module.js';
 let NotificationsModule = class NotificationsModule {
 };
 NotificationsModule = __decorate([
     Module({
-        imports: [PrismaModule],
+        imports: [PrismaModule, AuthModule],
         controllers: [NotificationsController],
         providers: [NotificationsService],
         exports: [NotificationsService]

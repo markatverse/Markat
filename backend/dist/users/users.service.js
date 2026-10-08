@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
 import { IdGeneratorService } from '../id-generator/id-generator.service.js';
 import { EventsService } from '../events/events.service.js';
@@ -35,6 +35,13 @@ let UsersService = class UsersService {
     }
     findOne(id) {
         return this.prisma.user.findUnique({ where: { id } });
+    }
+    async findRole(id) {
+        const user = await this.prisma.user.findUnique({
+            where: { id },
+            select: { role: true },
+        });
+        return user?.role ?? null;
     }
     async update(id, updateUserDto) {
         const updated = await this.prisma.user.update({
@@ -137,26 +144,55 @@ let UsersService = class UsersService {
             if (count === 0)
                 data.isDefault = true;
         }
+        const addressData = {
+            label: data.label,
+            isDefault: data.isDefault,
+            name: data.name,
+            street: data.street,
+            city: data.city,
+            state: data.state,
+            pinCode: data.pinCode,
+            country: data.country,
+            phone: data.phone,
+        };
         return this.prisma.shippingAddress.create({
-            data: { ...data, userId }
+            data: { ...addressData, userId }
         });
     }
-    async updateAddress(addressId, data) {
+    async updateAddress(userId, addressId, data) {
+        const address = await this.prisma.shippingAddress.findFirst({
+            where: { id: addressId, userId },
+        });
+        if (!address)
+            throw new NotFoundException('Address not found');
         if (data.isDefault) {
-            const address = await this.prisma.shippingAddress.findUnique({ where: { id: addressId } });
-            if (address) {
-                await this.prisma.shippingAddress.updateMany({
-                    where: { userId: address.userId },
-                    data: { isDefault: false }
-                });
-            }
+            await this.prisma.shippingAddress.updateMany({
+                where: { userId },
+                data: { isDefault: false }
+            });
         }
+        const addressData = {
+            label: data.label,
+            isDefault: data.isDefault,
+            name: data.name,
+            street: data.street,
+            city: data.city,
+            state: data.state,
+            pinCode: data.pinCode,
+            country: data.country,
+            phone: data.phone,
+        };
         return this.prisma.shippingAddress.update({
             where: { id: addressId },
-            data
+            data: addressData
         });
     }
-    async deleteAddress(addressId) {
+    async deleteAddress(userId, addressId) {
+        const address = await this.prisma.shippingAddress.findFirst({
+            where: { id: addressId, userId },
+        });
+        if (!address)
+            throw new NotFoundException('Address not found');
         return this.prisma.shippingAddress.delete({
             where: { id: addressId }
         });

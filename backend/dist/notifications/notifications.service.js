@@ -69,6 +69,13 @@ let NotificationsService = class NotificationsService {
             orderBy: { createdAt: 'desc' },
         });
     }
+    findHistoryForUser(userId) {
+        return this.prisma.notificationLog.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+            take: 50,
+        });
+    }
     async createEmailTemplate(data) {
         return this.prisma.emailTemplate.create({
             data: {

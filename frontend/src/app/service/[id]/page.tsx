@@ -119,9 +119,9 @@ export default function ServiceDetails() {
         </div>
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
 
-        <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 lg:pt-10 lg:pb-24">
+        <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 lg:pt-10 lg:pb-24">
           {/* Back + actions */}
-          <div className="flex items-center justify-between mb-10">
+          <div className="flex items-center justify-between mb-6 lg:mb-10">
             <Link href="/" className="flex items-center gap-2 text-white/70 hover:text-white font-bold text-sm transition-colors group bg-white/5 px-4 py-2 rounded-full border border-white/10 backdrop-blur-md">
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back
             </Link>
@@ -138,9 +138,9 @@ export default function ServiceDetails() {
             </div>
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-10 items-center lg:items-stretch">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-center lg:items-stretch">
             {/* Service Image Premium Card */}
-            <div className="w-full sm:w-[80%] lg:w-[320px] aspect-[4/3] lg:aspect-[3/4] bg-white/5 backdrop-blur-xl rounded-3xl overflow-hidden border border-white/20 flex items-center justify-center shrink-0 relative shadow-2xl shadow-indigo-900/50 group">
+            <div className="w-full sm:w-[80%] lg:w-[320px] aspect-[16/9] sm:aspect-[4/3] lg:aspect-[3/4] bg-white/5 backdrop-blur-xl rounded-2xl lg:rounded-3xl overflow-hidden border border-white/20 flex items-center justify-center shrink-0 relative shadow-2xl shadow-indigo-900/50 group">
               {service.image ? (
                 <img src={service.image || "/hero-left-logo.png"} alt={service.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
               ) : (
@@ -162,59 +162,59 @@ export default function ServiceDetails() {
             {/* Info Section */}
             <div className="flex-1 flex flex-col justify-center w-full">
               {/* Tags row */}
-              <div className="flex flex-wrap items-center gap-2 mb-5">
+              <div className="flex flex-wrap items-center gap-2 mb-3 lg:mb-5">
                 {isWalkIn && (
-                  <span className="bg-violet-500/20 border border-violet-400/30 text-violet-200 text-xs font-bold px-4 py-1.5 rounded-full flex items-center gap-1.5">
+                  <span className="bg-violet-500/20 border border-violet-400/30 text-violet-200 text-[10px] lg:text-xs font-bold px-3 py-1 lg:px-4 lg:py-1.5 rounded-full flex items-center gap-1.5">
                     <Ticket className="w-3.5 h-3.5" /> Smart Queue
                   </span>
                 )}
-                <span className="bg-amber-500/20 border border-amber-400/30 text-amber-200 text-xs font-bold px-4 py-1.5 rounded-full flex items-center gap-1.5">
+                <span className="bg-amber-500/20 border border-amber-400/30 text-amber-200 text-[10px] lg:text-xs font-bold px-3 py-1 lg:px-4 lg:py-1.5 rounded-full flex items-center gap-1.5">
                   <Zap className="w-3.5 h-3.5" /> Instant Booking
                 </span>
-                <span className="bg-white/10 border border-white/20 text-white/80 text-xs font-bold px-4 py-1.5 rounded-full flex items-center gap-1.5">
+                <span className="bg-white/10 border border-white/20 text-white/80 text-[10px] lg:text-xs font-bold px-3 py-1 lg:px-4 lg:py-1.5 rounded-full flex items-center gap-1.5">
                   <TrendingUp className="w-3.5 h-3.5" /> Top Rated
                 </span>
               </div>
 
-              <h1 className="text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-[1.1] tracking-tight mb-6 drop-shadow-md">
+              <h1 className="text-2xl lg:text-5xl xl:text-6xl font-black text-white leading-[1.1] tracking-tight mb-3 lg:mb-6 drop-shadow-md">
                 {service.name}
               </h1>
 
               {/* Rating + Location */}
-              <div className="flex flex-wrap items-center gap-4 mb-8">
-                <div className="flex items-center gap-2 bg-gradient-to-r from-amber-400/20 to-amber-500/10 border border-amber-400/30 px-5 py-2.5 rounded-2xl backdrop-blur-md">
-                  <Star className="w-5 h-5 fill-amber-400 text-amber-400 drop-shadow-md" />
-                  <span className="text-amber-300 font-black text-base drop-shadow-md">{service.rating}</span>
-                  <span className="text-amber-400/80 text-sm font-medium">({service.reviews} reviews)</span>
+              <div className="flex flex-wrap items-center gap-2 lg:gap-4 mb-4 lg:mb-8">
+                <div className="flex items-center gap-2 bg-gradient-to-r from-amber-400/20 to-amber-500/10 border border-amber-400/30 px-3 py-1.5 lg:px-5 lg:py-2.5 rounded-xl lg:rounded-2xl backdrop-blur-md">
+                  <Star className="w-4 h-4 lg:w-5 lg:h-5 fill-amber-400 text-amber-400 drop-shadow-md" />
+                  <span className="text-amber-300 font-black text-sm lg:text-base drop-shadow-md">{service.rating}</span>
+                  <span className="text-amber-400/80 text-xs lg:text-sm font-medium">({service.reviews} reviews)</span>
                 </div>
-                <div className="flex items-center gap-2 text-white/70 font-medium text-base bg-white/5 border border-white/10 px-5 py-2.5 rounded-2xl backdrop-blur-md">
-                  <MapPin className="w-4 h-4 text-violet-300" />
+                <div className="flex items-center gap-2 text-white/70 font-medium text-xs lg:text-base bg-white/5 border border-white/10 px-3 py-1.5 lg:px-5 lg:py-2.5 rounded-xl lg:rounded-2xl backdrop-blur-md">
+                  <MapPin className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-violet-300" />
                   {service._distance != null && service._distance !== Infinity ? `${service._distance.toFixed(1)} km away • ` : ''}
                   {service.location || 'Location unpinned'}
                 </div>
               </div>
 
               {/* Provider card */}
-              <div className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-1 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 max-w-2xl shadow-xl">
-                <div className="flex items-center gap-4 pl-4 py-2">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-inner border border-white/20">
+              <div className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-xl lg:rounded-3xl p-1 flex flex-row items-center justify-between gap-2 lg:gap-4 max-w-2xl shadow-xl">
+                <div className="flex items-center gap-2 lg:gap-4 pl-2 lg:pl-4 py-1.5 lg:py-2">
+                  <div className="w-8 h-8 lg:w-12 lg:h-12 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white font-black text-sm lg:text-xl shadow-inner border border-white/20 shrink-0">
                     {service.seller.charAt(0)}
                   </div>
                   <div>
-                    <div className="text-white/50 text-[10px] font-black uppercase tracking-widest mb-0.5">Service Provider</div>
+                    <div className="text-white/50 text-[9px] lg:text-[10px] font-black uppercase tracking-widest mb-0.5">Service Provider</div>
                     <Link href={`/seller/${encodeURIComponent(service.seller.toLowerCase().replace(/ /g, '-'))}`}
-                      className="text-white font-black text-xl hover:text-violet-300 transition-colors drop-shadow-md">
+                      className="text-white font-black text-sm lg:text-xl hover:text-violet-300 transition-colors drop-shadow-md line-clamp-1">
                       {service.seller}
                     </Link>
                   </div>
                 </div>
-                <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 pr-4 py-2 sm:py-0 border-t border-white/10 sm:border-t-0 pt-4 sm:pt-0">
-                  <span className="bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 font-black shadow-inner">
-                    <ShieldCheck className="w-3.5 h-3.5" /> Verified Pro
+                <div className="flex items-center justify-end gap-2 lg:gap-3 pr-2 lg:pr-4 py-1.5 lg:py-0 shrink-0">
+                  <span className="flex bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[8px] lg:text-xs px-2 py-0.5 lg:px-3 lg:py-1.5 rounded-full items-center gap-1 font-black shadow-inner">
+                    <ShieldCheck className="w-2.5 h-2.5 lg:w-3.5 lg:h-3.5" /> Verified
                   </span>
-                  <button className="text-white/60 hover:text-white text-sm font-semibold flex items-center gap-1.5 transition-colors"
+                  <button className="bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs lg:text-sm font-semibold flex items-center gap-1.5 transition-colors px-3 py-1.5 rounded-full"
                     onClick={() => alert(`Calling ${service.seller}...`)}>
-                    <PhoneCall className="w-3.5 h-3.5" /> Call now
+                    <PhoneCall className="w-3 h-3 lg:w-3.5 lg:h-3.5" /> Call
                   </button>
                 </div>
               </div>
@@ -224,13 +224,13 @@ export default function ServiceDetails() {
       </div>
 
       {/* ── Body ─────────────────────────────────────────────────────────── */}
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col lg:flex-row gap-8">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10 flex flex-col lg:flex-row gap-6 lg:gap-8">
 
         {/* ── Left: Detail Tabs ─────────────────────────────────────────── */}
         <div className="flex-1 min-w-0">
 
           {/* Premium Tab Nav */}
-          <div className="flex bg-white/60 backdrop-blur-md border border-slate-200/60 rounded-2xl p-1.5 gap-1.5 mb-8 shadow-sm">
+          <div className="flex bg-white/60 backdrop-blur-md border border-slate-200/60 rounded-xl p-1 gap-1 mb-6 shadow-sm">
             {TABS.map(tab => (
               <button key={tab.key} onClick={() => setActiveTab(tab.key)}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${
@@ -245,17 +245,17 @@ export default function ServiceDetails() {
 
           {/* About */}
           {activeTab === 'about' && (
-            <div className="space-y-5">
-              <div className="bg-white rounded-3xl p-7 border border-slate-100 shadow-sm">
-                <h2 className="text-xl font-black text-slate-900 mb-4 flex items-center gap-2">
-                  <Info className="w-5 h-5 text-violet-600" /> About This Service
+            <div className="space-y-2.5 lg:space-y-5">
+              <div className="bg-white rounded-xl lg:rounded-3xl p-3 lg:p-7 border border-slate-100 shadow-sm">
+                <h2 className="text-base lg:text-xl font-black text-slate-900 mb-1 lg:mb-4 flex items-center gap-1.5 lg:gap-2">
+                  <Info className="w-3.5 h-3.5 lg:w-5 lg:h-5 text-violet-600" /> About This Service
                 </h2>
-                <p className="text-slate-600 leading-relaxed text-base">
+                <p className="text-slate-600 leading-relaxed text-xs lg:text-base">
                   {service.description || "Experience top-tier service tailored to your needs. Our professionals use the best practices and tools to ensure your complete satisfaction."}
                 </p>
               </div>
 
-              <div className="bg-white rounded-3xl p-7 border border-slate-100 shadow-sm mt-5">
+              <div className="hidden sm:block bg-white rounded-3xl p-7 border border-slate-100 shadow-sm mt-5">
                 <h2 className="text-xl font-black text-slate-900 mb-4 flex items-center gap-2">
                   <MapPin className="w-5 h-5 text-violet-600" /> Exact Address
                 </h2>
@@ -265,43 +265,45 @@ export default function ServiceDetails() {
               </div>
 
               {/* Stats strip */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="flex items-center justify-between bg-white border border-slate-100 rounded-xl lg:rounded-2xl p-2 lg:p-4 shadow-sm divide-x divide-slate-100">
                 {[
                   { val: service.rating, label: 'Rating', icon: '⭐' },
                   { val: service.reviews, label: 'Reviews', icon: '💬' },
                   { val: '100%', label: 'Satisfaction', icon: '✅' },
                 ].map(s => (
-                  <div key={s.label} className="bg-white border border-slate-100 rounded-2xl p-4 text-center shadow-sm">
-                    <div className="text-2xl mb-1">{s.icon}</div>
-                    <div className="text-slate-900 font-black text-xl">{s.val}</div>
-                    <div className="text-slate-400 text-xs font-semibold">{s.label}</div>
+                  <div key={s.label} className="flex-1 flex flex-col items-center justify-center">
+                    <div className="flex items-center gap-1.5 lg:block">
+                      <span className="text-sm lg:text-2xl lg:mb-1 block">{s.icon}</span>
+                      <span className="text-slate-900 font-black text-sm lg:text-xl block">{s.val}</span>
+                    </div>
+                    <div className="text-slate-400 text-[9px] lg:text-xs font-semibold">{s.label}</div>
                   </div>
                 ))}
               </div>
 
               {/* Smart Queue How it Works (only for walk-in) */}
               {isWalkIn && (
-                <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-3xl p-7 border border-violet-100 shadow-sm">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-200">
-                      <Ticket className="w-5 h-5 text-white" />
+                <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-xl lg:rounded-3xl p-3 lg:p-7 border border-violet-100 shadow-sm">
+                  <div className="flex items-center gap-2 lg:gap-3 mb-3 lg:mb-6">
+                    <div className="w-7 h-7 lg:w-10 lg:h-10 bg-gradient-to-br from-violet-600 to-purple-600 rounded-lg lg:rounded-2xl flex items-center justify-center shadow-lg shadow-violet-200">
+                      <Ticket className="w-3.5 h-3.5 lg:w-5 lg:h-5 text-white" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-black text-slate-900">Smart Queue System</h2>
-                      <p className="text-slate-500 text-xs">No appointments. Just walk in.</p>
+                      <h2 className="text-sm lg:text-lg font-black text-slate-900 leading-tight">Smart Queue System</h2>
+                      <p className="text-slate-500 text-[9px] lg:text-xs leading-tight">No appointments. Just walk in.</p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar sm:grid sm:grid-cols-3 gap-2 lg:gap-3 pb-2 sm:pb-0 -mx-3 px-3 sm:mx-0 sm:px-0">
                     {[
                       { step: '01', icon: '🚶', title: 'Walk In Anytime', desc: 'No appointment. Show up whenever it\'s convenient.' },
                       { step: '02', icon: '🎫', title: 'Get a Token', desc: 'Enter your name, get an instant queue number.' },
                       { step: '03', icon: '📱', title: 'Track & Return', desc: 'See live wait time. Leave, come back just in time.' },
                     ].map(s => (
-                      <div key={s.step} className="bg-white/70 rounded-2xl p-5 border border-violet-100/50 relative">
-                        <div className="absolute top-3 right-3 text-violet-200 text-xs font-black">{s.step}</div>
-                        <div className="text-3xl mb-3">{s.icon}</div>
-                        <div className="font-black text-slate-900 text-sm mb-1">{s.title}</div>
-                        <div className="text-slate-500 text-xs leading-relaxed">{s.desc}</div>
+                      <div key={s.step} className="min-w-[85%] sm:min-w-0 shrink-0 snap-center bg-white/70 rounded-xl lg:rounded-2xl p-3 lg:p-5 border border-violet-100/50 relative">
+                        <div className="absolute top-1.5 right-1.5 lg:top-2 lg:right-2 text-violet-200 text-[9px] lg:text-xs font-black">{s.step}</div>
+                        <div className="text-xl lg:text-3xl mb-1 lg:mb-2">{s.icon}</div>
+                        <div className="font-black text-slate-900 text-[11px] lg:text-sm mb-0.5 lg:mb-1">{s.title}</div>
+                        <div className="text-slate-500 text-[9px] lg:text-xs leading-snug">{s.desc}</div>
                       </div>
                     ))}
                   </div>
@@ -491,14 +493,14 @@ export default function ServiceDetails() {
               )}
             </div>
 
-            {/* Call CTA */}
+            {/* Call CTA - Hidden on mobile because it's in the header provider card */}
             <button onClick={() => alert(`Calling ${service.seller}...`)}
-              className="w-full py-4 bg-white hover:bg-slate-50 border-2 border-slate-200 text-slate-700 rounded-2xl font-black transition-all flex items-center justify-center gap-2 shadow-sm">
+              className="hidden lg:flex w-full py-4 bg-white hover:bg-slate-50 border-2 border-slate-200 text-slate-700 rounded-2xl font-black transition-all items-center justify-center gap-2 shadow-sm">
               <PhoneCall className="w-4 h-4 text-violet-600" /> Call Provider Directly
             </button>
 
-            {/* Trust badges */}
-            <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+            {/* Trust badges - Hidden on mobile to save space */}
+            <div className="hidden lg:block bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
               <div className="grid grid-cols-3 gap-3 text-center">
                 {[
                   { icon: '🔒', label: 'Secure' },

@@ -82,6 +82,18 @@ export declare class NotificationsService {
         updatedAt: Date;
         title: string;
     }[]>;
+    findHistoryForUser(userId: string): import(".prisma/client").Prisma.PrismaPromise<{
+        id: string;
+        userId: string | null;
+        status: string;
+        createdAt: Date;
+        message: string;
+        title: string | null;
+        userType: string | null;
+        channel: string;
+        triggerType: string;
+        recipient: string;
+    }[]>;
     createEmailTemplate(data: {
         title: string;
         message: string;

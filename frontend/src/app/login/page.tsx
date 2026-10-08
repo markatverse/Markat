@@ -102,7 +102,7 @@ function LoginContent() {
       // Sellers can also log in here — they land on the customer homepage.
       // To access the seller dashboard, use /seller/login instead.
       login(
-        { id: data.user.id, markatId: data.user.markatId, name: data.user.name, email: data.user.email, role: data.user.role.toLowerCase() as any, phone: data.user.phone || '' },
+        { id: data.user.id, markatId: data.user.markatId, name: data.user.name, email: data.user.email, role: data.user.role.toLowerCase() as any, phone: data.user.phone || '', business: data.user.business },
         data.access_token
       );
       router.push('/');
@@ -176,7 +176,7 @@ function LoginContent() {
       if (!res.ok) throw new Error(Array.isArray(data.message) ? data.message[0] : data.message || 'Registration failed');
 
       login(
-        { id: data.user.id, markatId: data.user.markatId, name: data.user.name, email: data.user.email, role: data.user.role.toLowerCase() as any, phone: data.user.phone || '' },
+        { id: data.user.id, markatId: data.user.markatId, name: data.user.name, email: data.user.email, role: data.user.role.toLowerCase() as any, phone: data.user.phone || '', business: data.user.business },
         data.access_token
       );
       router.push('/');

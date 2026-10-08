@@ -10,14 +10,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Headers, ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { OrdersService } from './orders.service.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { UpdateOrderDto } from './dto/update-order.dto.js';
 let OrdersController = class OrdersController {
     ordersService;
-    constructor(ordersService) {
+    jwtService;
+    constructor(ordersService, jwtService) {
         this.ordersService = ordersService;
+        this.jwtService = jwtService;
     }
     create(createOrderDto) {
         return this.ordersService.create(createOrderDto);
@@ -27,6 +30,23 @@ let OrdersController = class OrdersController {
     }
     findBySeller(sellerId) {
         return this.ordersService.findBySeller(sellerId);
+    }
+    async findByBuyer(buyerId, authorization) {
+        const token = authorization?.startsWith('Bearer ')
+            ? authorization.slice(7)
+            : undefined;
+        if (!token)
+            throw new UnauthorizedException('Authentication required');
+        let userId;
+        try {
+            userId = this.jwtService.verify(token).sub;
+        }
+        catch {
+            throw new UnauthorizedException('Invalid or expired session');
+        }
+        if (userId !== buyerId)
+            throw new ForbiddenException('Access denied');
+        return this.ordersService.findByBuyer(userId);
     }
     findOne(id) {
         return this.ordersService.findOne(id);
@@ -59,6 +79,14 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], OrdersController.prototype, "findBySeller", null);
 __decorate([
+    Get('buyer/:buyerId'),
+    __param(0, Param('buyerId')),
+    __param(1, Headers('authorization')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], OrdersController.prototype, "findByBuyer", null);
+__decorate([
     Get(':id'),
     __param(0, Param('id')),
     __metadata("design:type", Function),
@@ -82,7 +110,8 @@ __decorate([
 ], OrdersController.prototype, "remove", null);
 OrdersController = __decorate([
     Controller('orders'),
-    __metadata("design:paramtypes", [OrdersService])
+    __metadata("design:paramtypes", [OrdersService,
+        JwtService])
 ], OrdersController);
 export { OrdersController };
 //# sourceMappingURL=orders.controller.js.map

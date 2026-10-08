@@ -16,7 +16,12 @@ export type Sector = {
   businessTypeId: string;
   name: string;
   description: string | null;
+  parameters?: any;
   isActive: boolean;
+  businessType?: {
+    mainType: string;
+    name: string;
+  };
 };
 
 type SettingsContextType = {
@@ -24,7 +29,7 @@ type SettingsContextType = {
   isSectorActive: (sectorName: string) => boolean;
   refreshSectors: () => Promise<void>;
   toggleSector: (id: string, isActive: boolean) => Promise<void>;
-  editSector: (id: string, data: { name?: string; description?: string }) => Promise<void>;
+  editSector: (id: string, data: { name?: string; description?: string; parameters?: any }) => Promise<void>;
   systemConfig: any;
   updateSystemConfig: (data: any) => Promise<void>;
 };
@@ -86,7 +91,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const editSector = async (id: string, data: { name?: string; description?: string }) => {
+  const editSector = async (id: string, data: { name?: string; description?: string; parameters?: any }) => {
     try {
       const res = await fetch(`${API_URL}/configuration/sectors/${id}`, {
         method: 'PATCH',

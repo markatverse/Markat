@@ -37,11 +37,11 @@ export default function BannerSlideshow({ banners }: { banners: any[] }) {
   return (
     <div className="w-full relative rounded-3xl overflow-hidden shadow-sm group">
       <div 
-        className="flex transition-transform duration-700 ease-in-out h-[300px] md:h-[400px]"
+        className="flex transition-transform duration-700 ease-in-out h-[180px] sm:h-[250px] md:h-[400px]"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
         {banners.map((banner: any, idx: number) => (
-          <div key={banner.id} className="min-w-full relative h-[300px] md:h-[400px]">
+          <div key={banner.id} className="min-w-full relative h-[180px] sm:h-[250px] md:h-[400px]">
             <img src={banner.imageUrl} alt={banner.title} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
               <h2 className="text-3xl md:text-5xl font-black text-white mb-2 transform translate-y-0 opacity-100 transition-all duration-700 delay-100">{banner.title}</h2>

@@ -26,7 +26,7 @@ let ConfigurationService = class ConfigurationService {
     async getSectors(businessTypeId) {
         return this.prisma.sector.findMany({
             where: businessTypeId ? { businessTypeId } : undefined,
-            include: { categories: true },
+            include: { categories: true, businessType: true },
         });
     }
     async createSector(data) {

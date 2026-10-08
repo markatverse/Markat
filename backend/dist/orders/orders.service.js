@@ -90,6 +90,13 @@ let OrdersService = class OrdersService {
             customerId: o.buyerId
         }));
     }
+    findByBuyer(buyerId) {
+        return this.prisma.order.findMany({
+            where: { buyerId },
+            include: { items: true },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
     findOne(id) {
         return this.prisma.order.findUnique({ where: { id } });
     }

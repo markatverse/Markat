@@ -350,6 +350,7 @@ model Sector {
   businessTypeId String       @db.ObjectId
   name           String       // e.g. Electronics, Salon, Healthcare
   description    String?
+  parameters     Json?
   isActive       Boolean      @default(true)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt

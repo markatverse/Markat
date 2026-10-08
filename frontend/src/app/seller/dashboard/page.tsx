@@ -527,7 +527,7 @@ function DashboardContent() {
       {/* Mobile Header */}
       <div className="lg:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200 shrink-0 sticky top-0 z-40">
         <Link href="/" className="flex items-center no-underline">
-          <img src="/logo.png" alt="MarkatVerse" className="h-8 object-contain scale-[2] origin-left" />
+          <img src="/logo.png" alt="MarkatVerse" className="h-12 object-contain scale-[2] origin-left" />
         </Link>
         <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
           {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -724,32 +724,32 @@ function DashboardContent() {
         
         {activeTab === 'overview' && (
           <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-slate-900">Dashboard Overview</h1>
-              <p className="text-slate-500 mt-2">Welcome back, {user?.name || user?.business?.name || 'Seller'}. Here&apos;s what&apos;s happening today.</p>
+            <div className="mb-6 md:mb-8">
+              <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Dashboard Overview</h1>
+              <p className="text-slate-500 mt-1 md:mt-2 text-sm md:text-base">Welcome back, {user?.name || user?.business?.name || 'Seller'}. Here&apos;s what&apos;s happening today.</p>
               
               {/* Phase 2: Verification Status Banner */}
               {user?.business && (
-                <div className={`mt-6 p-4 rounded-xl flex items-start gap-3 border ${
+                <div className={`mt-4 md:mt-6 p-3 md:p-4 rounded-lg md:rounded-xl flex items-start gap-2.5 md:gap-3 border ${
                   user.business.verificationStatus === 'AUTO_VERIFIED' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' :
                   user.business.verificationStatus === 'ACTION_REQUIRED' ? 'bg-amber-50 border-amber-200 text-amber-800' :
                   user.business.verificationStatus === 'ADMIN_REVIEW_REQUIRED' ? 'bg-blue-50 border-blue-200 text-blue-800' :
                   'bg-slate-50 border-slate-200 text-slate-800'
                 }`}>
-                  <ShieldCheck className={`w-6 h-6 shrink-0 ${
+                  <ShieldCheck className={`w-5 h-5 md:w-6 md:h-6 shrink-0 ${
                     user.business.verificationStatus === 'AUTO_VERIFIED' ? 'text-emerald-600' :
                     user.business.verificationStatus === 'ACTION_REQUIRED' ? 'text-amber-600' :
                     user.business.verificationStatus === 'ADMIN_REVIEW_REQUIRED' ? 'text-blue-600' :
                     'text-slate-600'
                   }`} />
                   <div>
-                    <h3 className="font-bold">
+                    <h3 className="font-bold text-sm md:text-base">
                       {user.business.verificationStatus === 'AUTO_VERIFIED' ? 'Account Auto-Verified' :
                        user.business.verificationStatus === 'ACTION_REQUIRED' ? 'Action Required: Missing Information' :
                        user.business.verificationStatus === 'ADMIN_REVIEW_REQUIRED' ? 'Account under Admin Review' :
                        'Verification Pending'}
                     </h3>
-                    <p className="text-sm mt-1 opacity-90">
+                    <p className="text-xs md:text-sm mt-0.5 md:mt-1 opacity-90">
                       {user.business.verificationStatus === 'AUTO_VERIFIED' ? 'Your business passed all automated checks and is fully active.' :
                        user.business.verificationStatus === 'ACTION_REQUIRED' ? `Please update your profile to continue. Reason: ${user.business.verificationNotes || 'Missing data'}` :
                        user.business.verificationStatus === 'ADMIN_REVIEW_REQUIRED' ? 'Our team is reviewing your profile due to missing standard parameters. You will be notified shortly.' :
@@ -760,51 +760,51 @@ function DashboardContent() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-8 lg:mb-12">
-              <div className="relative bg-gradient-to-br from-emerald-500 to-teal-600 p-6 lg:p-8 rounded-3xl text-white shadow-lg overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-                <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:opacity-30 transition-opacity transform group-hover:scale-110">
-                  <TrendingUp className="w-24 h-24" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-6 md:mb-8 lg:mb-12">
+              <div className="relative bg-gradient-to-br from-emerald-500 to-teal-600 p-5 md:p-6 lg:p-8 rounded-2xl md:rounded-3xl text-white shadow-lg overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+                <div className="absolute top-0 right-0 p-4 md:p-6 opacity-20 group-hover:opacity-30 transition-opacity transform group-hover:scale-110">
+                  <TrendingUp className="w-16 h-16 md:w-24 md:h-24" />
                 </div>
-                <div className="text-emerald-100 text-sm font-bold tracking-widest uppercase mb-2 relative z-10">{isB2B ? 'B2B Trade Volume' : 'Total Sales'}</div>
-                <div className="text-4xl lg:text-5xl font-black mb-4 relative z-10 drop-shadow-md">₹0</div>
-                <div className="text-emerald-50 text-sm font-medium flex items-center gap-1.5 relative z-10 bg-black/10 w-fit px-3 py-1.5 rounded-full backdrop-blur-md">
-                  <CheckCircle2 className="w-4 h-4" /> No sales yet
+                <div className="text-emerald-100 text-xs md:text-sm font-bold tracking-widest uppercase mb-1.5 md:mb-2 relative z-10">{isB2B ? 'B2B Trade Volume' : 'Total Sales'}</div>
+                <div className="text-3xl md:text-4xl lg:text-5xl font-black mb-3 md:mb-4 relative z-10 drop-shadow-md">₹0</div>
+                <div className="text-emerald-50 text-xs md:text-sm font-medium flex items-center gap-1.5 relative z-10 bg-black/10 w-fit px-2.5 py-1 md:px-3 md:py-1.5 rounded-full backdrop-blur-md">
+                  <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4" /> No sales yet
                 </div>
               </div>
 
-              <div className="relative bg-gradient-to-br from-blue-500 to-indigo-600 p-6 lg:p-8 rounded-3xl text-white shadow-lg overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-                <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:opacity-30 transition-opacity transform group-hover:scale-110">
-                  <Store className="w-24 h-24" />
+              <div className="relative bg-gradient-to-br from-blue-500 to-indigo-600 p-5 md:p-6 lg:p-8 rounded-2xl md:rounded-3xl text-white shadow-lg overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+                <div className="absolute top-0 right-0 p-4 md:p-6 opacity-20 group-hover:opacity-30 transition-opacity transform group-hover:scale-110">
+                  <Store className="w-16 h-16 md:w-24 md:h-24" />
                 </div>
-                <div className="text-blue-100 text-sm font-bold tracking-widest uppercase mb-2 relative z-10">{isServiceProvider ? 'Active Services' : (isB2B ? 'B2B Catalog' : 'Active Listings')}</div>
-                <div className="text-4xl lg:text-5xl font-black mb-4 relative z-10 drop-shadow-md">{myListings.length}</div>
-                <button onClick={() => { setActiveTab(isServiceProvider ? 'services' : 'listings'); setIsMobileMenuOpen(false); }} className="text-blue-50 text-sm font-medium flex items-center gap-1.5 relative z-10 bg-black/10 w-fit px-3 py-1.5 rounded-full backdrop-blur-md hover:bg-black/20 transition-colors">
-                  <Eye className="w-4 h-4" /> {isServiceProvider ? 'View services →' : 'View catalog →'}
+                <div className="text-blue-100 text-xs md:text-sm font-bold tracking-widest uppercase mb-1.5 md:mb-2 relative z-10">{isServiceProvider ? 'Active Services' : (isB2B ? 'B2B Catalog' : 'Active Listings')}</div>
+                <div className="text-3xl md:text-4xl lg:text-5xl font-black mb-3 md:mb-4 relative z-10 drop-shadow-md">{myListings.length}</div>
+                <button onClick={() => { setActiveTab(isServiceProvider ? 'services' : 'listings'); setIsMobileMenuOpen(false); }} className="text-blue-50 text-xs md:text-sm font-medium flex items-center gap-1.5 relative z-10 bg-black/10 w-fit px-2.5 py-1 md:px-3 md:py-1.5 rounded-full backdrop-blur-md hover:bg-black/20 transition-colors">
+                  <Eye className="w-3.5 h-3.5 md:w-4 md:h-4" /> {isServiceProvider ? 'View services →' : 'View catalog →'}
                 </button>
               </div>
 
-              <div className="relative bg-gradient-to-br from-orange-400 to-amber-500 p-6 lg:p-8 rounded-3xl text-white shadow-lg overflow-hidden group hover:-translate-y-1 transition-all duration-300 md:col-span-2 lg:col-span-1">
-                <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:opacity-30 transition-opacity transform group-hover:scale-110">
-                  <Users className="w-24 h-24" />
+              <div className="relative bg-gradient-to-br from-orange-400 to-amber-500 p-5 md:p-6 lg:p-8 rounded-2xl md:rounded-3xl text-white shadow-lg overflow-hidden group hover:-translate-y-1 transition-all duration-300 md:col-span-2 lg:col-span-1">
+                <div className="absolute top-0 right-0 p-4 md:p-6 opacity-20 group-hover:opacity-30 transition-opacity transform group-hover:scale-110">
+                  <Users className="w-16 h-16 md:w-24 md:h-24" />
                 </div>
-                <div className="text-orange-100 text-sm font-bold tracking-widest uppercase mb-2 relative z-10">
+                <div className="text-orange-100 text-xs md:text-sm font-bold tracking-widest uppercase mb-1.5 md:mb-2 relative z-10">
                   {isServiceProvider ? 'Live Queue / Tokens' : (isB2B ? 'Pending RFQs' : 'Pending Orders')}
                 </div>
-                <div className="text-4xl lg:text-5xl font-black mb-4 relative z-10 drop-shadow-md">
+                <div className="text-3xl md:text-4xl lg:text-5xl font-black mb-3 md:mb-4 relative z-10 drop-shadow-md">
                   {isServiceProvider
                     ? (queueData ? `${queueData.waitingCount ?? 0}` : '0')
                     : (isB2B ? leads.length.toString() : orders.length.toString())}
                 </div>
                 <button onClick={() => { setActiveTab(isServiceProvider ? 'queue' : (isB2B ? 'leads' : 'orders')); setIsMobileMenuOpen(false); }}
-                  className="text-orange-50 text-sm font-medium flex items-center gap-1.5 relative z-10 bg-black/10 w-fit px-3 py-1.5 rounded-full backdrop-blur-md hover:bg-black/20 transition-colors">
-                  <Clock className="w-4 h-4" /> {isServiceProvider ? 'Waiting now →' : 'View pending →'}
+                  className="text-orange-50 text-xs md:text-sm font-medium flex items-center gap-1.5 relative z-10 bg-black/10 w-fit px-2.5 py-1 md:px-3 md:py-1.5 rounded-full backdrop-blur-md hover:bg-black/20 transition-colors">
+                  <Clock className="w-3.5 h-3.5 md:w-4 md:h-4" /> {isServiceProvider ? 'Waiting now →' : 'View pending →'}
                 </button>
               </div>
             </div>
 
             {/* Quick Links */}
-            <div className="mb-8 lg:mb-12">
-              <h3 className="text-lg font-bold text-slate-900 mb-4">Quick Actions</h3>
+            <div className="mb-6 md:mb-8 lg:mb-12">
+              <h3 className="text-base md:text-lg font-bold text-slate-900 mb-3 md:mb-4">Quick Actions</h3>
               {(() => {
                 const quickActions = [
                   { label: isServiceProvider ? 'My Services' : (isB2B ? 'B2B Catalog' : 'My Listings'), icon: '🛍️', tab: isServiceProvider ? 'services' : 'listings' },
@@ -815,13 +815,13 @@ function DashboardContent() {
                 if (isProjectFlow || isMeetingFlow || isService) quickActions.push({ label: 'Bookings', icon: '📅', tab: 'bookings' });
 
                 return (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
                     {quickActions.map(item => (
                       <button key={item.tab} onClick={() => { setActiveTab(item.tab as any); setIsMobileMenuOpen(false); }}
-                        className="bg-white border-2 border-slate-100 rounded-3xl p-6 lg:p-8 flex flex-col items-center gap-4 hover:border-indigo-400 hover:shadow-xl hover:shadow-indigo-100/50 transition-all duration-300 group relative overflow-hidden">
+                        className="bg-white border-2 border-slate-100 rounded-2xl md:rounded-3xl p-4 md:p-6 lg:p-8 flex flex-col items-center gap-2.5 md:gap-4 hover:border-indigo-400 hover:shadow-xl hover:shadow-indigo-100/50 transition-all duration-300 group relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <span className="text-4xl lg:text-5xl group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300 relative z-10 drop-shadow-sm">{item.icon}</span>
-                        <span className="text-base lg:text-lg font-bold text-slate-700 text-center leading-tight relative z-10 group-hover:text-indigo-700">{item.label}</span>
+                        <span className="text-3xl md:text-4xl lg:text-5xl group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300 relative z-10 drop-shadow-sm">{item.icon}</span>
+                        <span className="text-sm md:text-base lg:text-lg font-bold text-slate-700 text-center leading-tight relative z-10 group-hover:text-indigo-700">{item.label}</span>
                       </button>
                     ))}
                   </div>

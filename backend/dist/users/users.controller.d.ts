@@ -1,39 +1,42 @@
+import { JwtService } from '@nestjs/jwt';
 import { UsersService } from './users.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
-import { UpdateUserDto } from './dto/update-user.dto.js';
 export declare class UsersController {
     private readonly usersService;
-    constructor(usersService: UsersService);
+    private readonly jwtService;
+    constructor(usersService: UsersService, jwtService: JwtService);
+    private authenticateOwner;
+    private authenticateToken;
     create(createUserDto: CreateUserDto): Promise<{
         id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
         markatId: string | null;
         email: string | null;
         phone: string | null;
         password: string;
-        name: string;
         role: string;
-        createdAt: Date;
-        updatedAt: Date;
         resetCode: string | null;
         resetCodeExpires: Date | null;
     }>;
     findAll(): import(".prisma/client").Prisma.PrismaPromise<({
         business: {
-            id: string;
-            name: string;
-            createdAt: Date;
-            updatedAt: Date;
-            businessCode: string | null;
-            userId: string;
-            logo: string | null;
-            description: string | null;
-            businessModel: import(".prisma/client").$Enums.MainType;
             businessType: string;
             sector: string | null;
-            address: string | null;
+            id: string;
+            name: string;
+            userId: string;
+            createdAt: Date;
+            updatedAt: Date;
             pincode: string | null;
             latitude: number | null;
             longitude: number | null;
+            businessCode: string | null;
+            logo: string | null;
+            description: string | null;
+            businessModel: import(".prisma/client").$Enums.MainType;
+            address: string | null;
             gstNumber: string | null;
             businessHours: import("@prisma/client/runtime/library").JsonValue | null;
             verified: boolean;
@@ -50,66 +53,66 @@ export declare class UsersController {
         } | null;
     } & {
         id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
         markatId: string | null;
         email: string | null;
         phone: string | null;
         password: string;
-        name: string;
         role: string;
-        createdAt: Date;
-        updatedAt: Date;
         resetCode: string | null;
         resetCodeExpires: Date | null;
     })[]>;
     findOne(id: string): import(".prisma/client").Prisma.Prisma__UserClient<{
         id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
         markatId: string | null;
         email: string | null;
         phone: string | null;
         password: string;
-        name: string;
         role: string;
-        createdAt: Date;
-        updatedAt: Date;
         resetCode: string | null;
         resetCodeExpires: Date | null;
     } | null, null, import("@prisma/client/runtime/library").DefaultArgs>;
-    update(id: string, updateUserDto: UpdateUserDto): Promise<{
+    update(id: string, updateUserDto: Record<string, unknown>, authorization?: string): Promise<{
         id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
         markatId: string | null;
         email: string | null;
         phone: string | null;
         password: string;
-        name: string;
         role: string;
-        createdAt: Date;
-        updatedAt: Date;
         resetCode: string | null;
         resetCodeExpires: Date | null;
     }>;
-    updatePassword(id: string, body: any): Promise<{
+    updatePassword(id: string, body: any, authorization?: string): Promise<{
         message: string;
     }>;
     remove(id: string): Promise<{
         id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
         markatId: string | null;
         email: string | null;
         phone: string | null;
         password: string;
-        name: string;
         role: string;
-        createdAt: Date;
-        updatedAt: Date;
         resetCode: string | null;
         resetCodeExpires: Date | null;
     }>;
-    getAddresses(id: string): Promise<{
+    getAddresses(id: string, authorization?: string): Promise<{
         id: string;
-        phone: string;
         name: string;
+        userId: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
+        phone: string;
         label: string;
         isDefault: boolean;
         street: string;
@@ -118,13 +121,13 @@ export declare class UsersController {
         pinCode: string;
         country: string;
     }[]>;
-    addAddress(id: string, body: any): Promise<{
+    addAddress(id: string, body: any, authorization?: string): Promise<{
         id: string;
-        phone: string;
         name: string;
+        userId: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
+        phone: string;
         label: string;
         isDefault: boolean;
         street: string;
@@ -133,13 +136,13 @@ export declare class UsersController {
         pinCode: string;
         country: string;
     }>;
-    updateAddress(addressId: string, body: any): Promise<{
+    updateAddress(addressId: string, body: any, authorization?: string): Promise<{
         id: string;
-        phone: string;
         name: string;
+        userId: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
+        phone: string;
         label: string;
         isDefault: boolean;
         street: string;
@@ -148,13 +151,13 @@ export declare class UsersController {
         pinCode: string;
         country: string;
     }>;
-    deleteAddress(addressId: string): Promise<{
+    deleteAddress(addressId: string, authorization?: string): Promise<{
         id: string;
-        phone: string;
         name: string;
+        userId: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
+        phone: string;
         label: string;
         isDefault: boolean;
         street: string;

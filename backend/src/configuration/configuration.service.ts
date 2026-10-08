@@ -22,7 +22,7 @@ export class ConfigurationService {
   async getSectors(businessTypeId?: string) {
     return this.prisma.sector.findMany({
       where: businessTypeId ? { businessTypeId } : undefined,
-      include: { categories: true },
+      include: { categories: true, businessType: true },
     });
   }
 
@@ -30,7 +30,7 @@ export class ConfigurationService {
     return this.prisma.sector.create({ data });
   }
 
-  async updateSector(id: string, data: { isActive?: boolean; name?: string; description?: string }) {
+  async updateSector(id: string, data: { isActive?: boolean; name?: string; description?: string; parameters?: any }) {
     return this.prisma.sector.update({
       where: { id },
       data,

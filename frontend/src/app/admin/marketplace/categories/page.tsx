@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useProducts, Category } from '@/context/ProductContext';
+import { useSettings } from '@/context/SettingsContext';
 import { useAdminRole } from '@/context/AdminRoleContext';
 import { ShieldAlert, Search, Trash2, Edit2, Check, X, RefreshCw, Smartphone, Hammer, Tractor, Scissors, HeartPulse, Home, Shirt, Car, Pizza, Wrench, Box } from 'lucide-react';
 import HierarchyBuilder from './HierarchyBuilder';
 
 export default function AdminCategoriesPage() {
   const { allCategories, addCategory, updateCategory, deleteCategory } = useProducts();
+  const { sectors } = useSettings();
   const { canEdit } = useAdminRole();
   const hasEditPermission = canEdit('categories');
   const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
@@ -39,6 +41,7 @@ export default function AdminCategoriesPage() {
   };
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<'ALL' | 'PRODUCT' | 'SERVICE' | 'VEHICLE'>('ALL');
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -55,19 +58,21 @@ export default function AdminCategoriesPage() {
     workflow: '',
     allowedFeatures: [],
     parameters: [],
-    subcategories: []
+    subcategories: [],
+    sectorId: ''
   });
   
   // Local state for JSON editor strings
   const [parametersJson, setParametersJson] = useState('[]');
 
   const filteredCategories = allCategories.filter(c => 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase())
+    c.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+    (activeTab === 'ALL' || c.primaryType === activeTab)
   );
 
   const handleStartAdd = () => {
     if (!hasEditPermission) return;
-    setDraft({ name: '', theme: 'slate', icon: '', primaryType: 'PRODUCT', defaultCommissionRate: 5.0, defaultFlatRate: 999.0, parameters: [], subcategories: [], businessModels: [], allowedListingTypes: [] });
+    setDraft({ name: '', theme: 'slate', icon: '', primaryType: 'PRODUCT', defaultCommissionRate: 5.0, defaultFlatRate: 999.0, parameters: [], subcategories: [], businessModels: [], allowedListingTypes: [], sectorId: '' });
     setParametersJson('[]');
     setIsAdding(true);
     setEditingId(null);
@@ -181,6 +186,19 @@ export default function AdminCategoriesPage() {
                 <option value="PRODUCT">Product</option>
                 <option value="SERVICE">Service</option>
                 <option value="VEHICLE">Vehicle</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase">Sector (Smart Link)</label>
+              <select 
+                value={draft.sectorId || ''}
+                onChange={e => setDraft(d => ({ ...d, sectorId: e.target.value }))}
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
+              >
+                <option value="">-- No Sector --</option>
+                {sectors?.map((sec: any) => (
+                  <option key={sec.id} value={sec.id}>{sec.name}</option>
+                ))}
               </select>
             </div>
             <div>
@@ -315,6 +333,19 @@ export default function AdminCategoriesPage() {
 
       <div className="bg-slate-800 rounded-2xl border border-slate-700 shadow-lg overflow-hidden">
         <div className="p-4 border-b border-slate-700 bg-slate-900/50 flex flex-col sm:flex-row justify-between items-center gap-4">
+          
+          <div className="flex gap-1 bg-slate-950 p-1 rounded-xl border border-white/5">
+            {['ALL', 'PRODUCT', 'SERVICE', 'VEHICLE'].map(tab => (
+              <button 
+                key={tab}
+                onClick={() => setActiveTab(tab as any)}
+                className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === tab ? 'bg-indigo-500/20 text-indigo-400' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'}`}
+              >
+                {tab === 'ALL' ? 'All' : tab.charAt(0) + tab.slice(1).toLowerCase() + 's'}
+              </button>
+            ))}
+          </div>
+
           <div className="relative w-full sm:w-80">
             <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
             <input 
@@ -333,6 +364,7 @@ export default function AdminCategoriesPage() {
               <tr>
                 <th className="p-4 pl-6">Category</th>
                 <th className="p-4">Type</th>
+                <th className="p-4">Sector Link</th>
                 <th className="p-4">Theme</th>
                 <th className="p-4 pr-6 text-right">Actions</th>
               </tr>
@@ -357,6 +389,15 @@ export default function AdminCategoriesPage() {
                     <span className="bg-slate-900 text-slate-300 font-bold px-2 py-1 rounded border border-slate-700 text-xs">
                       {cat.primaryType || 'PRODUCT'}
                     </span>
+                  </td>
+                  <td className="p-4">
+                    {cat.sectorId ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-bold capitalize">
+                        {sectors?.find((s: any) => s.id === cat.sectorId)?.name || 'Unknown'}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-slate-600 font-medium italic">Unlinked</span>
+                    )}
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
@@ -393,7 +434,7 @@ export default function AdminCategoriesPage() {
               ))}
               {filteredCategories.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center text-slate-500">
+                  <td colSpan={5} className="p-8 text-center text-slate-500">
                     No categories found.
                   </td>
                 </tr>

@@ -4,7 +4,9 @@ import React, { useState } from 'react';
 import { useSettings } from '@/context/SettingsContext';
 import { useAdminRole } from '@/context/AdminRoleContext';
 import { useProducts } from '@/context/ProductContext';
-import { ShieldAlert, Edit2, X, Check, Database, MapPin, Zap, Settings2 } from 'lucide-react';
+import { ShieldAlert, Edit2, X, Check, Database, MapPin, Zap, Settings2, Package, Wrench, AlignLeft, LayoutTemplate } from 'lucide-react';
+import SectorFieldBuilder from './SectorFieldBuilder';
+import SectorBlueprintModal from './SectorBlueprintModal';
 
 export default function SettingsPlatformPage() {
   const { sectors, toggleSector, editSector, systemConfig, updateSystemConfig } = useSettings();
@@ -16,6 +18,8 @@ export default function SettingsPlatformPage() {
   const [editingSectorId, setEditingSectorId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editDesc, setEditDesc] = useState('');
+  const [managingFieldsSector, setManagingFieldsSector] = useState<any>(null);
+  const [managingBlueprintSector, setManagingBlueprintSector] = useState<any>(null);
 
   React.useEffect(() => {
     const fetchDummyStatus = async () => {
@@ -152,14 +156,19 @@ export default function SettingsPlatformPage() {
 
         {/* Sectors Grid */}
         <div className="flex flex-col">
-          <div className="flex items-center gap-3 mb-8 px-2">
-            <Zap className="w-5 h-5 text-emerald-400" />
-            <h2 className="text-2xl font-bold text-white tracking-wide">Platform Sectors</h2>
-            <div className="flex-1 border-b border-white/10 ml-4"></div>
-          </div>
+          {[
+            { title: 'Product Sectors', icon: <Package className="w-5 h-5 text-blue-400" />, items: sectors.filter(s => s.businessType?.mainType !== 'SERVICE') },
+            { title: 'Service Sectors', icon: <Wrench className="w-5 h-5 text-amber-400" />, items: sectors.filter(s => s.businessType?.mainType === 'SERVICE') }
+          ].map((group, idx) => group.items.length > 0 && (
+            <div key={idx} className="mb-12">
+              <div className="flex items-center gap-3 mb-8 px-2">
+                {group.icon}
+                <h2 className="text-2xl font-bold text-white tracking-wide">{group.title}</h2>
+                <div className="flex-1 border-b border-white/10 ml-4"></div>
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sectors.map(sector => (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {group.items.map(sector => (
               <div key={sector.id} className="group bg-slate-900/40 backdrop-blur-2xl p-6 rounded-3xl border border-white/10 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:border-white/20 relative overflow-hidden flex flex-col h-full">
                 {sector.isActive && <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-[40px] pointer-events-none" />}
                 
@@ -201,7 +210,12 @@ export default function SettingsPlatformPage() {
                       <h3 className="text-2xl font-black text-white capitalize tracking-tight">{sector.name}</h3>
                       <div className="flex items-center gap-3 bg-black/30 p-1.5 rounded-full border border-white/5">
                         {hasTogglePermission && (
-                          <button onClick={() => handleEditClick(sector)} className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-all">
+                          <button onClick={() => setManagingBlueprintSector(sector)} className="p-1.5 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-full transition-all" title="Manage Structure & Blueprint">
+                            <LayoutTemplate className="w-4 h-4" />
+                          </button>
+                        )}
+                        {hasTogglePermission && (
+                          <button onClick={() => handleEditClick(sector)} className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-all" title="Edit Metadata">
                             <Edit2 className="w-4 h-4" />
                           </button>
                         )}
@@ -240,21 +254,50 @@ export default function SettingsPlatformPage() {
                 )}
               </div>
             ))}
-            
-            {sectors.length === 0 && (
-              <div className="col-span-full py-20 bg-slate-900/30 backdrop-blur-md rounded-3xl border border-white/5 flex flex-col items-center justify-center border-dashed">
-                <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mb-6 border border-white/5 shadow-inner">
-                  <Database className="w-8 h-8 text-slate-500" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">No Sectors Configured</h3>
-                <p className="text-slate-400 text-sm max-w-md text-center">
-                  The system requires backend connection to load dynamic sector configuration matrices.
-                </p>
-              </div>
-            )}
           </div>
         </div>
+      ))}
+            
+          {sectors.length === 0 && (
+            <div className="col-span-full py-20 bg-slate-900/30 backdrop-blur-md rounded-3xl border border-white/5 flex flex-col items-center justify-center border-dashed">
+              <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mb-6 border border-white/5 shadow-inner">
+                <Database className="w-8 h-8 text-slate-500" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">No Sectors Configured</h3>
+              <p className="text-slate-400 text-sm max-w-md text-center">
+                The system requires backend connection to load dynamic sector configuration matrices.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
+      
+      {managingBlueprintSector && (
+        <SectorBlueprintModal
+          sector={managingBlueprintSector}
+          onClose={() => setManagingBlueprintSector(null)}
+          onSave={async (parameters) => {
+            await editSector(managingBlueprintSector.id, { parameters });
+          }}
+          onOpenFormBuilder={() => {
+            setManagingFieldsSector(managingBlueprintSector);
+            setManagingBlueprintSector(null);
+          }}
+        />
+      )}
+      
+      {managingFieldsSector && (
+        <SectorFieldBuilder 
+          sector={managingFieldsSector} 
+          onClose={() => {
+            setManagingBlueprintSector(managingFieldsSector);
+            setManagingFieldsSector(null);
+          }} 
+          onSave={async (parameters) => {
+            await editSector(managingFieldsSector.id, { parameters });
+          }}
+        />
+      )}
     </div>
   );
 }

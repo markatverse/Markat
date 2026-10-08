@@ -8,34 +8,34 @@ export declare class UsersService {
     constructor(prisma: PrismaService, idGenerator: IdGeneratorService, events: EventsService);
     create(createUserDto: any): Promise<{
         id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
         markatId: string | null;
         email: string | null;
         phone: string | null;
         password: string;
-        name: string;
         role: string;
-        createdAt: Date;
-        updatedAt: Date;
         resetCode: string | null;
         resetCodeExpires: Date | null;
     }>;
     findAll(): import(".prisma/client").Prisma.PrismaPromise<({
         business: {
-            id: string;
-            name: string;
-            createdAt: Date;
-            updatedAt: Date;
-            businessCode: string | null;
-            userId: string;
-            logo: string | null;
-            description: string | null;
-            businessModel: import(".prisma/client").$Enums.MainType;
             businessType: string;
             sector: string | null;
-            address: string | null;
+            id: string;
+            name: string;
+            userId: string;
+            createdAt: Date;
+            updatedAt: Date;
             pincode: string | null;
             latitude: number | null;
             longitude: number | null;
+            businessCode: string | null;
+            logo: string | null;
+            description: string | null;
+            businessModel: import(".prisma/client").$Enums.MainType;
+            address: string | null;
             gstNumber: string | null;
             businessHours: import("@prisma/client/runtime/library").JsonValue | null;
             verified: boolean;
@@ -52,40 +52,41 @@ export declare class UsersService {
         } | null;
     } & {
         id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
         markatId: string | null;
         email: string | null;
         phone: string | null;
         password: string;
-        name: string;
         role: string;
-        createdAt: Date;
-        updatedAt: Date;
         resetCode: string | null;
         resetCodeExpires: Date | null;
     })[]>;
     findOne(id: string): import(".prisma/client").Prisma.Prisma__UserClient<{
         id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
         markatId: string | null;
         email: string | null;
         phone: string | null;
         password: string;
-        name: string;
         role: string;
-        createdAt: Date;
-        updatedAt: Date;
         resetCode: string | null;
         resetCodeExpires: Date | null;
     } | null, null, import("@prisma/client/runtime/library").DefaultArgs>;
+    findRole(id: string): Promise<string | null>;
     update(id: string, updateUserDto: any): Promise<{
         id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
         markatId: string | null;
         email: string | null;
         phone: string | null;
         password: string;
-        name: string;
         role: string;
-        createdAt: Date;
-        updatedAt: Date;
         resetCode: string | null;
         resetCodeExpires: Date | null;
     }>;
@@ -94,24 +95,24 @@ export declare class UsersService {
     }>;
     remove(id: string): Promise<{
         id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
         markatId: string | null;
         email: string | null;
         phone: string | null;
         password: string;
-        name: string;
         role: string;
-        createdAt: Date;
-        updatedAt: Date;
         resetCode: string | null;
         resetCodeExpires: Date | null;
     }>;
     getAddresses(userId: string): Promise<{
         id: string;
-        phone: string;
         name: string;
+        userId: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
+        phone: string;
         label: string;
         isDefault: boolean;
         street: string;
@@ -122,11 +123,11 @@ export declare class UsersService {
     }[]>;
     addAddress(userId: string, data: any): Promise<{
         id: string;
-        phone: string;
         name: string;
+        userId: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
+        phone: string;
         label: string;
         isDefault: boolean;
         street: string;
@@ -135,13 +136,13 @@ export declare class UsersService {
         pinCode: string;
         country: string;
     }>;
-    updateAddress(addressId: string, data: any): Promise<{
+    updateAddress(userId: string, addressId: string, data: any): Promise<{
         id: string;
-        phone: string;
         name: string;
+        userId: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
+        phone: string;
         label: string;
         isDefault: boolean;
         street: string;
@@ -150,13 +151,13 @@ export declare class UsersService {
         pinCode: string;
         country: string;
     }>;
-    deleteAddress(addressId: string): Promise<{
+    deleteAddress(userId: string, addressId: string): Promise<{
         id: string;
-        phone: string;
         name: string;
+        userId: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
+        phone: string;
         label: string;
         isDefault: boolean;
         street: string;

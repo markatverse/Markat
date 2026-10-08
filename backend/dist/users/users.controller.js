@@ -10,14 +10,38 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Headers, ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { UsersService } from './users.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
-import { UpdateUserDto } from './dto/update-user.dto.js';
 let UsersController = class UsersController {
     usersService;
-    constructor(usersService) {
+    jwtService;
+    constructor(usersService, jwtService) {
         this.usersService = usersService;
+        this.jwtService = jwtService;
+    }
+    authenticateOwner(userId, authorization) {
+        const claims = this.authenticateToken(authorization);
+        if (claims.sub !== userId)
+            throw new ForbiddenException('Access denied');
+        return claims;
+    }
+    authenticateToken(authorization) {
+        const token = authorization?.startsWith('Bearer ')
+            ? authorization.slice(7)
+            : undefined;
+        if (!token)
+            throw new UnauthorizedException('Authentication required');
+        try {
+            const claims = this.jwtService.verify(token);
+            if (!claims.sub)
+                throw new UnauthorizedException('Invalid or expired session');
+            return claims;
+        }
+        catch {
+            throw new UnauthorizedException('Invalid or expired session');
+        }
     }
     create(createUserDto) {
         return this.usersService.create(createUserDto);
@@ -28,26 +52,40 @@ let UsersController = class UsersController {
     findOne(id) {
         return this.usersService.findOne(id);
     }
-    update(id, updateUserDto) {
-        return this.usersService.update(id, updateUserDto);
+    async update(id, updateUserDto, authorization) {
+        const actor = this.authenticateToken(authorization);
+        const isAdmin = ['ADMIN', 'SUPER_ADMIN'].includes((await this.usersService.findRole(actor.sub))?.toUpperCase() || '');
+        if (actor.sub !== id && !isAdmin)
+            throw new ForbiddenException('Access denied');
+        const profileData = {
+            name: updateUserDto.name,
+            email: updateUserDto.email,
+            phone: updateUserDto.phone,
+        };
+        return this.usersService.update(id, isAdmin ? updateUserDto : profileData);
     }
-    updatePassword(id, body) {
+    async updatePassword(id, body, authorization) {
+        this.authenticateOwner(id, authorization);
         return this.usersService.updatePassword(id, body.currentPassword, body.newPassword);
     }
     remove(id) {
         return this.usersService.remove(id);
     }
-    getAddresses(id) {
+    async getAddresses(id, authorization) {
+        this.authenticateOwner(id, authorization);
         return this.usersService.getAddresses(id);
     }
-    addAddress(id, body) {
+    async addAddress(id, body, authorization) {
+        this.authenticateOwner(id, authorization);
         return this.usersService.addAddress(id, body);
     }
-    updateAddress(addressId, body) {
-        return this.usersService.updateAddress(addressId, body);
+    async updateAddress(addressId, body, authorization) {
+        const userId = this.authenticateToken(authorization).sub;
+        return this.usersService.updateAddress(userId, addressId, body);
     }
-    deleteAddress(addressId) {
-        return this.usersService.deleteAddress(addressId);
+    deleteAddress(addressId, authorization) {
+        const userId = this.authenticateToken(authorization).sub;
+        return this.usersService.deleteAddress(userId, addressId);
     }
 };
 __decorate([
@@ -74,17 +112,19 @@ __decorate([
     Patch(':id'),
     __param(0, Param('id')),
     __param(1, Body()),
+    __param(2, Headers('authorization')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, UpdateUserDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [String, Object, String]),
+    __metadata("design:returntype", Promise)
 ], UsersController.prototype, "update", null);
 __decorate([
     Patch(':id/password'),
     __param(0, Param('id')),
     __param(1, Body()),
+    __param(2, Headers('authorization')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [String, Object, String]),
+    __metadata("design:returntype", Promise)
 ], UsersController.prototype, "updatePassword", null);
 __decorate([
     Delete(':id'),
@@ -96,36 +136,41 @@ __decorate([
 __decorate([
     Get(':id/addresses'),
     __param(0, Param('id')),
+    __param(1, Headers('authorization')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
 ], UsersController.prototype, "getAddresses", null);
 __decorate([
     Post(':id/addresses'),
     __param(0, Param('id')),
     __param(1, Body()),
+    __param(2, Headers('authorization')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [String, Object, String]),
+    __metadata("design:returntype", Promise)
 ], UsersController.prototype, "addAddress", null);
 __decorate([
     Patch('addresses/:addressId'),
     __param(0, Param('addressId')),
     __param(1, Body()),
+    __param(2, Headers('authorization')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [String, Object, String]),
+    __metadata("design:returntype", Promise)
 ], UsersController.prototype, "updateAddress", null);
 __decorate([
     Delete('addresses/:addressId'),
     __param(0, Param('addressId')),
+    __param(1, Headers('authorization')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "deleteAddress", null);
 UsersController = __decorate([
     Controller('users'),
-    __metadata("design:paramtypes", [UsersService])
+    __metadata("design:paramtypes", [UsersService,
+        JwtService])
 ], UsersController);
 export { UsersController };
 //# sourceMappingURL=users.controller.js.map

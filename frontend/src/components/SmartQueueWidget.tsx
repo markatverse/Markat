@@ -585,7 +585,7 @@ export default function SmartQueueWidget({ service }: { service: any }) {
       )}
 
       {/* Premium Live status card */}
-      <div className={`relative overflow-hidden rounded-3xl p-6 ${isOpen ? 'bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 shadow-inner' : 'bg-gradient-to-br from-red-50 to-rose-50 border border-red-100 shadow-inner'}`}>
+      <div className={`relative overflow-hidden rounded-2xl lg:rounded-3xl p-4 lg:p-6 ${isOpen ? 'bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 shadow-inner' : 'bg-gradient-to-br from-red-50 to-rose-50 border border-red-100 shadow-inner'}`}>
         {isOpen && <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400 rounded-full blur-3xl opacity-10"></div>}
         
         <div className="flex items-center justify-between mb-6 relative z-10">
@@ -604,23 +604,23 @@ export default function SmartQueueWidget({ service }: { service: any }) {
         </div>
         
         <div className="grid grid-cols-3 gap-2 relative z-10">
-          <div className="text-center bg-white/60 backdrop-blur rounded-2xl py-3 border border-white">
-            <div className="text-slate-900 font-black text-2xl leading-none tracking-tight">{serving ? `#${serving.tokenNumber}` : '—'}</div>
+          <div className="text-center bg-white/60 backdrop-blur rounded-xl lg:rounded-2xl py-2 lg:py-3 border border-white">
+            <div className="text-slate-900 font-black text-xl lg:text-2xl leading-none tracking-tight">{serving ? `#${serving.tokenNumber}` : '—'}</div>
             <div className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Serving</div>
           </div>
-          <div className="text-center bg-white/60 backdrop-blur rounded-2xl py-3 border border-white">
-            <div className="text-slate-900 font-black text-2xl leading-none tracking-tight">{waiting}</div>
+          <div className="text-center bg-white/60 backdrop-blur rounded-xl lg:rounded-2xl py-2 lg:py-3 border border-white">
+            <div className="text-slate-900 font-black text-xl lg:text-2xl leading-none tracking-tight">{waiting}</div>
             <div className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Waiting</div>
           </div>
-          <div className="text-center bg-white/60 backdrop-blur rounded-2xl py-3 border border-white">
-            <div className="text-slate-900 font-black text-2xl leading-none tracking-tight">{etaIfJoinNow}m</div>
+          <div className="text-center bg-white/60 backdrop-blur rounded-xl lg:rounded-2xl py-2 lg:py-3 border border-white">
+            <div className="text-slate-900 font-black text-xl lg:text-2xl leading-none tracking-tight">{etaIfJoinNow}m</div>
             <div className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Est Wait</div>
           </div>
         </div>
       </div>
       {/* Up next list */}
       {status && status.waiting.slice(0, 3).length > 0 && (
-        <div className="bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 space-y-2">
+        <div className="bg-slate-50 border border-slate-100 rounded-xl lg:rounded-2xl px-4 py-2 space-y-1.5 lg:space-y-2">
           <div className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Up Next</div>
           {status.waiting.slice(0, 3).map((t, i) => (
             <div key={t.id} className="flex items-center gap-3">
@@ -638,9 +638,9 @@ export default function SmartQueueWidget({ service }: { service: any }) {
       {/* Action buttons */}
       {isOpen ? (
         <button onClick={() => setStep('join')}
-          className="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-lg rounded-2xl transition-all shadow-xl shadow-emerald-200 flex items-center justify-center gap-3 relative overflow-hidden group">
+          className="w-full py-3 lg:py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-base lg:text-lg rounded-xl lg:rounded-2xl transition-all shadow-xl shadow-emerald-200 flex items-center justify-center gap-2 lg:gap-3 relative overflow-hidden group">
           <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
-          <Ticket className="w-6 h-6 relative z-10" />
+          <Ticket className="w-5 h-5 lg:w-6 lg:h-6 relative z-10" />
           <span className="relative z-10 tracking-wide">Get Token Now</span>
         </button>
       ) : (
@@ -648,11 +648,11 @@ export default function SmartQueueWidget({ service }: { service: any }) {
       )}
 
       <div className="grid grid-cols-2 gap-2">
-        <Link href="/service-queue/queue" className="flex items-center justify-center gap-1.5 py-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold rounded-xl text-sm transition-all">
+        <Link href="/service-queue/queue" className="flex items-center justify-center gap-1.5 py-2.5 lg:py-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold rounded-xl text-sm transition-all">
           <Users className="w-3.5 h-3.5" /> Live Board
         </Link>
         {isSeller && (
-          <Link href="/service-queue/manage" className="flex items-center justify-center gap-1.5 py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-violet-200">
+          <Link href="/service-queue/manage" className="flex items-center justify-center gap-1.5 py-2.5 lg:py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-violet-200">
             <ChevronRight className="w-3.5 h-3.5" /> Manage Shop
           </Link>
         )}

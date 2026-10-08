@@ -40,6 +40,7 @@ export declare class ListingsController {
             createdAt: Date;
             updatedAt: Date;
             description: string | null;
+            parameters: import("@prisma/client/runtime/library").JsonValue | null;
             isActive: boolean;
             businessTypeId: string;
         };
@@ -101,6 +102,7 @@ export declare class ListingsController {
             createdAt: Date;
             updatedAt: Date;
             description: string | null;
+            parameters: import("@prisma/client/runtime/library").JsonValue | null;
             isActive: boolean;
             businessTypeId: string;
         };

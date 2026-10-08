@@ -48,6 +48,27 @@ export declare class OrdersService {
         status: string;
         customerId: string | null;
     }[]>;
+    findByBuyer(buyerId: string): import(".prisma/client").Prisma.PrismaPromise<({
+        items: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            sellerId: string | null;
+            price: number;
+            productId: string;
+            productName: string | null;
+            quantity: number;
+            orderId: string;
+        }[];
+    } & {
+        id: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        buyerId: string | null;
+        orderNumber: string | null;
+        total: number;
+    })[]>;
     findOne(id: string): import(".prisma/client").Prisma.Prisma__OrderClient<{
         id: string;
         status: string;
