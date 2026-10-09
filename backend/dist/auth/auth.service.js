@@ -133,7 +133,7 @@ let AuthService = AuthService_1 = class AuthService {
                     },
                 });
                 await transporter.sendMail({
-                    from: `"MarkatVerse Support" <${process.env.SMTP_USER}>`,
+                    from: process.env.SMTP_FROM || `"MarkatVerse Support" <${process.env.SMTP_USER}>`,
                     replyTo: `"MarkatVerse No-Reply" <noreply@markatverse.com>`,
                     to: identifier,
                     subject: 'Your MarkatVerse Verification Code',
@@ -326,7 +326,7 @@ let AuthService = AuthService_1 = class AuthService {
                     },
                 });
                 await transporter.sendMail({
-                    from: `"MarkatVerse Support" <${process.env.SMTP_USER}>`,
+                    from: process.env.SMTP_FROM || `"MarkatVerse Support" <${process.env.SMTP_USER}>`,
                     replyTo: `"MarkatVerse No-Reply" <noreply@markatverse.com>`,
                     to: user.email || undefined,
                     subject: 'MarkatVerse Password Reset Code',
