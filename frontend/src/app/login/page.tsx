@@ -90,10 +90,14 @@ function LoginContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: siIdentifier, password: siPassword }),
-      });
+      }).catch(() => null);
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Login failed');
+      if (!res) {
+        throw new Error('Backend server is currently starting or unreachable. Please try again in a moment.');
+      }
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || (res.status === 404 ? 'Backend authentication service is offline. Please deploy or start the backend service.' : 'Login failed (HTTP ' + res.status + ')'));
 
       if (data.user.role.toUpperCase() === 'ADMIN' || data.user.role.toUpperCase() === 'SUPER_ADMIN') {
         throw new Error('Admin accounts must log in via the Admin Portal.');
@@ -129,9 +133,14 @@ function LoginContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier: regEmail, type: 'email', phone: regPhone || undefined }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to send Email OTP');
+      }).catch(() => null);
+
+      if (!res) {
+        throw new Error('Backend server is currently starting or unreachable. Please try again in a moment.');
+      }
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || 'Authentication server returned an error (HTTP ' + res.status + ')');
       
       toast.success(`OTP sent to ${regEmail}`);
       setOtpTimer(300);
