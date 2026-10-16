@@ -20,6 +20,18 @@ let NotificationsController = class NotificationsController {
         this.notificationsService = notificationsService;
         this.jwtService = jwtService;
     }
+    getPublicKey() {
+        return this.notificationsService.getPublicKey();
+    }
+    subscribe(body, authorization) {
+        if (!body.subscription || !body.userId) {
+            return { success: false, message: 'Invalid subscription payload' };
+        }
+        return this.notificationsService.saveSubscription(body.userId, body.subscription);
+    }
+    async getAllLogs() {
+        return this.notificationsService.getAllLogs();
+    }
     async getHistory(userId, authorization) {
         const token = authorization?.startsWith('Bearer ')
             ? authorization.slice(7)
@@ -75,6 +87,26 @@ let NotificationsController = class NotificationsController {
         return this.notificationsService.deleteEmailTemplate(id);
     }
 };
+__decorate([
+    Get('public-key'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], NotificationsController.prototype, "getPublicKey", null);
+__decorate([
+    Post('subscribe'),
+    __param(0, Body()),
+    __param(1, Headers('authorization')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], NotificationsController.prototype, "subscribe", null);
+__decorate([
+    Get('logs'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], NotificationsController.prototype, "getAllLogs", null);
 __decorate([
     Get('history/:userId'),
     __param(0, Param('userId')),

@@ -7,21 +7,21 @@ export declare class ConfigurationController {
         sectors: {
             id: string;
             name: string;
-            description: string | null;
-            isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            businessTypeId: string;
+            description: string | null;
             parameters: import("@prisma/client/runtime/library").JsonValue | null;
+            isActive: boolean;
+            businessTypeId: string;
         }[];
     } & {
         id: string;
-        mainType: import(".prisma/client").$Enums.MainType;
         name: string;
-        description: string | null;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
+        description: string | null;
+        mainType: import(".prisma/client").$Enums.MainType;
+        isActive: boolean;
     })[]>;
     createBusinessType(data: {
         mainType: MainType;
@@ -29,24 +29,25 @@ export declare class ConfigurationController {
         description?: string;
     }): Promise<{
         id: string;
-        mainType: import(".prisma/client").$Enums.MainType;
         name: string;
-        description: string | null;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
+        description: string | null;
+        mainType: import(".prisma/client").$Enums.MainType;
+        isActive: boolean;
     }>;
     getSectors(businessTypeId?: string): Promise<({
         businessType: {
             id: string;
-            mainType: import(".prisma/client").$Enums.MainType;
             name: string;
-            description: string | null;
-            isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
+            description: string | null;
+            mainType: import(".prisma/client").$Enums.MainType;
+            isActive: boolean;
         };
         categories: {
+            workflow: string | null;
             id: string;
             name: string;
             createdAt: Date;
@@ -57,7 +58,6 @@ export declare class ConfigurationController {
             primaryType: string | null;
             allowedListingTypes: string[];
             businessModels: string[];
-            workflow: string | null;
             workflowId: string | null;
             allowedFeatures: string[];
             notApplicable: string[];
@@ -71,12 +71,12 @@ export declare class ConfigurationController {
     } & {
         id: string;
         name: string;
-        description: string | null;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        businessTypeId: string;
+        description: string | null;
         parameters: import("@prisma/client/runtime/library").JsonValue | null;
+        isActive: boolean;
+        businessTypeId: string;
     })[]>;
     createSector(data: {
         businessTypeId: string;
@@ -85,12 +85,12 @@ export declare class ConfigurationController {
     }): Promise<{
         id: string;
         name: string;
-        description: string | null;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        businessTypeId: string;
+        description: string | null;
         parameters: import("@prisma/client/runtime/library").JsonValue | null;
+        isActive: boolean;
+        businessTypeId: string;
     }>;
     updateSector(id: string, data: {
         isActive?: boolean;
@@ -99,14 +99,15 @@ export declare class ConfigurationController {
     }): Promise<{
         id: string;
         name: string;
-        description: string | null;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        businessTypeId: string;
+        description: string | null;
         parameters: import("@prisma/client/runtime/library").JsonValue | null;
+        isActive: boolean;
+        businessTypeId: string;
     }>;
     getCategories(sectorId?: string): Promise<{
+        workflow: string | null;
         id: string;
         name: string;
         createdAt: Date;
@@ -117,7 +118,6 @@ export declare class ConfigurationController {
         primaryType: string | null;
         allowedListingTypes: string[];
         businessModels: string[];
-        workflow: string | null;
         workflowId: string | null;
         allowedFeatures: string[];
         notApplicable: string[];
@@ -133,6 +133,7 @@ export declare class ConfigurationController {
         name: string;
         parentId?: string;
     }): Promise<{
+        workflow: string | null;
         id: string;
         name: string;
         createdAt: Date;
@@ -143,7 +144,6 @@ export declare class ConfigurationController {
         primaryType: string | null;
         allowedListingTypes: string[];
         businessModels: string[];
-        workflow: string | null;
         workflowId: string | null;
         allowedFeatures: string[];
         notApplicable: string[];
@@ -157,9 +157,9 @@ export declare class ConfigurationController {
     getWorkflows(): Promise<{
         id: string;
         name: string;
-        description: string | null;
         createdAt: Date;
         updatedAt: Date;
+        description: string | null;
         version: number;
         steps: import("@prisma/client/runtime/library").JsonValue;
     }[]>;
@@ -170,9 +170,9 @@ export declare class ConfigurationController {
     }): Promise<{
         id: string;
         name: string;
-        description: string | null;
         createdAt: Date;
         updatedAt: Date;
+        description: string | null;
         version: number;
         steps: import("@prisma/client/runtime/library").JsonValue;
     }>;
@@ -180,9 +180,9 @@ export declare class ConfigurationController {
     updateSystemSettings(data: any): Promise<{
         id: string;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
         data: import("@prisma/client/runtime/library").JsonValue;
+        createdAt: Date;
         type: string;
+        updatedAt: Date;
     }>;
 }

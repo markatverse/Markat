@@ -4,6 +4,30 @@ export declare class NotificationsController {
     private readonly notificationsService;
     private readonly jwtService;
     constructor(notificationsService: NotificationsService, jwtService: JwtService);
+    getPublicKey(): {
+        publicKey: string;
+    };
+    subscribe(body: {
+        userId: string;
+        subscription: any;
+    }, authorization?: string): {
+        success: boolean;
+    } | {
+        success: boolean;
+        message: string;
+    };
+    getAllLogs(): Promise<{
+        id: string;
+        userId: string | null;
+        status: string;
+        createdAt: Date;
+        message: string;
+        title: string | null;
+        userType: string | null;
+        channel: string;
+        triggerType: string;
+        recipient: string;
+    }[]>;
     getHistory(userId: string, authorization?: string): Promise<{
         id: string;
         userId: string | null;

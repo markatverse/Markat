@@ -23,7 +23,25 @@ type CartContextType = {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('markatverse_cart');
+        return stored ? JSON.parse(stored) : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('markatverse_cart', JSON.stringify(items));
+    } catch {
+      // Ignore quota errors
+    }
+  }, [items]);
 
   const addToCart = (product: Omit<CartItem, 'quantity'>) => {
     setItems(prev => {

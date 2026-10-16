@@ -9,6 +9,27 @@ export class NotificationsController {
     private readonly jwtService: JwtService,
   ) { }
 
+  @Get('public-key')
+  getPublicKey() {
+    return this.notificationsService.getPublicKey();
+  }
+
+  @Post('subscribe')
+  subscribe(
+    @Body() body: { userId: string; subscription: any },
+    @Headers('authorization') authorization?: string,
+  ) {
+    if (!body.subscription || !body.userId) {
+      return { success: false, message: 'Invalid subscription payload' };
+    }
+    return this.notificationsService.saveSubscription(body.userId, body.subscription);
+  }
+
+  @Get('logs')
+  async getAllLogs() {
+    return this.notificationsService.getAllLogs();
+  }
+
   @Get('history/:userId')
   async getHistory(
     @Param('userId') userId: string,

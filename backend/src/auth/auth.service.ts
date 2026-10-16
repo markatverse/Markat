@@ -557,15 +557,6 @@ export class AuthService {
   }
 
   private async generateToken(user: any) {
-    if (user.role) {
-      // Fire and forget notification
-      this.notificationsService.sendNotification({
-        type: 'CUSTOMER_LOGIN',
-        recipientId: user.id,
-        data: {}
-      }).catch(err => this.logger.error('Failed to send login push', err));
-    }
-
     const payload = { sub: user.id, email: user.email, role: user.role, name: user.name };
     return {
       access_token: this.jwtService.sign(payload),

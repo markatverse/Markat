@@ -49,11 +49,95 @@ export default function ProfileSettings() {
   const router = useRouter();
   const profileFormRef = useRef<HTMLFormElement>(null);
 
+  // Web Push Subscription State
+  const [isPushSubscribed, setIsPushSubscribed] = useState(false);
+  const [isPushLoading, setIsPushLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
+      navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW registration:', err));
+      navigator.serviceWorker.ready.then(reg => {
+        reg.pushManager.getSubscription().then(sub => {
+          setIsPushSubscribed(!!sub);
+        });
+      });
+    }
+  }, []);
+
+  const handleTogglePush = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      toast.error('Web Push is not supported by your current browser.');
+      return;
+    }
+
+    setIsPushLoading(true);
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const existingSub = await reg.pushManager.getSubscription();
+
+      if (existingSub) {
+        await existingSub.unsubscribe();
+        setIsPushSubscribed(false);
+        toast.success('Push notifications paused on this device.');
+        return;
+      }
+
+      // 1. Fetch public key
+      const keyRes = await fetch(`${API_URL}/admin/notifications/public-key`);
+      const { publicKey } = await keyRes.json();
+      if (!publicKey) throw new Error('VAPID public key unavailable');
+
+      // Convert VAPID key to Uint8Array
+      const padding = '='.repeat((4 - (publicKey.length % 4)) % 4);
+      const base64 = (publicKey + padding).replace(/\-/g, '+').replace(/_/g, '/');
+      const rawData = window.atob(base64);
+      const outputArray = new Uint8Array(rawData.length);
+      for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+      }
+
+      // 2. Request browser permission and subscribe
+      const subscription = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: outputArray
+      });
+
+      // 3. Register endpoint with backend
+      const token = localStorage.getItem('token');
+      await fetch(`${API_URL}/admin/notifications/subscribe`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          userId: user?.id,
+          subscription: subscription.toJSON()
+        })
+      });
+
+      setIsPushSubscribed(true);
+      toast.success('Push notifications activated successfully!');
+    } catch (err: any) {
+      console.error('Push subscription failed:', err);
+      toast.error(err.message || 'Permission denied or failed to activate push.');
+    } finally {
+      setIsPushLoading(false);
+    }
+  };
+
   React.useEffect(() => {
     if (!isLoading && !user) {
       router.replace('/login?redirect=/profile/settings');
     }
   }, [isLoading, user, router]);
+
+  // Auto-scroll window to top when any sidebar tab is clicked
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    }
+  }, [activeTab]);
 
   React.useEffect(() => {
     if ((activeTab !== 'notifications' && activeTab !== 'orders') || !user?.id) return;
@@ -191,13 +275,10 @@ export default function ProfileSettings() {
     }
   };
 
-  if (isLoading || !user) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-      </div>
-    );
+  if (!user) {
+    return null;
   }
+
 
   return (
     <div className="min-h-screen bg-slate-950 py-10 px-4 sm:px-6 relative overflow-hidden font-sans">
@@ -252,6 +333,9 @@ export default function ProfileSettings() {
                   onClick={() => {
                     setActiveTab(item.id);
                     setShowMobileMenu(false);
+                    if (typeof window !== 'undefined') {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
                   }}
                   className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-300 group ${
                     activeTab === item.id 
@@ -496,14 +580,27 @@ export default function ProfileSettings() {
             {/* NOTIFICATIONS TAB */}
             {activeTab === 'notifications' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="flex justify-between items-end mb-8 border-b border-slate-800 pb-6">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 border-b border-slate-800 pb-6">
                   <div>
                     <h2 className="text-3xl font-bold text-white mb-2 tracking-tight flex items-center gap-3">
                       <Bell className="w-7 h-7 text-blue-500" /> Notifications & Alerts
                     </h2>
                     <p className="text-slate-400 text-sm">Stay updated with your orders, messages, and account security.</p>
                   </div>
+                  <button
+                    onClick={handleTogglePush}
+                    disabled={isPushLoading}
+                    className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md self-start sm:self-auto ${
+                      isPushSubscribed 
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20' 
+                        : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/20'
+                    }`}
+                  >
+                    <Bell className="w-4 h-4" />
+                    {isPushLoading ? 'Connecting…' : isPushSubscribed ? 'Web Push Active (Click to Pause)' : 'Enable Browser Push Notifications'}
+                  </button>
                 </div>
+
 
                 <div className="space-y-4">
                   {isProfileDataLoading ? (

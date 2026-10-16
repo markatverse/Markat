@@ -6,6 +6,8 @@ const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.en
 
 export default function NotificationsTemplatesPage() {
   const [items, setItems] = useState<any[]>([]);
+  const [logs, setLogs] = useState<any[]>([]);
+  const [activeSubTab, setActiveSubTab] = useState<'templates' | 'logs'>('templates');
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -13,10 +15,17 @@ export default function NotificationsTemplatesPage() {
 
   const fetchItems = async () => {
     try {
-      const res = await fetch(`${API_URL}/admin/notifications/push`);
-      if (res.ok) {
-        const data = await res.json();
+      const [templatesRes, logsRes] = await Promise.all([
+        fetch(`${API_URL}/admin/notifications/push`),
+        fetch(`${API_URL}/admin/notifications/logs`)
+      ]);
+      if (templatesRes.ok) {
+        const data = await templatesRes.json();
         setItems(data);
+      }
+      if (logsRes.ok) {
+        const logData = await logsRes.json();
+        setLogs(logData);
       }
     } catch (e) {
       console.error(e);
@@ -94,64 +103,174 @@ export default function NotificationsTemplatesPage() {
 
   return (
     <div className="w-full relative animate-in fade-in duration-300">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-xl font-bold text-white tracking-tight">Push Notification Templates</h2>
-          <p className="text-slate-400 mt-1 text-sm">Create and automate dynamic push notification messages.</p>
-        </div>
-        <button 
-          onClick={() => openModal()}
-          className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] flex items-center gap-2">
-          + Add New
+      {/* Sub-Tabs: Templates vs Sent Logs */}
+      <div className="flex items-center gap-3 mb-6 border-b border-slate-700/80 pb-4">
+        <button
+          onClick={() => setActiveSubTab('templates')}
+          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+            activeSubTab === 'templates'
+              ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+              : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+          }`}
+        >
+          Push Templates ({items.length})
+        </button>
+        <button
+          onClick={() => setActiveSubTab('logs')}
+          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+            activeSubTab === 'logs'
+              ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+              : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+          }`}
+        >
+          Sent Push Logs & Dispatch History ({logs.length})
         </button>
       </div>
 
-      <div className="bg-slate-800 rounded-2xl border border-slate-700 shadow-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-slate-900/80 border-b border-slate-700 text-slate-400 text-[10px] uppercase tracking-widest font-black">
-              <tr>
-                <th className="p-4 pl-6">Trigger Type (Title)</th>
-                <th className="p-4">Message Template</th>
-                <th className="p-4">Status</th>
-                <th className="p-4">Date Modified</th>
-                <th className="p-4 pr-6 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-700/50">
-              {loading ? (
-                <tr><td colSpan={5} className="p-4 text-center text-slate-400">Loading templates...</td></tr>
-              ) : items.length === 0 ? (
-                <tr><td colSpan={5} className="p-4 text-center text-slate-400">No templates found. Add some like &quot;ORDER_PROCESSING&quot;.</td></tr>
-              ) : (
-                items.map(item => (
-                  <tr key={item.id} className="hover:bg-slate-700/50 transition-all group">
-                    <td className="p-4 pl-6 font-mono text-xs font-bold text-indigo-400">{item.title}</td>
-                    <td className="p-4 text-slate-300 max-w-sm truncate" title={item.message}>{item.message}</td>
-                    <td className="p-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
-                        item.status === 'ACTIVE' 
-                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-                          : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                      }`}>
-                        {item.status}
-                      </span>
-                    </td>
-                    <td className="p-4 text-slate-400 text-sm">
-                      {new Date(item.updatedAt || item.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="p-4 pr-6 text-right space-x-2">
-                      <button onClick={() => handleToggleStatus(item)} className="text-slate-500 hover:text-white px-2 transition-colors">Toggle</button>
-                      <button onClick={() => openModal(item)} className="text-slate-500 hover:text-blue-400 px-2 transition-colors"><Edit2 className="w-4 h-4 inline" /></button>
-                      <button onClick={() => handleDelete(item.id)} className="text-slate-500 hover:text-rose-400 px-2 transition-colors"><Trash2 className="w-4 h-4 inline" /></button>
-                    </td>
+      {activeSubTab === 'templates' ? (
+        <>
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-white tracking-tight">Push Notification Templates</h2>
+              <p className="text-slate-400 mt-1 text-sm">Create and automate dynamic push notification messages.</p>
+            </div>
+            <button 
+              onClick={() => openModal()}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] flex items-center gap-2">
+              + Add New
+            </button>
+          </div>
+
+          <div className="bg-slate-800 rounded-2xl border border-slate-700 shadow-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-slate-900/80 border-b border-slate-700 text-slate-400 text-[10px] uppercase tracking-widest font-black">
+                  <tr>
+                    <th className="p-4 pl-6">Trigger Type (Title)</th>
+                    <th className="p-4">Message Template</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4">Date Modified</th>
+                    <th className="p-4 pr-6 text-right">Actions</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                </thead>
+                <tbody className="divide-y divide-slate-700/50">
+                  {loading ? (
+                    <tr><td colSpan={5} className="p-4 text-center text-slate-400">Loading templates...</td></tr>
+                  ) : items.length === 0 ? (
+                    <tr><td colSpan={5} className="p-4 text-center text-slate-400">No templates found. Add some like &quot;ORDER_PROCESSING&quot;.</td></tr>
+                  ) : (
+                    items.map(item => (
+                      <tr key={item.id} className="hover:bg-slate-700/50 transition-all group">
+                        <td className="p-4 pl-6 font-mono text-xs font-bold text-indigo-400">{item.title}</td>
+                        <td className="p-4 text-slate-300 max-w-sm truncate" title={item.message}>{item.message}</td>
+                        <td className="p-4">
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
+                            item.status === 'ACTIVE' 
+                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                              : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="p-4 text-slate-400 text-sm">
+                          {new Date(item.updatedAt || item.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="p-4 pr-6 text-right space-x-2">
+                          <button onClick={() => handleToggleStatus(item)} className="text-slate-500 hover:text-white px-2 transition-colors">Toggle</button>
+                          <button onClick={() => openModal(item)} className="text-slate-500 hover:text-blue-400 px-2 transition-colors"><Edit2 className="w-4 h-4 inline" /></button>
+                          <button onClick={() => handleDelete(item.id)} className="text-slate-500 hover:text-rose-400 px-2 transition-colors"><Trash2 className="w-4 h-4 inline" /></button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      ) : (
+        /* SENT LOGS VIEW WITH FULL DATE & TIME & MESSAGE DETAILS */
+        <div>
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-white tracking-tight">Sent Push Notification Logs</h2>
+              <p className="text-slate-400 mt-1 text-sm">Real-time log of push notifications dispatched to customer devices with full date, time, and content.</p>
+            </div>
+            <button 
+              onClick={fetchItems}
+              className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all">
+              Refresh Logs
+            </button>
+          </div>
+
+          <div className="bg-slate-800 rounded-2xl border border-slate-700 shadow-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-slate-900/80 border-b border-slate-700 text-slate-400 text-[10px] uppercase tracking-widest font-black">
+                  <tr>
+                    <th className="p-4 pl-6">Date & Time</th>
+                    <th className="p-4">Trigger Type</th>
+                    <th className="p-4">Message Content</th>
+                    <th className="p-4">Channel</th>
+                    <th className="p-4 pr-6 text-right">Delivery Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-700/50">
+                  {loading ? (
+                    <tr><td colSpan={5} className="p-6 text-center text-slate-400">Loading push logs...</td></tr>
+                  ) : logs.length === 0 ? (
+                    <tr><td colSpan={5} className="p-6 text-center text-slate-400">No sent push logs recorded yet.</td></tr>
+                  ) : (
+                    logs.map(log => {
+                      const d = new Date(log.createdAt);
+                      const formattedDate = d.toLocaleDateString('en-IN', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                      });
+                      const formattedTime = d.toLocaleTimeString('en-IN', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                      });
+
+                      return (
+                        <tr key={log.id} className="hover:bg-slate-700/50 transition-all">
+                          <td className="p-4 pl-6 whitespace-nowrap">
+                            <div className="text-sm font-bold text-white">{formattedDate}</div>
+                            <div className="text-xs text-slate-400 font-mono mt-0.5">{formattedTime}</div>
+                          </td>
+                          <td className="p-4">
+                            <span className="font-mono text-xs font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded-md">
+                              {log.triggerType || log.title || 'GENERAL'}
+                            </span>
+                          </td>
+                          <td className="p-4 text-slate-200 text-sm max-w-md">
+                            <div className="font-semibold text-white mb-0.5">{log.title}</div>
+                            <p className="text-slate-300 text-xs leading-relaxed">{log.message}</p>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-xs font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded">
+                              {log.channel || 'PUSH'}
+                            </span>
+                          </td>
+                          <td className="p-4 pr-6 text-right">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                              {log.status || 'SENT'}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">

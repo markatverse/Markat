@@ -482,13 +482,6 @@ let AuthService = AuthService_1 = class AuthService {
         return { success: true, message: 'Your message has been sent to our support team. We will reply within 24 hours!' };
     }
     async generateToken(user) {
-        if (user.role) {
-            this.notificationsService.sendNotification({
-                type: 'CUSTOMER_LOGIN',
-                recipientId: user.id,
-                data: {}
-            }).catch(err => this.logger.error('Failed to send login push', err));
-        }
         const payload = { sub: user.id, email: user.email, role: user.role, name: user.name };
         return {
             access_token: this.jwtService.sign(payload),

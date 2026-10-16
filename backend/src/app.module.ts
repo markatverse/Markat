@@ -31,6 +31,7 @@ import { RecommendationsModule } from './recommendations/recommendations.module.
 import { NotificationsModule } from './notifications/notifications.module.js';
 import { EventsModule } from './events/events.module.js';
 import { AnalyticsModule } from './analytics/analytics.module.js';
+import { RedisModule } from './redis/redis.module.js';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { AnalyticsModule } from './analytics/analytics.module.js';
       ttl: 60000, // cache for 60 seconds
       max: 100, // maximum number of items in cache
     }),
+    RedisModule,
     EventsModule, PrismaModule, UsersModule, ProductsModule, OrdersModule, SellersModule, LeadsModule, AuthModule, UploadModule, ServiceQueueModule, ConfigurationModule, ListingsModule, WalletModule, WebhookModule, SellerConfigModule, CategoriesModule, AdminModule, WorkflowsModule, IdGeneratorModule, ReviewsModule, SystemConfigModule, ContentModule, CommercialModule, SupportModule, SecurityModule, RecommendationsModule, NotificationsModule, AnalyticsModule
   ],
   controllers: [AppController],

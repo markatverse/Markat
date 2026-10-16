@@ -1,7 +1,15 @@
 import { PrismaService } from '../prisma.service.js';
 export declare class NotificationsService {
     private prisma;
+    private readonly logger;
+    private subscriptions;
     constructor(prisma: PrismaService);
+    getPublicKey(): {
+        publicKey: string;
+    };
+    saveSubscription(userId: string, subscription: any): {
+        success: boolean;
+    };
     getSmsTemplates(): Promise<{
         id: string;
         status: string;
@@ -83,6 +91,18 @@ export declare class NotificationsService {
         title: string;
     }[]>;
     findHistoryForUser(userId: string): import(".prisma/client").Prisma.PrismaPromise<{
+        id: string;
+        userId: string | null;
+        status: string;
+        createdAt: Date;
+        message: string;
+        title: string | null;
+        userType: string | null;
+        channel: string;
+        triggerType: string;
+        recipient: string;
+    }[]>;
+    getAllLogs(limit?: number): Promise<{
         id: string;
         userId: string | null;
         status: string;

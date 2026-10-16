@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, LayoutTemplate, Store, Users, ShoppingCart, Calendar, MessageSquare, AlignLeft, Star, Gift, Package, Users2, Download, CreditCard, ChevronRight } from 'lucide-react';
+import { X, LayoutTemplate, Store, Users, ShoppingCart, Calendar, MessageSquare, AlignLeft, Star, Gift, Package, Users2, Download, CreditCard, ChevronRight, Plus } from 'lucide-react';
 
 interface Props {
   sector: any;
@@ -7,6 +7,55 @@ interface Props {
   onSave: (parameters: any) => Promise<void>;
   onOpenFormBuilder: () => void;
 }
+
+interface FeatureToggleProps {
+  id: string;
+  icon: any;
+  title: string;
+  desc: string;
+  recommended?: boolean;
+  isActive: boolean;
+  onToggle: (id: string) => void;
+  onMouseEnter: (id: string) => void;
+  onMouseLeave: () => void;
+}
+
+const FeatureToggle = ({
+  id,
+  icon: Icon,
+  title,
+  desc,
+  recommended = false,
+  isActive,
+  onToggle,
+  onMouseEnter,
+  onMouseLeave
+}: FeatureToggleProps) => {
+  return (
+    <div 
+      className={`p-4 rounded-3xl border-2 transition-all cursor-pointer relative overflow-hidden ${isActive ? 'border-indigo-500 bg-indigo-500/5' : 'border-white/5 bg-slate-900/50 hover:border-white/10'}`} 
+      onClick={() => onToggle(id)}
+      onMouseEnter={() => onMouseEnter(id)}
+      onMouseLeave={onMouseLeave}
+    >
+      {recommended && (
+        <div className="absolute top-0 right-0 bg-indigo-500 text-[9px] font-black uppercase px-2 py-1 rounded-bl-xl tracking-wider">
+          Standard
+        </div>
+      )}
+      <div className="flex justify-between items-start mb-3">
+        <div className={`p-2.5 rounded-xl ${isActive ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-400'}`}>
+          <Icon className="w-5 h-5" />
+        </div>
+        <div className={`w-10 h-5 rounded-full transition-colors relative ${isActive ? 'bg-indigo-500' : 'bg-slate-700'}`}>
+          <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${isActive ? 'left-6' : 'left-1'}`} />
+        </div>
+      </div>
+      <h4 className="text-sm font-bold text-white mb-1 leading-tight">{title}</h4>
+      <p className="text-xs text-slate-400 leading-snug">{desc}</p>
+    </div>
+  );
+};
 
 export default function SectorBlueprintModal({ sector, onClose, onSave, onOpenFormBuilder }: Props) {
   const [activeTab, setActiveTab] = useState<'SELLER' | 'CUSTOMER'>('SELLER');
@@ -28,8 +77,8 @@ export default function SectorBlueprintModal({ sector, onClose, onSave, onOpenFo
 
   const [isSaving, setIsSaving] = useState(false);
 
-  const toggleFeature = (key: keyof typeof features) => {
-    setFeatures(prev => ({ ...prev, [key]: !prev[key] }));
+  const toggleFeature = (key: string) => {
+    setFeatures(prev => ({ ...prev, [key]: !prev[key as keyof typeof prev] }));
   };
 
   const handleSave = async () => {
@@ -40,34 +89,6 @@ export default function SectorBlueprintModal({ sector, onClose, onSave, onOpenFo
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const FeatureToggle = ({ id, icon: Icon, title, desc, recommended = false }: any) => {
-    const isActive = features[id as keyof typeof features];
-    return (
-      <div 
-        className={`p-4 rounded-3xl border-2 transition-all cursor-pointer relative overflow-hidden ${isActive ? 'border-indigo-500 bg-indigo-500/5' : 'border-white/5 bg-slate-900/50 hover:border-white/10'}`} 
-        onClick={() => toggleFeature(id as keyof typeof features)}
-        onMouseEnter={() => setHoverFeature(id)}
-        onMouseLeave={() => setHoverFeature(null)}
-      >
-        {recommended && (
-          <div className="absolute top-0 right-0 bg-indigo-500 text-[9px] font-black uppercase px-2 py-1 rounded-bl-xl tracking-wider">
-            Standard
-          </div>
-        )}
-        <div className="flex justify-between items-start mb-3">
-          <div className={`p-2.5 rounded-xl ${isActive ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-400'}`}>
-            <Icon className="w-5 h-5" />
-          </div>
-          <div className={`w-10 h-5 rounded-full transition-colors relative ${isActive ? 'bg-indigo-500' : 'bg-slate-700'}`}>
-            <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${isActive ? 'left-6' : 'left-1'}`} />
-          </div>
-        </div>
-        <h4 className="text-sm font-bold text-white mb-1 leading-tight">{title}</h4>
-        <p className="text-xs text-slate-400 leading-snug">{desc}</p>
-      </div>
-    );
   };
 
   return (
@@ -144,10 +165,10 @@ export default function SectorBlueprintModal({ sector, onClose, onSave, onOpenFo
                       <div className="flex-1 h-[1px] bg-slate-800"></div>
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      <FeatureToggle id="shoppingCart" icon={ShoppingCart} title="Retail & Cart" desc="Physical products, shipping, and shopping cart flows." recommended />
-                      <FeatureToggle id="bookingQueue" icon={Calendar} title="Booking & Queue" desc="Services, appointments, and live queuing systems." />
-                      <FeatureToggle id="digitalDownloads" icon={Download} title="Digital Goods" desc="Non-physical digital files and licensing flows." />
-                      <FeatureToggle id="b2bQuotes" icon={MessageSquare} title="B2B Quotes (RFQ)" desc="Wholesale quoting, leads, and custom pricing." />
+                      <FeatureToggle id="shoppingCart" icon={ShoppingCart} title="Retail & Cart" desc="Physical products, shipping, and shopping cart flows." recommended isActive={features.shoppingCart} onToggle={toggleFeature} onMouseEnter={setHoverFeature} onMouseLeave={() => setHoverFeature(null)} />
+                      <FeatureToggle id="bookingQueue" icon={Calendar} title="Booking & Queue" desc="Services, appointments, and live queuing systems." isActive={features.bookingQueue} onToggle={toggleFeature} onMouseEnter={setHoverFeature} onMouseLeave={() => setHoverFeature(null)} />
+                      <FeatureToggle id="digitalDownloads" icon={Download} title="Digital Goods" desc="Non-physical digital files and licensing flows." isActive={features.digitalDownloads} onToggle={toggleFeature} onMouseEnter={setHoverFeature} onMouseLeave={() => setHoverFeature(null)} />
+                      <FeatureToggle id="b2bQuotes" icon={MessageSquare} title="B2B Quotes (RFQ)" desc="Wholesale quoting, leads, and custom pricing." isActive={features.b2bQuotes} onToggle={toggleFeature} onMouseEnter={setHoverFeature} onMouseLeave={() => setHoverFeature(null)} />
                     </div>
                   </div>
 
@@ -159,9 +180,9 @@ export default function SectorBlueprintModal({ sector, onClose, onSave, onOpenFo
                       <div className="flex-1 h-[1px] bg-slate-800"></div>
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      <FeatureToggle id="inventoryTracking" icon={Package} title="Inventory Tracking" desc="Advanced stock levels, alerts, and multi-location." />
-                      <FeatureToggle id="staffManagement" icon={Users2} title="Staff Management" desc="Assign services/shifts to individual team members." />
-                      <FeatureToggle id="subscriptionPlans" icon={CreditCard} title="Recurring Subs" desc="Allow sellers to offer subscription boxes or retainers." />
+                      <FeatureToggle id="inventoryTracking" icon={Package} title="Inventory Tracking" desc="Advanced stock levels, alerts, and multi-location." isActive={features.inventoryTracking} onToggle={toggleFeature} onMouseEnter={setHoverFeature} onMouseLeave={() => setHoverFeature(null)} />
+                      <FeatureToggle id="staffManagement" icon={Users2} title="Staff Management" desc="Assign services/shifts to individual team members." isActive={features.staffManagement} onToggle={toggleFeature} onMouseEnter={setHoverFeature} onMouseLeave={() => setHoverFeature(null)} />
+                      <FeatureToggle id="subscriptionPlans" icon={CreditCard} title="Recurring Subs" desc="Allow sellers to offer subscription boxes or retainers." isActive={features.subscriptionPlans} onToggle={toggleFeature} onMouseEnter={setHoverFeature} onMouseLeave={() => setHoverFeature(null)} />
                     </div>
                   </div>
 
@@ -173,9 +194,9 @@ export default function SectorBlueprintModal({ sector, onClose, onSave, onOpenFo
                       <div className="flex-1 h-[1px] bg-slate-800"></div>
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      <FeatureToggle id="reviews" icon={Star} title="Reviews & Ratings" desc="Enable public customer reviews and 5-star ratings." recommended />
-                      <FeatureToggle id="loyaltyProgram" icon={Gift} title="Loyalty & Points" desc="Rewards program, points accumulation, and tiers." />
-                      <FeatureToggle id="portfolio" icon={LayoutTemplate} title="Media Portfolio" desc="Showcase previous work, galleries, and lookbooks." />
+                      <FeatureToggle id="reviews" icon={Star} title="Reviews & Ratings" desc="Enable public customer reviews and 5-star ratings." recommended isActive={features.reviews} onToggle={toggleFeature} onMouseEnter={setHoverFeature} onMouseLeave={() => setHoverFeature(null)} />
+                      <FeatureToggle id="loyaltyProgram" icon={Gift} title="Loyalty & Points" desc="Rewards program, points accumulation, and tiers." isActive={features.loyaltyProgram} onToggle={toggleFeature} onMouseEnter={setHoverFeature} onMouseLeave={() => setHoverFeature(null)} />
+                      <FeatureToggle id="portfolio" icon={LayoutTemplate} title="Media Portfolio" desc="Showcase previous work, galleries, and lookbooks." isActive={features.portfolio} onToggle={toggleFeature} onMouseEnter={setHoverFeature} onMouseLeave={() => setHoverFeature(null)} />
                     </div>
                   </div>
                 </div>

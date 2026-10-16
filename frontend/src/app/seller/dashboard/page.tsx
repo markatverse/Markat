@@ -20,6 +20,17 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const isAdding = searchParams.get('action') === 'add';
   const [activeTab, setActiveTab] = useState(isAdding ? 'add_service' : 'overview');
+  const mainContentRef = React.useRef<HTMLElement>(null);
+
+  // Auto-scroll to top whenever a sidebar option/tab is clicked
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    }
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    }
+  }, [activeTab]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const { addProduct, editProduct, deleteProduct, products, categories } = useProducts();
@@ -832,7 +843,7 @@ function DashboardContent() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 min-w-0 overflow-y-auto p-4 lg:p-10">
+      <main ref={mainContentRef} className="flex-1 min-w-0 overflow-y-auto p-4 lg:p-10">
         
         {activeTab === 'overview' && (
           <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
@@ -2220,337 +2231,390 @@ function DashboardContent() {
         )}
 
         {activeTab === 'profile' && (
-          <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
-            <div className="mb-8 flex justify-between items-end">
+          <div className="max-w-5xl mx-auto animate-in fade-in duration-300 pb-12 font-sans">
+            {/* Page Header */}
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-slate-900">Business Profile</h1>
-                <p className="text-slate-500 mt-2">View and manage your registered business details.</p>
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Business Profile</h1>
+                <p className="text-sm text-slate-500 mt-1">Review your verified credentials, contact channels, and physical location.</p>
               </div>
               {!isEditingProfile ? (
                 <button 
                   onClick={handleEditProfileInit}
-                  className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+                  className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition-all self-start sm:self-auto"
                 >
-                  Edit Profile
+                  <Edit2 className="w-4 h-4" /> Edit Profile
                 </button>
               ) : (
-                <div className="flex gap-2">
+                <div className="flex gap-2 self-start sm:self-auto">
                   <button 
                     onClick={() => setIsEditingProfile(false)}
-                    className="bg-slate-100 text-slate-600 hover:bg-slate-200 px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+                    className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all"
                   >
                     Cancel
                   </button>
                   <button 
                     onClick={handleSaveProfile}
-                    className="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition-all"
                   >
                     Save Changes
                   </button>
                 </div>
               )}
             </div>
-            
-            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6 md:p-8 max-w-4xl space-y-8">
-              {/* Header Status Banner */}
-              <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200/70">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                    <ShieldCheck className="w-5 h-5 text-indigo-600" />
+
+            {/* Profile Hero Summary Card */}
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 sm:p-6 mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-black text-2xl shadow-md shrink-0">
+                    {(user?.business?.name || user?.name || 'S').charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <div className="text-xs font-bold uppercase tracking-wider text-slate-400">Account Classification</div>
-                    <div className="text-sm font-black text-slate-900 flex items-center gap-2">
-                      {user?.business?.businessType || 'Standard Seller'}
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <h2 className="text-lg sm:text-xl font-bold text-slate-900">{user?.business?.name || user?.name || 'Seller Business'}</h2>
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
                         {user?.business?.verified ? 'Verified Business' : 'Active Account'}
                       </span>
                     </div>
+                    <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
+                      <span>Category: <strong className="text-slate-700 font-medium">{user?.business?.businessType || 'Standard'}</strong></span>
+                      <span>•</span>
+                      <span>Sector: <strong className="text-slate-700 font-medium">{user?.business?.sector || 'General Commerce'}</strong></span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-200/60">
-                    <Edit2 className="w-3 h-3" /> Editable Fields
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-200/70 text-slate-700 border border-slate-300/60">
-                    <Lock className="w-3 h-3" /> System / Locked
-                  </span>
+                <div className="flex items-center gap-2 text-xs font-medium self-start sm:self-auto bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/60">
+                  <span className="text-slate-400">Account ID:</span>
+                  <span className="font-mono font-bold text-blue-700">{user?.markatId || 'MV-Pending'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Main Content Grid: Editable Details vs Platform Details */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              
+              {/* Section 1: Business & Contact Information */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-100">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <Store className="w-4 h-4" />
+                      </div>
+                      <h3 className="text-base font-bold text-slate-900">Contact & Legal Identity</h3>
+                    </div>
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-100">
+                      Editable by You
+                    </span>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">Legal Business Name</label>
+                      {isEditingProfile ? (
+                        <input 
+                          type="text"
+                          value={profileForm.businessName} 
+                          onChange={e => setProfileForm({...profileForm, businessName: e.target.value})} 
+                          className="w-full px-3.5 py-2.5 text-sm font-normal text-slate-900 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                        />
+                      ) : (
+                        <div className="text-sm font-medium text-slate-800 bg-slate-50/70 px-3.5 py-2.5 rounded-xl border border-slate-200/60">
+                          {user?.business?.name || 'Not provided'}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">Owner / Representative Name</label>
+                      {isEditingProfile ? (
+                        <input 
+                          type="text"
+                          value={profileForm.ownerName} 
+                          onChange={e => setProfileForm({...profileForm, ownerName: e.target.value})} 
+                          className="w-full px-3.5 py-2.5 text-sm font-normal text-slate-900 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                        />
+                      ) : (
+                        <div className="text-sm font-medium text-slate-800 bg-slate-50/70 px-3.5 py-2.5 rounded-xl border border-slate-200/60">
+                          {user?.name || 'Not provided'}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">Phone Number</label>
+                      {isEditingProfile ? (
+                        <input 
+                          type="text"
+                          value={profileForm.phone} 
+                          onChange={e => setProfileForm({...profileForm, phone: e.target.value})} 
+                          className="w-full px-3.5 py-2.5 text-sm font-normal text-slate-900 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                        />
+                      ) : (
+                        <div className="text-sm font-medium text-slate-800 bg-slate-50/70 px-3.5 py-2.5 rounded-xl border border-slate-200/60 font-mono">
+                          {user?.phone || 'Not provided'}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">Email Address</label>
+                      {isEditingProfile ? (
+                        <input 
+                          type="email"
+                          value={profileForm.email} 
+                          onChange={e => setProfileForm({...profileForm, email: e.target.value})} 
+                          className="w-full px-3.5 py-2.5 text-sm font-normal text-slate-900 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                        />
+                      ) : (
+                        <div className="text-sm font-medium text-slate-800 bg-slate-50/70 px-3.5 py-2.5 rounded-xl border border-slate-200/60">
+                          {user?.email || 'Not provided'}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">GST / Tax Identification</label>
+                      {isEditingProfile ? (
+                        <input 
+                          type="text"
+                          value={profileForm.gstNumber} 
+                          onChange={e => setProfileForm({...profileForm, gstNumber: e.target.value})} 
+                          className="w-full px-3.5 py-2.5 text-sm font-normal text-slate-900 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all uppercase" 
+                        />
+                      ) : (
+                        <div className="text-sm font-medium text-slate-800 bg-slate-50/70 px-3.5 py-2.5 rounded-xl border border-slate-200/60 font-mono">
+                          {user?.business?.gstNumber || 'Not provided'}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* 1. EDITABLE GENERAL & CONTACT INFO */}
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                      <Edit2 className="w-4 h-4 text-indigo-600" /> Editable Business Details
-                    </h3>
-                    <span className="text-[11px] font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
-                      Editable by Seller
+              {/* Section 2: Platform & Contract Parameters (System Locked) */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-100">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+                        <Lock className="w-4 h-4" />
+                      </div>
+                      <h3 className="text-base font-bold text-slate-900">Platform & Agreement</h3>
+                    </div>
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 border border-slate-200">
+                      System Managed
                     </span>
                   </div>
 
                   <div className="space-y-4">
                     <div>
-                      <div className="flex items-center justify-between text-xs text-slate-500 font-semibold mb-1">
-                        <span>Legal Business Name</span>
-                        <span className="text-[10px] text-indigo-600 font-bold">Editable</span>
-                      </div>
-                      {isEditingProfile ? (
-                        <input value={profileForm.businessName} onChange={e => setProfileForm({...profileForm, businessName: e.target.value})} className="w-full p-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-400 font-medium" />
-                      ) : (
-                        <div className="font-bold text-slate-900 bg-slate-50/80 p-2.5 rounded-xl border border-slate-100">{user?.business?.name || 'N/A'}</div>
-                      )}
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between text-xs text-slate-500 font-semibold mb-1">
-                        <span>Owner / Representative Name</span>
-                        <span className="text-[10px] text-indigo-600 font-bold">Editable</span>
-                      </div>
-                      {isEditingProfile ? (
-                        <input value={profileForm.ownerName} onChange={e => setProfileForm({...profileForm, ownerName: e.target.value})} className="w-full p-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-400 font-medium" />
-                      ) : (
-                        <div className="font-bold text-slate-900 bg-slate-50/80 p-2.5 rounded-xl border border-slate-100">{user?.name || 'N/A'}</div>
-                      )}
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between text-xs text-slate-500 font-semibold mb-1">
-                        <span>Contact Phone Number</span>
-                        <span className="text-[10px] text-indigo-600 font-bold">Editable</span>
-                      </div>
-                      {isEditingProfile ? (
-                        <input value={profileForm.phone} onChange={e => setProfileForm({...profileForm, phone: e.target.value})} className="w-full p-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-400 font-medium" />
-                      ) : (
-                        <div className="font-bold text-slate-900 bg-slate-50/80 p-2.5 rounded-xl border border-slate-100">{user?.phone || 'N/A'}</div>
-                      )}
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between text-xs text-slate-500 font-semibold mb-1">
-                        <span>Email Address</span>
-                        <span className="text-[10px] text-indigo-600 font-bold">Editable</span>
-                      </div>
-                      {isEditingProfile ? (
-                        <input value={profileForm.email} onChange={e => setProfileForm({...profileForm, email: e.target.value})} className="w-full p-2.5 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400 font-medium" />
-                      ) : (
-                        <div className="font-bold text-slate-900 bg-slate-50/80 p-2.5 rounded-xl border border-slate-100">{user?.email || 'N/A'}</div>
-                      )}
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between text-xs text-slate-500 font-semibold mb-1">
-                        <span>GST / Tax Identification</span>
-                        <span className="text-[10px] text-indigo-600 font-bold">Editable</span>
-                      </div>
-                      {isEditingProfile ? (
-                        <input value={profileForm.gstNumber} onChange={e => setProfileForm({...profileForm, gstNumber: e.target.value})} className="w-full p-2.5 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400 font-medium" />
-                      ) : (
-                        <div className="font-bold text-slate-900 bg-slate-50/80 p-2.5 rounded-xl border border-slate-100">{user?.business?.gstNumber || 'Not provided'}</div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. SYSTEM-LOCKED & VERIFIED PLATFORM CONFIG */}
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                      <Lock className="w-4 h-4 text-slate-500" /> System & Platform Config
-                    </h3>
-                    <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded flex items-center gap-1">
-                      <Lock className="w-3 h-3" /> Locked
-                    </span>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex items-center justify-between text-xs text-slate-400 font-semibold mb-1">
-                        <span>MarkatVerse Account ID</span>
-                        <span className="text-[10px] text-slate-400">System Generated</span>
-                      </div>
-                      <div className="font-mono text-xs font-bold text-indigo-700 bg-indigo-50/50 p-2.5 rounded-xl border border-indigo-100/70">
-                        {user?.markatId || 'Pending Allocation'}
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">Business Classification</label>
+                      <div className="text-sm font-medium text-slate-800 bg-slate-50/70 px-3.5 py-2.5 rounded-xl border border-slate-200/60 flex items-center justify-between">
+                        <span>{user?.business?.businessType || 'Standard'}</span>
+                        <span className="text-xs text-slate-500 font-semibold">{user?.business?.businessModel || 'B2C'}</span>
                       </div>
                     </div>
 
                     <div>
-                      <div className="flex items-center justify-between text-xs text-slate-400 font-semibold mb-1">
-                        <span>Business Type & Model</span>
-                        <span className="text-[10px] text-slate-400">Admin Assigned</span>
-                      </div>
-                      <div className="font-semibold text-slate-800 bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between">
-                        <span>{user?.business?.businessType || 'N/A'}</span>
-                        <span className="text-xs font-bold text-slate-500">{user?.business?.businessModel || 'B2C'}</span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between text-xs text-slate-400 font-semibold mb-1">
-                        <span>Assigned Sector</span>
-                        <span className="text-[10px] text-slate-400">Platform Verified</span>
-                      </div>
-                      <div className="font-semibold text-slate-800 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                        {user?.business?.sector || 'General Commerce'}
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between text-xs text-slate-400 font-semibold mb-1">
-                        <span>Operational Capabilities</span>
-                        <span className="text-[10px] text-slate-400">Feature Engine</span>
-                      </div>
-                      <div className="font-semibold text-slate-800 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">Operational Capabilities</label>
+                      <div className="text-sm font-medium text-slate-800 bg-slate-50/70 px-3.5 py-2.5 rounded-xl border border-slate-200/60">
                         {user?.business?.capabilities?.length ? user.business.capabilities.join(', ') : 'Standard Catalog'}
                       </div>
                     </div>
 
                     <div>
-                      <div className="flex items-center justify-between text-xs text-slate-400 font-semibold mb-1">
-                        <span>Commercial Revenue Model</span>
-                        <span className="text-[10px] text-slate-400">Financial Terms</span>
-                      </div>
-                      <div className="font-medium text-slate-900 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">Commercial Revenue Terms</label>
+                      <div className="text-sm font-medium text-slate-800 bg-slate-50/70 px-3.5 py-2.5 rounded-xl border border-slate-200/60">
                         {user?.business ? (
-                          <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 inline-flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                          <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200/70 inline-flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                             {user.business.commissionType === 'PERCENTAGE' 
-                              ? `${user.business.commissionRate}% Commission on Orders`
+                              ? `${user.business.commissionRate}% Marketplace Commission`
                               : `₹${user.business.commissionRate} Flat Fee per Settlement`}
                           </span>
-                        ) : 'Default Marketplace Terms'}
+                        ) : 'Standard Marketplace Terms'}
                       </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">Store Code</label>
+                      <div className="text-sm font-mono font-medium text-slate-800 bg-slate-50/70 px-3.5 py-2.5 rounded-xl border border-slate-200/60">
+                        {user?.business?.businessCode || user?.business?.id?.slice(-8) || 'STORE-01'}
+                      </div>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-500 leading-relaxed">
+                      To modify locked platform agreements or commission tiers, please contact partner support through the Help Center.
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* 3. LOCATION & STORE HOURS (EDITABLE) */}
-              <div className="border-t border-slate-100 pt-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-emerald-600" /> Location & Store Operations
-                  </h3>
-                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                    Editable Location
-                  </span>
-                </div>
+            </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <div>
-                    <div className="text-xs text-slate-500 font-semibold mb-2">Pinpoint GPS Location (Customer Radius)</div>
-                    {isEditingProfile ? (
-                      <div className="mb-4">
-                        <LocationPicker 
-                          latitude={profileForm.latitude} 
-                          longitude={profileForm.longitude} 
-                          onChange={async (lat, lng) => {
-                            setProfileForm(prev => ({ ...prev, latitude: lat, longitude: lng }));
-                            try {
-                              const [nomRes, bdcRes] = await Promise.all([
-                                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`),
-                                fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`)
-                              ]);
-                              const nomData = nomRes.ok ? await nomRes.json() : null;
-                              const bdcData = bdcRes.ok ? await bdcRes.json() : null;
-                              if (nomData && nomData.address && bdcData) {
-                                const newPin = bdcData.postcode || nomData.address.postcode || '';
-                                const localParts = [];
-                                if (nomData.address.house_number) localParts.push(nomData.address.house_number);
-                                if (nomData.address.road) localParts.push(nomData.address.road);
-                                if (nomData.address.neighbourhood) localParts.push(nomData.address.neighbourhood);
-                                if (nomData.address.suburb) localParts.push(nomData.address.suburb);
-                                
-                                let shortAddress = localParts.join(', ');
-                                if (!shortAddress && nomData.display_name) {
-                                  shortAddress = nomData.display_name.split(',').slice(0, 2).join(',').trim();
-                                }
-                                if (!shortAddress) shortAddress = bdcData.locality || '';
-                                const city = bdcData.city || nomData.address.city || bdcData.locality || '';
-                                const state = bdcData.principalSubdivision || nomData.address.state || '';
-                                const newAddress = shortAddress ? `${shortAddress}, ${city}, ${state}` : '';
-
-                                setProfileForm(prev => ({
-                                  ...prev,
-                                  pincode: newPin || prev.pincode,
-                                  address: newAddress || prev.address
-                                }));
-                              }
-                            } catch (err) {
-                              console.error('Geocoding error:', err);
-                            }
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="mb-4">
-                        {user?.business?.latitude ? (
-                          <div className="pointer-events-none">
-                            <LocationPicker 
-                              latitude={user.business.latitude} 
-                              longitude={user.business.longitude} 
-                              readOnly={true} 
-                            />
-                          </div>
-                        ) : (
-                          <div className="h-40 w-full rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center text-center">
-                            <div>
-                              <MapPin className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                              <div className="text-xs font-bold text-slate-600">No GPS Pin Configured</div>
-                              <div className="text-[11px] text-rose-500 mt-1 font-medium">Click &apos;Edit Profile&apos; above to drop your store pin</div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="space-y-3 mt-4">
-                      <div>
-                        <div className="text-xs text-slate-500 font-semibold mb-1">Full Business Address</div>
-                        {isEditingProfile ? (
-                          <textarea rows={3} value={profileForm.address} onChange={e => setProfileForm({...profileForm, address: e.target.value})} className="w-full p-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-400 font-medium" />
-                        ) : (
-                          <div className="font-medium text-slate-800 bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-sm">{user?.business?.address || 'N/A'}</div>
-                        )}
-                      </div>
-
-                      <div>
-                        <div className="text-xs text-slate-500 font-semibold mb-1">PIN Code</div>
-                        {isEditingProfile ? (
-                          <input value={profileForm.pincode} onChange={e => setProfileForm({...profileForm, pincode: e.target.value})} className="w-full p-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-400 font-medium" />
-                        ) : (
-                          <div className="font-bold text-slate-900 bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-sm">{user?.business?.pincode || 'N/A'}</div>
-                        )}
-                      </div>
-                    </div>
+            {/* Section 3: Physical Location & Store Operating Hours */}
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6">
+              <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <MapPin className="w-4 h-4" />
                   </div>
-
                   <div>
-                    <div className="text-xs text-slate-500 font-semibold mb-2">Operating Hours</div>
-                    <div className="text-sm text-slate-700">
-                      {user?.business?.businessHours ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
-                          {Object.entries(user.business.businessHours as any).map(([day, hrs]: [string, any]) => (
-                            <div key={day} className="flex justify-between items-center text-xs p-1.5 rounded-lg bg-white border border-slate-100">
-                              <span className="capitalize font-bold text-slate-700">{day}:</span>
-                              <span>{hrs.closed ? <span className="text-rose-500 font-bold">Closed</span> : <span className="font-semibold text-slate-600">{`${hrs.open} - ${hrs.close}`}</span>}</span>
-                            </div>
-                          ))}
+                    <h3 className="text-base font-bold text-slate-900">Store Location & Operating Hours</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">Used for customer discovery radius and open/close indicators.</p>
+                  </div>
+                </div>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-100">
+                  Customer Facing
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-2">Store Coordinates & Map Pin</label>
+                  {isEditingProfile ? (
+                    <div className="mb-4">
+                      <LocationPicker 
+                        latitude={profileForm.latitude} 
+                        longitude={profileForm.longitude} 
+                        onChange={async (lat, lng) => {
+                          setProfileForm(prev => ({ ...prev, latitude: lat, longitude: lng }));
+                          try {
+                            const [nomRes, bdcRes] = await Promise.all([
+                              fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`),
+                              fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`)
+                            ]);
+                            const nomData = nomRes.ok ? await nomRes.json() : null;
+                            const bdcData = bdcRes.ok ? await bdcRes.json() : null;
+                            if (nomData && nomData.address && bdcData) {
+                              const newPin = bdcData.postcode || nomData.address.postcode || '';
+                              const localParts = [];
+                              if (nomData.address.house_number) localParts.push(nomData.address.house_number);
+                              if (nomData.address.road) localParts.push(nomData.address.road);
+                              if (nomData.address.neighbourhood) localParts.push(nomData.address.neighbourhood);
+                              if (nomData.address.suburb) localParts.push(nomData.address.suburb);
+                              
+                              let shortAddress = localParts.join(', ');
+                              if (!shortAddress && nomData.display_name) {
+                                shortAddress = nomData.display_name.split(',').slice(0, 2).join(',').trim();
+                              }
+                              if (!shortAddress) shortAddress = bdcData.locality || '';
+                              const city = bdcData.city || nomData.address.city || bdcData.locality || '';
+                              const state = bdcData.principalSubdivision || nomData.address.state || '';
+                              const newAddress = shortAddress ? `${shortAddress}, ${city}, ${state}` : '';
+
+                              setProfileForm(prev => ({
+                                ...prev,
+                                pincode: newPin || prev.pincode,
+                                address: newAddress || prev.address
+                              }));
+                            }
+                          } catch (err) {
+                            console.error('Geocoding error:', err);
+                          }
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="mb-4 rounded-xl overflow-hidden border border-slate-200">
+                      {user?.business?.latitude ? (
+                        <div className="pointer-events-none">
+                          <LocationPicker 
+                            latitude={user.business.latitude} 
+                            longitude={user.business.longitude} 
+                            readOnly={true} 
+                          />
                         </div>
                       ) : (
-                        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center text-xs text-slate-400 italic">
-                          Standard operating schedule active (Mon - Sat, 09:00 AM - 08:00 PM)
+                        <div className="h-44 w-full bg-slate-50 flex items-center justify-center text-center p-4">
+                          <div>
+                            <MapPin className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                            <div className="text-xs font-semibold text-slate-700">GPS Pin Not Configured</div>
+                            <div className="text-xs text-blue-600 mt-1 cursor-pointer font-medium" onClick={handleEditProfileInit}>Click Edit Profile to set location</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">Physical Address</label>
+                      {isEditingProfile ? (
+                        <textarea 
+                          rows={2} 
+                          value={profileForm.address} 
+                          onChange={e => setProfileForm({...profileForm, address: e.target.value})} 
+                          className="w-full px-3.5 py-2.5 text-sm font-normal text-slate-900 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none" 
+                        />
+                      ) : (
+                        <div className="text-sm font-medium text-slate-800 bg-slate-50/70 px-3.5 py-2.5 rounded-xl border border-slate-200/60">
+                          {user?.business?.address || 'Not specified'}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">Postal Code (PIN)</label>
+                      {isEditingProfile ? (
+                        <input 
+                          type="text"
+                          value={profileForm.pincode} 
+                          onChange={e => setProfileForm({...profileForm, pincode: e.target.value})} 
+                          className="w-full px-3.5 py-2.5 text-sm font-normal text-slate-900 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                        />
+                      ) : (
+                        <div className="text-sm font-medium text-slate-800 bg-slate-50/70 px-3.5 py-2.5 rounded-xl border border-slate-200/60 font-mono">
+                          {user?.business?.pincode || 'Not specified'}
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
+
+                {/* Operating Hours Table */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-2">Weekly Schedule</label>
+                  <div className="bg-slate-50/80 rounded-xl border border-slate-200/70 overflow-hidden divide-y divide-slate-200/60">
+                    {user?.business?.businessHours ? (
+                      Object.entries(user.business.businessHours as any).map(([day, hrs]: [string, any]) => (
+                        <div key={day} className="flex justify-between items-center px-4 py-2.5 text-xs">
+                          <span className="capitalize font-semibold text-slate-700">{day}</span>
+                          <span className="font-medium text-slate-600">
+                            {hrs.closed ? (
+                              <span className="text-rose-600 font-semibold bg-rose-50 px-2 py-0.5 rounded">Closed</span>
+                            ) : (
+                              `${hrs.open} – ${hrs.close}`
+                            )}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
+                        <div key={day} className="flex justify-between items-center px-4 py-2.5 text-xs">
+                          <span className="capitalize font-semibold text-slate-700">{day}</span>
+                          <span className="font-medium text-slate-600">
+                            {day === 'Sunday' ? (
+                              <span className="text-rose-600 font-semibold bg-rose-50 px-2 py-0.5 rounded">Closed</span>
+                            ) : (
+                              '09:00 – 19:00'
+                            )}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
+
           </div>
         )}
+
 
         {activeTab === 'settings' && (
           <div className="max-w-4xl mx-auto animate-in fade-in duration-300 space-y-8">
