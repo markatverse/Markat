@@ -1325,12 +1325,12 @@ function DashboardContent() {
         {(activeTab === 'add_product' || activeTab === 'add_service' || activeTab === 'add') && (() => {
           const isServiceMode = activeTab === 'add_service' || (activeTab === 'add' && isServiceProvider);
           return (
-          <div className="max-w-5xl mx-auto animate-in fade-in duration-300">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-slate-900">
+          <div className="max-w-4xl mx-auto animate-in fade-in duration-300">
+            <div className="mb-5">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
                 {editingProductId ? (isServiceMode ? 'Edit Service' : 'Edit Product') : (isServiceMode ? 'Add New Service' : 'Add New Product')}
               </h1>
-              <p className="text-slate-500 mt-2">{editingProductId ? 'Update the details for your listing.' : 'Create a new listing to start selling.'}</p>
+              <p className="text-slate-500 mt-1 text-sm">{editingProductId ? 'Update the details for your listing.' : 'Create a new listing to start selling.'}</p>
             </div>
             
             {showSuccess ? (
