@@ -817,7 +817,11 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
             moq: item.moq,
             status: item.status
           }));
-          setProducts(mappedData);
+          if (mappedData.length > 0) {
+            setProducts(mappedData);
+          } else {
+            setProducts(defaultProducts);
+          }
         } else if (Array.isArray(data)) {
           const mappedData = data.map(item => ({
             ...item,
@@ -831,14 +835,18 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
             moq: item.moq,
             status: item.status
           }));
-          setProducts(mappedData);
+          if (mappedData.length > 0) {
+            setProducts(mappedData);
+          } else {
+            setProducts(defaultProducts);
+          }
         } else {
-          setProducts([]);
+          setProducts(defaultProducts);
         }
       })
       .catch(err => {
-        console.error('Failed to fetch products:', err);
-        setProducts([]);
+        console.warn('Backend API note (using offline fallback data):', err.message);
+        setProducts(defaultProducts);
       })
       .finally(() => setIsLoading(false));
 
