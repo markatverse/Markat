@@ -12,20 +12,18 @@ type WishlistContextType = {
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
 export function WishlistProvider({ children }: { children: React.ReactNode }) {
-  const [wishlistIds, setWishlistIds] = useState<string[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('markatverse_wishlist');
-      if (stored) {
-        setWishlistIds(JSON.parse(stored));
+  const [wishlistIds, setWishlistIds] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('markatverse_wishlist');
+        return stored ? JSON.parse(stored) : [];
+      } catch {
+        return [];
       }
-    } catch (e) {
-      console.error('Failed to load wishlist:', e);
     }
-    setIsLoaded(true);
-  }, []);
+    return [];
+  });
+  const [isLoaded, setIsLoaded] = useState(true);
 
   useEffect(() => {
     if (isLoaded) {

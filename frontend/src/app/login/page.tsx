@@ -86,27 +86,14 @@ function LoginContent() {
       if (!siIdentifier) { setError("Email or Phone is required"); return; }
       if (!siPassword) { setError("Password is required"); return; }
       
-      let res = await fetch(`${API_URL}/auth/login`, {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: siIdentifier, password: siPassword }),
-      }).catch(() => null);
+      });
 
-      // Graceful fallback to internal Next.js serverless route on Vercel
-      if (!res || !res.ok) {
-        res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: siIdentifier, password: siPassword }),
-        }).catch(() => null);
-      }
-
-      if (!res) {
-        throw new Error('Authentication service temporarily unavailable. Please try again.');
-      }
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.message || 'Login failed (HTTP ' + res.status + ')');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Login failed');
 
       if (data.user.role.toUpperCase() === 'ADMIN' || data.user.role.toUpperCase() === 'SUPER_ADMIN') {
         throw new Error('Admin accounts must log in via the Admin Portal.');
@@ -138,25 +125,12 @@ function LoginContent() {
     setIsLoading(true);
     try {
       // Send OTP to Email directly (Mobile OTP disabled by admin)
-      let res = await fetch(`${API_URL}/auth/send-signup-otp`, {
+      const res = await fetch(`${API_URL}/auth/send-signup-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier: regEmail, type: 'email', phone: regPhone || undefined }),
-      }).catch(() => null);
-
-      if (!res || !res.ok) {
-        res = await fetch('/api/auth/send-signup-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier: regEmail, type: 'email', phone: regPhone || undefined }),
-        }).catch(() => null);
-      }
-
-      if (!res) {
-        throw new Error('Authentication server is unreachable. Please try again.');
-      }
-
-      const data = await res.json().catch(() => ({}));
+      });
+      const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to send Email OTP');
       
       toast.success(`OTP sent to ${regEmail}`);
@@ -178,24 +152,15 @@ function LoginContent() {
     setIsLoading(true);
     try {
       // Verify Email OTP
-      let verifyRes = await fetch(`${API_URL}/auth/verify-signup-otp`, {
+      const verifyRes = await fetch(`${API_URL}/auth/verify-signup-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier: regEmail, code: emailOtp, type: 'email' }),
-      }).catch(() => null);
-
-      if (!verifyRes || !verifyRes.ok) {
-        verifyRes = await fetch('/api/auth/verify-signup-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: regEmail, code: emailOtp, name: regName, phone: regPhone }),
-        }).catch(() => null);
-      }
-
-      if (!verifyRes || !verifyRes.ok) throw new Error('Invalid Email OTP');
+      });
+      if (!verifyRes.ok) throw new Error('Invalid Email OTP');
 
       // Proceed with actual Signup
-      let res = await fetch(`${API_URL}/auth/signup`, {
+      const res = await fetch(`${API_URL}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -205,22 +170,16 @@ function LoginContent() {
           password: regPassword,
           role: 'CONSUMER',
         }),
-      }).catch(() => null);
+      });
 
-      if (!res || !res.ok) {
-        res = verifyRes; // fallback session from verify
-      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(Array.isArray(data.message) ? data.message[0] : data.message || 'Registration failed');
 
-      const data = await res.json().catch(() => ({}));
-      if (data.user) {
-        login(
-          { id: data.user.id, markatId: data.user.markatId, name: data.user.name, email: data.user.email, role: data.user.role.toLowerCase() as any, phone: data.user.phone || '', business: data.user.business },
-          data.access_token || 'mv_token'
-        );
-        router.push('/');
-      } else {
-        throw new Error('Registration failed. Please try again.');
-      }
+      login(
+        { id: data.user.id, markatId: data.user.markatId, name: data.user.name, email: data.user.email, role: data.user.role.toLowerCase() as any, phone: data.user.phone || '', business: data.user.business },
+        data.access_token
+      );
+      router.push('/');
     } catch (err: any) {
       setError(err.message);
     } finally {
