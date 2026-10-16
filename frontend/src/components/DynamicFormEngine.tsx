@@ -9,9 +9,18 @@ interface DynamicFormEngineProps {
   onSave: (data: any) => Promise<void>;
   onCancel: () => void;
   isService?: boolean;
+  sellerSector?: string;
+  activeVertical?: 'FOOD' | 'SALON' | 'DOCTOR' | 'NONE';
 }
 
-export default function DynamicFormEngine({ initialData, onSave, onCancel, isService = false }: DynamicFormEngineProps) {
+export default function DynamicFormEngine({ 
+  initialData, 
+  onSave, 
+  onCancel, 
+  isService = false,
+  sellerSector: propSellerSector,
+  activeVertical
+}: DynamicFormEngineProps) {
   const { categories } = useProducts();
   const { user } = useAuth();
   
@@ -21,6 +30,13 @@ export default function DynamicFormEngine({ initialData, onSave, onCancel, isSer
   
   // Hierarchy Fields
   const [primaryType, setPrimaryType] = useState<'PRODUCT'|'SERVICE'|'VEHICLE'>(initialData?.primaryType || (isService ? 'SERVICE' : 'PRODUCT'));
+
+  useEffect(() => {
+    if (!initialData?.primaryType) {
+      setPrimaryType(isService ? 'SERVICE' : 'PRODUCT');
+    }
+  }, [isService, initialData]);
+
   const [category, setCategory] = useState(initialData?.category || '');
   const [subcategory, setSubcategory] = useState(initialData?.subcategory || '');
   const [nestedSubcategory, setNestedSubcategory] = useState(initialData?.nestedSubcategory || '');
@@ -135,28 +151,96 @@ export default function DynamicFormEngine({ initialData, onSave, onCancel, isSer
 
   const primaryTypes = isService ? ['SERVICE'] : ['PRODUCT', 'VEHICLE'];
   
-  const userSector = user?.business?.sector;
+  const userSector = propSellerSector || user?.business?.sector || '';
+
+  // Systematic Sector-to-Category Mapping
+  const isCategoryAllowedForSeller = (catName: string): boolean => {
+    const cName = catName.toLowerCase().trim();
+    const sName = userSector.toLowerCase().trim();
+
+    // 1. Check active vertical override if provided
+    if (activeVertical === 'DOCTOR') {
+      return ['healthcare', 'doctor', 'clinic', 'dentist', 'physiotherapy', 'medical'].includes(cName);
+    }
+    if (activeVertical === 'FOOD') {
+      return ['food & dining', 'food & dining / restaurant', 'restaurant', 'cafe', 'food shop', 'dining', 'food'].includes(cName);
+    }
+    if (activeVertical === 'SALON') {
+      return ['beauty', 'salon', 'spa', 'beauty parlour', 'salon & parlor', 'saloon'].includes(cName);
+    }
+
+    // 2. If no sector registered, allow all categories of primary type
+    if (!sName) return true;
+
+    // 3. Exact matching or sector-specific rules
+    if (sName.includes('doctor') || sName.includes('health') || sName.includes('clinic')) {
+      return ['healthcare', 'doctor', 'dentist', 'physiotherapy', 'medical'].includes(cName);
+    }
+    if (sName.includes('salon') || sName.includes('parlor') || sName.includes('beauty') || sName.includes('spa')) {
+      return ['beauty', 'salon', 'spa', 'beauty parlour'].includes(cName);
+    }
+    if (sName.includes('food') || sName.includes('restaurant') || sName.includes('dining') || sName.includes('cafe')) {
+      return ['food & dining', 'food & dining / restaurant', 'restaurant', 'cafe', 'food shop'].includes(cName);
+    }
+    if (sName.includes('home repair') || sName.includes('repair') || sName.includes('electrician') || sName.includes('plumb')) {
+      return ['home', 'plumber', 'electrician', 'carpenter', 'mechanic', 'painter', 'cleaner'].includes(cName);
+    }
+    if (sName.includes('cleaning') || sName.includes('pest')) {
+      return ['home', 'cleaner'].includes(cName);
+    }
+    if (sName.includes('professional')) {
+      return ['professional', 'consultant', 'lawyer', 'accountant', 'freelancer', 'tutor'].includes(cName);
+    }
+    if (sName.includes('car wash') || sName.includes('automobile')) {
+      return ['car wash', 'mechanic', 'sales & rentals'].includes(cName);
+    }
+    if (sName.includes('vehicle') || sName.includes('rental') || sName.includes('transport')) {
+      return ['sales & rentals', 'car wash'].includes(cName);
+    }
+    if (sName.includes('electronic')) {
+      return ['electronics'].includes(cName);
+    }
+    if (sName.includes('construction')) {
+      return ['construction'].includes(cName);
+    }
+    if (sName.includes('agriculture') || sName.includes('farming')) {
+      return ['agriculture'].includes(cName);
+    }
+    if (sName.includes('fashion') || sName.includes('apparel') || sName.includes('clothing')) {
+      return ['fashion', 'apparel', 'clothing'].includes(cName);
+    }
+    if (sName.includes('grocery') || sName.includes('fmcg')) {
+      return ['grocery & essentials', 'fmcg & groceries', 'grocery', 'food & dining'].includes(cName);
+    }
+
+    // Direct string match fallback
+    return cName === sName || sName.includes(cName) || cName.includes(sName);
+  };
 
   const availableCategories = categories.filter(c => {
     if (c.primaryType !== primaryType) return false;
-    return true;
+    return isCategoryAllowedForSeller(c.name);
   });
 
   // Auto-select category based on user sector or registration restriction
   useEffect(() => {
-    if (userSector && !category) {
-      const match = availableCategories.find(c => c.name.toLowerCase() === userSector.toLowerCase());
-      if (match) {
-        setCategory(match.name);
-        return;
+    if (!category && availableCategories.length > 0) {
+      const directMatch = availableCategories.find(c => {
+        const cLower = c.name.toLowerCase();
+        const sLower = userSector.toLowerCase();
+        return cLower === sLower || sLower.includes(cLower) || cLower.includes(sLower);
+      });
+      if (directMatch) {
+        setCategory(directMatch.name);
+      } else if (availableCategories.length === 1) {
+        setCategory(availableCategories[0].name);
       }
-    }
-    if (availableCategories.length === 1 && !category) {
-      setCategory(availableCategories[0].name);
     }
   }, [availableCategories, category, userSector]);
 
-  const isCategoryLocked = !!(userSector && availableCategories.some(c => c.name.toLowerCase() === userSector.toLowerCase()));
+  const isCategoryLocked = availableCategories.length === 1 || (
+    !!userSector && availableCategories.length > 0 && availableCategories.every(c => isCategoryAllowedForSeller(c.name)) && availableCategories.length === 1
+  );
 
   const selectedCategory = availableCategories.find(c => c.name === category);
   const availableSubcategories = selectedCategory?.subcategories || [];

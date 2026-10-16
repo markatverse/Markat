@@ -221,7 +221,7 @@ export default function Navbar() {
           </div>
 
           {/* 3. Search Bar (Bottom Row on Mobile, Middle on Desktop) */}
-          <form ref={searchRef} onSubmit={handleSearch} className="relative flex order-3 md:order-2 w-full md:flex-1 md:max-w-[700px] bg-slate-50 rounded-xl md:mx-6 border border-slate-300 hover:border-blue-400 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all shadow-inner">
+          <form ref={searchRef} onSubmit={handleSearch} className="relative flex items-stretch order-3 md:order-2 w-full md:flex-1 md:max-w-[700px] bg-slate-50 rounded-xl overflow-hidden md:mx-6 border border-slate-300 hover:border-blue-400 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all shadow-xs">
             <input
               type="text"
               placeholder="Search for products, brands, services..."
@@ -240,8 +240,8 @@ export default function Navbar() {
               className="flex-1 bg-transparent text-slate-800 border-none py-2.5 px-4 outline-none placeholder:text-slate-400 text-sm"
             />
 
-            <button type="submit" aria-label="Search" className="cursor-pointer px-5 md:px-6 bg-blue-600 hover:bg-blue-700 text-white border-none flex items-center justify-center transition-colors shrink-0">
-              <Search className="w-5 h-5" strokeWidth={2.5} />
+            <button type="submit" aria-label="Search" className="cursor-pointer px-5 md:px-6 bg-blue-600 hover:bg-blue-700 text-white border-none flex items-center justify-center transition-colors shrink-0 rounded-r-xl">
+              <Search className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2.5} />
             </button>
             {isSearchFocused && suggestions.length > 0 && (
               <div

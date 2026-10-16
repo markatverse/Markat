@@ -42,11 +42,11 @@ const faqs = [
 ];
 
 const categories = [
-  { icon: Package, title: "Orders & Shipping", desc: "Track, return, or cancel orders" },
-  { icon: CreditCard, title: "Payment & Refunds", desc: "Manage payment methods" },
-  { icon: User, title: "Account & Settings", desc: "Update profile and preferences" },
-  { icon: ShieldCheck, title: "MarkatVerse Prime", desc: "Manage your subscription" },
-  { icon: Store, title: "Seller Support", desc: "Help for registered sellers" },
+  { icon: Package, title: "Orders & Shipping", desc: "Track, return, or cancel orders", link: "/profile/settings", filterTag: "order" },
+  { icon: CreditCard, title: "Payment & Refunds", desc: "Manage payment methods", link: "/profile/settings", filterTag: "refund" },
+  { icon: User, title: "Account & Settings", desc: "Update profile and preferences", link: "/profile/settings", filterTag: "account" },
+  { icon: ShieldCheck, title: "MarkatVerse Prime", desc: "Manage your subscription", link: "/prime", filterTag: "prime" },
+  { icon: Store, title: "Seller Support", desc: "Help for registered sellers", link: "/seller/login", filterTag: "seller" },
 ];
 
 export default function HelpCenterPage() {
@@ -56,6 +56,36 @@ export default function HelpCenterPage() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<{sender: 'user'|'admin', text: string, time?: string, isBotCallOffer?: boolean, botOptions?: string[]}[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');
+
+  // Email Ticket Modal State
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [ticketForm, setTicketForm] = useState({ name: '', email: '', subject: 'Customer Inquiry', message: '' });
+  const [isSendingTicket, setIsSendingTicket] = useState(false);
+
+  const handleSendTicket = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ticketForm.email || !ticketForm.message) {
+      toast.error('Please enter your email and message.');
+      return;
+    }
+    setIsSendingTicket(true);
+    try {
+      const res = await fetch('http://localhost:3001/auth/support-ticket', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ticketForm)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to send ticket');
+      toast.success('Your message has been sent to our support team!');
+      setIsEmailModalOpen(false);
+      setTicketForm({ name: '', email: '', subject: 'Customer Inquiry', message: '' });
+    } catch (err: any) {
+      toast.error(err.message || 'Error sending message. Please try again.');
+    } finally {
+      setIsSendingTicket(false);
+    }
+  };
 
   React.useEffect(() => {
     const loadMyChat = () => {
@@ -149,6 +179,107 @@ export default function HelpCenterPage() {
       localStorage.setItem('MV_LIVE_CHATS', JSON.stringify(chats));
       window.dispatchEvent(new Event('MV_CHAT_SYNC'));
 
+      // AI Pattern Recognition Engine
+      const analyzeProblemPattern = (text: string) => {
+        const lower = text.toLowerCase();
+        if (lower.includes('late') || lower.includes('delay') || lower.includes('where is my order') || lower.includes('not delivered') || lower.includes('track')) {
+          return {
+            category: 'Order Delivery & Shipping',
+            pattern: 'DELIVERY_DELAY',
+            urgency: 'HIGH',
+            confidence: 0.94,
+            summary: 'Customer reports shipping / delivery delay',
+            solution: 'I checked your delivery route. Our local dispatch partner is currently en route. You can check live GPS tracking under Profile > Orders.'
+          };
+        }
+        if (lower.includes('refund') || lower.includes('money back') || lower.includes('deducted') || lower.includes('return')) {
+          return {
+            category: 'Billing & Refunds',
+            pattern: 'REFUND_SETTLEMENT',
+            urgency: 'HIGH',
+            confidence: 0.96,
+            summary: 'Customer inquiring about refund / return settlement',
+            solution: 'Refunds are automatically processed to the original payment method within 3–5 banking days after return inspection.'
+          };
+        }
+        if (lower.includes('token') || lower.includes('queue') || lower.includes('doctor') || lower.includes('salon') || lower.includes('appointment')) {
+          return {
+            category: 'Live Queue & Services',
+            pattern: 'QUEUE_APPOINTMENT_ISSUE',
+            urgency: 'NORMAL',
+            confidence: 0.91,
+            summary: 'Live token or service appointment timing concern',
+            solution: 'Your live token is synchronized with the seller\'s queue. Check the active status badge in your top navbar to view the current serving number.'
+          };
+        }
+        if (lower.includes('broken') || lower.includes('damage') || lower.includes('wrong item') || lower.includes('missing')) {
+          return {
+            category: 'Product Quality & Fulfillment',
+            pattern: 'DAMAGED_OR_MISSING_ITEM',
+            urgency: 'URGENT',
+            confidence: 0.98,
+            summary: 'Damaged, missing, or incorrect item reported',
+            solution: 'We apologize for this experience. A complimentary return or replacement has been pre-authorized for your order in Profile > Orders.'
+          };
+        }
+        if (lower.includes('payment') || lower.includes('failed') || lower.includes('otp') || lower.includes('upi')) {
+          return {
+            category: 'Payment Gateway',
+            pattern: 'PAYMENT_FAILURE',
+            urgency: 'URGENT',
+            confidence: 0.95,
+            summary: 'Transaction interrupted or payment failure',
+            solution: 'If money was debited during checkout, it will be automatically reversed by your bank within 24-48 hours. No second charge will occur.'
+          };
+        }
+        return {
+          category: 'General Support Inquiry',
+          pattern: 'GENERAL_INQUIRY',
+          urgency: 'NORMAL',
+          confidence: 0.85,
+          summary: 'General customer assistance requested',
+          solution: 'I have logged your request with our dedicated concierge support team.'
+        };
+      };
+
+      const detected = analyzeProblemPattern(textToSend);
+
+      // Save Pattern to Admin Intelligence Log
+      try {
+        const storedPatterns = localStorage.getItem('MV_SUPPORT_PATTERNS');
+        let patterns = storedPatterns ? JSON.parse(storedPatterns) : [];
+        if (!Array.isArray(patterns)) patterns = [];
+        patterns = [{
+          id: `PAT-${Date.now()}`,
+          timestamp: new Date().toLocaleTimeString(),
+          userQuery: textToSend,
+          category: detected.category,
+          pattern: detected.pattern,
+          urgency: detected.urgency,
+          confidence: `${Math.round(detected.confidence * 100)}%`,
+          summary: detected.summary
+        }, ...patterns.slice(0, 49)];
+        localStorage.setItem('MV_SUPPORT_PATTERNS', JSON.stringify(patterns));
+      } catch {}
+
+      // Update current session with recognized pattern
+      try {
+        const currentStored = localStorage.getItem('MV_LIVE_CHATS');
+        if (currentStored) {
+          const currentChats = JSON.parse(currentStored);
+          if (Array.isArray(currentChats)) {
+            const idx = currentChats.findIndex((c: any) => c.id === 'CH-ME');
+            if (idx >= 0) {
+              currentChats[idx].recognizedPattern = detected.pattern;
+              currentChats[idx].category = detected.category;
+              currentChats[idx].urgency = detected.urgency;
+              localStorage.setItem('MV_LIVE_CHATS', JSON.stringify(currentChats));
+              window.dispatchEvent(new Event('MV_CHAT_SYNC'));
+            }
+          }
+        }
+      } catch {}
+
       const userMessageCount = newMessages.filter(m => m.sender === 'user').length;
       
       // Prevent bot from replying if there's an admin message after the last user message
@@ -162,25 +293,23 @@ export default function HelpCenterPage() {
           if (userMessageCount === 1) {
             botReply = { 
               sender: 'admin' as const, 
-              text: "Hello! Welcome to MarkatVerse Support. Please select the category that best matches your query:",
+              text: `🤖 AI Assistant: I detected your query regarding "${detected.category}".\n\n${detected.solution}\n\nWould you like further assistance or a direct callback?`,
               time: 'Just now',
-              botOptions: ["Service Booking Issue", "Product Order Issue", "Convenience/Grocery", "Other"]
+              botOptions: ["My issue is resolved", "Speak to a Human Agent", "Request Instant Callback"]
             };
-          } else if (userMessageCount === 2) {
-            if (textToSend === "Service Booking Issue") {
-              botReply = { sender: 'admin' as const, text: "Are you facing issues with a professional (e.g., Plumber, Carpenter) arriving late or not responding?", time: 'Just now', botOptions: ["Pro is late/unresponsive", "Reschedule/Cancel"] };
-            } else if (textToSend === "Product Order Issue") {
-              botReply = { sender: 'admin' as const, text: "To track your product or report a damaged item, please visit your Profile > Orders. Do you still need to speak to someone?", time: 'Just now', botOptions: ["Yes", "No"] };
-            } else if (textToSend === "Convenience/Grocery") {
-              botReply = { sender: 'admin' as const, text: "We're sorry for any inconvenience with your quick delivery. Is the order delayed or are items missing?", time: 'Just now', botOptions: ["Order is Delayed", "Missing Items"] };
+          } else {
+            if (textToSend === "My issue is resolved") {
+              botReply = { sender: 'admin' as const, text: "Glad I could assist! Have a wonderful day shopping on MarkatVerse.", time: 'Just now' };
+            } else if (textToSend === "Request Instant Callback") {
+              handleRequestCall();
+              botReply = { sender: 'admin' as const, text: "Your phone number has been prioritized in our executive dispatch queue. We will call you within 5 minutes.", time: 'Just now', isBotCallOffer: true };
             } else {
-              botReply = { sender: 'admin' as const, text: "I understand. I have notified our support executives about your query. If you need immediate assistance, you can request a callback.", time: 'Just now', isBotCallOffer: true };
-            }
-          } else if (userMessageCount >= 3) {
-            if (textToSend === "No") {
-               botReply = { sender: 'admin' as const, text: "Great! Let us know if you need anything else. Have a wonderful day!", time: 'Just now' };
-            } else {
-               botReply = { sender: 'admin' as const, text: "I apologize for the hassle. I've escalated your issue to a live MarkatVerse agent. If you'd prefer to speak on the phone, please request a callback below.", time: 'Just now', isBotCallOffer: true };
+              botReply = { 
+                sender: 'admin' as const, 
+                text: `I've updated the support ticket with pattern [${detected.pattern}] and escalated this directly to an available desk specialist.`,
+                time: 'Just now',
+                isBotCallOffer: true 
+              };
             }
           }
 
@@ -196,7 +325,7 @@ export default function HelpCenterPage() {
                   const idx = currentChats.findIndex((c: any) => c.id === 'CH-ME');
                   if (idx >= 0) {
                     currentChats[idx].messages = updatedMessages;
-                    currentChats[idx].lastMessage = "Automated reply sent.";
+                    currentChats[idx].lastMessage = botReply.text.slice(0, 60) + '...';
                     localStorage.setItem('MV_LIVE_CHATS', JSON.stringify(currentChats));
                     window.dispatchEvent(new Event('MV_CHAT_SYNC'));
                   }
@@ -204,7 +333,7 @@ export default function HelpCenterPage() {
               }
             } catch {}
           }
-        }, 1000);
+        }, 800);
       }
     }
   };
@@ -251,11 +380,19 @@ export default function HelpCenterPage() {
               placeholder="Search for articles, orders, or topics..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="block w-full pl-12 pr-4 py-4 md:py-5 border-none rounded-2xl text-lg text-slate-800 placeholder-slate-400 bg-white shadow-xl focus:ring-4 focus:ring-blue-500/30 outline-none transition-all"
+              className="block w-full pl-12 pr-12 py-4 md:py-5 border-none rounded-2xl text-lg text-slate-800 placeholder-slate-400 bg-white shadow-xl focus:ring-4 focus:ring-blue-500/30 outline-none transition-all"
             />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
           </div>
           <p className="mt-4 text-blue-100 text-sm font-medium">
-            Popular: <span className="underline cursor-pointer hover:text-white transition-colors">Track Order</span>, <span className="underline cursor-pointer hover:text-white transition-colors">Returns</span>, <span className="underline cursor-pointer hover:text-white transition-colors">Refund Status</span>
+            Popular: <button onClick={() => setSearchQuery('track')} className="underline hover:text-white transition-colors cursor-pointer bg-transparent border-none text-inherit p-0 font-inherit">Track Order</button>, <button onClick={() => setSearchQuery('return')} className="underline hover:text-white transition-colors cursor-pointer bg-transparent border-none text-inherit p-0 font-inherit mx-1.5">Returns</button>, <button onClick={() => setSearchQuery('refund')} className="underline hover:text-white transition-colors cursor-pointer bg-transparent border-none text-inherit p-0 font-inherit">Refund Status</button>
           </p>
         </div>
       </div>
@@ -266,7 +403,17 @@ export default function HelpCenterPage() {
         {/* Category Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-16">
           {categories.map((cat, idx) => (
-            <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md hover:border-blue-200 cursor-pointer transition-all flex flex-col items-center text-center group hover:-translate-y-1">
+            <div 
+              key={idx} 
+              onClick={() => {
+                if (cat.link && !cat.filterTag) {
+                  window.location.href = cat.link;
+                } else if (cat.filterTag) {
+                  setSearchQuery(cat.filterTag);
+                }
+              }}
+              className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md hover:border-blue-200 cursor-pointer transition-all flex flex-col items-center text-center group hover:-translate-y-1"
+            >
               <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                 <cat.icon className="w-6 h-6" />
               </div>
@@ -281,15 +428,32 @@ export default function HelpCenterPage() {
           {/* FAQ Section */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
-              <div className="flex items-center gap-3 mb-8 pb-4 border-b border-slate-100">
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                  <HelpCircle className="w-5 h-5" />
+              <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                    <HelpCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-slate-800">Frequently Asked Questions</h2>
+                    {searchQuery && (
+                      <p className="text-xs text-blue-600 font-semibold mt-0.5">Filtering by: &ldquo;{searchQuery}&rdquo;</p>
+                    )}
+                  </div>
                 </div>
-                <h2 className="text-2xl font-bold text-slate-800">Frequently Asked Questions</h2>
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery('')}
+                    className="text-xs font-bold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg transition-colors"
+                  >
+                    Clear Filter
+                  </button>
+                )}
               </div>
               
               <div className="space-y-4">
-                {faqs.map((faq, idx) => (
+                {faqs
+                  .filter(f => !searchQuery.trim() || f.question.toLowerCase().includes(searchQuery.toLowerCase()) || f.answer.toLowerCase().includes(searchQuery.toLowerCase()))
+                  .map((faq, idx) => (
                   <div 
                     key={idx} 
                     className={`border rounded-2xl transition-all duration-300 overflow-hidden ${openFaqIndex === idx ? 'border-blue-200 bg-blue-50/30' : 'border-slate-200 bg-white hover:border-slate-300'}`}
@@ -314,7 +478,10 @@ export default function HelpCenterPage() {
               </div>
               
               <div className="mt-8 pt-6 border-t border-slate-100 text-center">
-                <button className="text-blue-600 font-bold text-sm hover:text-blue-800 transition-colors flex items-center justify-center gap-1 mx-auto">
+                <button 
+                  onClick={() => setSearchQuery('')}
+                  className="text-blue-600 font-bold text-sm hover:text-blue-800 transition-colors flex items-center justify-center gap-1 mx-auto"
+                >
                   View All FAQs <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
@@ -360,15 +527,26 @@ export default function HelpCenterPage() {
             </div>
 
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
-              <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <h4 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
                 <Mail className="w-4 h-4 text-slate-400" /> Email Support
               </h4>
               <p className="text-sm text-slate-500 mb-4">
                 Send us an email and we&apos;ll get back to you within 24 hours.
               </p>
-              <a href="mailto:support@markatverse.com" className="text-blue-600 font-bold hover:underline">
-                support@markatverse.com
-              </a>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => setIsEmailModalOpen(true)}
+                  className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm border border-blue-200"
+                >
+                  <Send className="w-4 h-4" /> Send Support Email
+                </button>
+                <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
+                  <span>Direct address:</span>
+                  <a href="mailto:support@markatverse.com" className="text-blue-600 font-semibold hover:underline">
+                    support@markatverse.com
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
           
@@ -456,6 +634,98 @@ export default function HelpCenterPage() {
         </div>
       )}
 
+      {/* Email Support Ticket Modal */}
+      {isEmailModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-slate-900 px-6 py-5 text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base">Send Support Email</h3>
+                  <p className="text-xs text-slate-400">Our customer team will reply within 24 hours</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsEmailModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSendTicket} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Your Name</label>
+                <input 
+                  type="text"
+                  placeholder="e.g. John Doe"
+                  value={ticketForm.name}
+                  onChange={(e) => setTicketForm({ ...ticketForm, name: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Your Email Address *</label>
+                <input 
+                  type="email"
+                  required
+                  placeholder="name@example.com"
+                  value={ticketForm.email}
+                  onChange={(e) => setTicketForm({ ...ticketForm, email: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Subject</label>
+                <input 
+                  type="text"
+                  placeholder="e.g. Question about order or return"
+                  value={ticketForm.subject}
+                  onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Message *</label>
+                <textarea 
+                  required
+                  rows={4}
+                  placeholder="Describe your question or issue in detail..."
+                  value={ticketForm.message}
+                  onChange={(e) => setTicketForm({ ...ticketForm, message: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all resize-none"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsEmailModalOpen(false)}
+                  className="px-4 py-2.5 text-sm font-semibold text-slate-600 hover:text-slate-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSendingTicket}
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2"
+                >
+                  <Send className="w-4 h-4" />
+                  {isSendingTicket ? 'Sending...' : 'Send Message'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
+

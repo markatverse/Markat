@@ -204,12 +204,14 @@ export default function SellerOnboarding() {
       'FMCG & Groceries': ['All']
     },
     'Retailer': {
+      'Food & Dining / Restaurant': ['All'],
       'Electronics': ['All'],
       'Fashion': ['All'],
       'Home & Kitchen': ['All'],
       'Grocery & Essentials': ['All']
     },
     'Service Provider': {
+      'Food & Dining / Restaurant': ['All'],
       'Salon & Parlor': ['All'],
       'Healthcare & Doctor': ['All'],
       'Home Repairs': ['All'],

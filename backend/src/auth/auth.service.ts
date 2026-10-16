@@ -24,6 +24,10 @@ export class AuthService {
       throw new BadRequestException('Email and Phone are required');
     }
 
+    if (!data.password || typeof data.password !== 'string' || data.password.length < 8) {
+      throw new BadRequestException('Password must be at least 8 characters long for security.');
+    }
+
     // Role Security Check
     const requestedRole = data.role?.toUpperCase() || 'CONSUMER';
     if (requestedRole.includes('ADMIN') || requestedRole === 'SUPER_ADMIN') {
@@ -445,6 +449,10 @@ export class AuthService {
   }
 
   async resetPasswordWithCode(identifier: string, code: string, newPassword: string) {
+    if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
+      throw new BadRequestException('New password must be at least 8 characters long for security.');
+    }
+
     // Re-verify before saving new password
     await this.verifyResetCode(identifier, code);
     
@@ -468,6 +476,84 @@ export class AuthService {
     });
 
     return { message: 'Password updated successfully' };
+  }
+
+  async sendSupportTicket(ticket: { name?: string; email: string; subject?: string; message: string; phone?: string }) {
+    if (!ticket.email || !ticket.message) {
+      throw new BadRequestException('Email and message are required.');
+    }
+
+    try {
+      const nodemailer = await import('nodemailer');
+      if (process.env.SMTP_HOST && process.env.SMTP_USER) {
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST,
+          port: parseInt(process.env.SMTP_PORT || '587'),
+          secure: process.env.SMTP_SECURE === 'true',
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+          },
+        });
+
+        const subject = ticket.subject || 'New Customer Support Request';
+        const senderName = ticket.name || 'Customer';
+
+        // 1. Send notice to Support Team inbox
+        await transporter.sendMail({
+          from: process.env.SMTP_FROM || `"MarkatVerse Support" <${process.env.SMTP_USER}>`,
+          to: process.env.SMTP_USER,
+          replyTo: `"${senderName}" <${ticket.email}>`,
+          subject: `[Support Ticket] ${subject} - from ${senderName}`,
+          html: `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
+              <h2 style="color: #1e3a8a; margin-top: 0;">New Support Ticket Received</h2>
+              <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+                <tr><td style="padding: 8px 0; color: #64748b; font-weight: 600; width: 120px;">Customer:</td><td style="color: #0f172a;">${senderName}</td></tr>
+                <tr><td style="padding: 8px 0; color: #64748b; font-weight: 600;">Email:</td><td style="color: #0f172a;"><a href="mailto:${ticket.email}">${ticket.email}</a></td></tr>
+                ${ticket.phone ? `<tr><td style="padding: 8px 0; color: #64748b; font-weight: 600;">Phone:</td><td style="color: #0f172a;">${ticket.phone}</td></tr>` : ''}
+                <tr><td style="padding: 8px 0; color: #64748b; font-weight: 600;">Subject:</td><td style="color: #0f172a;">${subject}</td></tr>
+              </table>
+              <div style="background-color: #f8fafc; border-left: 4px solid #2563eb; padding: 16px; border-radius: 6px; margin: 16px 0;">
+                <p style="margin: 0; white-space: pre-wrap; color: #334155; line-height: 1.6;">${ticket.message}</p>
+              </div>
+              <p style="font-size: 13px; color: #94a3b8; margin-top: 24px;">Click Reply in your email client to respond directly to ${ticket.email}.</p>
+            </div>
+          `,
+        });
+
+        // 2. Send confirmation receipt to user
+        await transporter.sendMail({
+          from: process.env.SMTP_FROM || `"MarkatVerse Support" <${process.env.SMTP_USER}>`,
+          to: ticket.email,
+          subject: 'We received your message - MarkatVerse Support',
+          html: `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 540px; margin: 0 auto; padding: 24px; color: #1e293b;">
+              <div style="text-align: center; margin-bottom: 24px;">
+                <h1 style="color: #1e3a8a; font-size: 26px; font-weight: 800; letter-spacing: 1px; margin: 0;">MARKATVERSE</h1>
+                <p style="color: #64748b; font-size: 14px; margin-top: 4px;">Customer Care</p>
+              </div>
+              <h2 style="font-size: 20px; color: #0f172a; margin-bottom: 12px;">Thank you for contacting us, ${senderName}!</h2>
+              <p style="font-size: 15px; line-height: 1.6; color: #334155;">
+                We have received your message regarding <strong>"${subject}"</strong>. Our support team is reviewing it and will respond to this email address within 24 hours.
+              </p>
+              <div style="background: #f1f5f9; border-radius: 8px; padding: 14px 18px; margin: 20px 0;">
+                <p style="font-size: 13px; color: #64748b; margin: 0 0 6px 0; font-weight: 600;">Your Message Summary:</p>
+                <p style="font-size: 14px; color: #1e293b; margin: 0; white-space: pre-wrap;">${ticket.message}</p>
+              </div>
+              <p style="font-size: 14px; color: #64748b;">Best regards,<br><strong>MarkatVerse Support Team</strong></p>
+            </div>
+          `,
+        }).catch(err => this.logger.warn('Failed to send confirmation to user', err));
+
+        this.logger.log(`Support ticket sent from ${ticket.email}`);
+      }
+    } catch (err) {
+      this.logger.error('Failed to dispatch support ticket email', err);
+      throw new BadRequestException('Failed to deliver support email. Please try again later.');
+    }
+
+    return { success: true, message: 'Your message has been sent to our support team. We will reply within 24 hours!' };
   }
 
   private async generateToken(user: any) {

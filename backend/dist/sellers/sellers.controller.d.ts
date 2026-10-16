@@ -7,11 +7,9 @@ export declare class SellersController {
     create(createSellerDto: any, authHeader?: string): Promise<{
         status: string;
         id: string;
-        name: string;
-        createdAt: Date;
-        updatedAt: Date;
         businessCode: string | null;
         userId: string;
+        name: string;
         logo: string | null;
         description: string | null;
         businessModel: import(".prisma/client").$Enums.MainType;
@@ -27,6 +25,8 @@ export declare class SellersController {
         verificationStatus: string;
         verificationLevel: number;
         verificationNotes: string | null;
+        createdAt: Date;
+        updatedAt: Date;
         capabilities: string[];
         maxListings: number;
         commissionType: string;
@@ -40,11 +40,9 @@ export declare class SellersController {
         phone: string | null;
         status: string;
         id: string;
-        name: string;
-        createdAt: Date;
-        updatedAt: Date;
         businessCode: string | null;
         userId: string;
+        name: string;
         logo: string | null;
         description: string | null;
         businessModel: import(".prisma/client").$Enums.MainType;
@@ -60,6 +58,8 @@ export declare class SellersController {
         verificationStatus: string;
         verificationLevel: number;
         verificationNotes: string | null;
+        createdAt: Date;
+        updatedAt: Date;
         capabilities: string[];
         maxListings: number;
         commissionType: string;
@@ -87,11 +87,9 @@ export declare class SellersController {
     updateStatus(id: string, status: string): Promise<{
         status: string;
         id: string;
-        name: string;
-        createdAt: Date;
-        updatedAt: Date;
         businessCode: string | null;
         userId: string;
+        name: string;
         logo: string | null;
         description: string | null;
         businessModel: import(".prisma/client").$Enums.MainType;
@@ -107,6 +105,8 @@ export declare class SellersController {
         verificationStatus: string;
         verificationLevel: number;
         verificationNotes: string | null;
+        createdAt: Date;
+        updatedAt: Date;
         capabilities: string[];
         maxListings: number;
         commissionType: string;
@@ -117,11 +117,9 @@ export declare class SellersController {
     }>;
     updateUser(userId: string, data: any): Promise<{
         id: string;
-        name: string;
-        createdAt: Date;
-        updatedAt: Date;
         businessCode: string | null;
         userId: string;
+        name: string;
         logo: string | null;
         description: string | null;
         businessModel: import(".prisma/client").$Enums.MainType;
@@ -137,6 +135,8 @@ export declare class SellersController {
         verificationStatus: string;
         verificationLevel: number;
         verificationNotes: string | null;
+        createdAt: Date;
+        updatedAt: Date;
         capabilities: string[];
         maxListings: number;
         commissionType: string;
@@ -146,16 +146,7 @@ export declare class SellersController {
         subscriptionEndDate: Date | null;
     }>;
     removeUser(userId: string): Promise<{
-        id: string;
-        markatId: string | null;
-        email: string | null;
-        phone: string | null;
-        password: string;
-        name: string;
-        role: string;
-        createdAt: Date;
-        updatedAt: Date;
-        resetCode: string | null;
-        resetCodeExpires: Date | null;
+        success: boolean;
+        message: string;
     }>;
 }

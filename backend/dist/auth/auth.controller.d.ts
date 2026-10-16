@@ -136,4 +136,14 @@ export declare class AuthController {
         message: string;
         success: boolean;
     }>;
+    sendSupportTicket(data: {
+        name?: string;
+        email: string;
+        subject?: string;
+        message: string;
+        phone?: string;
+    }): Promise<{
+        success: boolean;
+        message: string;
+    }>;
 }

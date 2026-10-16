@@ -58,4 +58,10 @@ export class AuthController {
   verifySignupOtp(@Body() data: { identifier: string; code: string; type: string }) {
     return this.authService.verifySignupOtp(data.identifier, data.code, data.type);
   }
+
+  @Post('support-ticket')
+  sendSupportTicket(@Body() data: { name?: string; email: string; subject?: string; message: string; phone?: string }) {
+    return this.authService.sendSupportTicket(data);
+  }
 }
+

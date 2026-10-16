@@ -129,5 +129,15 @@ export declare class AuthService {
     resetPasswordWithCode(identifier: string, code: string, newPassword: string): Promise<{
         message: string;
     }>;
+    sendSupportTicket(ticket: {
+        name?: string;
+        email: string;
+        subject?: string;
+        message: string;
+        phone?: string;
+    }): Promise<{
+        success: boolean;
+        message: string;
+    }>;
     private generateToken;
 }

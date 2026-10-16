@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Search, Send, CheckCircle, MessageCircle, PhoneCall, Filter, User } from 'lucide-react';
+import { Search, Send, CheckCircle, MessageCircle, PhoneCall, Filter, User, Brain, AlertTriangle, Sparkles, Activity } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 type ChatSession = {
@@ -12,6 +12,10 @@ type ChatSession = {
   lastMessage: string;
   time: string;
   unreadCount: number;
+  phone?: string;
+  recognizedPattern?: string;
+  category?: string;
+  urgency?: 'NORMAL' | 'HIGH' | 'URGENT';
   messages: { sender: 'admin' | 'user', text: string, time: string }[];
 };
 
@@ -212,6 +216,18 @@ export default function LiveChatDeskPage() {
                       </span>
                     )}
                   </div>
+                  {session.recognizedPattern && (
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                        <Sparkles className="w-2.5 h-2.5" /> {session.recognizedPattern.replace(/_/g, ' ')}
+                      </span>
+                      {session.urgency === 'URGENT' && (
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                          Urgent
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </button>
             ))}
@@ -228,43 +244,59 @@ export default function LiveChatDeskPage() {
           {selectedSession ? (
             <>
               {/* Chat Header */}
-              <div className="p-4 border-b border-white/5 flex justify-between items-center bg-slate-950/50">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center">
-                    <User className="w-5 h-5 text-slate-400" />
+              <div className="p-4 border-b border-white/5 flex flex-col gap-3 bg-slate-950/50">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center">
+                      <User className="w-5 h-5 text-slate-400" />
+                    </div>
+                    <div>
+                      <h2 className="font-bold text-white text-base">{selectedSession.customerName}</h2>
+                      <p className="text-xs text-slate-400 flex items-center gap-2">
+                        <span className="font-mono text-xs bg-slate-800/80 border border-slate-700 px-2 py-0.5 rounded text-slate-300 shadow-sm">{selectedSession.id}</span>
+                        <span className={`relative flex h-2 w-2`}>
+                          {selectedSession.status === 'active' || selectedSession.status === 'waiting' ? (
+                            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${selectedSession.status === 'active' ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
+                          ) : null}
+                          <span className={`relative inline-flex rounded-full h-2 w-2 ${selectedSession.status === 'active' ? 'bg-emerald-500' : selectedSession.status === 'waiting' ? 'bg-amber-500' : 'bg-slate-600'}`}></span>
+                        </span>
+                        <span className="capitalize font-medium">{selectedSession.status}</span>
+                        {selectedSession.phone && (
+                          <>
+                            <span className="text-slate-600">•</span>
+                            <a href={`tel:${selectedSession.phone}`} className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors font-mono">
+                              <PhoneCall className="w-3 h-3" /> {selectedSession.phone}
+                            </a>
+                          </>
+                        )}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="font-bold text-white text-base">{selectedSession.customerName}</h2>
-                    <p className="text-xs text-slate-400 flex items-center gap-2">
-                      <span className="font-mono text-xs bg-slate-800/80 border border-slate-700 px-2 py-0.5 rounded text-slate-300 shadow-sm">{selectedSession.id}</span>
-                      <span className={`relative flex h-2 w-2`}>
-                        {selectedSession.status === 'active' || selectedSession.status === 'waiting' ? (
-                          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${selectedSession.status === 'active' ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
-                        ) : null}
-                        <span className={`relative inline-flex rounded-full h-2 w-2 ${selectedSession.status === 'active' ? 'bg-emerald-500' : selectedSession.status === 'waiting' ? 'bg-amber-500' : 'bg-slate-600'}`}></span>
-                      </span>
-                      <span className="capitalize font-medium">{selectedSession.status}</span>
-                      {selectedSession.phone && (
-                        <>
-                          <span className="text-slate-600">•</span>
-                          <a href={`tel:${selectedSession.phone}`} className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors font-mono">
-                            <PhoneCall className="w-3 h-3" /> {selectedSession.phone}
-                          </a>
-                        </>
-                      )}
-                    </p>
+                  <div className="flex gap-3">
+                    {selectedSession.status !== 'resolved' && (
+                      <button 
+                        onClick={handleResolveSession}
+                        className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 font-bold py-2 px-4 rounded-xl transition-colors flex items-center gap-2 text-sm"
+                      >
+                        <CheckCircle className="w-4 h-4" /> Mark Resolved
+                      </button>
+                    )}
                   </div>
                 </div>
-                <div className="flex gap-3">
-                  {selectedSession.status !== 'resolved' && (
-                    <button 
-                      onClick={handleResolveSession}
-                      className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 font-bold py-2 px-4 rounded-xl transition-colors flex items-center gap-2 text-sm"
-                    >
-                      <CheckCircle className="w-4 h-4" /> Mark Resolved
-                    </button>
-                  )}
-                </div>
+
+                {/* AI Pattern Recognition Bar */}
+                {selectedSession.recognizedPattern && (
+                  <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-purple-950/40 border border-purple-500/30 text-xs">
+                    <div className="flex items-center gap-2 text-purple-300 font-semibold">
+                      <Brain className="w-4 h-4 text-purple-400 animate-pulse" />
+                      <span>AI Recognized Pattern: <strong className="text-white uppercase tracking-wide">{selectedSession.recognizedPattern.replace(/_/g, ' ')}</strong></span>
+                      <span className="text-slate-400">({selectedSession.category || 'Customer Issue'})</span>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${selectedSession.urgency === 'URGENT' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-purple-500/20 text-purple-200 border border-purple-500/30'}`}>
+                      {selectedSession.urgency || 'NORMAL'} PRIORITY
+                    </span>
+                  </div>
+                )}
               </div>
               
               {/* Messages Area */}
