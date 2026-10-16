@@ -9,13 +9,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
+import { RedisService } from '../redis/redis.service.js';
 let CategoriesService = class CategoriesService {
     prisma;
-    constructor(prisma) {
+    redis;
+    CACHE_KEY = 'categories:all';
+    constructor(prisma, redis) {
         this.prisma = prisma;
+        this.redis = redis;
     }
-    create(data) {
-        return this.prisma.category.create({
+    async create(data) {
+        const created = await this.prisma.category.create({
             data: {
                 name: data.name,
                 theme: data.theme,
@@ -33,15 +37,22 @@ let CategoriesService = class CategoriesService {
                 defaultFlatRate: data.defaultFlatRate ?? 999.0
             }
         });
+        await this.redis.del(this.CACHE_KEY);
+        return created;
     }
-    findAll() {
-        return this.prisma.category.findMany();
+    async findAll() {
+        const cached = await this.redis.get(this.CACHE_KEY);
+        if (cached)
+            return cached;
+        const categories = await this.prisma.category.findMany();
+        await this.redis.set(this.CACHE_KEY, categories, 600);
+        return categories;
     }
     findOne(id) {
         return this.prisma.category.findUnique({ where: { id } });
     }
-    update(id, data) {
-        return this.prisma.category.update({
+    async update(id, data) {
+        const updated = await this.prisma.category.update({
             where: { id },
             data: {
                 name: data.name,
@@ -60,9 +71,13 @@ let CategoriesService = class CategoriesService {
                 defaultFlatRate: data.defaultFlatRate
             }
         });
+        await this.redis.del(this.CACHE_KEY);
+        return updated;
     }
-    remove(id) {
-        return this.prisma.category.delete({ where: { id } });
+    async remove(id) {
+        const deleted = await this.prisma.category.delete({ where: { id } });
+        await this.redis.del(this.CACHE_KEY);
+        return deleted;
     }
     async applyBillingDefaults(id) {
         const category = await this.prisma.category.findUnique({ where: { id } });
@@ -100,7 +115,8 @@ let CategoriesService = class CategoriesService {
 };
 CategoriesService = __decorate([
     Injectable(),
-    __metadata("design:paramtypes", [PrismaService])
+    __metadata("design:paramtypes", [PrismaService,
+        RedisService])
 ], CategoriesService);
 export { CategoriesService };
 //# sourceMappingURL=categories.service.js.map

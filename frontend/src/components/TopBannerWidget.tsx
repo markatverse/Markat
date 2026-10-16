@@ -7,22 +7,37 @@ export default function TopBannerWidget() {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchBanners = async () => {
       try {
-        const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
-        const res = await fetch(`${API_URL}/content/banners`);
-        if (res.ok) {
-          const data = await res.json();
-          const topBarBanners = data.filter((b: any) => b.status === 'ACTIVE' && b.position === 'TOP_BAR');
-          if (topBarBanners.length > 0) {
-            setBanner(topBarBanners[0]);
+        const getApiUrl = () => {
+          if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+          if (typeof window !== 'undefined') {
+            return `${window.location.protocol}//${window.location.hostname}:3001`;
+          }
+          return 'http://127.0.0.1:3001';
+        };
+        const API_URL = getApiUrl();
+        const res = await fetch(`${API_URL}/content/banners`, {
+          headers: { 'Accept': 'application/json' },
+          cache: 'no-store',
+        }).catch(() => null);
+
+        if (res && res.ok && isMounted) {
+          const data = await res.json().catch(() => []);
+          if (Array.isArray(data)) {
+            const topBarBanners = data.filter((b: any) => b.status === 'ACTIVE' && b.position === 'TOP_BAR');
+            if (topBarBanners.length > 0) {
+              setBanner(topBarBanners[0]);
+            }
           }
         }
-      } catch (e) {
-        console.error("Failed to fetch top bar banner", e);
+      } catch {
+        // Silently handle network drops during server startup
       }
     };
     fetchBanners();
+    return () => { isMounted = false; };
   }, []);
 
   if (!banner || !isVisible) return null;

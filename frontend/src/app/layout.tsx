@@ -6,6 +6,14 @@ import ConditionalFooter from "@/components/ConditionalFooter";
 import { Toaster } from 'react-hot-toast';
 import "./globals.css";
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: "#2563eb",
+};
+
 export async function generateMetadata(): Promise<Metadata> {
   let title = "MARKATVERSE - Everything. Everyone. Everywhere.";
   let description = "The global marketplace connecting people, businesses and opportunities.";
@@ -26,6 +34,15 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title,
     description,
+    manifest: "/manifest.json",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: "MarkatVerse",
+    },
+    formatDetection: {
+      telephone: false,
+    },
   };
 }
 

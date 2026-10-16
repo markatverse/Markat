@@ -3,6 +3,7 @@ export declare class RedisService implements OnModuleInit, OnModuleDestroy {
     private readonly logger;
     private client;
     private isConnected;
+    private memoryCache;
     onModuleInit(): void;
     get<T = any>(key: string): Promise<T | null>;
     set(key: string, value: any, ttlSeconds?: number): Promise<void>;

@@ -2,17 +2,11 @@ import { SystemConfigService } from './system-config.service.js';
 export declare class SystemConfigController {
     private readonly systemConfigService;
     constructor(systemConfigService: SystemConfigService);
-    getSeo(): Promise<{
-        title: string;
-        description: string;
-    }>;
+    getSeo(): Promise<any>;
     updateSeo(body: {
         title: string;
         description: string;
-    }): Promise<{
-        title: string;
-        description: string;
-    }>;
+    }): Promise<any>;
     getAuth(): Promise<{
         enableEmail: boolean;
         enablePhone: boolean;
@@ -42,11 +36,11 @@ export declare class SystemConfigController {
     deletePaymentMethod(id: string): Promise<any[]>;
     getTaxRules(): Promise<{
         id: string;
+        updatedAt: Date;
         name: string;
+        rate: number;
         status: string;
         createdAt: Date;
-        updatedAt: Date;
-        rate: number;
     }[]>;
     addTaxRule(body: {
         name: string;
@@ -54,26 +48,26 @@ export declare class SystemConfigController {
         status?: string;
     }): Promise<{
         id: string;
+        updatedAt: Date;
         name: string;
+        rate: number;
         status: string;
         createdAt: Date;
-        updatedAt: Date;
-        rate: number;
     }>;
     updateTaxRule(id: string, body: any): Promise<{
         id: string;
+        updatedAt: Date;
         name: string;
+        rate: number;
         status: string;
         createdAt: Date;
-        updatedAt: Date;
-        rate: number;
     }>;
     deleteTaxRule(id: string): Promise<{
         id: string;
+        updatedAt: Date;
         name: string;
+        rate: number;
         status: string;
         createdAt: Date;
-        updatedAt: Date;
-        rate: number;
     }>;
 }

@@ -9,18 +9,27 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
+import { RedisService } from '../redis/redis.service.js';
 let SystemConfigService = class SystemConfigService {
     prisma;
-    constructor(prisma) {
+    redis;
+    SEO_CACHE_KEY = 'config:seo';
+    constructor(prisma, redis) {
         this.prisma = prisma;
+        this.redis = redis;
     }
     async getSeoConfig() {
+        const cached = await this.redis.get(this.SEO_CACHE_KEY);
+        if (cached)
+            return cached;
         const titleConfig = await this.prisma.systemConfig.findUnique({ where: { key: 'SEO_TITLE' } });
         const descConfig = await this.prisma.systemConfig.findUnique({ where: { key: 'SEO_DESCRIPTION' } });
-        return {
+        const result = {
             title: titleConfig?.value || 'MARKATVERSE - Everything. Everyone. Everywhere.',
             description: descConfig?.value || 'The global marketplace connecting people, businesses and opportunities.',
         };
+        await this.redis.set(this.SEO_CACHE_KEY, result, 600);
+        return result;
     }
     async updateSeoConfig(data) {
         await this.prisma.systemConfig.upsert({
@@ -33,6 +42,7 @@ let SystemConfigService = class SystemConfigService {
             update: { value: data.description },
             create: { key: 'SEO_DESCRIPTION', value: data.description, description: 'Global SEO Description' },
         });
+        await this.redis.del(this.SEO_CACHE_KEY);
         return this.getSeoConfig();
     }
     async getAuthConfig() {
@@ -146,7 +156,8 @@ let SystemConfigService = class SystemConfigService {
 };
 SystemConfigService = __decorate([
     Injectable(),
-    __metadata("design:paramtypes", [PrismaService])
+    __metadata("design:paramtypes", [PrismaService,
+        RedisService])
 ], SystemConfigService);
 export { SystemConfigService };
 //# sourceMappingURL=system-config.service.js.map

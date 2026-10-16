@@ -113,7 +113,10 @@ async function bootstrap() {
         expressApp.use('/auth/support-ticket', authLimiter);
         app.use(express.json({ limit: '10mb' }));
         app.use(express.urlencoded({ limit: '10mb', extended: true }));
-        app.use(compression());
+        app.use(compression({
+            level: 6,
+            threshold: 1024,
+        }));
         await app.init();
         cachedServer = expressApp;
     }

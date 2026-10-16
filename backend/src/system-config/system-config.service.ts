@@ -1,18 +1,30 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
+import { RedisService } from '../redis/redis.service.js';
 
 @Injectable()
 export class SystemConfigService {
-  constructor(private prisma: PrismaService) {}
+  private readonly SEO_CACHE_KEY = 'config:seo';
+
+  constructor(
+    private prisma: PrismaService,
+    private redis: RedisService,
+  ) {}
 
   async getSeoConfig() {
+    const cached = await this.redis.get(this.SEO_CACHE_KEY);
+    if (cached) return cached;
+
     const titleConfig = await this.prisma.systemConfig.findUnique({ where: { key: 'SEO_TITLE' } });
     const descConfig = await this.prisma.systemConfig.findUnique({ where: { key: 'SEO_DESCRIPTION' } });
 
-    return {
+    const result = {
       title: titleConfig?.value || 'MARKATVERSE - Everything. Everyone. Everywhere.',
       description: descConfig?.value || 'The global marketplace connecting people, businesses and opportunities.',
     };
+
+    await this.redis.set(this.SEO_CACHE_KEY, result, 600); // 10 minutes cache
+    return result;
   }
 
   async updateSeoConfig(data: { title: string; description: string }) {
@@ -28,6 +40,7 @@ export class SystemConfigService {
       create: { key: 'SEO_DESCRIPTION', value: data.description, description: 'Global SEO Description' },
     });
 
+    await this.redis.del(this.SEO_CACHE_KEY);
     return this.getSeoConfig();
   }
 

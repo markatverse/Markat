@@ -11,6 +11,7 @@ let RedisService = RedisService_1 = class RedisService {
     logger = new Logger(RedisService_1.name);
     client = null;
     isConnected = false;
+    memoryCache = new Map();
     onModuleInit() {
         const redisUrl = process.env.REDIS_URL;
         if (redisUrl) {
@@ -37,39 +38,53 @@ let RedisService = RedisService_1 = class RedisService {
             }
         }
         else {
-            this.logger.log('No REDIS_URL configured; operating in local cache-fallback mode.');
+            this.logger.log('Operating in high-speed local memory cache mode.');
         }
     }
     async get(key) {
-        if (!this.client || !this.isConnected)
-            return null;
-        try {
-            const data = await this.client.get(key);
-            return data ? JSON.parse(data) : null;
+        if (this.client && this.isConnected) {
+            try {
+                const data = await this.client.get(key);
+                if (data)
+                    return JSON.parse(data);
+            }
+            catch (e) {
+            }
         }
-        catch (e) {
-            return null;
+        const cached = this.memoryCache.get(key);
+        if (cached) {
+            if (Date.now() < cached.expiry) {
+                return cached.value;
+            }
+            this.memoryCache.delete(key);
         }
+        return null;
     }
     async set(key, value, ttlSeconds = 300) {
-        if (!this.client || !this.isConnected)
-            return;
-        try {
-            await this.client.set(key, JSON.stringify(value), 'EX', ttlSeconds);
-        }
-        catch (e) {
+        this.memoryCache.set(key, {
+            value,
+            expiry: Date.now() + ttlSeconds * 1000,
+        });
+        if (this.client && this.isConnected) {
+            try {
+                await this.client.set(key, JSON.stringify(value), 'EX', ttlSeconds);
+            }
+            catch (e) {
+            }
         }
     }
     async del(key) {
-        if (!this.client || !this.isConnected)
-            return;
-        try {
-            await this.client.del(key);
-        }
-        catch (e) {
+        this.memoryCache.delete(key);
+        if (this.client && this.isConnected) {
+            try {
+                await this.client.del(key);
+            }
+            catch (e) {
+            }
         }
     }
     onModuleDestroy() {
+        this.memoryCache.clear();
         if (this.client) {
             this.client.disconnect();
         }

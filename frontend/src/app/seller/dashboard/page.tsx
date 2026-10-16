@@ -596,10 +596,10 @@ function DashboardContent() {
         {/* Sidebar Header & Brand */}
         <div className="px-5 py-4 border-b border-slate-100">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center no-underline hover:opacity-90 transition-opacity">
-              <img src="/logo.png" alt="MarkatVerse" className="h-7 object-contain origin-left" />
+            <Link href="/" className="flex items-center no-underline hover:opacity-90 transition-opacity overflow-visible py-1">
+              <img src="/logo.png" alt="MarkatVerse" className="h-12 object-contain scale-[1.7] origin-left" />
             </Link>
-            <span className="text-[9px] font-black tracking-wider uppercase bg-amber-50 text-amber-700 border border-amber-200/60 px-2 py-0.5 rounded-md">
+            <span className="text-[9px] font-black tracking-wider uppercase bg-amber-50 text-amber-700 border border-amber-200/60 px-2 py-0.5 rounded-md shrink-0">
               Seller
             </span>
           </div>

@@ -1,18 +1,15 @@
 import { PrismaService } from '../prisma.service.js';
+import { RedisService } from '../redis/redis.service.js';
 export declare class SystemConfigService {
     private prisma;
-    constructor(prisma: PrismaService);
-    getSeoConfig(): Promise<{
-        title: string;
-        description: string;
-    }>;
+    private redis;
+    private readonly SEO_CACHE_KEY;
+    constructor(prisma: PrismaService, redis: RedisService);
+    getSeoConfig(): Promise<any>;
     updateSeoConfig(data: {
         title: string;
         description: string;
-    }): Promise<{
-        title: string;
-        description: string;
-    }>;
+    }): Promise<any>;
     getAuthConfig(): Promise<{
         enableEmail: boolean;
         enablePhone: boolean;
@@ -48,11 +45,11 @@ export declare class SystemConfigService {
     deletePaymentMethod(id: string): Promise<any[]>;
     getTaxRules(): Promise<{
         id: string;
+        updatedAt: Date;
         name: string;
+        rate: number;
         status: string;
         createdAt: Date;
-        updatedAt: Date;
-        rate: number;
     }[]>;
     addTaxRule(data: {
         name: string;
@@ -60,11 +57,11 @@ export declare class SystemConfigService {
         status?: string;
     }): Promise<{
         id: string;
+        updatedAt: Date;
         name: string;
+        rate: number;
         status: string;
         createdAt: Date;
-        updatedAt: Date;
-        rate: number;
     }>;
     updateTaxRule(id: string, data: {
         name?: string;
@@ -72,18 +69,18 @@ export declare class SystemConfigService {
         status?: string;
     }): Promise<{
         id: string;
+        updatedAt: Date;
         name: string;
+        rate: number;
         status: string;
         createdAt: Date;
-        updatedAt: Date;
-        rate: number;
     }>;
     deleteTaxRule(id: string): Promise<{
         id: string;
+        updatedAt: Date;
         name: string;
+        rate: number;
         status: string;
         createdAt: Date;
-        updatedAt: Date;
-        rate: number;
     }>;
 }

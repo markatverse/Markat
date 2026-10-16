@@ -1,12 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
+import { RedisService } from '../redis/redis.service.js';
 
 @Injectable()
 export class CategoriesService {
-  constructor(private prisma: PrismaService) {}
+  private readonly CACHE_KEY = 'categories:all';
 
-  create(data: any) {
-    return this.prisma.category.create({
+  constructor(
+    private prisma: PrismaService,
+    private redis: RedisService,
+  ) {}
+
+  async create(data: any) {
+    const created = await this.prisma.category.create({
       data: {
         name: data.name,
         theme: data.theme,
@@ -24,18 +30,25 @@ export class CategoriesService {
         defaultFlatRate: data.defaultFlatRate ?? 999.0
       }
     });
+    await this.redis.del(this.CACHE_KEY);
+    return created;
   }
 
-  findAll() {
-    return this.prisma.category.findMany();
+  async findAll() {
+    const cached = await this.redis.get(this.CACHE_KEY);
+    if (cached) return cached;
+
+    const categories = await this.prisma.category.findMany();
+    await this.redis.set(this.CACHE_KEY, categories, 600); // 10 minutes cache
+    return categories;
   }
 
   findOne(id: string) {
     return this.prisma.category.findUnique({ where: { id } });
   }
 
-  update(id: string, data: any) {
-    return this.prisma.category.update({
+  async update(id: string, data: any) {
+    const updated = await this.prisma.category.update({
       where: { id },
       data: {
         name: data.name,
@@ -54,10 +67,14 @@ export class CategoriesService {
         defaultFlatRate: data.defaultFlatRate
       }
     });
+    await this.redis.del(this.CACHE_KEY);
+    return updated;
   }
 
-  remove(id: string) {
-    return this.prisma.category.delete({ where: { id } });
+  async remove(id: string) {
+    const deleted = await this.prisma.category.delete({ where: { id } });
+    await this.redis.del(this.CACHE_KEY);
+    return deleted;
   }
 
   async applyBillingDefaults(id: string) {
