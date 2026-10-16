@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { PlusCircle, Trash2, ChevronUp, ChevronDown, Layers, FileText, IndianRupee, Image, Sparkles, Check, CheckCircle2 } from 'lucide-react';
 import { useProducts, FormField, useCategoryRules, BusinessModel } from '@/context/ProductContext';
 import { useAuth } from '@/context/AuthContext';
 
@@ -381,23 +381,29 @@ export default function DynamicFormEngine({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-8">
+    <form onSubmit={handleSubmit} className="bg-white p-6 sm:p-10 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-100/80 space-y-10">
       {/* 1. CLASSIFICATION BLOCK */}
       {(!isCategoryLocked || availableSubcategories.length > 1 || availableNestedSubcategories.length > 1) && (
-        <div className="space-y-4">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider border-b pb-2">1. Classification</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            
-            {/* Primary Type is inferred and locked by the dashboard context */}
+        <div className="space-y-5 p-6 rounded-2xl bg-gradient-to-b from-slate-50/80 to-white border border-slate-200/60 shadow-sm">
+          <div className="flex items-center gap-3 border-b border-slate-200/70 pb-3">
+            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm shadow-sm border border-blue-100">
+              1
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Classification</h3>
+              <p className="text-xs text-slate-500">Assign your listing to the matching sector and category hierarchy.</p>
+            </div>
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {availableCategories.length > 0 && !isCategoryLocked && (
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-600">Category</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Category</label>
                 <select 
                   required
                   value={category} 
                   onChange={e => setCategory(e.target.value)} 
-                  className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-blue-500 outline-none text-sm bg-slate-50"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none text-sm bg-white font-medium shadow-sm transition"
                 >
                   <option value="">Select Category...</option>
                   {availableCategories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
@@ -406,22 +412,22 @@ export default function DynamicFormEngine({
             )}
 
             {availableCategories.length > 0 && isCategoryLocked && (
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-600">Category</label>
-                <div className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-100 text-slate-500 text-sm font-medium flex items-center gap-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Category</label>
+                <div className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-100/80 text-slate-700 text-sm font-semibold flex items-center justify-between shadow-inner">
                   <span>{category}</span>
-                  <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Locked to Sector</span>
+                  <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">Locked to Sector</span>
                 </div>
               </div>
             )}
 
           {availableSubcategories.length > 1 && (
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-600">Subcategory</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Subcategory</label>
               <select 
                 value={subcategory} 
                 onChange={e => setSubcategory(e.target.value)} 
-                className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-blue-500 outline-none text-sm bg-slate-50"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none text-sm bg-white font-medium shadow-sm transition"
               >
                 <option value="">Select Subcategory...</option>
                 {availableSubcategories.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
@@ -429,22 +435,22 @@ export default function DynamicFormEngine({
             </div>
           )}
           {availableSubcategories.length === 1 && (
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-600">Subcategory</label>
-              <div className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-100 text-slate-500 text-sm font-medium flex items-center gap-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Subcategory</label>
+              <div className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-100/80 text-slate-700 text-sm font-semibold flex items-center justify-between shadow-inner">
                 <span>{subcategory || availableSubcategories[0].name}</span>
-                <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Locked</span>
+                <span className="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">Assigned</span>
               </div>
             </div>
           )}
 
           {availableNestedSubcategories.length > 1 && (
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-600">Type</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Type</label>
               <select 
                 value={nestedSubcategory} 
                 onChange={e => setNestedSubcategory(e.target.value)} 
-                className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-blue-500 outline-none text-sm bg-slate-50"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none text-sm bg-white font-medium shadow-sm transition"
               >
                 <option value="">Select Type...</option>
                 {availableNestedSubcategories.map(n => <option key={n.name} value={n.name}>{n.name}</option>)}
@@ -452,26 +458,26 @@ export default function DynamicFormEngine({
             </div>
           )}
           {availableNestedSubcategories.length === 1 && (
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-600">Type</label>
-              <div className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-100 text-slate-500 text-sm font-medium flex items-center gap-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Type</label>
+              <div className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-100/80 text-slate-700 text-sm font-semibold flex items-center justify-between shadow-inner">
                 <span>{nestedSubcategory || availableNestedSubcategories[0].name}</span>
-                <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Locked</span>
+                <span className="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">Standard</span>
               </div>
             </div>
           )}
         </div>
 
-        {/* Workflow & Optional Features badge — powered by Admin Relationship Manager */}
+        {/* Workflow & Optional Features badge */}
         {catRules.workflow && (
-          <div className="flex flex-wrap items-center gap-2 mt-2 px-4 py-2.5 bg-violet-50 rounded-xl border border-violet-100">
-            <span className="text-[10px] font-black text-violet-500 uppercase tracking-widest">Workflow</span>
-            <span className="text-xs font-semibold text-violet-800 bg-white border border-violet-200 px-2.5 py-1 rounded-full">{catRules.workflow}</span>
+          <div className="flex flex-wrap items-center gap-2.5 pt-3 border-t border-slate-200/50">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Workflow:</span>
+            <span className="text-xs font-semibold text-violet-800 bg-violet-50 border border-violet-200 px-3 py-1 rounded-full shadow-sm">{catRules.workflow}</span>
             {catRules.optionalFeatures.length > 0 && (
               <>
-                <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest ml-2">Optional</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-3">Optional Features:</span>
                 {catRules.optionalFeatures.map(f => (
-                  <span key={f} className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full font-semibold">{f}</span>
+                  <span key={f} className="text-xs text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full font-semibold shadow-sm">{f}</span>
                 ))}
               </>
             )}
@@ -482,25 +488,55 @@ export default function DynamicFormEngine({
       )}
 
       {/* 2. BASIC INFO */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider border-b pb-2">2. Basic Information</h3>
+      <div className="space-y-5 p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+        <div className="flex items-center gap-3 border-b border-slate-200/70 pb-3">
+          <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm shadow-sm border border-indigo-100">
+            2
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Basic Information</h3>
+            <p className="text-xs text-slate-500">Provide clear and descriptive information for customers.</p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">{isService ? 'Service Title' : 'Listing Title'}</label>
-            <input required type="text" value={name} onChange={e => setName(e.target.value)} placeholder={isService ? "e.g. AC Repair & Servicing" : "e.g. Samsung Galaxy S23 Ultra"} className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 outline-none text-slate-900" />
+            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">{isService ? 'Service Title *' : 'Listing Title *'}</label>
+            <input 
+              required 
+              type="text" 
+              value={name} 
+              onChange={e => setName(e.target.value)} 
+              placeholder={isService ? "e.g. AC Repair & Servicing" : "e.g. Samsung Galaxy S23 Ultra"} 
+              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none text-slate-900 font-medium shadow-sm transition" 
+            />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Description</label>
-            <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={isService ? "Describe your service, what's included, etc." : "Detailed description..."} rows={1} className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 outline-none text-slate-900 resize-none" />
+            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Description</label>
+            <textarea 
+              value={description} 
+              onChange={e => setDescription(e.target.value)} 
+              placeholder={isService ? "Describe your service, what's included, etc." : "Detailed description..."} 
+              rows={2} 
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none text-slate-900 font-medium shadow-sm transition resize-none" 
+            />
           </div>
         </div>
       </div>
 
       {/* 3. DYNAMIC ATTRIBUTES */}
       {activeParameters.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider border-b pb-2">3. Product Specifications</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+        <div className="space-y-5 p-6 rounded-2xl bg-slate-50/70 border border-slate-200/80 shadow-sm">
+          <div className="flex items-center gap-3 border-b border-slate-200/70 pb-3">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm shadow-sm border border-emerald-100">
+              3
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Specifications & Attributes</h3>
+              <p className="text-xs text-slate-500">Configure sector-specific parameters for this listing.</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-5 bg-white rounded-2xl border border-slate-200/80 shadow-sm">
             {activeParameters.map(param => (
               <div key={param.name} className={`space-y-3 ${param.type === 'pricelist' ? 'col-span-1 md:col-span-2 lg:col-span-3' : ''}`}>
                 <label className="text-sm font-semibold text-slate-700">{param.name}</label>
@@ -638,8 +674,16 @@ export default function DynamicFormEngine({
       ) : null}
 
       {/* 4. PRICING & SELLING TYPE */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider border-b pb-2">4. Pricing & Sales Model</h3>
+      <div className="space-y-6 p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+        <div className="flex items-center gap-3 border-b border-slate-200/70 pb-3">
+          <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-sm shadow-sm border border-amber-100">
+            {activeParameters.length > 0 ? '4' : '3'}
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Pricing & Sales Model</h3>
+            <p className="text-xs text-slate-500">Configure retail, wholesale pricing, or booking service models.</p>
+          </div>
+        </div>
         
         {(canSellB2C && canSellB2B) && (
           <div className="flex gap-4 mb-4">
@@ -913,18 +957,26 @@ export default function DynamicFormEngine({
       </div>
 
       {/* 5. MEDIA UPLOAD */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider border-b pb-2">5. Media & Images</h3>
+      <div className="space-y-6 p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+        <div className="flex items-center gap-3 border-b border-slate-200/70 pb-3">
+          <div className="w-8 h-8 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center font-bold text-sm shadow-sm border border-violet-100">
+            {activeParameters.length > 0 ? '5' : '4'}
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Media & Images</h3>
+            <p className="text-xs text-slate-500">Upload high-resolution photos or provide external image URLs.</p>
+          </div>
+        </div>
 
         {/* Tab toggle */}
-        <div className="flex gap-2 mb-2">
+        <div className="flex gap-2">
           <button
             type="button"
             onClick={() => setImageInputMode('upload')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors border ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
               imageInputMode === 'upload'
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white text-slate-500 border-slate-300 hover:border-blue-400 hover:text-blue-600'
+                ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20'
+                : 'bg-white text-slate-600 border-slate-200 hover:border-blue-400 hover:text-blue-600'
             }`}
           >
             📁 Upload File
@@ -932,10 +984,10 @@ export default function DynamicFormEngine({
           <button
             type="button"
             onClick={() => { setImageInputMode('url'); setImageUrlError(''); }}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors border ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
               imageInputMode === 'url'
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white text-slate-500 border-slate-300 hover:border-blue-400 hover:text-blue-600'
+                ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20'
+                : 'bg-white text-slate-600 border-slate-200 hover:border-blue-400 hover:text-blue-600'
             }`}
           >
             🔗 Add URL
@@ -952,12 +1004,12 @@ export default function DynamicFormEngine({
                 onChange={e => { setImageUrlInput(e.target.value); setImageUrlError(''); }}
                 onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddImageUrl())}
                 placeholder="https://example.com/image.jpg"
-                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 outline-none text-sm text-slate-900"
+                className="flex-1 px-4 py-3 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none text-sm text-slate-900 shadow-sm"
               />
               <button
                 type="button"
                 onClick={handleAddImageUrl}
-                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-colors whitespace-nowrap"
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-all shadow-md shadow-blue-500/20 hover:shadow-lg whitespace-nowrap"
               >
                 Add Image
               </button>
@@ -969,29 +1021,40 @@ export default function DynamicFormEngine({
         {/* Thumbnail grid */}
         <div className="flex flex-wrap gap-4">
           {uploadedImages.map((url, i) => (
-            <div key={i} className="relative w-32 h-32 rounded-xl border border-slate-200 overflow-hidden group">
+            <div key={i} className="relative w-32 h-32 rounded-2xl border border-slate-200 overflow-hidden group shadow-sm">
               <img src={url} alt={`Upload ${i}`} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <button type="button" onClick={() => removeImage(i)} className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors">
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <button type="button" onClick={() => removeImage(i)} className="bg-red-500 text-white p-2.5 rounded-xl hover:bg-red-600 shadow-lg transition-transform hover:scale-110">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
           ))}
           {imageInputMode === 'upload' && (
-            <label className="w-32 h-32 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors text-slate-500">
-              {isUploadingFiles ? <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div> : <PlusCircle className="w-6 h-6" />}
-              <span className="text-xs font-semibold">{isUploadingFiles ? 'Uploading...' : 'Add Images'}</span>
+            <label className="w-32 h-32 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/80 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition-all text-slate-500 hover:text-blue-600 shadow-inner group">
+              {isUploadingFiles ? <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div> : <PlusCircle className="w-6 h-6 group-hover:scale-110 transition-transform" />}
+              <span className="text-xs font-bold">{isUploadingFiles ? 'Uploading...' : 'Add Images'}</span>
               <input type="file" multiple accept="image/*" className="hidden" onChange={handleFileUpload} disabled={isUploadingFiles} />
             </label>
           )}
         </div>
       </div>
 
-      <div className="flex justify-end gap-3 pt-6 border-t border-slate-200">
-        <button type="button" onClick={onCancel} className="px-6 py-3 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors">Cancel</button>
-        <button type="submit" disabled={isSubmitting} className="px-8 py-3 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-70 shadow-sm hover:shadow">
-          {isSubmitting ? 'Saving...' : 'Publish Listing'}
+      <div className="flex justify-end items-center gap-4 pt-6 border-t border-slate-200">
+        <button 
+          type="button" 
+          onClick={onCancel} 
+          className="px-6 py-3 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-all text-sm"
+        >
+          Cancel
+        </button>
+        <button 
+          type="submit" 
+          disabled={isSubmitting} 
+          className="px-8 py-3.5 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-[0.98] transition-all disabled:opacity-70 shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/35 text-sm flex items-center gap-2"
+        >
+          <Sparkles className="w-4 h-4" />
+          {isSubmitting ? 'Saving Listing...' : 'Publish Listing'}
         </button>
       </div>
     </form>
