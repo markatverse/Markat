@@ -12,15 +12,10 @@ const ProductGrid = dynamic(() => import('@/components/ProductGrid'));
 
 async function getAdvertisements() {
   try {
-    const getApiUrl = () => {
-      if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
-      if (typeof window !== 'undefined') {
-        return `${window.location.protocol}//${window.location.hostname}:3001`;
-      }
-      return 'http://127.0.0.1:3001';
-    };
-    const API_URL = getApiUrl();
-    const res = await fetch(`${API_URL}/commercial/advertisements`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!apiUrl || apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')) return [];
+    
+    const res = await fetch(`${apiUrl}/commercial/advertisements`, {
       next: { revalidate: 60 },
       signal: AbortSignal.timeout(3000),
     }).catch(() => null);
@@ -39,8 +34,10 @@ async function getAdvertisements() {
 
 async function getBanners() {
   try {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
-    const res = await fetch(`${API_URL}/content/banners`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!apiUrl || apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')) return [];
+
+    const res = await fetch(`${apiUrl}/content/banners`, {
       next: { revalidate: 60 },
       signal: AbortSignal.timeout(3000),
     }).catch(() => null);
@@ -59,8 +56,10 @@ async function getBanners() {
 
 async function getBlogPosts() {
   try {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
-    const res = await fetch(`${API_URL}/content/blog`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!apiUrl || apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')) return [];
+
+    const res = await fetch(`${apiUrl}/content/blog`, {
       next: { revalidate: 60 },
       signal: AbortSignal.timeout(3000),
     }).catch(() => null);

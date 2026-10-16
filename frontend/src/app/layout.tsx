@@ -19,23 +19,19 @@ export async function generateMetadata(): Promise<Metadata> {
   let description = "The global marketplace connecting people, businesses and opportunities.";
 
   try {
-    const getApiUrl = () => {
-      if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
-      if (typeof window !== 'undefined') {
-        return `${window.location.protocol}//${window.location.hostname}:3001`;
-      }
-      return 'http://127.0.0.1:3001';
-    };
-    const API_URL = getApiUrl();
-    const res = await fetch(`${API_URL}/system-config/seo`, {
-      next: { revalidate: 60 },
-      signal: AbortSignal.timeout(3000),
-    }).catch(() => null);
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    // On Vercel build servers, do not attempt to contact localhost:3001
+    if (apiUrl && !apiUrl.includes('localhost') && !apiUrl.includes('127.0.0.1')) {
+      const res = await fetch(`${apiUrl}/system-config/seo`, {
+        next: { revalidate: 60 },
+        signal: AbortSignal.timeout(3000),
+      }).catch(() => null);
 
-    if (res && res.ok) {
-      const data = await res.json().catch(() => null);
-      if (data?.title) title = data.title;
-      if (data?.description) description = data.description;
+      if (res && res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data?.title) title = data.title;
+        if (data?.description) description = data.description;
+      }
     }
   } catch {
     // Fall back to default title and description safely during build
