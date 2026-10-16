@@ -42,25 +42,25 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   const refreshSectors = async () => {
     try {
-      const res = await fetch(`${API_URL}/configuration/sectors`);
-      if (res.ok) {
-        const data = await res.json();
-        setSectors(data);
+      const res = await fetch(`${API_URL}/configuration/sectors`).catch(() => null);
+      if (res && res.ok) {
+        const data = await res.json().catch(() => []);
+        if (Array.isArray(data)) setSectors(data);
       }
-    } catch (err) {
-      console.error('Error fetching sectors:', err);
+    } catch {
+      // Graceful fallback
     }
   };
 
   const refreshSystemConfig = async () => {
     try {
-      const res = await fetch(`${API_URL}/configuration/system-settings`);
-      if (res.ok) {
-        const data = await res.json();
-        setSystemConfig(data);
+      const res = await fetch(`${API_URL}/configuration/system-settings`).catch(() => null);
+      if (res && res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (data && typeof data === 'object') setSystemConfig(data);
       }
-    } catch (err) {
-      console.error('Error fetching system config:', err);
+    } catch {
+      // Graceful fallback
     }
   };
 
