@@ -593,42 +593,60 @@ function DashboardContent() {
         transform transition-transform duration-300 ease-in-out
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <div className="p-6 border-b border-slate-100 flex flex-col gap-4">
-          <Link href="/" className="flex items-center no-underline hover:opacity-90 transition-opacity">
-            <img src="/logo.png" alt="MarkatVerse" className="h-10 object-contain scale-[2.5] origin-left" />
-          </Link>
-          <div className="text-amber-500 text-xs font-bold tracking-widest mt-1">SELLER PORTAL</div>
-          <Link href="/" className="text-blue-600 flex items-center gap-2 hover:opacity-80 transition-opacity font-bold text-sm mt-2">
-            <ArrowLeft className="w-4 h-4" /> Back to Marketplace
+        {/* Sidebar Header & Brand */}
+        <div className="px-5 py-4 border-b border-slate-100">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="flex items-center no-underline hover:opacity-90 transition-opacity">
+              <img src="/logo.png" alt="MarkatVerse" className="h-7 object-contain origin-left" />
+            </Link>
+            <span className="text-[9px] font-black tracking-wider uppercase bg-amber-50 text-amber-700 border border-amber-200/60 px-2 py-0.5 rounded-md">
+              Seller
+            </span>
+          </div>
+          <Link href="/" className="inline-flex items-center gap-1.5 text-slate-500 hover:text-blue-600 transition-colors text-xs font-semibold mt-2.5">
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Marketplace
           </Link>
         </div>
         
-        <div className="p-6 text-center border-b border-slate-100">
-          <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-black text-xl shadow-md mx-auto mb-4">
-            {(user?.name || user?.business?.name || 'S').charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-slate-900">{user?.business?.name || user?.name || 'Seller'}</h3>
-            
-            <div className="flex flex-col gap-1 mt-3 mb-3 bg-slate-50 p-2 rounded-lg border border-slate-100">
-              <div className="flex justify-between items-center px-1">
-                <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400">Business ID</span>
-                <span className="text-xs font-mono font-bold text-slate-700">
-                  {user?.business?.businessCode
-                    ? user.business.businessCode
-                    : <Link href="/seller/onboarding" className="text-amber-600 font-bold text-xs hover:underline">Complete Setup →</Link>
-                  }
-                </span>
+        {/* Compact & Smart Seller Profile */}
+        <div className="p-4 border-b border-slate-100 bg-slate-50/50">
+          <div className="flex items-center gap-3">
+            <div className="relative shrink-0">
+              <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-base shadow-sm">
+                {(user?.name || user?.business?.name || 'S').charAt(0).toUpperCase()}
               </div>
-              <div className="flex justify-between items-center px-1">
-                <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400">MV Account ID</span>
-                <span className="text-xs font-mono font-bold text-slate-700">{user?.markatId || 'Pending'}</span>
+              <div className="absolute -bottom-1 -right-1 bg-white p-0.5 rounded-full shadow-sm">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 fill-emerald-50" />
               </div>
             </div>
-
+            
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-sm font-bold text-slate-900 truncate">
+                  {user?.business?.name || user?.name || 'Seller'}
+                </h3>
+              </div>
+              <span className="inline-block text-[10px] font-bold text-emerald-600">
+                Verified Seller
+              </span>
+            </div>
           </div>
-          <div className="flex items-center justify-center gap-1 text-emerald-600 text-sm font-medium mt-2">
-            <CheckCircle2 className="w-4 h-4" /> Verified Seller
+
+          {/* Smart Compact IDs Card */}
+          <div className="mt-2.5 p-2 rounded-lg bg-white border border-slate-200/70 shadow-2xs space-y-1">
+            <div className="flex justify-between items-center text-[11px]">
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Business ID</span>
+              <span className="font-mono font-semibold text-slate-700">
+                {user?.business?.businessCode
+                  ? user.business.businessCode
+                  : <Link href="/seller/onboarding" className="text-amber-600 font-bold hover:underline">Setup →</Link>
+                }
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-[11px] pt-1 border-t border-slate-100">
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Account ID</span>
+              <span className="font-mono font-semibold text-slate-700">{user?.markatId || 'Pending'}</span>
+            </div>
           </div>
         </div>
         
