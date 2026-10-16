@@ -12,42 +12,67 @@ const ProductGrid = dynamic(() => import('@/components/ProductGrid'));
 
 async function getAdvertisements() {
   try {
-    const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
-    const res = await fetch(`${API_URL}/commercial/advertisements`, { next: { revalidate: 60 } });
-    if (res.ok) {
-      const data = await res.json();
-      return data.filter((ad: any) => ad.status === 'ACTIVE' && ad.position === 'HOMEPAGE');
+    const getApiUrl = () => {
+      if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+      if (typeof window !== 'undefined') {
+        return `${window.location.protocol}//${window.location.hostname}:3001`;
+      }
+      return 'http://127.0.0.1:3001';
+    };
+    const API_URL = getApiUrl();
+    const res = await fetch(`${API_URL}/commercial/advertisements`, {
+      next: { revalidate: 60 },
+      signal: AbortSignal.timeout(3000),
+    }).catch(() => null);
+
+    if (res && res.ok) {
+      const data = await res.json().catch(() => []);
+      return Array.isArray(data)
+        ? data.filter((ad: any) => ad.status === 'ACTIVE' && ad.position === 'HOMEPAGE')
+        : [];
     }
-  } catch (error) {
-    console.error("Failed to fetch ads", error);
+  } catch {
+    // Graceful fallback during build
   }
   return [];
 }
 
 async function getBanners() {
   try {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    const res = await fetch(`${API_URL}/content/banners`, { next: { revalidate: 60 } });
-    if (res.ok) {
-      const data = await res.json();
-      return data.filter((banner: any) => banner.status === 'ACTIVE' && banner.position === 'HOME_HERO');
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
+    const res = await fetch(`${API_URL}/content/banners`, {
+      next: { revalidate: 60 },
+      signal: AbortSignal.timeout(3000),
+    }).catch(() => null);
+
+    if (res && res.ok) {
+      const data = await res.json().catch(() => []);
+      return Array.isArray(data)
+        ? data.filter((banner: any) => banner.status === 'ACTIVE' && banner.position === 'HOME_HERO')
+        : [];
     }
-  } catch (error) {
-    console.error("Failed to fetch banners", error);
+  } catch {
+    // Graceful fallback during build
   }
   return [];
 }
 
 async function getBlogPosts() {
   try {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    const res = await fetch(`${API_URL}/content/blog`, { next: { revalidate: 60 } });
-    if (res.ok) {
-      const data = await res.json();
-      return data.filter((post: any) => post.status === 'PUBLISHED').slice(0, 3); // Top 3 latest posts
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
+    const res = await fetch(`${API_URL}/content/blog`, {
+      next: { revalidate: 60 },
+      signal: AbortSignal.timeout(3000),
+    }).catch(() => null);
+
+    if (res && res.ok) {
+      const data = await res.json().catch(() => []);
+      return Array.isArray(data)
+        ? data.filter((post: any) => post.status === 'PUBLISHED').slice(0, 3)
+        : [];
     }
-  } catch (error) {
-    console.error("Failed to fetch blog posts", error);
+  } catch {
+    // Graceful fallback during build
   }
   return [];
 }

@@ -19,16 +19,26 @@ export async function generateMetadata(): Promise<Metadata> {
   let description = "The global marketplace connecting people, businesses and opportunities.";
 
   try {
-    const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
-    // Revalidate every 60 seconds so SEO updates reflect relatively quickly
-    const res = await fetch(`${API_URL}/system-config/seo`, { next: { revalidate: 60 } });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.title) title = data.title;
-      if (data.description) description = data.description;
+    const getApiUrl = () => {
+      if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+      if (typeof window !== 'undefined') {
+        return `${window.location.protocol}//${window.location.hostname}:3001`;
+      }
+      return 'http://127.0.0.1:3001';
+    };
+    const API_URL = getApiUrl();
+    const res = await fetch(`${API_URL}/system-config/seo`, {
+      next: { revalidate: 60 },
+      signal: AbortSignal.timeout(3000),
+    }).catch(() => null);
+
+    if (res && res.ok) {
+      const data = await res.json().catch(() => null);
+      if (data?.title) title = data.title;
+      if (data?.description) description = data.description;
     }
-  } catch (error) {
-    console.error("Failed to fetch SEO settings:", error);
+  } catch {
+    // Fall back to default title and description safely during build
   }
 
   return {
