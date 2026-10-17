@@ -1,19 +1,28 @@
-import { Controller, Post, UseInterceptors, UploadedFiles, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Get, Param, Res, UseInterceptors, UploadedFiles, BadRequestException, NotFoundException } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import type { Response } from 'express';
+import { existsSync, createReadStream } from 'fs';
+import { join, extname } from 'path';
 
-@Controller('upload')
+const MIME_MAP: Record<string, string> = {
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+};
+
+@Controller()
 export class UploadController {
-  @Post()
+  @Post('upload')
   @UseInterceptors(FilesInterceptor('files', 10))
   uploadFiles(@UploadedFiles() files: Array<Express.Multer.File>) {
     if (!files || files.length === 0) {
       throw new BadRequestException('No files uploaded');
     }
 
-    // Define the base URL. In a real app this might come from env variables.
     const baseUrl = process.env.BASE_URL || 'http://localhost:3001';
-    
-    // We will serve the uploads directory statically under /public/uploads
     const urls = files.map(file => `${baseUrl}/public/uploads/${file.filename}`);
 
     return {
@@ -22,4 +31,38 @@ export class UploadController {
       files: files.map(f => ({ filename: f.filename, size: f.size })),
     };
   }
+
+  // Stream uploads reliably on Vercel Serverless and local dev
+  @Get('public/uploads/:filename')
+  serveFile(@Param('filename') filename: string, @Res() res: Response) {
+    // Prevent directory traversal
+    const safeFilename = filename.replace(/(\.\.[\/\\])+/g, '');
+
+    // Search across known upload locations
+    const candidatePaths = [
+      join(process.cwd(), 'uploads', safeFilename),
+      join(process.cwd(), 'dist', 'uploads', safeFilename),
+      join('/tmp', safeFilename),
+    ];
+
+    let filePath: string | null = null;
+    for (const p of candidatePaths) {
+      if (existsSync(p)) {
+        filePath = p;
+        break;
+      }
+    }
+
+    if (!filePath) {
+      throw new NotFoundException(`File ${filename} not found`);
+    }
+
+    const ext = extname(safeFilename).toLowerCase();
+    const contentType = MIME_MAP[ext] || 'application/octet-stream';
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+    createReadStream(filePath).pipe(res);
+  }
 }
+
