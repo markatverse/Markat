@@ -102,37 +102,45 @@ export default function Recommendations() {
       </div>
 
       <div className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory">
-        {realItems.map((item) => (
-          <div
-            key={item.id}
-            className="w-[145px] sm:w-[170px] shrink-0 snap-start bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-md hover:border-indigo-300 transition-all group cursor-pointer"
-            onMouseEnter={() => handleMouseEnter(item)}
-            onClick={() => handleClick(item)}
-          >
-            <div className="h-24 sm:h-28 bg-slate-100 relative overflow-hidden">
-              <img
-                src={item.images[0]}
-                alt={item.name || item.title}
-                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute top-2 left-2 bg-indigo-600 text-white text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded">
-                {item.itemType}
+        {realItems.map((item) => {
+          const isService = item.itemType === 'service' || 
+            item.primaryType === 'SERVICE' || 
+            ['Services', 'Home Services', 'Transport', 'Rentals', 'Organizers', 'Salon', 'Restaurant', 'Food & Dining', 'Clinic'].some(c => (item.category || '').toLowerCase().includes(c.toLowerCase()));
+          
+          return (
+            <div
+              key={item.id}
+              className="w-[145px] sm:w-[170px] shrink-0 snap-start bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-md hover:border-indigo-300 transition-all group cursor-pointer"
+              onMouseEnter={() => handleMouseEnter(item)}
+              onClick={() => handleClick({ ...item, itemType: isService ? 'service' : 'product' })}
+            >
+              <div className="h-24 sm:h-28 bg-slate-50 relative overflow-hidden flex items-center justify-center">
+                <img
+                  src={item.images[0]}
+                  alt={item.name || item.title}
+                  className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className={`absolute top-2 left-2 text-white text-[9px] font-extrabold uppercase tracking-wide px-2 py-0.5 rounded-md shadow-xs ${
+                  isService ? 'bg-purple-600' : 'bg-blue-600'
+                }`}>
+                  {isService ? 'SERVICE' : 'PRODUCT'}
+                </div>
               </div>
-            </div>
 
-            <div className="p-2.5">
-              <h3 className="text-xs font-bold text-slate-900 line-clamp-1 group-hover:text-indigo-600 transition-colors mb-0.5">
-                {item.name || item.title}
-              </h3>
-              <div className="flex items-center justify-between mt-1">
-                <span className="text-sm font-black text-slate-900">₹{item.price}</span>
-                <span className="text-[9px] text-slate-400 font-medium">
-                  {item.seller?.name || item.seller?.storeName || ''}
-                </span>
+              <div className="p-2.5">
+                <h3 className="text-xs font-bold text-slate-900 line-clamp-1 group-hover:text-indigo-600 transition-colors mb-0.5">
+                  {item.name || item.title}
+                </h3>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-sm font-black text-slate-900">₹{(item.price ?? 0).toLocaleString('en-IN')}</span>
+                  <span className="text-[9px] text-slate-400 font-medium truncate max-w-[50%]">
+                    {item.seller?.name || item.seller?.storeName || item.seller || ''}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

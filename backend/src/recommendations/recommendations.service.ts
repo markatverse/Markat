@@ -31,9 +31,18 @@ export class RecommendationsService {
       })
     ]);
 
+    // Helper to accurately classify if a product record is actually a service
+    const isServiceRecord = (p: any) => {
+      const serviceCategories = ['Services', 'Home Services', 'Transport', 'Rentals', 'Organizers', 'Salon', 'Restaurant', 'Food & Dining', 'Healthcare', 'Clinic'];
+      return p.primaryType === 'SERVICE' || serviceCategories.some(sc => (p.category || '').toLowerCase().includes(sc.toLowerCase()));
+    };
+
     // Format all items to a generic structure
     const allItems = [
-      ...products.map((p: any) => ({ ...p, itemType: 'product' })),
+      ...products.map((p: any) => ({
+        ...p,
+        itemType: isServiceRecord(p) ? 'service' : 'product',
+      })),
       ...services.map((s: any) => ({ ...s, itemType: 'service' }))
     ];
 
