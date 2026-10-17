@@ -8,16 +8,16 @@ import Recommendations from "@/components/Recommendations";
 import BannerSlideshow from "@/components/BannerSlideshow";
 import AdSlideshow from "@/components/AdSlideshow";
 
+import { getApiUrl } from "@/utils/api";
+
 const ProductGrid = dynamic(() => import('@/components/ProductGrid'));
 
 async function getAdvertisements() {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!apiUrl || apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')) return [];
-    
+    const apiUrl = getApiUrl();
     const res = await fetch(`${apiUrl}/commercial/advertisements`, {
       next: { revalidate: 60 },
-      signal: AbortSignal.timeout(3000),
+      signal: AbortSignal.timeout(4000),
     }).catch(() => null);
 
     if (res && res.ok) {
@@ -27,19 +27,17 @@ async function getAdvertisements() {
         : [];
     }
   } catch {
-    // Graceful fallback during build
+    // Graceful fallback
   }
   return [];
 }
 
 async function getBanners() {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!apiUrl || apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')) return [];
-
+    const apiUrl = getApiUrl();
     const res = await fetch(`${apiUrl}/content/banners`, {
       next: { revalidate: 60 },
-      signal: AbortSignal.timeout(3000),
+      signal: AbortSignal.timeout(4000),
     }).catch(() => null);
 
     if (res && res.ok) {
@@ -49,19 +47,17 @@ async function getBanners() {
         : [];
     }
   } catch {
-    // Graceful fallback during build
+    // Graceful fallback
   }
   return [];
 }
 
 async function getBlogPosts() {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!apiUrl || apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')) return [];
-
+    const apiUrl = getApiUrl();
     const res = await fetch(`${apiUrl}/content/blog`, {
       next: { revalidate: 60 },
-      signal: AbortSignal.timeout(3000),
+      signal: AbortSignal.timeout(4000),
     }).catch(() => null);
 
     if (res && res.ok) {
@@ -71,7 +67,7 @@ async function getBlogPosts() {
         : [];
     }
   } catch {
-    // Graceful fallback during build
+    // Graceful fallback
   }
   return [];
 }

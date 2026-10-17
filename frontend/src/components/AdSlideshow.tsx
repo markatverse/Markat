@@ -71,7 +71,14 @@ export default function AdSlideshow({ ads: initialAds }: { ads: any[] }) {
               {/* Background Image or Gradient */}
               {ad.mediaUrl ? (
                 <div className="absolute inset-0 z-0">
-                  <img src={ad.mediaUrl} alt={ad.title} className="w-full h-full object-cover opacity-80 group-hover/ad:scale-105 transition-transform duration-700" />
+                  <img 
+                    src={ad.mediaUrl} 
+                    alt={ad.title} 
+                    loading="eager"
+                    // @ts-ignore
+                    fetchPriority="high"
+                    className="w-full h-full object-cover opacity-80 group-hover/ad:scale-105 transition-transform duration-700" 
+                  />
                   <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-transparent"></div>
                 </div>
               ) : (

@@ -68,7 +68,14 @@ export default function BannerSlideshow({ banners: initialBanners }: { banners: 
       >
         {banners.map((banner: any, idx: number) => (
           <div key={banner.id} className="min-w-full relative h-[180px] sm:h-[250px] md:h-[400px]">
-            <img src={banner.imageUrl} alt={banner.title} className="w-full h-full object-cover" />
+            <img 
+              src={banner.imageUrl} 
+              alt={banner.title} 
+              loading={idx === 0 ? "eager" : "lazy"}
+              // @ts-ignore
+              fetchPriority={idx === 0 ? "high" : "auto"}
+              className="w-full h-full object-cover" 
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
               <h2 className="text-3xl md:text-5xl font-black text-white mb-2 transform translate-y-0 opacity-100 transition-all duration-700 delay-100">{banner.title}</h2>
               {banner.linkUrl && (
