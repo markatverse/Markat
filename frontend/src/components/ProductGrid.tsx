@@ -272,7 +272,7 @@ export default function ProductGrid({ products: propProducts, limit, category, p
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
-                      addToCart({
+                      const added = addToCart({
                         id: product.id,
                         name: product.name,
                         price: product.price,
@@ -280,7 +280,9 @@ export default function ProductGrid({ products: propProducts, limit, category, p
                         category: product.category,
                         sellerId: product.sellerId,
                       });
-                      toast.success(`Added ${product.name} to cart!`, { duration: 1800 });
+                      if (added) {
+                        toast.success(`Added ${product.name} to cart!`, { duration: 1800 });
+                      }
                     }}
                     className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white font-bold text-[10px] flex items-center gap-1 transition-all"
                   >

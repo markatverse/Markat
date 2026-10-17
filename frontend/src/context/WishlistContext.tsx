@@ -1,6 +1,10 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+import { useAuth } from './AuthContext';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
+
 type WishlistContextType = {
   wishlistIds: string[];
   addToWishlist: (productId: string) => void;
@@ -12,18 +16,24 @@ type WishlistContextType = {
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
 export function WishlistProvider({ children }: { children: React.ReactNode }) {
-  const [wishlistIds, setWishlistIds] = useState<string[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem('markatverse_wishlist');
-        return stored ? JSON.parse(stored) : [];
-      } catch {
-        return [];
+  const { user } = useAuth();
+  const router = useRouter();
+
+  const [wishlistIds, setWishlistIds] = useState<string[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('markatverse_wishlist');
+      if (stored) {
+        setWishlistIds(JSON.parse(stored));
       }
+    } catch {
+      // Ignore parse errors
+    } finally {
+      setIsLoaded(true);
     }
-    return [];
-  });
-  const [isLoaded, setIsLoaded] = useState(true);
+  }, []);
 
   useEffect(() => {
     if (isLoaded) {
@@ -31,7 +41,21 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     }
   }, [wishlistIds, isLoaded]);
 
+  const redirectToLogin = () => {
+    toast.error('Please log in to save items to your wishlist');
+    if (typeof window !== 'undefined') {
+      const redirectPath = window.location.pathname + window.location.search;
+      router.push(`/login?redirect=${encodeURIComponent(redirectPath)}`);
+    } else {
+      router.push('/login');
+    }
+  };
+
   const addToWishlist = (productId: string) => {
+    if (!user) {
+      redirectToLogin();
+      return;
+    }
     setWishlistIds(prev => {
       if (prev.includes(productId)) return prev;
       return [...prev, productId];
@@ -43,6 +67,10 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   };
 
   const toggleWishlist = (productId: string) => {
+    if (!user) {
+      redirectToLogin();
+      return;
+    }
     setWishlistIds(prev => {
       if (prev.includes(productId)) {
         return prev.filter(id => id !== productId);

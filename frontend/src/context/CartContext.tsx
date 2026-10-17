@@ -1,6 +1,10 @@
 "use client";
 import React, { createContext, useContext, useState } from 'react';
 
+import { useAuth } from './AuthContext';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
+
 type CartItem = {
   id: string;
   name: string;
@@ -13,7 +17,7 @@ type CartItem = {
 
 type CartContextType = {
   items: CartItem[];
-  addToCart: (item: Omit<CartItem, 'quantity'>) => void;
+  addToCart: (item: Omit<CartItem, 'quantity'>) => boolean;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -23,27 +27,48 @@ type CartContextType = {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem('markatverse_cart');
-        return stored ? JSON.parse(stored) : [];
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  });
+  const { user } = useAuth();
+  const router = useRouter();
 
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Restore cart from localStorage after initial client mount to avoid hydration mismatch
   React.useEffect(() => {
+    try {
+      const stored = localStorage.getItem('markatverse_cart');
+      if (stored) {
+        setItems(JSON.parse(stored));
+      }
+    } catch {
+      // Ignore parse/storage errors
+    } finally {
+      setIsLoaded(true);
+    }
+  }, []);
+
+  // Save changes to localStorage only after initial load has finished
+  React.useEffect(() => {
+    if (!isLoaded) return;
     try {
       localStorage.setItem('markatverse_cart', JSON.stringify(items));
     } catch {
       // Ignore quota errors
     }
-  }, [items]);
+  }, [items, isLoaded]);
 
-  const addToCart = (product: Omit<CartItem, 'quantity'>) => {
+  const addToCart = (product: Omit<CartItem, 'quantity'>): boolean => {
+    if (!user) {
+      toast.error('Please log in to add items to your cart');
+      if (typeof window !== 'undefined') {
+        const redirectPath = window.location.pathname + window.location.search;
+        router.push(`/login?redirect=${encodeURIComponent(redirectPath)}`);
+      } else {
+        router.push('/login');
+      }
+      return false;
+    }
+
     setItems(prev => {
       const existing = prev.find(item => item.id === product.id);
       if (existing) {
@@ -51,6 +76,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       return [...prev, { ...product, quantity: 1 }];
     });
+    return true;
   };
 
   const removeFromCart = (id: string) => {

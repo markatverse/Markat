@@ -401,7 +401,7 @@ export default function ProductDetails() {
               <StarRating rating={Number(product.rating || 0)} totalReviews={Number(product.reviews || 0)} compact={true} />
             </div>
             <button 
-              onClick={() => toggleWishlist(product.id)}
+              onClick={() => requireAuth(() => toggleWishlist(product.id))}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-colors shadow-sm ${
                 isInWishlist(product.id) 
                   ? 'border-red-200 bg-red-50 text-red-600' 
