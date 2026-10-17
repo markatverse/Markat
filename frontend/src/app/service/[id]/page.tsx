@@ -161,8 +161,20 @@ export default function ServiceDetails() {
 
             {/* Info Section */}
             <div className="flex-1 flex flex-col justify-center w-full">
-              {/* Tags row */}
+              {/* Tags row matching card design */}
               <div className="flex flex-wrap items-center gap-2 mb-3 lg:mb-5">
+                {service.badge && (
+                  <span className={`px-3 py-1 rounded-full text-[10px] lg:text-xs font-bold uppercase shadow-xs ${
+                    service.badgeColor === 'badge-gold' ? 'bg-amber-400 text-slate-900' : 'bg-red-500 text-white'
+                  }`}>
+                    {service.badge}
+                  </span>
+                )}
+                {service.category && (
+                  <span className="bg-white/15 border border-white/20 text-white text-[10px] lg:text-xs font-bold px-3 py-1 lg:px-4 lg:py-1.5 rounded-full uppercase tracking-wider">
+                    {service.category} {service.subcategory ? `› ${service.subcategory}` : ''}
+                  </span>
+                )}
                 {isWalkIn && (
                   <span className="bg-violet-500/20 border border-violet-400/30 text-violet-200 text-[10px] lg:text-xs font-bold px-3 py-1 lg:px-4 lg:py-1.5 rounded-full flex items-center gap-1.5">
                     <Ticket className="w-3.5 h-3.5" /> Smart Queue

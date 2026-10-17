@@ -327,16 +327,38 @@ export default function ProductDetails() {
 
         {/* Right: Product Info & Actions */}
         <div className="flex-1">
-          <div className="flex items-center gap-2 mb-3 text-xs font-bold uppercase tracking-widest">
-            {product.brand && (
-              <>
-                <span className="text-slate-800">{product.brand}</span>
-                <span className="text-slate-300">•</span>
-              </>
+          {/* Top Category and Badges Lockup (matching card design) */}
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            {product.badge && (
+              <span className={`px-2.5 py-0.5 rounded-md text-[10px] sm:text-xs font-bold uppercase shadow-xs ${
+                product.badgeColor === 'badge-gold' ? 'bg-amber-400 text-slate-900' : 'bg-red-500 text-white'
+              }`}>
+                {product.badge}
+              </span>
             )}
-            <span className="text-blue-600">{product.seller}</span>
+
+            {product.category && (
+              <span className="text-[10px] sm:text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 uppercase tracking-wide px-2.5 py-0.5 rounded-md">
+                {product.category} {product.subcategory ? `› ${product.subcategory}` : ''}
+              </span>
+            )}
+
+            {product.brand && (
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
+                Brand: {product.brand}
+              </span>
+            )}
+
+            <Link 
+              href={`/shop/${encodeURIComponent((product.seller || 'unknown').toLowerCase().replace(/ /g, '-'))}`}
+              className="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wider ml-auto flex items-center gap-1"
+            >
+              <span>{product.seller || 'Verified Seller'}</span>
+              <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+            </Link>
           </div>
-          <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-2 leading-tight">{product.name}</h1>
+
+          <h1 className="text-3xl lg:text-4xl font-extrabold text-slate-900 mb-2 leading-tight">{product.name}</h1>
           
           <div className="text-slate-600 font-medium mb-4 flex items-center gap-2">
             <MapPin className="w-4 h-4 text-slate-400" />
