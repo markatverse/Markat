@@ -130,21 +130,25 @@ export default function ProductDetails() {
   
   if (product && !activeOption) { // Only apply wholesale logic if not using dynamic options
     if (isWholesaleConfig) {
-      if (product.wholesaleTiers && product.wholesaleTiers.length > 0) {
+      const basePrice = product.price;
+      if (rfqQuantity === 1 && isRetail && isElite) {
+        currentActivePrice = Math.round(basePrice * 0.9);
+      } else if (product.wholesaleTiers && product.wholesaleTiers.length > 0) {
         const sortedTiers = [...product.wholesaleTiers].sort((a, b) => b.minQty - a.minQty);
-        const activeTier = sortedTiers.find(tier => rfqQuantity >= tier.minQty);
+        const activeTier = sortedTiers.find(tier => (typeof rfqQuantity === 'number' ? rfqQuantity : 1) >= tier.minQty);
         if (activeTier) {
-          currentActivePrice = Math.round(printRate * (1 - activeTier.margin / 100));
+          currentActivePrice = Math.round(basePrice * (1 - activeTier.margin / 100));
         } else {
-          currentActivePrice = isRetail && isElite ? Math.round(product.price * 0.7) : printRate;
+          currentActivePrice = isRetail && isElite ? Math.round(basePrice * 0.9) : basePrice;
         }
       } else {
-        // Fallback to defaults
-        if (rfqQuantity >= 150) currentActivePrice = Math.round(printRate * 0.60); // 40% Margin
-        else if (rfqQuantity >= 100) currentActivePrice = Math.round(printRate * 0.70); // 30% Margin
-        else if (rfqQuantity >= 12) currentActivePrice = Math.round(printRate * 0.80); // 20% Margin
+        // Fallback to default bundle margins
+        const qty = typeof rfqQuantity === 'number' ? rfqQuantity : 1;
+        if (qty >= 150) currentActivePrice = Math.round(basePrice * 0.60); // 40% Margin
+        else if (qty >= 100) currentActivePrice = Math.round(basePrice * 0.70); // 30% Margin
+        else if (qty >= 12) currentActivePrice = Math.round(basePrice * 0.80); // 20% Margin
         else {
-          currentActivePrice = isRetail && isElite ? Math.round(product.price * 0.7) : printRate;
+          currentActivePrice = isRetail && isElite ? Math.round(basePrice * 0.9) : basePrice;
         }
       }
     }
