@@ -18,12 +18,19 @@ export default function ContentBannersPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ title: '', imageUrl: '', linkUrl: '', position: 'HOME_HERO', status: 'ACTIVE' });
 
-  const fetchBanners = async () => {
+  const fetchBanners = async (isBackground = false) => {
     try {
-      const res = await fetch(`${API_URL}/content/banners`);
+      if (!isBackground) setLoading(true);
+      const res = await fetch(`${API_URL}/content/banners`, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(5000),
+      });
       if (res.ok) {
         const data = await res.json();
         setBanners(data);
+        try {
+          localStorage.setItem('mv_cache_banners', JSON.stringify(data));
+        } catch {}
       }
     } catch (e) {
       console.error(e);
@@ -33,7 +40,23 @@ export default function ContentBannersPage() {
   };
 
   useEffect(() => {
-    fetchBanners();
+    // 1. Instant load from local cache if present
+    try {
+      const cached = localStorage.getItem('mv_cache_banners');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setBanners(parsed);
+          setLoading(false);
+          // Refresh silently in background
+          fetchBanners(true);
+          return;
+        }
+      }
+    } catch {}
+
+    // 2. Otherwise regular fetch
+    fetchBanners(false);
   }, []);
 
   const handleDelete = async (id: string) => {

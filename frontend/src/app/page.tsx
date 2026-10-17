@@ -11,7 +11,6 @@ import AdSlideshow from "@/components/AdSlideshow";
 import { getApiUrl } from "@/utils/api";
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 const ProductGrid = nextDynamic(() => import('@/components/ProductGrid'));
 
@@ -19,8 +18,8 @@ async function getAdvertisements() {
   try {
     const apiUrl = getApiUrl();
     const res = await fetch(`${apiUrl}/commercial/advertisements`, {
-      next: { revalidate: 60 },
-      signal: AbortSignal.timeout(4000),
+      next: { revalidate: 30 },
+      signal: AbortSignal.timeout(2000),
     }).catch(() => null);
 
     if (res && res.ok) {
@@ -39,8 +38,8 @@ async function getBanners() {
   try {
     const apiUrl = getApiUrl();
     const res = await fetch(`${apiUrl}/content/banners`, {
-      next: { revalidate: 60 },
-      signal: AbortSignal.timeout(4000),
+      next: { revalidate: 30 },
+      signal: AbortSignal.timeout(2000),
     }).catch(() => null);
 
     if (res && res.ok) {
@@ -60,7 +59,7 @@ async function getBlogPosts() {
     const apiUrl = getApiUrl();
     const res = await fetch(`${apiUrl}/content/blog`, {
       next: { revalidate: 60 },
-      signal: AbortSignal.timeout(4000),
+      signal: AbortSignal.timeout(2500),
     }).catch(() => null);
 
     if (res && res.ok) {

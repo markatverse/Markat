@@ -5,12 +5,20 @@ import { getApiUrl, fastFetch } from '@/utils/api';
 
 export default function AdSlideshow({ ads: initialAds }: { ads: any[] }) {
   const [ads, setAds] = useState<any[]>(initialAds || []);
+  const [isLoading, setIsLoading] = useState<boolean>(!initialAds || initialAds.length === 0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Always re-sync fresh advertisements from API
-    fastFetch<any[]>('/commercial/advertisements', { ttlMs: 10000 })
+    // If initial server ads were provided, use them directly (zero flash)
+    if (initialAds && initialAds.length > 0) {
+      setAds(initialAds);
+      setIsLoading(false);
+      return;
+    }
+
+    // Only fallback fetch if server didn't provide any
+    fastFetch<any[]>('/commercial/advertisements', { ttlMs: 30000 })
       .then(data => {
         if (Array.isArray(data)) {
           const homeAds = data.filter((ad: any) => ad.status === 'ACTIVE' && ad.position === 'HOMEPAGE');
@@ -19,8 +27,9 @@ export default function AdSlideshow({ ads: initialAds }: { ads: any[] }) {
           }
         }
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
+  }, [initialAds]);
 
   const resetTimeout = () => {
     if (timeoutRef.current) {
@@ -46,6 +55,18 @@ export default function AdSlideshow({ ads: initialAds }: { ads: any[] }) {
   const handleNext = () => {
     setCurrentIndex((prevIndex) => (prevIndex === ads.length - 1 ? 0 : prevIndex + 1));
   };
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-[90px] sm:h-[120px] md:h-[160px] rounded-2xl bg-slate-200/80 animate-pulse overflow-hidden relative shadow-sm border border-slate-200">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
+        <div className="absolute inset-0 flex items-center justify-between p-4 sm:p-6">
+          <div className="h-6 w-1/3 bg-slate-300 rounded-lg animate-pulse" />
+          <div className="h-8 w-24 bg-slate-300 rounded-xl animate-pulse" />
+        </div>
+      </div>
+    );
+  }
 
   if (!ads || ads.length === 0) return null;
 

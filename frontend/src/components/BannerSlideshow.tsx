@@ -7,12 +7,20 @@ import { getApiUrl, fastFetch } from '@/utils/api';
 
 export default function BannerSlideshow({ banners: initialBanners }: { banners: any[] }) {
   const [banners, setBanners] = useState<any[]>(initialBanners || []);
+  const [isLoading, setIsLoading] = useState<boolean>(!initialBanners || initialBanners.length === 0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Always re-sync fresh banners from API
-    fastFetch<any[]>('/content/banners', { ttlMs: 10000 })
+    // If initial server banners were provided, use them directly (zero flash)
+    if (initialBanners && initialBanners.length > 0) {
+      setBanners(initialBanners);
+      setIsLoading(false);
+      return;
+    }
+
+    // Only fallback fetch if server didn't provide any
+    fastFetch<any[]>('/content/banners', { ttlMs: 30000 })
       .then(data => {
         if (Array.isArray(data)) {
           const heroBanners = data.filter((b: any) => b.status === 'ACTIVE' && b.position === 'HOME_HERO');
@@ -21,8 +29,9 @@ export default function BannerSlideshow({ banners: initialBanners }: { banners: 
           }
         }
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
+  }, [initialBanners]);
 
   const resetTimeout = () => {
     if (timeoutRef.current) {
@@ -48,6 +57,18 @@ export default function BannerSlideshow({ banners: initialBanners }: { banners: 
   const handleNext = () => {
     setCurrentIndex((prevIndex) => (prevIndex === banners.length - 1 ? 0 : prevIndex + 1));
   };
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-[180px] sm:h-[250px] md:h-[400px] rounded-3xl bg-slate-200/80 animate-pulse overflow-hidden relative shadow-sm border border-slate-200">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
+        <div className="absolute bottom-6 left-6 right-6 flex flex-col gap-3">
+          <div className="h-8 w-2/5 bg-slate-300 rounded-lg animate-pulse" />
+          <div className="h-4 w-1/4 bg-slate-300 rounded-lg animate-pulse" />
+        </div>
+      </div>
+    );
+  }
 
   if (!banners || banners.length === 0) return null;
 

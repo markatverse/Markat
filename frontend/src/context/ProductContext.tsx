@@ -784,10 +784,20 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    setIsLoading(true);
-    // Fetch products
-    console.log('Fetching products for location:', userLocation, userLat, userLng, radiusFilter);
-    let url = `${API_URL}/products?location=${encodeURIComponent(userLocation)}`;
+    // 1. Instant cache load from localStorage
+    try {
+      const cached = localStorage.getItem('mv_cache_products');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setProducts(parsed);
+          setIsLoading(false);
+        }
+      }
+    } catch {}
+
+    // 2. Fetch fresh products
+    let url = `/products?location=${encodeURIComponent(userLocation)}`;
     if (userLat !== null && userLng !== null) {
       url += `&lat=${userLat}&lng=${userLng}`;
     }
@@ -795,25 +805,17 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       url += `&radius=${radiusFilter}`;
     }
     
-    fetch(url)
-      .then(res => res.json())
+    fastFetch<any>(url, { ttlMs: 15000 })
       .then(data => {
+        let rawItems: any[] = [];
         if (data && Array.isArray(data.data)) {
-          const mappedData = data.data.map((item: any) => ({
-            ...item,
-            seller: item.sellerName,
-            category: item.categoryName,
-            subcategory: item.subcategory,
-            image: item.image || item.sku || undefined,
-            images: item.images || (item.image ? [item.image] : []),
-            isPremium: false,
-            isB2B: item.isB2B,
-            moq: item.moq,
-            status: item.status
-          }));
-          setProducts(mappedData);
+          rawItems = data.data;
         } else if (Array.isArray(data)) {
-          const mappedData = data.map(item => ({
+          rawItems = data;
+        }
+
+        if (rawItems.length > 0) {
+          const mappedData = rawItems.map((item: any) => ({
             ...item,
             seller: item.sellerName,
             category: item.categoryName,
@@ -826,13 +828,13 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
             status: item.status
           }));
           setProducts(mappedData);
-        } else {
-          setProducts([]);
+          try {
+            localStorage.setItem('mv_cache_products', JSON.stringify(mappedData));
+          } catch {}
         }
       })
       .catch(err => {
         console.error('Failed to fetch products:', err);
-        setProducts([]);
       })
       .finally(() => setIsLoading(false));
 

@@ -17,12 +17,19 @@ export default function ContentgtAdvertisementsPage() {
     return url;
   };
 
-  const fetchItems = async () => {
+  const fetchItems = async (isBackground = false) => {
     try {
-      const res = await fetch(`${API_URL}/commercial/advertisements`);
+      if (!isBackground) setLoading(true);
+      const res = await fetch(`${API_URL}/commercial/advertisements`, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(5000),
+      });
       if (res.ok) {
         const data = await res.json();
         setItems(data);
+        try {
+          localStorage.setItem('mv_cache_advertisements', JSON.stringify(data));
+        } catch {}
       }
     } catch (error) {
       console.error("Failed to fetch advertisements", error);
@@ -32,7 +39,23 @@ export default function ContentgtAdvertisementsPage() {
   };
 
   useEffect(() => {
-    fetchItems();
+    // 1. Instant load from local cache if present
+    try {
+      const cached = localStorage.getItem('mv_cache_advertisements');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setItems(parsed);
+          setLoading(false);
+          // Refresh silently in background
+          fetchItems(true);
+          return;
+        }
+      }
+    } catch {}
+
+    // 2. Otherwise regular fetch
+    fetchItems(false);
   }, []);
 
   const openModal = (item: any = null) => {
