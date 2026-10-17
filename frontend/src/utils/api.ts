@@ -23,5 +23,51 @@ export const getApiUrl = (): string => {
   return 'https://markat-test-9o1f.vercel.app';
 };
 
+// High-speed in-memory client-side cache and in-flight request deduplication
+const requestCache = new Map<string, { data: any; expiry: number }>();
+const inFlightRequests = new Map<string, Promise<any>>();
+
+export const fastFetch = async <T = any>(
+  endpoint: string, 
+  options?: RequestInit & { ttlMs?: number }
+): Promise<T | null> => {
+  const base = getApiUrl();
+  const url = endpoint.startsWith('http') ? endpoint : `${base}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+  const cacheKey = `${options?.method || 'GET'}:${url}:${JSON.stringify(options?.body || '')}`;
+  const ttl = options?.ttlMs ?? 15000; // 15 seconds default cache
+
+  // 1. Check in-memory cache for GET requests
+  if ((!options?.method || options.method === 'GET') && ttl > 0) {
+    const cached = requestCache.get(cacheKey);
+    if (cached && Date.now() < cached.expiry) {
+      return cached.data as T;
+    }
+  }
+
+  // 2. Prevent duplicate simultaneous network requests (Request Deduplication)
+  if (inFlightRequests.has(cacheKey)) {
+    return inFlightRequests.get(cacheKey)!;
+  }
+
+  const fetchPromise = (async () => {
+    try {
+      const res = await fetch(url, options);
+      if (!res.ok) return null;
+      const data = await res.json();
+      if ((!options?.method || options.method === 'GET') && ttl > 0) {
+        requestCache.set(cacheKey, { data, expiry: Date.now() + ttl });
+      }
+      return data as T;
+    } catch {
+      return null;
+    } finally {
+      inFlightRequests.delete(cacheKey);
+    }
+  })();
+
+  inFlightRequests.set(cacheKey, fetchPromise);
+  return fetchPromise;
+};
+
 export const API_URL = getApiUrl();
 export default getApiUrl;

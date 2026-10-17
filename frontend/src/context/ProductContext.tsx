@@ -1,6 +1,6 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { getApiUrl } from '@/utils/api';
+import { getApiUrl, fastFetch } from '@/utils/api';
 
 const API_URL = getApiUrl();
 
@@ -836,10 +836,8 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       })
       .finally(() => setIsLoading(false));
 
-    // Fetch categories
-    console.log('Fetching categories from:', `${API_URL}/categories`);
-    fetch(`${API_URL}/categories`)
-      .then(res => res.json())
+    // Fetch categories with fastFetch (cached & deduplicated)
+    fastFetch<any[]>(`${API_URL}/categories`, { ttlMs: 60000 })
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
           setCategories(data);

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getApiUrl } from '@/utils/api';
+import { getApiUrl, fastFetch } from '@/utils/api';
 
 const API_URL = getApiUrl();
 
@@ -36,11 +36,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   const refreshSectors = async () => {
     try {
-      const res = await fetch(`${API_URL}/configuration/sectors`).catch(() => null);
-      if (res && res.ok) {
-        const data = await res.json().catch(() => []);
-        if (Array.isArray(data)) setSectors(data);
-      }
+      const data = await fastFetch<Sector[]>('/configuration/sectors', { ttlMs: 60000 });
+      if (Array.isArray(data)) setSectors(data);
     } catch {
       // Graceful fallback
     }
@@ -48,11 +45,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   const refreshSystemConfig = async () => {
     try {
-      const res = await fetch(`${API_URL}/configuration/system-settings`).catch(() => null);
-      if (res && res.ok) {
-        const data = await res.json().catch(() => ({}));
-        if (data && typeof data === 'object') setSystemConfig(data);
-      }
+      const data = await fastFetch<any>('/configuration/system-settings', { ttlMs: 60000 });
+      if (data && typeof data === 'object') setSystemConfig(data);
     } catch {
       // Graceful fallback
     }
