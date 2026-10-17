@@ -25,8 +25,10 @@ import {
 interface MockPaymentGatewayProps {
   amount: number;
   items?: Array<{ name: string; price: number; quantity: number }>;
-  onSuccess: () => void;
-  onCancel: () => void;
+  defaultMethod?: 'upi' | 'card' | 'netbanking' | 'wallet';
+  inline?: boolean;
+  onSuccess: (paymentDetails?: { paymentRef: string; method: string }) => void;
+  onCancel?: () => void;
 }
 
 type PaymentMethodType = 'upi' | 'card' | 'netbanking' | 'wallet';
@@ -34,10 +36,12 @@ type PaymentMethodType = 'upi' | 'card' | 'netbanking' | 'wallet';
 export default function MockPaymentGateway({ 
   amount, 
   items = [], 
+  defaultMethod = 'upi',
+  inline = false,
   onSuccess, 
   onCancel 
 }: MockPaymentGatewayProps) {
-  const [method, setMethod] = useState<PaymentMethodType>('upi');
+  const [method, setMethod] = useState<PaymentMethodType>(defaultMethod);
   const [status, setStatus] = useState<'idle' | 'processing' | 'success' | 'failed'>('idle');
   const [statusMessage, setStatusMessage] = useState('Contacting banking network...');
   
@@ -181,7 +185,7 @@ export default function MockPaymentGateway({
         playSuccessChime();
 
         setTimeout(() => {
-          onSuccess();
+          onSuccess({ paymentRef: txRef, method });
         }, 1800);
       }, 1000);
     }, 1200);
@@ -256,76 +260,88 @@ export default function MockPaymentGateway({
     );
   }
 
+  const cardContainerClass = inline
+    ? "bg-white rounded-3xl w-full flex flex-col md:flex-row overflow-hidden shadow-sm border border-slate-200"
+    : "bg-white rounded-3xl w-full max-w-[900px] h-[92vh] sm:h-[640px] max-h-[92vh] flex flex-col md:flex-row overflow-hidden shadow-2xl relative border border-slate-200 animate-in zoom-in-95 duration-300";
+
+  const outerWrapperClass = inline
+    ? "w-full"
+    : "fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-300 p-2 sm:p-4";
+
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-300 p-2 sm:p-4">
-      <div className="bg-white rounded-3xl w-full max-w-[900px] h-[92vh] sm:h-[640px] max-h-[92vh] flex flex-col md:flex-row overflow-hidden shadow-2xl relative border border-slate-200 animate-in zoom-in-95 duration-300">
+    <div className={outerWrapperClass}>
+      <div className={cardContainerClass}>
         
-        {/* Left Side: Summary & Trust Badges */}
-        <div className="w-full md:w-[320px] bg-slate-900 text-white p-6 sm:p-8 flex flex-col justify-between shrink-0 border-b md:border-b-0 md:border-r border-slate-800 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+        {/* Left Side: Summary & Trust Badges (Only shown when opened as a standalone modal) */}
+        {!inline && (
+          <div className="w-full md:w-[300px] bg-slate-900 text-white p-6 sm:p-8 flex flex-col justify-between shrink-0 border-b md:border-b-0 md:border-r border-slate-800 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div>
-            {/* Brand Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center font-black text-xl shadow-lg shadow-blue-600/30">
-                  M
+            <div>
+              {/* Brand Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center font-black text-xl shadow-lg shadow-blue-600/30">
+                    M
+                  </div>
+                  <div>
+                    <span className="font-extrabold text-base tracking-tight block leading-tight">MarkatVerse</span>
+                    <span className="text-[10px] text-blue-400 font-bold tracking-wider uppercase">Pay Gateway</span>
+                  </div>
                 </div>
-                <div>
-                  <span className="font-extrabold text-base tracking-tight block leading-tight">MarkatVerse</span>
-                  <span className="text-[10px] text-blue-400 font-bold tracking-wider uppercase">Pay Gateway</span>
+                
+                {/* Close Button on Mobile (Only if modal mode) */}
+                {onCancel && (
+                  <button 
+                    onClick={onCancel}
+                    className="md:hidden text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800/80"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Total Amount Display */}
+              <div className="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/60 mb-6">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Total Payable</span>
+                <div className="text-3xl sm:text-4xl font-black text-white flex items-baseline gap-1">
+                  <span className="text-xl text-blue-400">₹</span>
+                  {amount.toLocaleString('en-IN')}
+                </div>
+                <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1 font-mono">
+                  Ref: {txRef}
                 </div>
               </div>
-              
-              {/* Close Button on Mobile */}
-              <button 
-                onClick={onCancel}
-                className="md:hidden text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800/80"
-              >
-                <X className="w-5 h-5" />
-              </button>
+
+              {/* Order Items Snapshot */}
+              {items.length > 0 && (
+                <div className="hidden sm:block mb-6">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Order Items ({items.length})</span>
+                  <div className="space-y-1.5 max-h-[140px] overflow-y-auto pr-1 text-xs">
+                    {items.map((it, idx) => (
+                      <div key={idx} className="flex justify-between text-slate-300">
+                        <span className="truncate max-w-[170px]">{it.quantity}x {it.name}</span>
+                        <span className="font-mono text-slate-400">₹{(it.price * it.quantity).toLocaleString('en-IN')}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Total Amount Display */}
-            <div className="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/60 mb-6">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Total Payable</span>
-              <div className="text-3xl sm:text-4xl font-black text-white flex items-baseline gap-1">
-                <span className="text-xl text-blue-400">₹</span>
-                {amount.toLocaleString('en-IN')}
+            {/* Footer Security Badges */}
+            <div className="pt-4 border-t border-slate-800/80 space-y-2">
+              <div className="flex items-center gap-2 text-slate-300 text-xs">
+                <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span className="font-medium">100% Secure & PCI-DSS Compliant</span>
               </div>
-              <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1 font-mono">
-                Ref: {txRef}
+              <div className="flex items-center gap-2 text-slate-400 text-[11px]">
+                <Lock className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                <span>Instant Bank Confirmation</span>
               </div>
             </div>
-
-            {/* Order Items Snapshot */}
-            {items.length > 0 && (
-              <div className="hidden sm:block mb-6">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Order Items ({items.length})</span>
-                <div className="space-y-1.5 max-h-[140px] overflow-y-auto pr-1 text-xs">
-                  {items.map((it, idx) => (
-                    <div key={idx} className="flex justify-between text-slate-300">
-                      <span className="truncate max-w-[170px]">{it.quantity}x {it.name}</span>
-                      <span className="font-mono text-slate-400">₹{(it.price * it.quantity).toLocaleString('en-IN')}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
-
-          {/* Footer Security Badges */}
-          <div className="pt-4 border-t border-slate-800/80 space-y-2">
-            <div className="flex items-center gap-2 text-slate-300 text-xs">
-              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span className="font-medium">100% Secure & PCI-DSS Compliant</span>
-            </div>
-            <div className="flex items-center gap-2 text-slate-400 text-[11px]">
-              <Lock className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-              <span>Instant Bank Confirmation</span>
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* Right Side: Interactive Payment Methods & Forms */}
         <div className="flex-1 bg-white flex flex-col relative h-full overflow-hidden">
@@ -337,13 +353,15 @@ export default function MockPaymentGateway({
               <p className="text-xs text-slate-500">Choose your preferred transaction method</p>
             </div>
             
-            <button 
-              onClick={onCancel}
-              className="hidden md:flex text-slate-400 hover:text-slate-800 transition-colors p-2 bg-white rounded-full border border-slate-200/80 hover:bg-slate-100 shadow-sm"
-              title="Close payment window"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            {!inline && onCancel && (
+              <button 
+                onClick={onCancel}
+                className="hidden md:flex text-slate-400 hover:text-slate-800 transition-colors p-2 bg-white rounded-full border border-slate-200/80 hover:bg-slate-100 shadow-sm"
+                title="Close payment window"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
           <div className="flex-1 flex flex-col md:flex-row overflow-hidden">

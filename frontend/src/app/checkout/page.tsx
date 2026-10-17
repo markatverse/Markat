@@ -26,6 +26,7 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'upi' | 'cod'>('card');
   const [showGateway, setShowGateway] = useState(false);
+  const [confirmedOrder, setConfirmedOrder] = useState<{ id: string; amount: number; paymentRef?: string } | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -161,14 +162,31 @@ export default function CheckoutPage() {
     );
   }
 
-  const handlePaymentSuccess = async () => {
+  const handlePaymentSuccess = async (paymentDetails?: { paymentRef: string; method: string }) => {
+    const generatedOrderId = `MKV-${Math.floor(100000 + Math.random() * 900000)}`;
+    const orderData = {
+      id: generatedOrderId,
+      amount: total,
+      paymentRef: paymentDetails?.paymentRef || `MV-PAY-${Date.now().toString().slice(-6)}`
+    };
+
     try {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          id: generatedOrderId,
           buyerId: user?.id || 'guest',
           total: total,
+          paymentRef: orderData.paymentRef,
+          paymentMethod: paymentDetails?.method || paymentMethod,
+          shippingAddress: {
+            name: `${firstName} ${lastName}`.trim(),
+            street,
+            city,
+            pinCode,
+            phone
+          },
           items: items.map(item => ({
             productId: String(item.id),
             productName: item.name,
@@ -181,9 +199,12 @@ export default function CheckoutPage() {
     } catch (e) {
       console.error('Failed to create order', e);
     }
+    
+    // Set confirmed order first so step 3 has data
+    setConfirmedOrder(orderData);
+    setStep(3); // Navigate to success confirmation step
     setShowGateway(false);
-    clearCart();
-    setStep(3); // Success step
+    clearCart(); // Clear cart after transitioning
   };
 
   return (
@@ -406,77 +427,28 @@ export default function CheckoutPage() {
               )}
 
               {step === 2 && (
-                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
-                  <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                    <CreditCard className="w-5 h-5 text-blue-600" /> Payment Method
-                  </h2>
-
-                  <div className="space-y-4">
-                    {/* Card Option */}
-                    <label className={`block cursor-pointer border-2 rounded-2xl p-4 transition-all ${paymentMethod === 'card' ? 'border-blue-500 bg-blue-50/50' : 'border-slate-200 hover:border-blue-200'}`}>
-                      <div className="flex items-center gap-4">
-                        <input type="radio" name="payment" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} className="w-5 h-5 text-blue-600 focus:ring-blue-500" />
-                        <div className="flex-1 flex justify-between items-center">
-                          <span className="font-bold text-slate-800">Credit / Debit Card</span>
-                          <CreditCard className="w-6 h-6 text-slate-400" />
-                        </div>
-                      </div>
-                      
-                      {paymentMethod === 'card' && (
-                        <div className="mt-6 space-y-4 animate-in slide-in-from-top-2 fade-in duration-200">
-                          <div>
-                            <input type="text" placeholder="Card Number" defaultValue="4111 1111 1111 1111" className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <input type="text" placeholder="MM/YY" defaultValue="12/28" className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
-                            <input type="password" placeholder="CVV" defaultValue="123" className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
-                          </div>
-                        </div>
-                      )}
-                    </label>
-
-                    {/* UPI Option */}
-                    <label className={`block cursor-pointer border-2 rounded-2xl p-4 transition-all ${paymentMethod === 'upi' ? 'border-blue-500 bg-blue-50/50' : 'border-slate-200 hover:border-blue-200'}`}>
-                      <div className="flex items-center gap-4">
-                        <input type="radio" name="payment" checked={paymentMethod === 'upi'} onChange={() => setPaymentMethod('upi')} className="w-5 h-5 text-blue-600 focus:ring-blue-500" />
-                        <div className="flex-1 flex justify-between items-center">
-                          <span className="font-bold text-slate-800">UPI (GPay, PhonePe, Paytm)</span>
-                          <Smartphone className="w-6 h-6 text-slate-400" />
-                        </div>
-                      </div>
-                      {paymentMethod === 'upi' && (
-                        <div className="mt-6 animate-in slide-in-from-top-2 fade-in duration-200">
-                          <input type="text" placeholder="Enter UPI ID (e.g., amit@okaxis)" className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
-                        </div>
-                      )}
-                    </label>
-
-                    {/* Net Banking */}
-                    <label className={`block cursor-pointer border-2 rounded-2xl p-4 transition-all ${paymentMethod === 'cod' ? 'border-blue-500 bg-blue-50/50' : 'border-slate-200 hover:border-blue-200'}`}>
-                      <div className="flex items-center gap-4">
-                        <input type="radio" name="payment" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="w-5 h-5 text-blue-600 focus:ring-blue-500" />
-                        <div className="flex-1 flex justify-between items-center">
-                          <span className="font-bold text-slate-800">Cash on Delivery</span>
-                          <Banknote className="w-6 h-6 text-slate-400" />
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-
-                  <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between mb-2">
                     <button 
                       onClick={() => setStep(1)}
-                      className="text-slate-500 hover:text-slate-800 font-bold px-4 py-2 rounded-xl transition-colors"
+                      className="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-xs"
                     >
-                      ← Back
+                      ← Back to Address
                     </button>
-                    <button 
-                      onClick={() => setShowGateway(true)}
-                      className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3.5 rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2"
-                    >
-                      Continue to Pay
-                    </button>
+                    <span className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+                      Step 2 of 2: Authorize Payment
+                    </span>
                   </div>
+
+                  {/* Real Embedded Payment Terminal */}
+                  <MockPaymentGateway 
+                    amount={total} 
+                    items={items.map(i => ({ name: i.name, price: i.price, quantity: i.quantity }))}
+                    defaultMethod="upi"
+                    inline={true}
+                    onSuccess={handlePaymentSuccess} 
+                    onCancel={() => setStep(1)} 
+                  />
                 </div>
               )}
             </div>
@@ -543,10 +515,21 @@ export default function CheckoutPage() {
             <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="w-12 h-12 text-emerald-500" />
             </div>
-            <h1 className="text-3xl font-black text-slate-800 mb-4">Order Confirmed!</h1>
-            <p className="text-slate-500 text-lg mb-8 max-w-md mx-auto">
-              Thank you for your purchase. Your order <span className="font-bold text-slate-800">#MKV-{Math.floor(Math.random() * 1000000)}</span> has been placed successfully and will be shipped soon.
+            <h1 className="text-3xl font-black text-slate-800 mb-2">Order Confirmed!</h1>
+            <p className="text-slate-500 text-sm mb-6 max-w-md mx-auto">
+              Thank you for your purchase. Your order has been placed successfully.
             </p>
+
+            <div className="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-4 mb-6 text-left flex items-center justify-between">
+              <div>
+                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider block">Order ID</span>
+                <span className="font-extrabold font-mono text-slate-900 text-base">{confirmedOrder?.id || '#MKV-ORDER'}</span>
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider block">Payment Ref</span>
+                <span className="font-mono text-xs text-slate-700 font-semibold">{confirmedOrder?.paymentRef || 'PAID'}</span>
+              </div>
+            </div>
             
             <div className="bg-slate-50 rounded-2xl p-6 mb-10 text-left border border-slate-100 flex flex-col md:flex-row gap-6">
               <div className="flex-1">
@@ -579,15 +562,6 @@ export default function CheckoutPage() {
         )}
 
       </div>
-      
-      {showGateway && (
-        <MockPaymentGateway 
-          amount={total} 
-          items={items.map(i => ({ name: i.name, price: i.price, quantity: i.quantity }))}
-          onSuccess={handlePaymentSuccess} 
-          onCancel={() => setShowGateway(false)} 
-        />
-      )}
     </div>
   );
 }
