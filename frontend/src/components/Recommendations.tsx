@@ -49,12 +49,8 @@ export default function Recommendations() {
     } catch (e) {
       console.error('Failed to log interaction', e);
     }
-    // Navigate to product or service page
-    if (item.itemType === 'product') {
-      router.push(`/product/${item.id}`);
-    } else {
-      router.push(`/service/${item.id}`);
-    }
+    // Navigate to unified item detail page
+    router.push(`/product/${item.id}`);
   };
 
   const handleMouseEnter = (item: any) => {

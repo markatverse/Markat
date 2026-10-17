@@ -34,7 +34,7 @@ export default function Navbar() {
         id: product.id,
         label: product.name,
         detail: [product.category, product.seller].filter(Boolean).join(' · '),
-        href: isServiceProduct(product) ? `/service/${product.id}` : `/product/${product.id}`,
+        href: `/product/${product.id}`,
         type: 'listing' as const,
       }));
     const matchingCategories = categories

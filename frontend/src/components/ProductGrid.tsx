@@ -137,7 +137,7 @@ export default function ProductGrid({ products: propProducts, limit, category, p
       <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 sm:gap-4">
       {finalProducts.map(product => {
         const isService = isServiceProduct(product);
-        const route = isService ? `/service/${product.id}` : `/product/${product.id}`;
+        const route = `/product/${product.id}`;
         return (
         <div key={product.id} onClick={() => router.push(route)} className="cursor-pointer no-underline text-inherit group">
           <div className="bg-white rounded-2xl p-2.5 sm:p-3.5 text-slate-900 relative h-full flex flex-col border border-slate-100 hover:border-blue-200 group-hover:-translate-y-1 transition-all duration-200 shadow-xs hover:shadow-md">

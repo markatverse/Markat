@@ -301,8 +301,32 @@ export default function SellerLoginPage() {
               </div>
 
               {error && (
-                <div className="mb-5 p-4 bg-red-50 text-red-700 rounded-xl text-sm border border-red-100 flex items-start gap-2">
-                  <span className="mt-0.5 shrink-0">⚠️</span> {error}
+                <div className="mb-5 p-4 bg-red-50 text-red-700 rounded-2xl text-sm border border-red-200/80 shadow-xs flex flex-col gap-2">
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-red-500 text-base mt-0.5 shrink-0">⚠️</span>
+                    <span className="font-semibold leading-relaxed">{error}</span>
+                  </div>
+                  {error.toLowerCase().includes('no account') && (
+                    <div className="mt-1 pl-7">
+                      <Link
+                        href="/seller/onboarding"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors"
+                      >
+                        Register as Seller →
+                      </Link>
+                    </div>
+                  )}
+                  {error.toLowerCase().includes('password') && !error.toLowerCase().includes('no account') && (
+                    <div className="mt-1 pl-7 flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => { setView('forgot'); clearErrors(); }}
+                        className="text-xs font-bold text-emerald-700 underline hover:text-emerald-900"
+                      >
+                        Forgot your password? Click to reset it.
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -422,13 +446,16 @@ export default function SellerLoginPage() {
 
               <form onSubmit={handleOtpVerify} className="space-y-5">
                 <div>
-                  <label className={labelCls}>6-Character Code</label>
+                  <label className={labelCls}>6-Character Verification Code</label>
                   <input
                     required type="text" value={fpOtp}
                     onChange={e => setFpOtp(e.target.value.toUpperCase().slice(0, 6))}
                     placeholder="- - - - - -" maxLength={6}
-                    className="w-full py-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-center tracking-[12px] text-2xl font-bold outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 focus:bg-white transition-all"
+                    className="w-full py-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-center tracking-[12px] text-2xl font-bold font-mono outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 focus:bg-white transition-all uppercase"
                   />
+                  <p className="text-[11.5px] text-emerald-600 mt-2 flex items-center justify-center gap-1 font-medium">
+                    ✓ Note: Codes never contain confusing letter &apos;O&apos; or number &apos;0&apos; (zero).
+                  </p>
                 </div>
                 <button type="submit" className={btnPrimary} disabled={isLoading || fpOtp.length < 6}>
                   {isLoading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Verifying...</> : <>Verify Code <ArrowRight className="w-4 h-4" /></>}

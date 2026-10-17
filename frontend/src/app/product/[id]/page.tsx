@@ -7,7 +7,7 @@ import { useWishlist } from '@/context/WishlistContext';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useUserTrends } from '@/hooks/useUserTrends';
-import { ShieldCheck, Camera, Ruler, ZoomIn, Package, Star, Building2, MapPin, PhoneCall, CalendarClock, Heart } from 'lucide-react';
+import { ShieldCheck, Camera, Ruler, ZoomIn, Package, Star, Building2, MapPin, PhoneCall, CalendarClock, Heart, UtensilsCrossed, Users, Clock } from 'lucide-react';
 import SmartQueueWidget from '@/components/SmartQueueWidget';
 import ReviewsSection from '@/components/ReviewsSection';
 import StarRating from '@/components/StarRating';
@@ -53,14 +53,8 @@ export default function ProductDetails() {
   const hasRFQ             = rules.allows('RFQ') || rules.allows('Quote');
   const hasMeeting         = rules.allows('Meeting') || rules.isOptional('Meeting');
   const hasVehicleTestDrive = rules.allows('Vehicle Test Drive');
-  const hasService         = rules.allows('Service') || product?.primaryType === 'SERVICE' || isServiceProduct(product as any);
+  const hasService         = rules.allows('Service') || product?.primaryType === 'SERVICE' || (product ? isServiceProduct(product) : false);
 
-  // If this item is a service, automatically route to the dedicated service booking page (/service/:id)
-  useEffect(() => {
-    if (product && isServiceProduct(product as any)) {
-      router.replace(`/service/${product.id}`);
-    }
-  }, [product?.id, product?.primaryType, product?.category, router]);
 
   const requireAuth = (action: () => void) => {
     if (!user) {
@@ -114,10 +108,23 @@ export default function ProductDetails() {
   const WALK_IN_CATEGORIES = ['salon', 'saloon', 'beauty', 'hair', 'barber', 'spa', 'nail', 'massage', 'pedicure', 'doctor', 'clinic', 'medical', 'hospital', 'dentist'];
   const isServiceQueue = product ? WALK_IN_CATEGORIES.some(c => product.category?.toLowerCase().includes(c) || product.subcategory?.toLowerCase().includes(c)) : false;
 
-  const isRetail = product?.primaryType === 'SERVICE' ? false : (noRulesDefined
+  const isFoodDining = product ? (
+    product.category?.toLowerCase().includes('food') || 
+    product.category?.toLowerCase().includes('dining') || 
+    product.category?.toLowerCase().includes('restaurant') ||
+    product.subcategory?.toLowerCase().includes('restaurant') ||
+    product.subcategory?.toLowerCase().includes('dining') ||
+    product.subcategory?.toLowerCase().includes('cafe')
+  ) : false;
+
+  const [partySize, setPartySize] = useState(2);
+  const [reservationDate, setReservationDate] = useState('');
+  const [reservationTime, setReservationTime] = useState('');
+
+  const isRetail = (product?.primaryType === 'SERVICE' || isFoodDining) ? false : (noRulesDefined
     ? !['Services', 'Home Services', 'Organizers', 'Transport', 'Rentals', 'Subscriptions', 'B2B', 'Construction Materials'].includes(product?.category || '')
     : hasProductStock);
-  const isWholesaleConfig = product?.primaryType === 'SERVICE' ? false : (noRulesDefined
+  const isWholesaleConfig = (product?.primaryType === 'SERVICE' || isFoodDining) ? false : (noRulesDefined
     ? (product?.category === 'B2B' || product?.category === 'Construction Materials' || (isRetail && isElite))
     : ((hasB2B && hasBulkPricing) || (isRetail && isElite)));
   
@@ -237,14 +244,23 @@ export default function ProductDetails() {
         {/* Left: Product Image Gallery */}
         <div className="flex-1">
           {/* Main Image */}
-          <div className="w-full h-[500px] bg-slate-50 rounded-2xl flex flex-col items-center justify-center text-slate-500 border border-slate-200 overflow-hidden shadow-sm">
+          <div className="w-full h-[380px] sm:h-[480px] bg-slate-100 rounded-2xl flex flex-col items-center justify-center text-slate-500 border border-slate-200 overflow-hidden shadow-sm relative">
             {productImages[activeImage]?.url ? (
-              <img src={productImages[activeImage].url} alt={product.name} className="w-full h-full object-contain p-4" />
+              <img 
+                src={productImages[activeImage].url} 
+                alt={product.name} 
+                className={`w-full h-full ${isFoodDining ? 'object-cover' : 'object-contain p-4'}`} 
+              />
             ) : (
               <>
                 {productImages[activeImage]?.icon}
                 <span className="text-lg font-medium">{productImages[activeImage]?.label}</span>
               </>
+            )}
+            {isFoodDining && (
+              <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md border border-white/20 text-white px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide flex items-center gap-1.5">
+                <UtensilsCrossed className="w-3.5 h-3.5 text-rose-400" /> Dining Venue
+              </div>
             )}
           </div>
           
@@ -269,13 +285,15 @@ export default function ProductDetails() {
             </div>
           )}
           
-          {/* Sold By - Company Details Card */}
+          {/* Sold By / Restaurant Venue Details Card */}
           <div className="mt-6 sm:mt-8 p-4 sm:p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <div className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3 sm:mb-4">Sold by</div>
+            <div className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3 sm:mb-4">
+              {isFoodDining ? 'Restaurant / Dining Venue' : (isServiceProduct(product) ? 'Service Provider' : 'Sold by')}
+            </div>
             <div className="flex flex-row items-center justify-between gap-2">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0 border border-blue-100">
-                  <Building2 className="w-5 h-5 sm:w-6 sm:h-6" />
+                <div className={`w-12 h-12 sm:w-14 sm:h-14 ${isFoodDining ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-blue-50 text-blue-600 border-blue-100'} rounded-xl flex items-center justify-center shrink-0 border`}>
+                  {isFoodDining ? <UtensilsCrossed className="w-5 h-5 sm:w-6 sm:h-6" /> : <Building2 className="w-5 h-5 sm:w-6 sm:h-6" />}
                 </div>
                 <div>
                   <Link href={`/seller/${encodeURIComponent(product.seller)}`} className="no-underline">
@@ -287,7 +305,7 @@ export default function ProductDetails() {
                     </div>
                   </Link>
                   <div className="text-xs sm:text-sm text-slate-500 mt-0.5 sm:mt-1 flex items-center gap-1">
-                    <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> {product.location}
+                    <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-400" /> {product.location}
                   </div>
                 </div>
               </div>
@@ -392,12 +410,18 @@ export default function ProductDetails() {
           </div>
 
           <div className="p-6 bg-slate-50 rounded-2xl mb-8 border border-slate-200 shadow-sm">
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+              {isFoodDining 
+                ? 'Reservation / Dining Rate' 
+                : (isServiceProduct(product) ? 'Service Rate' : 'Price')}
+            </div>
             <div className="text-4xl font-bold text-slate-900 flex items-center gap-3">
               {product.category === 'Organizers' ? (
                 'Project Based'
               ) : (
                 <>
                   ₹{currentActivePrice.toLocaleString('en-IN')}
+                  {isFoodDining && <span className="text-base text-slate-500 font-semibold ml-1">/ table reservation</span>}
                   {product.category === 'Transport' && <span className="text-lg text-slate-500 font-medium ml-1">/ km</span>}
                   {isWholesaleConfig && <span className="text-lg text-slate-500 font-medium ml-1">/ unit</span>}
                   {isElite && isRetail && (
@@ -554,10 +578,12 @@ export default function ProductDetails() {
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <span className="font-bold text-slate-800 text-sm uppercase tracking-wider">
-                      {isServiceQueue ? (
-                        'Available Services'
+                      {isFoodDining ? (
+                        <>Seating / Table Type: <span className="text-rose-600 font-extrabold">{activeOption?.name || 'Standard Table'}</span></>
+                      ) : isServiceQueue ? (
+                        'Service Options'
                       ) : (
-                        <>Selected Option: <span className="text-blue-600 font-extrabold">{activeOption?.name}</span></>
+                        <>Booking Option: <span className="text-blue-600 font-extrabold">{activeOption?.name || 'Standard'}</span></>
                       )}
                     </span>
                   </div>
@@ -567,8 +593,12 @@ export default function ProductDetails() {
                       return (
                         <div 
                           key={option.id}
-                          onClick={() => { if (!isServiceQueue) setSelectedOptionId(option.id); }}
-                          className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all border-2 flex flex-col items-start gap-1 ${isServiceQueue ? 'bg-slate-50 text-slate-700 border-slate-200 cursor-default' : (isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20 cursor-pointer' : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300 cursor-pointer')}`}
+                          onClick={() => setSelectedOptionId(option.id)}
+                          className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all border-2 flex flex-col items-start gap-1 cursor-pointer ${
+                            isSelected 
+                              ? (isFoodDining ? 'bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-600/20' : 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20')
+                              : (isFoodDining ? 'bg-white text-slate-700 border-rose-100 hover:border-rose-300' : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300')
+                          }`}
                         >
                           <span>{option.name}</span>
                           {option.discountPercentage && option.discountPercentage > 0 && (
@@ -675,17 +705,122 @@ export default function ProductDetails() {
                 <SmartQueueWidget service={product} />
               )}
 
-              {/* ── APPOINTMENT BOOKING ── */}
-              {hasAppointment && !hasToken && (
-                <div className="flex flex-col gap-3 w-full p-4 bg-blue-50 rounded-2xl border border-blue-100">
-                  <div className="text-blue-800 font-bold text-sm mb-1">Schedule an Appointment</div>
+              {/* ── FOOD & DINING / RESTAURANT TABLE RESERVATION ── */}
+              {isFoodDining && !hasToken && (
+                <div className="flex flex-col gap-4 w-full p-5 sm:p-6 bg-gradient-to-br from-rose-50 via-amber-50/40 to-orange-50 rounded-2xl border-2 border-rose-200/80 shadow-md">
+                  <div className="flex items-center justify-between pb-3 border-b border-rose-100">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-rose-500 text-white flex items-center justify-center shadow-xs">
+                        <UtensilsCrossed className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-slate-900 font-extrabold text-base block">Reserve a Dining Table</span>
+                        <span className="text-[11px] text-slate-500 font-medium">Instant confirmation with {product.seller}</span>
+                      </div>
+                    </div>
+                    {activeOption && (
+                      <span className="text-xs bg-rose-600 text-white font-bold px-3 py-1 rounded-full shadow-xs">
+                        {activeOption.name}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Party Size Selector */}
+                  <div>
+                    <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-rose-500" /> Number of Guests / Party Size
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {[1, 2, 3, 4, 6, 8, 10].map(num => (
+                        <button
+                          key={num}
+                          type="button"
+                          onClick={() => setPartySize(num)}
+                          className={`w-11 h-10 rounded-xl font-extrabold text-sm transition-all border ${
+                            partySize === num
+                              ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
+                              : 'bg-white text-slate-700 border-rose-100 hover:border-rose-300'
+                          }`}
+                        >
+                          {num}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Date & Time Selection */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5 block">
+                        Reservation Date
+                      </label>
+                      <input 
+                        type="date" 
+                        value={reservationDate}
+                        onChange={e => setReservationDate(e.target.value)}
+                        className="w-full p-3 border border-rose-200 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-xs font-medium text-sm" 
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-rose-500" /> Preferred Seating
+                      </label>
+                      <select
+                        value={reservationTime}
+                        onChange={e => setReservationTime(e.target.value)}
+                        className="w-full p-3 border border-rose-200 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-xs font-medium text-sm"
+                      >
+                        <option value="">Select Time Slot</option>
+                        {['12:30 PM (Lunch)', '01:30 PM (Lunch)', '07:00 PM (Dinner)', '07:45 PM (Dinner)', '08:30 PM (Prime Dinner)', '09:15 PM (Late Dining)'].map(slot => (
+                          <option key={slot} value={slot}>{slot}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Dining Notice */}
+                  <div className="bg-white/80 p-3 rounded-xl border border-rose-100 text-xs text-slate-600 flex items-center gap-2">
+                    <span className="text-rose-500 font-bold">✓</span>
+                    <span>Tables are reserved for 90 minutes. Please arrive on time.</span>
+                  </div>
+
+                  <button
+                    className="w-full py-4 bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-700 hover:to-amber-700 text-white rounded-xl font-bold text-lg transition-all shadow-md shadow-rose-600/20 flex items-center justify-center gap-3 mt-1 cursor-pointer"
+                    onClick={() => requireAuth(() => {
+                      const selectedPlan = activeOption ? activeOption.name : 'Standard Seating';
+                      alert(`Table Confirmed! Table for ${partySize} guests (${selectedPlan}) requested at ${product.seller}. Confirmation SMS sent.`);
+                    })}
+                  >
+                    <UtensilsCrossed className="w-5 h-5" /> Reserve Table for {partySize} {partySize === 1 ? 'Guest' : 'Guests'}
+                  </button>
+
+                  <button
+                    className="w-full py-2 bg-transparent text-rose-700 hover:underline font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+                    onClick={() => alert(`Calling ${product.seller} at +91-9876543210 for table inquiries`)}
+                  >
+                    <PhoneCall className="w-4 h-4" /> Call Restaurant Directly (+91-9876543210)
+                  </button>
+                </div>
+              )}
+
+              {/* ── APPOINTMENT BOOKING (Non-Dining Services) ── */}
+              {hasAppointment && !hasToken && !isFoodDining && (
+                <div className="flex flex-col gap-3 w-full p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200 shadow-xs">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-blue-900 font-extrabold text-sm">Schedule an Appointment</span>
+                    {activeOption && (
+                      <span className="text-xs bg-blue-600 text-white font-bold px-2.5 py-0.5 rounded-full">
+                        {activeOption.name}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex flex-col sm:flex-row gap-2">
-                    <input type="date" className="flex-1 p-3 border border-blue-200 rounded-xl outline-none focus:border-blue-500 text-slate-700 bg-white shadow-sm" />
-                    <input type="time" className="flex-1 p-3 border border-blue-200 rounded-xl outline-none focus:border-blue-500 text-slate-700 bg-white shadow-sm" />
+                    <input type="date" className="flex-1 p-3 border border-blue-200 rounded-xl outline-none focus:border-blue-500 text-slate-700 bg-white shadow-sm font-medium" />
+                    <input type="time" className="flex-1 p-3 border border-blue-200 rounded-xl outline-none focus:border-blue-500 text-slate-700 bg-white shadow-sm font-medium" />
                   </div>
                   <button
-                    className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg transition-colors shadow-md shadow-blue-600/20 flex items-center justify-center gap-3"
-                    onClick={() => requireAuth(() => alert(`Appointment request sent to ${product.seller}! You will receive a confirmation shortly.`))}
+                    className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg transition-colors shadow-md shadow-blue-600/20 flex items-center justify-center gap-3 mt-1"
+                    onClick={() => requireAuth(() => alert(`Appointment request for "${activeOption ? activeOption.name : product.name}" sent to ${product.seller}! You will receive a confirmation shortly.`))}
                   >
                     <CalendarClock className="w-6 h-6" /> Book Appointment
                   </button>
@@ -834,7 +969,7 @@ export default function ProductDetails() {
               )}
 
               {/* ── PRODUCT STOCK / RETAIL (Buy Now + Add to Cart) ── */}
-              {(hasProductStock || noRulesDefined) && !hasToken && !hasAppointment && !hasVehicleTestDrive && !isWholesaleConfig && (
+              {(hasProductStock || noRulesDefined) && !isFoodDining && !hasToken && !hasAppointment && !hasVehicleTestDrive && !isWholesaleConfig && (
                 <div className="flex flex-col sm:flex-row gap-4 w-full">
                   <button
                     className="flex-1 px-6 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-base transition-colors shadow-md shadow-amber-500/20"
@@ -855,7 +990,7 @@ export default function ProductDetails() {
               )}
 
               {/* ── SERVICE-ONLY FALLBACK (no other CTA applies) ── */}
-              {hasService && !hasToken && !hasAppointment && !hasRFQ && !hasMeeting && !hasProductStock && !noRulesDefined && (
+              {hasService && !isFoodDining && !hasToken && !hasAppointment && !hasRFQ && !hasMeeting && !hasProductStock && !noRulesDefined && (
                 <div className="flex flex-col gap-3 w-full">
                   <button
                     className="w-full py-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold text-lg transition-colors shadow-md shadow-teal-600/20 flex items-center justify-center gap-3"
@@ -870,9 +1005,19 @@ export default function ProductDetails() {
           </div>
 
           <div className="mb-10">
-            <h3 className="text-lg font-bold text-slate-900 mb-4">Important Details</h3>
+            <h3 className="text-lg font-bold text-slate-900 mb-4">
+              {isFoodDining ? 'Dining & Table Guidelines' : 'Important Details'}
+            </h3>
             <ul className="pl-5 text-slate-600 leading-loose list-disc">
-              {(isServiceQueue || product?.primaryType === 'SERVICE') ? (
+              {isFoodDining ? (
+                <>
+                  <li>Please arrive within 15 minutes of your reserved dining slot.</li>
+                  <li>Special dietary requests or seating preferences can be communicated at arrival.</li>
+                  <li>Dress code: Smart Casual / Formal as per restaurant policy.</li>
+                  <li>Cancellation or rescheduling available up to 2 hours in advance.</li>
+                  <li>Fresh ingredients prepared live by certified culinary chefs.</li>
+                </>
+              ) : (isServiceQueue || product?.primaryType === 'SERVICE') ? (
                 <>
                   <li>Please arrive 5 minutes prior to your booking.</li>
                   <li>Rescheduling is allowed up to 1 hour before the time.</li>

@@ -2,7 +2,8 @@ import type { Product } from '@/context/ProductContext';
 
 const legacyServiceCategories = ['Services', 'Home Services', 'Transport', 'Rentals', 'Organizers'];
 
-export function isServiceProduct(product: Product) {
+export function isServiceProduct(product?: Product | null) {
+  if (!product) return false;
   return product.primaryType
     ? product.primaryType === 'SERVICE'
     : legacyServiceCategories.includes(product.category);

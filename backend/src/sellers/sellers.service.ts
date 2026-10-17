@@ -240,29 +240,26 @@ export class SellersService {
         await this.prisma.business.deleteMany({ where: { userId: userId } });
       }
 
-      // 3. Delete Leads
-      await this.prisma.lead.deleteMany({ where: { OR: [{ buyerId: userId }, { sellerId: userId }] } });
+      // 3. Delete Seller Leads (keep buyer leads so customer history is preserved)
+      await this.prisma.lead.deleteMany({ where: { sellerId: userId } });
 
-      // 4. Delete Products and related order items
+      // 4. Delete Products and related seller order items
       await this.prisma.orderItem.deleteMany({ where: { sellerId: userId } });
       await this.prisma.product.deleteMany({ where: { sellerId: userId } });
 
       // 5. Delete Listings
       await this.prisma.listing.deleteMany({ where: { sellerId: userId } });
 
-      // 6. Delete shipping addresses, reviews, interactions, notifications
-      await this.prisma.shippingAddress.deleteMany({ where: { userId: userId } });
-      await this.prisma.review.deleteMany({ where: { userId: userId } });
-      await this.prisma.userInteraction.deleteMany({ where: { userId: userId } });
-      await this.prisma.notificationLog.deleteMany({ where: { userId: userId } });
-
-      // 7. Delete the user itself (safely checking existence so it doesn't throw P2025 if already removed)
+      // 6. Demote User role to CONSUMER so customer account remains active and preserved
       const existingUser = await this.prisma.user.findUnique({ where: { id: userId } });
       if (existingUser) {
-        await this.prisma.user.delete({ where: { id: userId } });
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: { role: 'CONSUMER' }
+        });
       }
 
-      return { success: true, message: 'Seller account and all related data successfully deleted.' };
+      return { success: true, message: 'Seller account closed successfully. Your customer account remains active.' };
     } catch (error: any) {
       console.error(`Failed to remove user/seller ${userId}:`, error);
       throw error;

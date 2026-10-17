@@ -2,28 +2,35 @@
 import React, { useEffect, useState } from 'react';
 import AdSlideshow from '@/components/AdSlideshow';
 
+import { fastFetch, getApiUrl } from '@/utils/api';
+
 export default function AdvertisementWidget({ position, className = "" }: { position: string, className?: string }) {
   const [ads, setAds] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchAds = async () => {
-      setIsLoading(true);
       try {
-        const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
-        const res = await fetch(`${API_URL}/commercial/advertisements`);
-        if (res.ok) {
-          const data = await res.json();
+        const API_URL = getApiUrl();
+        const data = await fastFetch<any[]>(`${API_URL}/commercial/advertisements`, {
+          ttlMs: 60000,
+          timeoutMs: 6000
+        });
+        if (isMounted && Array.isArray(data)) {
           const filteredAds = data.filter((ad: any) => ad.status === 'ACTIVE' && ad.position === position);
           setAds(filteredAds);
         }
       } catch (e) {
         console.error(`Failed to fetch advertisements for position ${position}`, e);
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
     fetchAds();
+    return () => {
+      isMounted = false;
+    };
   }, [position]);
 
   if (isLoading) {

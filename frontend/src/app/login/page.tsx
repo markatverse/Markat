@@ -59,6 +59,18 @@ function LoginContent() {
   const [otpTimer, setOtpTimer] = useState(300); // 5 minutes
 
   useEffect(() => {
+    const urlOtp = searchParams.get('otp');
+    const urlResetCode = searchParams.get('reset_code');
+    if (urlOtp) {
+      setEmailOtp(urlOtp.toUpperCase().slice(0, 6));
+      setView('register-email-otp');
+    } else if (urlResetCode) {
+      setFpOtp(urlResetCode.toUpperCase().slice(0, 6));
+      setView('otp');
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     let interval: NodeJS.Timeout;
     if ((view === 'otp' || view === 'register-email-otp') && otpTimer > 0) {
       interval = setInterval(() => {
@@ -396,9 +408,41 @@ function LoginContent() {
               </div>
 
               {error && (
-                <div className="mb-5 p-3.5 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 flex items-start gap-2">
-                  <span className="text-red-500 mt-0.5 shrink-0">⚠️</span>
-                  <span>{error}</span>
+                <div className="mb-5 p-4 bg-red-50 text-red-700 rounded-2xl text-sm border border-red-200/80 shadow-xs flex flex-col gap-2">
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-red-500 text-base mt-0.5 shrink-0">⚠️</span>
+                    <span className="font-semibold leading-relaxed">{error}</span>
+                  </div>
+                  {error.toLowerCase().includes('no account') && (
+                    <div className="mt-1 pl-7">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setView('register');
+                          if (siIdentifier.includes('@')) {
+                            setRegEmail(siIdentifier);
+                          } else {
+                            setRegPhone(siIdentifier);
+                          }
+                          clearErrors();
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs transition-colors"
+                      >
+                        Register New Account Now →
+                      </button>
+                    </div>
+                  )}
+                  {error.toLowerCase().includes('password') && !error.toLowerCase().includes('no account') && (
+                    <div className="mt-1 pl-7 flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => { setFpIdentifier(siIdentifier); setView('forgot'); clearErrors(); }}
+                        className="text-xs font-bold text-red-700 underline hover:text-red-900"
+                      >
+                        Forgot your password? Click to reset it.
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -619,12 +663,15 @@ function LoginContent() {
 
               <form onSubmit={handleEmailVerifyAndSignup} className="space-y-5">
                 <div>
-                  <label className={labelCls}>6-Digit Email OTP</label>
+                  <label className={labelCls}>6-Character Verification Code</label>
                   <input
                     required type="text" value={emailOtp} onChange={e => setEmailOtp(e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 6))}
                     placeholder="- - - - - -" maxLength={6}
-                    className="w-full py-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-center tracking-[12px] text-2xl font-bold outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:bg-white transition-all uppercase"
+                    className="w-full py-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-center tracking-[12px] text-2xl font-bold font-mono outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:bg-white transition-all uppercase"
                   />
+                  <p className="text-[11.5px] text-emerald-600 mt-2 flex items-center justify-center gap-1 font-medium">
+                    ✓ Note: Codes never contain confusing letter &apos;O&apos; or number &apos;0&apos; (zero).
+                  </p>
                 </div>
 
                 <button type="submit" className={btnPrimary} disabled={emailOtp.length !== 6 || otpTimer === 0 || isLoading}>
@@ -724,12 +771,15 @@ function LoginContent() {
 
               <form onSubmit={handleOtpVerify} className="space-y-5">
                 <div>
-                  <label className={labelCls}>6-Character Code</label>
+                  <label className={labelCls}>6-Character Verification Code</label>
                   <input
                     required type="text" value={fpOtp} onChange={e => setFpOtp(e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 6))}
                     placeholder="- - - - - -" maxLength={6}
-                    className="w-full py-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-center tracking-[12px] text-2xl font-bold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all uppercase"
+                    className="w-full py-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-center tracking-[12px] text-2xl font-bold font-mono outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all uppercase"
                   />
+                  <p className="text-[11.5px] text-emerald-600 mt-2 flex items-center justify-center gap-1 font-medium">
+                    ✓ Note: Codes never contain confusing letter &apos;O&apos; or number &apos;0&apos; (zero).
+                  </p>
                 </div>
 
                 <button type="submit" className={btnPrimary} disabled={fpOtp.length !== 6 || otpTimer === 0 || isLoading}>

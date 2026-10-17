@@ -58,6 +58,14 @@ export default function ServiceDetails() {
 
   const service = products.find(p => p.id === id);
 
+  // Unify interface: Route all service visits to the unified item detail page (/product/:id)
+  // which renders the exact same layout across the platform and respects seller-configured options
+  useEffect(() => {
+    if (id) {
+      router.replace(`/product/${id}`);
+    }
+  }, [id, router]);
+
   useEffect(() => {
     if (service) {
       trackCategory(service.category);

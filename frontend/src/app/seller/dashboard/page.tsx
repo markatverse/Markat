@@ -2829,24 +2829,27 @@ function DashboardContent() {
                 </div>
               </div>
               <p className="text-slate-600 mb-6 text-xs leading-relaxed max-w-2xl">
-                Deleting your seller account will permanently wipe your business profile, listings/services, menus, and any active tokens or queues. This action is immediate and cannot be undone.
+                Deleting your seller account will permanently wipe your business profile, listings, services, menus, and queues. <strong className="text-slate-800">Your customer account, shopping history, and profile remain completely active and will NOT be deleted.</strong>
               </p>
               <button 
                 onClick={async () => {
-                  const confirmText = window.prompt('Are you absolutely sure you want to delete your seller account? All data will be lost forever.\n\nType "delete" below to confirm:');
+                  const confirmText = window.prompt('Are you sure you want to close your seller account? Your customer account will remain active.\n\nType "delete" below to confirm:');
                   if(confirmText === 'delete') {
                     try {
                       const res = await fetch(`${API_URL}/sellers/user/${user?.id}`, { method: 'DELETE' });
                       if(res.ok) {
-                        alert('Account successfully deleted.');
-                        if (logout) logout();
-                        router.push('/seller/login');
+                        alert('Seller account successfully closed. Your customer account remains active!');
+                        // Refresh user role in session so user stays logged in as a normal customer
+                        if (login && user) {
+                          login({ ...user, role: 'CONSUMER' });
+                        }
+                        router.push('/');
                       } else {
                         const errData = await res.json().catch(() => null);
-                        alert(errData?.message || 'Failed to delete account.');
+                        alert(errData?.message || 'Failed to close seller account.');
                       }
                     } catch {
-                      alert('Error deleting account.');
+                      alert('Error closing seller account.');
                     }
                   } else if (confirmText !== null) {
                     alert('Deletion cancelled. You did not type "delete".');

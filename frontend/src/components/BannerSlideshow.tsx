@@ -3,34 +3,31 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+import { getApiUrl, fastFetch } from '@/utils/api';
+
 export default function BannerSlideshow({ banners: initialBanners }: { banners: any[] }) {
   const [banners, setBanners] = useState<any[]>(initialBanners || []);
   const [currentIndex, setCurrentIndex] = useState(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // If initial server banners were empty, hydrate directly on client from backend
-    if (!banners || banners.length === 0) {
-      const getApiUrl = () => {
-        if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
-        if (typeof window !== 'undefined') {
-          return `${window.location.protocol}//${window.location.hostname}:3001`;
-        }
-        return 'http://127.0.0.1:3001';
-      };
-      const API_URL = getApiUrl();
-      fetch(`${API_URL}/content/banners`)
-        .then(r => r.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            const heroBanners = data.filter((b: any) => b.status === 'ACTIVE' && b.position === 'HOME_HERO');
-            if (heroBanners.length > 0) {
-              setBanners(heroBanners);
-            }
-          }
-        })
-        .catch(() => {});
+    // If initial server banners were passed, sync state
+    if (initialBanners && initialBanners.length > 0) {
+      setBanners(initialBanners);
+      return;
     }
+
+    // Otherwise, fast-fetch with client-side deduplication & caching
+    fastFetch<any[]>('/content/banners', { ttlMs: 60000 })
+      .then(data => {
+        if (Array.isArray(data)) {
+          const heroBanners = data.filter((b: any) => b.status === 'ACTIVE' && b.position === 'HOME_HERO');
+          if (heroBanners.length > 0) {
+            setBanners(heroBanners);
+          }
+        }
+      })
+      .catch(() => {});
   }, [initialBanners]);
 
   const resetTimeout = () => {
@@ -66,16 +63,22 @@ export default function BannerSlideshow({ banners: initialBanners }: { banners: 
         className="flex transition-transform duration-700 ease-in-out h-[180px] sm:h-[250px] md:h-[400px]"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
-        {banners.map((banner: any, idx: number) => (
-          <div key={banner.id} className="min-w-full relative h-[180px] sm:h-[250px] md:h-[400px]">
-            <img 
-              src={banner.imageUrl} 
-              alt={banner.title} 
-              loading={idx === 0 ? "eager" : "lazy"}
-              // @ts-ignore
-              fetchPriority={idx === 0 ? "high" : "auto"}
-              className="w-full h-full object-cover" 
-            />
+        {banners.map((banner: any, idx: number) => {
+          const rawUrl = banner.imageUrl || '';
+          const fullImgUrl = rawUrl.startsWith('/') && !rawUrl.startsWith('//')
+            ? `${getApiUrl()}${rawUrl}`
+            : rawUrl;
+
+          return (
+            <div key={banner.id} className="min-w-full relative h-[180px] sm:h-[250px] md:h-[400px]">
+              <img 
+                src={fullImgUrl} 
+                alt={banner.title} 
+                loading={idx === 0 ? "eager" : "lazy"}
+                // @ts-ignore
+                fetchPriority={idx === 0 ? "high" : "auto"}
+                className="w-full h-full object-cover" 
+              />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
               <h2 className="text-3xl md:text-5xl font-black text-white mb-2 transform translate-y-0 opacity-100 transition-all duration-700 delay-100">{banner.title}</h2>
               {banner.linkUrl && (
@@ -85,8 +88,9 @@ export default function BannerSlideshow({ banners: initialBanners }: { banners: 
               )}
             </div>
           </div>
-        ))}
-      </div>
+        );
+      })}
+    </div>
 
       {/* Navigation Arrows */}
       {banners.length > 1 && (
