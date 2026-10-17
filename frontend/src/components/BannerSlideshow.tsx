@@ -79,16 +79,8 @@ export default function BannerSlideshow({ banners: initialBanners }: { banners: 
     setCurrentIndex((prevIndex) => (prevIndex === banners.length - 1 ? 0 : prevIndex + 1));
   };
 
-  if (isLoading) {
-    return (
-      <div className="w-full h-[180px] sm:h-[250px] md:h-[400px] rounded-3xl bg-slate-200/80 animate-pulse overflow-hidden relative shadow-sm border border-slate-200">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
-        <div className="absolute bottom-6 left-6 right-6 flex flex-col gap-3">
-          <div className="h-8 w-2/5 bg-slate-300 rounded-lg animate-pulse" />
-          <div className="h-4 w-1/4 bg-slate-300 rounded-lg animate-pulse" />
-        </div>
-      </div>
-    );
+  if (isLoading && (!banners || banners.length === 0)) {
+    return null;
   }
 
   if (!banners || banners.length === 0) return null;

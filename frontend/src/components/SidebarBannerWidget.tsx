@@ -28,12 +28,8 @@ export default function SidebarBannerWidget() {
     fetchBanners();
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col gap-4 mt-6">
-        <div className="w-full bg-slate-200 animate-pulse rounded-2xl h-[200px]"></div>
-      </div>
-    );
+  if (isLoading && (!banners || banners.length === 0)) {
+    return null;
   }
 
   if (!banners || banners.length === 0) return null;

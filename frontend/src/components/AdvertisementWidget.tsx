@@ -33,12 +33,8 @@ export default function AdvertisementWidget({ position, className = "" }: { posi
     };
   }, [position]);
 
-  if (isLoading) {
-    return (
-      <div className={`w-full flex flex-col gap-4 ${className}`}>
-        <div className="block w-full bg-slate-200 animate-pulse rounded-2xl min-h-[120px] md:min-h-[160px]"></div>
-      </div>
-    );
+  if (isLoading && (!ads || ads.length === 0)) {
+    return null;
   }
 
   if (!ads || ads.length === 0) return null;

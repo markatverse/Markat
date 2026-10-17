@@ -77,16 +77,8 @@ export default function AdSlideshow({ ads: initialAds }: { ads: any[] }) {
     setCurrentIndex((prevIndex) => (prevIndex === ads.length - 1 ? 0 : prevIndex + 1));
   };
 
-  if (isLoading) {
-    return (
-      <div className="w-full h-[90px] sm:h-[120px] md:h-[160px] rounded-2xl bg-slate-200/80 animate-pulse overflow-hidden relative shadow-sm border border-slate-200">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
-        <div className="absolute inset-0 flex items-center justify-between p-4 sm:p-6">
-          <div className="h-6 w-1/3 bg-slate-300 rounded-lg animate-pulse" />
-          <div className="h-8 w-24 bg-slate-300 rounded-xl animate-pulse" />
-        </div>
-      </div>
-    );
+  if (isLoading && (!ads || ads.length === 0)) {
+    return null;
   }
 
   if (!ads || ads.length === 0) return null;
