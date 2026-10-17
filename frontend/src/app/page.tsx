@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ShieldCheck, Award, RefreshCw } from 'lucide-react';
 import JoinSellerButton from "@/components/JoinSellerButton";
 import LiveBookingWidget from "@/components/LiveBookingWidget";
-import dynamic from 'next/dynamic';
+import nextDynamic from 'next/dynamic';
 import ScrollReveal from "@/components/ScrollReveal";
 import Recommendations from "@/components/Recommendations";
 import BannerSlideshow from "@/components/BannerSlideshow";
@@ -10,7 +10,10 @@ import AdSlideshow from "@/components/AdSlideshow";
 
 import { getApiUrl } from "@/utils/api";
 
-const ProductGrid = dynamic(() => import('@/components/ProductGrid'));
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const ProductGrid = nextDynamic(() => import('@/components/ProductGrid'));
 
 async function getAdvertisements() {
   try {

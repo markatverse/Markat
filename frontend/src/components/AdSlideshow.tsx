@@ -9,14 +9,8 @@ export default function AdSlideshow({ ads: initialAds }: { ads: any[] }) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // If initial server ads were passed, sync state
-    if (initialAds && initialAds.length > 0) {
-      setAds(initialAds);
-      return;
-    }
-
-    // Otherwise, fast-fetch with client-side deduplication & caching
-    fastFetch<any[]>('/commercial/advertisements', { ttlMs: 60000 })
+    // Always re-sync fresh advertisements from API
+    fastFetch<any[]>('/commercial/advertisements', { ttlMs: 10000 })
       .then(data => {
         if (Array.isArray(data)) {
           const homeAds = data.filter((ad: any) => ad.status === 'ACTIVE' && ad.position === 'HOMEPAGE');
@@ -26,7 +20,7 @@ export default function AdSlideshow({ ads: initialAds }: { ads: any[] }) {
         }
       })
       .catch(() => {});
-  }, [initialAds]);
+  }, []);
 
   const resetTimeout = () => {
     if (timeoutRef.current) {

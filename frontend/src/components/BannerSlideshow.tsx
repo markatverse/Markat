@@ -11,14 +11,8 @@ export default function BannerSlideshow({ banners: initialBanners }: { banners: 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // If initial server banners were passed, sync state
-    if (initialBanners && initialBanners.length > 0) {
-      setBanners(initialBanners);
-      return;
-    }
-
-    // Otherwise, fast-fetch with client-side deduplication & caching
-    fastFetch<any[]>('/content/banners', { ttlMs: 60000 })
+    // Always re-sync fresh banners from API
+    fastFetch<any[]>('/content/banners', { ttlMs: 10000 })
       .then(data => {
         if (Array.isArray(data)) {
           const heroBanners = data.filter((b: any) => b.status === 'ACTIVE' && b.position === 'HOME_HERO');
@@ -28,7 +22,7 @@ export default function BannerSlideshow({ banners: initialBanners }: { banners: 
         }
       })
       .catch(() => {});
-  }, [initialBanners]);
+  }, []);
 
   const resetTimeout = () => {
     if (timeoutRef.current) {
