@@ -177,51 +177,92 @@ export default function SellerLoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50 to-teal-50 flex">
 
       {/* ── Left Branding ── */}
-      <div className="hidden lg:flex w-[440px] bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 relative overflow-hidden flex-col justify-between p-12 shrink-0">
+      <div className="hidden lg:flex w-[480px] bg-gradient-to-br from-emerald-800 via-emerald-900 to-teal-950 relative overflow-hidden flex-col justify-between p-10 shrink-0 border-r border-emerald-700/40 shadow-2xl">
         
-        {/* Back Button */}
-        <Link href="/" className="absolute top-8 left-8 text-emerald-200 hover:text-white flex items-center gap-2 text-sm font-semibold z-20 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Back to Home
-        </Link>
+        {/* Top Bar: Back & Official Tag */}
+        <div className="relative z-20 flex items-center justify-between pb-4">
+          <Link 
+            href="/" 
+            className="group inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-emerald-100 hover:text-white text-xs font-semibold backdrop-blur-md border border-white/15 transition-all duration-200"
+          >
+            <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+            <span>Back to Home</span>
+          </Link>
 
-        <div className="absolute top-[-80px] left-[-80px] w-[360px] h-[360px] border border-white/10 rounded-full" />
-        <div className="absolute bottom-[-100px] right-[-100px] w-[440px] h-[440px] border border-white/10 rounded-full" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl" />
-
-        <div className="relative z-10 mt-12">
-          <img src="/logo.png" alt="MarkatVerse" className="h-16 brightness-0 invert object-contain" />
-          <div className="mt-2 text-emerald-200 text-sm font-bold tracking-[0.2em] uppercase">Seller Portal</div>
+          <span className="text-[11px] font-semibold tracking-wider text-emerald-300 uppercase bg-emerald-950/70 px-3 py-1 rounded-full border border-emerald-500/30">
+            Seller Portal
+          </span>
         </div>
 
-        <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 mb-8">
-            <span className="text-amber-400 text-sm">⭐</span>
-            <span className="text-white/90 text-sm font-semibold">50,000+ active sellers</span>
+        {/* Decorative Ambient Background Rings */}
+        <div className="absolute top-[-80px] left-[-80px] w-[340px] h-[340px] border border-white/5 rounded-full pointer-events-none" />
+        <div className="absolute bottom-[-100px] right-[-100px] w-[420px] h-[420px] border border-emerald-400/10 rounded-full pointer-events-none" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Main Content (Vertically Balanced, No Dead Gap) */}
+        <div className="relative z-10 flex flex-col justify-center my-auto py-4">
+          
+          {/* Prominent High-Visibility Brand Logo */}
+          <div className="flex items-center gap-3 mb-5">
+            <div className="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 shadow-md">
+              <img 
+                src="/logo.png" 
+                alt="MarkatVerse" 
+                className="h-12 w-auto brightness-0 invert object-contain" 
+              />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-white text-base font-extrabold tracking-wide uppercase">
+                MarkatVerse
+              </span>
+              <span className="text-emerald-300 text-[10px] font-bold tracking-[0.2em] uppercase">
+                Merchant Central
+              </span>
+            </div>
           </div>
-          <h1 className="text-5xl font-extrabold text-white leading-tight mb-6">
-            Grow your business<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-amber-500">with MarkatVerse</span>
+
+          {/* Social Proof Trust Badge */}
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/15 rounded-full px-3.5 py-1.5 w-fit mb-5 shadow-xs">
+            <span className="text-amber-300 text-sm">★</span>
+            <span className="text-white text-xs font-medium">
+              Trusted by <strong className="text-amber-300 font-bold">50,000+</strong> active sellers across India
+            </span>
+          </div>
+
+          {/* Heading */}
+          <h1 className="text-3xl xl:text-4xl font-extrabold text-white leading-tight mb-3 tracking-tight">
+            Grow your business <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-emerald-200 to-teal-200">
+              with MarkatVerse
+            </span>
           </h1>
-          <p className="text-emerald-50 text-base leading-relaxed mb-10">
-            Reach millions of customers across India. Manage products, orders, and payouts — all from one powerful dashboard.
+
+          <p className="text-emerald-100/90 text-sm leading-relaxed mb-6">
+            Reach millions of customers, manage multi-channel orders, track inventory, and get same-day payouts — all in one centralized hub.
           </p>
 
-          <div className="grid grid-cols-2 gap-3">
+          {/* 4 Feature Highlights */}
+          <div className="grid grid-cols-2 gap-2.5">
             {BENEFITS.map((b, i) => (
-              <div key={i} className="flex items-start gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-                <div className="text-emerald-300 mt-0.5 shrink-0">{b.icon}</div>
+              <div key={i} className="flex items-start gap-2.5 bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 hover:border-white/20 transition-colors">
+                <div className="text-emerald-300 mt-0.5 shrink-0 text-base">{b.icon}</div>
                 <div>
-                  <div className="text-white text-sm font-semibold">{b.title}</div>
-                  <div className="text-emerald-200/70 text-xs mt-0.5">{b.desc}</div>
+                  <div className="text-white text-xs font-bold">{b.title}</div>
+                  <div className="text-emerald-200/70 text-[11px] mt-0.5 line-clamp-1">{b.desc}</div>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="relative z-10 flex items-center gap-5 text-emerald-200/60 text-xs">
-          <span>🛡️ TrustSEAL Verified</span>
-          <span>🔒 SSL Encrypted</span>
+        {/* Footer Security Badges */}
+        <div className="relative z-10 flex items-center justify-between pt-4 border-t border-white/10 text-emerald-200/70 text-xs">
+          <span className="flex items-center gap-1.5">
+            <span>🛡️</span> TrustSEAL Verified
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span>🔒</span> 256-bit SSL Protected
+          </span>
         </div>
       </div>
 
