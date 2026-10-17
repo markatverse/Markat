@@ -116,11 +116,17 @@ let AuthService = AuthService_1 = class AuthService {
         if (existing) {
             throw new BadRequestException('An account with this email or phone number already exists.');
         }
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        let code = '';
-        for (let i = 0; i < 6; i++) {
-            code += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
+        const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+        const digits = '23456789';
+        const char1 = letters.charAt(Math.floor(Math.random() * letters.length));
+        const char2 = letters.charAt(Math.floor(Math.random() * letters.length));
+        const dig1 = digits.charAt(Math.floor(Math.random() * digits.length));
+        const dig2 = digits.charAt(Math.floor(Math.random() * digits.length));
+        const dig3 = digits.charAt(Math.floor(Math.random() * digits.length));
+        const dig4 = digits.charAt(Math.floor(Math.random() * digits.length));
+        const code = [char1, char2, dig1, dig2, dig3, dig4]
+            .sort(() => Math.random() - 0.5)
+            .join('');
         const expires = new Date(Date.now() + 5 * 60 * 1000);
         this.otpStore.set(identifier, { code, expires });
         try {
@@ -135,32 +141,130 @@ let AuthService = AuthService_1 = class AuthService {
                         pass: process.env.SMTP_PASS,
                     },
                 });
+                const codeChars = code.split('');
                 await transporter.sendMail({
-                    from: process.env.SMTP_FROM || `"MarkatVerse Support" <${process.env.SMTP_USER}>`,
+                    from: `"MarkatVerse" <${process.env.SMTP_USER}>`,
                     replyTo: `"MarkatVerse No-Reply" <noreply@markatverse.com>`,
                     to: identifier,
-                    subject: 'Your MarkatVerse Verification Code',
+                    subject: `${code} is your MarkatVerse verification code`,
                     headers: {
                         'List-Unsubscribe': '<mailto:unsubscribe@markatverse.com?subject=unsubscribe>',
                     },
-                    text: `Hello,\n\nYou recently requested a verification code for your MarkatVerse account. Please see your code below:\n\n${code}\n\nThis code will remain active for the next 5 minutes. If you did not request this, please let us know immediately.\n\nBest regards,\nMarkatVerse Support Team`,
+                    text: `Your MarkatVerse verification code is: ${code}\n\nPlease enter this code to complete your verification.\nThis code will expire in 5 minutes.\n\nIf you did not request this code, you can safely ignore this email.\n\n— The MarkatVerse Security Team`,
                     html: `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 30px 20px; color: #1f2937; line-height: 1.6;">
-              <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="color: #1e3a8a; font-size: 28px; font-weight: 800; letter-spacing: 2px; margin: 0;">MARKATVERSE</h1>
-              </div>
-              <h2 style="color: #111827; font-size: 22px; font-weight: 600; margin-bottom: 20px;">Verification Code</h2>
-              <p style="font-size: 16px; margin-bottom: 25px;">Hello,</p>
-              <p style="font-size: 16px; margin-bottom: 25px;">You recently requested a verification code for your MarkatVerse account. Please use the highly secure code below:</p>
-              
-              <div style="background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; text-align: center; margin: 30px 0;">
-                <span style="font-family: monospace; font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #2563eb;">${code}</span>
-              </div>
-              
-              <p style="font-size: 14px; color: #dc2626; margin-bottom: 30px;">For your security, this code will expire in exactly 5 minutes.</p>
-              <p style="font-size: 14px; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 20px;">If you did not request this code, you can safely ignore this email.</p>
-              <p style="font-size: 14px; color: #6b7280;">Best regards,<br><strong>MarkatVerse Support Team</strong></p>
-            </div>
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>MarkatVerse Verification Code</title>
+            </head>
+            <body style="margin: 0; padding: 0; background-color: #f6f8fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #24292f;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f6f8fa; width: 100%; min-height: 100%; padding: 24px 12px;">
+                <tr>
+                  <td align="center">
+                    
+                    <!-- Main Container Card -->
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 500px; background: #ffffff; border: 1px solid #d0d7de; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+                      
+                      <!-- Brand Header Bar (Strict Single Horizontal Row with nowrap) -->
+                      <tr>
+                        <td style="padding: 18px 24px; border-bottom: 1px solid #eaeef2; background: #ffffff;">
+                          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="table-layout: fixed;">
+                            <tr>
+                              <td align="left" style="vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                <span style="font-size: 18px; font-weight: 900; letter-spacing: 2px; color: #1e3a8a; text-transform: uppercase;">
+                                  MARKAT<span style="color: #2563eb;">VERSE</span>
+                                </span>
+                              </td>
+                              <td align="right" style="vertical-align: middle; white-space: nowrap; width: 110px;">
+                                <span style="display: inline-block; padding: 4px 8px; border-radius: 6px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                                  Security OTP
+                                </span>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+
+                      <!-- Card Content -->
+                      <tr>
+                        <td style="padding: 24px; text-align: left;">
+                          
+                          <h2 style="margin: 0 0 8px 0; color: #1e293b; font-size: 19px; font-weight: 700;">
+                            Email Verification Code
+                          </h2>
+                          <p style="margin: 0 0 18px 0; color: #57606a; font-size: 14px; line-height: 1.5;">
+                            Your verification code is:
+                          </p>
+
+                          <!-- GITHUB-STYLE CODE REQUESTED CARD -->
+                          <div style="background-color: #f6f8fa; border: 1px solid #d0d7de; border-radius: 10px; padding: 18px; margin: 0 0 20px 0;">
+                            
+                            <div style="font-size: 12px; font-weight: 600; color: #24292f; margin-bottom: 12px;">
+                              Code Requested
+                            </div>
+
+                            <!-- Digits in individual boxes -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 0 16px 0;">
+                              <tr>
+                                ${codeChars.map(char => `
+                                  <td style="padding-right: 6px;">
+                                    <div style="width: 36px; height: 44px; background: #ffffff; border: 1px solid #d0d7de; border-radius: 6px; font-family: 'SF Mono', Consolas, Monaco, monospace; font-size: 24px; font-weight: 700; color: #0969da; text-align: center; line-height: 44px; box-shadow: 0 1px 3px rgba(27,31,36,0.04);">
+                                      ${char}
+                                    </div>
+                                  </td>
+                                `).join('')}
+                              </tr>
+                            </table>
+
+                            <!-- Standard Plain Selectable Text for Direct Copy -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 0 4px 0;">
+                              <tr>
+                                <td style="padding-right: 12px; vertical-align: middle;">
+                                  <span style="font-size: 13px; color: #57606a;">Copy Code:</span>
+                                </td>
+                                <td style="vertical-align: middle;">
+                                  <span style="font-family: 'SF Mono', Consolas, Monaco, monospace; font-size: 18px; font-weight: 700; color: #0969da; letter-spacing: 3px; padding: 6px 12px; background: #ffffff; border: 1px solid #0969da; border-radius: 6px; -webkit-user-select: all; user-select: all; display: inline-block;">
+                                    ${code}
+                                  </span>
+                                </td>
+                              </tr>
+                            </table>
+                            <div style="font-size: 11px; color: #8c959f; margin-top: 6px;">
+                              (Tap or double-click the code above to select and copy only the 6 digits)
+                            </div>
+
+                          </div>
+
+                          <p style="margin: 0 0 14px 0; color: #57606a; font-size: 13px; line-height: 1.5;">
+                            This code will expire in <strong>5 minutes</strong>. If you did not request this verification, please safely ignore this email.
+                          </p>
+
+                          <p style="margin: 0; color: #8c959f; font-size: 12px;">
+                            Thanks,<br>
+                            <strong style="color: #57606a;">The MarkatVerse Team</strong>
+                          </p>
+
+                        </td>
+                      </tr>
+
+                      <!-- Footer Bar -->
+                      <tr>
+                        <td style="padding: 16px 32px; background: #f6f8fa; border-top: 1px solid #d0d7de; text-align: center;">
+                          <p style="margin: 0; color: #6e7781; font-size: 11.5px;">
+                            &copy; ${new Date().getFullYear()} MarkatVerse Inc. &bull; Sent to ${identifier}
+                          </p>
+                        </td>
+                      </tr>
+
+                    </table>
+
+                  </td>
+                </tr>
+              </table>
+            </body>
+            </html>
           `
                 });
                 this.logger.log(`Signup OTP email sent to ${identifier}`);
@@ -204,17 +308,20 @@ let AuthService = AuthService_1 = class AuthService {
             },
             include: { business: true }
         });
-        if (!user || !user.password) {
-            throw new UnauthorizedException('Invalid credentials');
+        if (!user) {
+            throw new UnauthorizedException('No account found with this email or phone number. Please create an account.');
+        }
+        if (!user.password) {
+            throw new UnauthorizedException('This account does not have a password set. Please log in with OTP or reset password.');
         }
         const isMatch = await bcrypt.compare(data.password, user.password);
         if (!isMatch) {
             await this.securityService.createAuditLog({
                 action: 'LOGIN_FAILED',
                 resource: 'User',
-                details: `Failed login attempt for ${identifier}`,
+                details: `Failed login attempt for ${identifier} - wrong password`,
             });
-            throw new UnauthorizedException('Invalid credentials');
+            throw new UnauthorizedException('Incorrect password. Please check your password and try again.');
         }
         this.securityService.createAuditLog({
             action: 'LOGIN',
@@ -306,11 +413,17 @@ let AuthService = AuthService_1 = class AuthService {
         if (!user) {
             throw new BadRequestException('No account found with this email or phone');
         }
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        let resetCode = '';
-        for (let i = 0; i < 6; i++) {
-            resetCode += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
+        const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+        const digits = '23456789';
+        const char1 = letters.charAt(Math.floor(Math.random() * letters.length));
+        const char2 = letters.charAt(Math.floor(Math.random() * letters.length));
+        const dig1 = digits.charAt(Math.floor(Math.random() * digits.length));
+        const dig2 = digits.charAt(Math.floor(Math.random() * digits.length));
+        const dig3 = digits.charAt(Math.floor(Math.random() * digits.length));
+        const dig4 = digits.charAt(Math.floor(Math.random() * digits.length));
+        const resetCode = [char1, char2, dig1, dig2, dig3, dig4]
+            .sort(() => Math.random() - 0.5)
+            .join('');
         const resetCodeExpires = new Date(Date.now() + 5 * 60 * 1000);
         await this.prisma.user.update({
             where: { id: user.id },
@@ -328,32 +441,130 @@ let AuthService = AuthService_1 = class AuthService {
                         pass: process.env.SMTP_PASS,
                     },
                 });
+                const resetCodeChars = resetCode.split('');
                 await transporter.sendMail({
-                    from: process.env.SMTP_FROM || `"MarkatVerse Support" <${process.env.SMTP_USER}>`,
+                    from: `"MarkatVerse" <${process.env.SMTP_USER}>`,
                     replyTo: `"MarkatVerse No-Reply" <noreply@markatverse.com>`,
                     to: user.email || undefined,
-                    subject: 'MarkatVerse Password Reset Code',
+                    subject: `${resetCode} is your MarkatVerse verification code`,
                     headers: {
                         'List-Unsubscribe': '<mailto:unsubscribe@markatverse.com?subject=unsubscribe>',
                     },
-                    text: `Hello ${user.name},\n\nWe received a request to reset your password. Please find your secure authorization code below:\n\n${resetCode}\n\nFor your security, this code will expire in 5 minutes. If you did not request this change, please contact us or ignore this message.\n\nBest regards,\nMarkatVerse Support Team`,
+                    text: `Your MarkatVerse verification code is: ${resetCode}\n\nPlease enter this code to reset your password.\nThis code will expire in 5 minutes.\n\nIf you did not request this password reset, please contact us immediately or ignore this message.\n\n— The MarkatVerse Security Team`,
                     html: `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 30px 20px; color: #1f2937; line-height: 1.6;">
-              <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="color: #1e3a8a; font-size: 28px; font-weight: 800; letter-spacing: 2px; margin: 0;">MARKATVERSE</h1>
-              </div>
-              <h2 style="color: #111827; font-size: 22px; font-weight: 600; margin-bottom: 20px;">Password Reset Request</h2>
-              <p style="font-size: 16px; margin-bottom: 25px;">Hello ${user.name},</p>
-              <p style="font-size: 16px; margin-bottom: 25px;">We received a request to reset the password for your MarkatVerse account. Please use the highly secure authorization code below:</p>
-              
-              <div style="background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; text-align: center; margin: 30px 0;">
-                <span style="font-family: monospace; font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #2563eb;">${resetCode}</span>
-              </div>
-              
-              <p style="font-size: 14px; color: #dc2626; margin-bottom: 30px;">For your security, this code will expire in exactly 5 minutes.</p>
-              <p style="font-size: 14px; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 20px;">If you did not request a password reset, please ignore this email or contact support.</p>
-              <p style="font-size: 14px; color: #6b7280;">Best regards,<br><strong>MarkatVerse Support Team</strong></p>
-            </div>
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>MarkatVerse Password Reset Code</title>
+            </head>
+            <body style="margin: 0; padding: 0; background-color: #f6f8fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #24292f;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f6f8fa; width: 100%; min-height: 100%; padding: 24px 12px;">
+                <tr>
+                  <td align="center">
+                    
+                    <!-- Main Container Card -->
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 500px; background: #ffffff; border: 1px solid #d0d7de; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+                      
+                      <!-- Brand Header Bar (Strict Single Horizontal Row with nowrap) -->
+                      <tr>
+                        <td style="padding: 18px 24px; border-bottom: 1px solid #eaeef2; background: #ffffff;">
+                          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="table-layout: fixed;">
+                            <tr>
+                              <td align="left" style="vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                <span style="font-size: 18px; font-weight: 900; letter-spacing: 2px; color: #1e3a8a; text-transform: uppercase;">
+                                  MARKAT<span style="color: #2563eb;">VERSE</span>
+                                </span>
+                              </td>
+                              <td align="right" style="vertical-align: middle; white-space: nowrap; width: 110px;">
+                                <span style="display: inline-block; padding: 4px 8px; border-radius: 6px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                                  Password Reset
+                                </span>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+
+                      <!-- Card Content -->
+                      <tr>
+                        <td style="padding: 24px; text-align: left;">
+                          
+                          <h2 style="margin: 0 0 8px 0; color: #1e293b; font-size: 19px; font-weight: 700;">
+                            Password Reset Code
+                          </h2>
+                          <p style="margin: 0 0 18px 0; color: #57606a; font-size: 14px; line-height: 1.5;">
+                            Hello <strong>${user.name}</strong>, your verification code is:
+                          </p>
+
+                          <!-- GITHUB-STYLE CODE REQUESTED CARD -->
+                          <div style="background-color: #f6f8fa; border: 1px solid #d0d7de; border-radius: 10px; padding: 18px; margin: 0 0 20px 0;">
+                            
+                            <div style="font-size: 12px; font-weight: 600; color: #24292f; margin-bottom: 12px;">
+                              Code Requested
+                            </div>
+
+                            <!-- Digits in individual boxes -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 0 16px 0;">
+                              <tr>
+                                ${resetCodeChars.map(char => `
+                                  <td style="padding-right: 6px;">
+                                    <div style="width: 36px; height: 44px; background: #ffffff; border: 1px solid #d0d7de; border-radius: 6px; font-family: 'SF Mono', Consolas, Monaco, monospace; font-size: 24px; font-weight: 700; color: #0969da; text-align: center; line-height: 44px; box-shadow: 0 1px 3px rgba(27,31,36,0.04);">
+                                      ${char}
+                                    </div>
+                                  </td>
+                                `).join('')}
+                              </tr>
+                            </table>
+
+                            <!-- Standard Plain Selectable Text for Direct Copy -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 0 4px 0;">
+                              <tr>
+                                <td style="padding-right: 12px; vertical-align: middle;">
+                                  <span style="font-size: 13px; color: #57606a;">Copy Code:</span>
+                                </td>
+                                <td style="vertical-align: middle;">
+                                  <span style="font-family: 'SF Mono', Consolas, Monaco, monospace; font-size: 18px; font-weight: 700; color: #0969da; letter-spacing: 3px; padding: 6px 12px; background: #ffffff; border: 1px solid #0969da; border-radius: 6px; -webkit-user-select: all; user-select: all; display: inline-block;">
+                                    ${resetCode}
+                                  </span>
+                                </td>
+                              </tr>
+                            </table>
+                            <div style="font-size: 11px; color: #8c959f; margin-top: 6px;">
+                              (Tap or double-click the code above to select and copy only the 6 digits)
+                            </div>
+
+                          </div>
+
+                          <p style="margin: 0 0 14px 0; color: #57606a; font-size: 13px; line-height: 1.5;">
+                            This code will expire in <strong>5 minutes</strong>. If you did not request this password reset, your password remains unchanged and you can safely disregard this message.
+                          </p>
+
+                          <p style="margin: 0; color: #8c959f; font-size: 12px;">
+                            Thanks,<br>
+                            <strong style="color: #57606a;">The MarkatVerse Team</strong>
+                          </p>
+
+                        </td>
+                      </tr>
+
+                      <!-- Footer Bar -->
+                      <tr>
+                        <td style="padding: 16px 32px; background: #f6f8fa; border-top: 1px solid #d0d7de; text-align: center;">
+                          <p style="margin: 0; color: #6e7781; font-size: 11.5px;">
+                            &copy; ${new Date().getFullYear()} MarkatVerse Inc. &bull; Sent to ${user.email}
+                          </p>
+                        </td>
+                      </tr>
+
+                    </table>
+
+                  </td>
+                </tr>
+              </table>
+            </body>
+            </html>
           `
                 });
                 this.logger.log(`Password reset email sent to ${user.email}`);

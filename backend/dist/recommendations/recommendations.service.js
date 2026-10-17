@@ -37,8 +37,15 @@ let RecommendationsService = class RecommendationsService {
                 include: { seller: true }
             })
         ]);
+        const isServiceRecord = (p) => {
+            const serviceCategories = ['Services', 'Home Services', 'Transport', 'Rentals', 'Organizers', 'Salon', 'Restaurant', 'Food & Dining', 'Healthcare', 'Clinic'];
+            return p.primaryType === 'SERVICE' || serviceCategories.some(sc => (p.category || '').toLowerCase().includes(sc.toLowerCase()));
+        };
         const allItems = [
-            ...products.map((p) => ({ ...p, itemType: 'product' })),
+            ...products.map((p) => ({
+                ...p,
+                itemType: isServiceRecord(p) ? 'service' : 'product',
+            })),
             ...services.map((s) => ({ ...s, itemType: 'service' }))
         ];
         let recommended = allItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());

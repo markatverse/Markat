@@ -1,3 +1,4 @@
+import type { Response } from 'express';
 export declare class UploadController {
     uploadFiles(files: Array<Express.Multer.File>): {
         message: string;
@@ -7,4 +8,5 @@ export declare class UploadController {
             size: number;
         }[];
     };
+    serveFile(filename: string, res: Response): void;
 }

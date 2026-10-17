@@ -10,11 +10,11 @@ export declare class RecommendationsService {
     }): Promise<{
         id: string;
         userId: string | null;
-        createdAt: Date;
-        type: string;
         productId: string | null;
         serviceId: string | null;
+        type: string;
         weight: number;
+        createdAt: Date;
     }>;
     getRecommendations(userId?: string): Promise<any[]>;
 }

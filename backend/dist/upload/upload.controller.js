@@ -10,8 +10,18 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Controller, Post, UseInterceptors, UploadedFiles, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Get, Param, Res, UseInterceptors, UploadedFiles, BadRequestException, NotFoundException } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { existsSync, createReadStream } from 'fs';
+import { join, extname } from 'path';
+const MIME_MAP = {
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.webp': 'image/webp',
+    '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
+};
 let UploadController = class UploadController {
     uploadFiles(files) {
         if (!files || files.length === 0) {
@@ -25,17 +35,48 @@ let UploadController = class UploadController {
             files: files.map(f => ({ filename: f.filename, size: f.size })),
         };
     }
+    serveFile(filename, res) {
+        const safeFilename = filename.replace(/(\.\.[\/\\])+/g, '');
+        const candidatePaths = [
+            join(process.cwd(), 'uploads', safeFilename),
+            join(process.cwd(), 'dist', 'uploads', safeFilename),
+            join('/tmp', safeFilename),
+        ];
+        let filePath = null;
+        for (const p of candidatePaths) {
+            if (existsSync(p)) {
+                filePath = p;
+                break;
+            }
+        }
+        if (!filePath) {
+            throw new NotFoundException(`File ${filename} not found`);
+        }
+        const ext = extname(safeFilename).toLowerCase();
+        const contentType = MIME_MAP[ext] || 'application/octet-stream';
+        res.setHeader('Content-Type', contentType);
+        res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+        createReadStream(filePath).pipe(res);
+    }
 };
 __decorate([
-    Post(),
+    Post('upload'),
     UseInterceptors(FilesInterceptor('files', 10)),
     __param(0, UploadedFiles()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Array]),
     __metadata("design:returntype", void 0)
 ], UploadController.prototype, "uploadFiles", null);
+__decorate([
+    Get('public/uploads/:filename'),
+    __param(0, Param('filename')),
+    __param(1, Res()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], UploadController.prototype, "serveFile", null);
 UploadController = __decorate([
-    Controller('upload')
+    Controller()
 ], UploadController);
 export { UploadController };
 //# sourceMappingURL=upload.controller.js.map

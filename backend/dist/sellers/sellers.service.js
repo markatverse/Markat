@@ -215,19 +215,18 @@ let SellersService = class SellersService {
                 await this.prisma.businessFeature.deleteMany({ where: { businessId: { in: businessIds } } });
                 await this.prisma.business.deleteMany({ where: { userId: userId } });
             }
-            await this.prisma.lead.deleteMany({ where: { OR: [{ buyerId: userId }, { sellerId: userId }] } });
+            await this.prisma.lead.deleteMany({ where: { sellerId: userId } });
             await this.prisma.orderItem.deleteMany({ where: { sellerId: userId } });
             await this.prisma.product.deleteMany({ where: { sellerId: userId } });
             await this.prisma.listing.deleteMany({ where: { sellerId: userId } });
-            await this.prisma.shippingAddress.deleteMany({ where: { userId: userId } });
-            await this.prisma.review.deleteMany({ where: { userId: userId } });
-            await this.prisma.userInteraction.deleteMany({ where: { userId: userId } });
-            await this.prisma.notificationLog.deleteMany({ where: { userId: userId } });
             const existingUser = await this.prisma.user.findUnique({ where: { id: userId } });
             if (existingUser) {
-                await this.prisma.user.delete({ where: { id: userId } });
+                await this.prisma.user.update({
+                    where: { id: userId },
+                    data: { role: 'CONSUMER' }
+                });
             }
-            return { success: true, message: 'Seller account and all related data successfully deleted.' };
+            return { success: true, message: 'Seller account closed successfully. Your customer account remains active.' };
         }
         catch (error) {
             console.error(`Failed to remove user/seller ${userId}:`, error);
