@@ -37,6 +37,7 @@ import { NotificationsModule } from './notifications/notifications.module.js';
 import { EventsModule } from './events/events.module.js';
 import { AnalyticsModule } from './analytics/analytics.module.js';
 import { RedisModule } from './redis/redis.module.js';
+import { PaymentModule } from './payment/payment.module.js';
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
@@ -48,7 +49,7 @@ AppModule = __decorate([
                 max: 100,
             }),
             RedisModule,
-            EventsModule, PrismaModule, UsersModule, ProductsModule, OrdersModule, SellersModule, LeadsModule, AuthModule, UploadModule, ServiceQueueModule, ConfigurationModule, ListingsModule, WalletModule, WebhookModule, SellerConfigModule, CategoriesModule, AdminModule, WorkflowsModule, IdGeneratorModule, ReviewsModule, SystemConfigModule, ContentModule, CommercialModule, SupportModule, SecurityModule, RecommendationsModule, NotificationsModule, AnalyticsModule
+            EventsModule, PrismaModule, UsersModule, ProductsModule, OrdersModule, SellersModule, LeadsModule, AuthModule, UploadModule, ServiceQueueModule, ConfigurationModule, ListingsModule, WalletModule, WebhookModule, SellerConfigModule, CategoriesModule, AdminModule, WorkflowsModule, IdGeneratorModule, ReviewsModule, SystemConfigModule, ContentModule, CommercialModule, SupportModule, SecurityModule, RecommendationsModule, NotificationsModule, AnalyticsModule, PaymentModule
         ],
         controllers: [AppController],
         providers: [

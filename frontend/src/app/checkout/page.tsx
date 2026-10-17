@@ -444,7 +444,12 @@ export default function CheckoutPage() {
                   <MockPaymentGateway 
                     amount={total} 
                     items={items.map(i => ({ name: i.name, price: i.price, quantity: i.quantity }))}
-                    defaultMethod="upi"
+                    defaultMethod="razorpay"
+                    customerDetails={{
+                      name: `${firstName} ${lastName}`.trim() || user?.name || '',
+                      email: user?.email || '',
+                      phone: phone || ''
+                    }}
                     inline={true}
                     onSuccess={handlePaymentSuccess} 
                     onCancel={() => setStep(1)} 

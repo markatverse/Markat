@@ -19,25 +19,33 @@ import {
   Search,
   ExternalLink,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Zap
 } from 'lucide-react';
+import { loadRazorpayScript } from '@/utils/loadRazorpay';
 
 interface MockPaymentGatewayProps {
   amount: number;
   items?: Array<{ name: string; price: number; quantity: number }>;
-  defaultMethod?: 'upi' | 'card' | 'netbanking' | 'wallet';
+  defaultMethod?: 'razorpay' | 'upi' | 'card' | 'netbanking' | 'wallet';
   inline?: boolean;
+  customerDetails?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+  };
   onSuccess: (paymentDetails?: { paymentRef: string; method: string }) => void;
   onCancel?: () => void;
 }
 
-type PaymentMethodType = 'upi' | 'card' | 'netbanking' | 'wallet';
+type PaymentMethodType = 'razorpay' | 'upi' | 'card' | 'netbanking' | 'wallet';
 
 export default function MockPaymentGateway({ 
   amount, 
   items = [], 
-  defaultMethod = 'upi',
+  defaultMethod = 'razorpay',
   inline = false,
+  customerDetails,
   onSuccess, 
   onCancel 
 }: MockPaymentGatewayProps) {
@@ -45,6 +53,10 @@ export default function MockPaymentGateway({
   const [status, setStatus] = useState<'idle' | 'processing' | 'success' | 'failed'>('idle');
   const [statusMessage, setStatusMessage] = useState('Contacting banking network...');
   
+  // Razorpay Integration State
+  const [razorpayLoading, setRazorpayLoading] = useState(false);
+  const [razorpayError, setRazorpayError] = useState('');
+
   // UPI State
   const [upiSubMode, setUpiSubMode] = useState<'qr' | 'vpa'>('qr');
   const [upiId, setUpiId] = useState('');
@@ -57,7 +69,7 @@ export default function MockPaymentGateway({
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
   const [cardCvv, setCardCvv] = useState('');
-  const [cardName, setCardName] = useState('');
+  const [cardName, setCardName] = useState(customerDetails?.name || '');
   const [cardBrand, setCardBrand] = useState<'visa' | 'mastercard' | 'rupay' | 'generic'>('generic');
   const [cardError, setCardError] = useState('');
 
@@ -70,6 +82,14 @@ export default function MockPaymentGateway({
 
   // Transaction reference ID generated dynamically
   const txRef = useMemo(() => `MV-${Math.floor(100000 + Math.random() * 900000)}-${Date.now().toString().slice(-4)}`, []);
+
+  const getApiUrl = () => {
+    if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+    if (typeof window !== 'undefined') {
+      return 'http://' + window.location.hostname + ':3001';
+    }
+    return 'http://localhost:3001';
+  };
 
   // Countdown timer for QR code
   useEffect(() => {
@@ -89,7 +109,6 @@ export default function MockPaymentGateway({
   // Card brand detection & formatting
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, '').slice(0, 16);
-    // Format into groups of 4
     const formatted = raw.match(/.{1,4}/g)?.join(' ') || raw;
     setCardNumber(formatted);
 
@@ -116,7 +135,6 @@ export default function MockPaymentGateway({
     setCardExpiry(raw);
   };
 
-  // UPI verification
   const handleVerifyUpi = () => {
     if (!upiId || !upiId.includes('@')) {
       setUpiError('Enter a valid UPI ID (e.g. name@okhdfcbank or 9876543210@paytm)');
@@ -127,7 +145,6 @@ export default function MockPaymentGateway({
     setVpaVerified(true);
   };
 
-  // Sound effect simulation for modern payment terminal
   const playSuccessChime = () => {
     try {
       if (typeof window !== 'undefined' && 'AudioContext' in window) {
@@ -137,8 +154,8 @@ export default function MockPaymentGateway({
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15);
         gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
         osc.start();
@@ -149,8 +166,126 @@ export default function MockPaymentGateway({
     }
   };
 
+  /**
+   * Real Razorpay Standard Checkout Launcher
+   */
+  const handleLaunchRazorpay = async () => {
+    setRazorpayLoading(true);
+    setRazorpayError('');
+    setStatusMessage('Initiating Razorpay Gateway...');
+
+    try {
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded) {
+        throw new Error('Razorpay SDK failed to load. Please check your internet connection.');
+      }
+
+      // 1. Create Order on Backend
+      const apiUrl = getApiUrl();
+      const res = await fetch(`${apiUrl}/payment/razorpay/create-order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: amount,
+          receipt: txRef,
+          notes: {
+            itemsCount: items.length,
+            buyerName: customerDetails?.name || 'Markat Buyer'
+          }
+        })
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.message || 'Failed to initialize payment order');
+      }
+
+      const orderData = await res.json();
+      const razorpayKey = orderData.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_MarkatVerseKey';
+
+      // 2. Open official Razorpay modal
+      const options = {
+        key: razorpayKey,
+        amount: orderData.amount,
+        currency: orderData.currency || 'INR',
+        name: 'MarkatVerse Marketplace',
+        description: `Order Payment (${items.length} items)`,
+        image: '/logo.png',
+        order_id: orderData.id,
+        handler: async function (response: any) {
+          setStatus('processing');
+          setStatusMessage('Verifying Razorpay signature...');
+
+          try {
+            const verifyRes = await fetch(`${apiUrl}/payment/razorpay/verify`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id || orderData.id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature || 'mock_signature'
+              })
+            });
+
+            if (!verifyRes.ok) {
+              const verifyErr = await verifyRes.json().catch(() => ({}));
+              throw new Error(verifyErr.message || 'Signature verification failed');
+            }
+
+            setStatus('success');
+            playSuccessChime();
+            setTimeout(() => {
+              onSuccess({ 
+                paymentRef: response.razorpay_payment_id || txRef, 
+                method: 'razorpay' 
+              });
+            }, 1800);
+          } catch (vErr: any) {
+            console.error('Verification error:', vErr);
+            setStatus('failed');
+            setRazorpayError(vErr.message || 'Payment verification failed');
+          }
+        },
+        prefill: {
+          name: customerDetails?.name || '',
+          email: customerDetails?.email || '',
+          contact: customerDetails?.phone || ''
+        },
+        notes: {
+          merchant_order_id: txRef
+        },
+        theme: {
+          color: '#2563eb' // Blue 600
+        },
+        modal: {
+          ondismiss: function () {
+            setRazorpayLoading(false);
+          }
+        }
+      };
+
+      const rzpInstance = new (window as any).Razorpay(options);
+      rzpInstance.on('payment.failed', function (failureResponse: any) {
+        console.error('Razorpay payment failed:', failureResponse.error);
+        setRazorpayError(failureResponse.error?.description || 'Payment was declined or failed.');
+        setRazorpayLoading(false);
+      });
+
+      rzpInstance.open();
+    } catch (err: any) {
+      console.error('Razorpay Launch Exception:', err);
+      setRazorpayError(err.message || 'Unable to start Razorpay checkout. You can also use other payment modes below.');
+    } finally {
+      setRazorpayLoading(false);
+    }
+  };
+
   const handlePay = () => {
-    // Basic validation
+    if (method === 'razorpay') {
+      handleLaunchRazorpay();
+      return;
+    }
+
     if (method === 'card') {
       const cleanCard = cardNumber.replace(/\s/g, '');
       if (cleanCard.length < 16) {
@@ -222,7 +357,6 @@ export default function MockPaymentGateway({
     return (
       <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-300 p-4">
         <div className="bg-white rounded-3xl p-8 sm:p-10 flex flex-col items-center justify-center max-w-md w-full shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-300 relative overflow-hidden">
-          {/* Confetti-style background shine */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="w-20 h-20 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6 relative border border-emerald-100 shadow-inner">
@@ -240,11 +374,11 @@ export default function MockPaymentGateway({
           <div className="w-full bg-slate-50 rounded-2xl p-4 border border-slate-200/70 text-xs space-y-2 mb-6">
             <div className="flex justify-between text-slate-600">
               <span>Payment Mode</span>
-              <span className="font-bold uppercase text-slate-800">{method}</span>
+              <span className="font-bold uppercase text-slate-800">{method === 'razorpay' ? 'Razorpay Official' : method}</span>
             </div>
             <div className="flex justify-between text-slate-600">
               <span>Gateway Engine</span>
-              <span className="font-bold text-slate-800">MarkatVerse Shield 2.0</span>
+              <span className="font-bold text-slate-800">{method === 'razorpay' ? 'Razorpay PG v1' : 'MarkatVerse Shield 2.0'}</span>
             </div>
             <div className="flex justify-between text-slate-600">
               <span>Timestamp</span>
@@ -290,7 +424,6 @@ export default function MockPaymentGateway({
                   </div>
                 </div>
                 
-                {/* Close Button on Mobile (Only if modal mode) */}
                 {onCancel && (
                   <button 
                     onClick={onCancel}
@@ -337,7 +470,7 @@ export default function MockPaymentGateway({
               </div>
               <div className="flex items-center gap-2 text-slate-400 text-[11px]">
                 <Lock className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                <span>Instant Bank Confirmation</span>
+                <span>Instant Razorpay Confirmation</span>
               </div>
             </div>
           </div>
@@ -350,7 +483,7 @@ export default function MockPaymentGateway({
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
             <div>
               <h3 className="font-extrabold text-slate-900 text-base sm:text-lg">Select Payment Mode</h3>
-              <p className="text-xs text-slate-500">Choose your preferred transaction method</p>
+              <p className="text-xs text-slate-500">Pay securely with Razorpay or direct banking methods</p>
             </div>
             
             {!inline && onCancel && (
@@ -369,6 +502,27 @@ export default function MockPaymentGateway({
             {/* Payment Method Selector Sidebar */}
             <div className="w-full md:w-[210px] border-b md:border-b-0 md:border-r border-slate-100 bg-slate-50/70 overflow-x-auto md:overflow-y-auto flex md:flex-col shrink-0 p-2 md:p-3 gap-1.5">
               
+              {/* Official Razorpay Option */}
+              <button 
+                onClick={() => setMethod('razorpay')}
+                className={`flex-1 md:flex-none flex items-center gap-3 p-3 rounded-xl transition-all text-left relative overflow-hidden ${
+                  method === 'razorpay' 
+                    ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20' 
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/60 font-semibold'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${method === 'razorpay' ? 'bg-white/20' : 'bg-blue-100 text-blue-700'}`}>
+                  <Zap className="w-4 h-4 text-amber-400 fill-amber-400" />
+                </div>
+                <div className="truncate">
+                  <div className="text-xs sm:text-sm flex items-center gap-1.5">
+                    Razorpay
+                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-400 text-slate-950 font-black uppercase tracking-tight">Fast</span>
+                  </div>
+                  <div className={`text-[10px] truncate ${method === 'razorpay' ? 'text-blue-100' : 'text-slate-400'}`}>Official Gateway</div>
+                </div>
+              </button>
+
               {/* UPI Option */}
               <button 
                 onClick={() => setMethod('upi')}
@@ -446,10 +600,92 @@ export default function MockPaymentGateway({
             {/* Active Method Form Body */}
             <div className="flex-1 p-5 sm:p-7 overflow-y-auto custom-scrollbar">
               
+              {/* RAZORPAY MODE */}
+              {method === 'razorpay' && (
+                <div className="space-y-5 animate-in fade-in duration-200">
+                  <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-900 to-indigo-950 text-white relative overflow-hidden shadow-lg border border-blue-800">
+                    <div className="absolute right-0 top-0 w-64 h-64 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
+                    
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-black text-xl text-white shadow-md">
+                          R
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-base tracking-tight">Razorpay Standard Checkout</h4>
+                          <span className="text-[11px] text-blue-300 font-medium">India's #1 Secure Payment Solution</span>
+                        </div>
+                      </div>
+                      <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full font-bold">
+                        Live SDK
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-blue-200 leading-relaxed mb-5">
+                      Pay easily via Google Pay, PhonePe, Paytm, all Major Credit/Debit Cards, Netbanking (50+ Banks), CRED, and EMI.
+                    </p>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 text-[11px]">
+                      <div className="bg-white/10 rounded-xl p-2.5 backdrop-blur-xs text-center border border-white/5">
+                        <span className="block font-bold text-white">⚡ Instant</span>
+                        <span className="text-[10px] text-blue-200">Zero latency</span>
+                      </div>
+                      <div className="bg-white/10 rounded-xl p-2.5 backdrop-blur-xs text-center border border-white/5">
+                        <span className="block font-bold text-white">🔒 256-Bit</span>
+                        <span className="text-[10px] text-blue-200">Bank SSL Encrypted</span>
+                      </div>
+                      <div className="bg-white/10 rounded-xl p-2.5 backdrop-blur-xs text-center border border-white/5">
+                        <span className="block font-bold text-white">💳 All Cards</span>
+                        <span className="text-[10px] text-blue-200">Visa, MC, RuPay</span>
+                      </div>
+                      <div className="bg-white/10 rounded-xl p-2.5 backdrop-blur-xs text-center border border-white/5">
+                        <span className="block font-bold text-white">📱 UPI Direct</span>
+                        <span className="text-[10px] text-blue-200">Any UPI App</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleLaunchRazorpay}
+                      disabled={razorpayLoading || status === 'processing'}
+                      className="w-full bg-blue-500 hover:bg-blue-400 active:bg-blue-600 text-white font-black py-3.5 px-6 rounded-xl transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2.5 text-sm sm:text-base disabled:opacity-70 cursor-pointer"
+                    >
+                      {razorpayLoading ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <span>Opening Razorpay Secure Window...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="w-5 h-5 fill-amber-300 text-amber-300" />
+                          <span>Pay ₹{amount.toLocaleString('en-IN')} with Razorpay</span>
+                          <ArrowRight className="w-4 h-4 ml-1" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {razorpayError && (
+                    <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{razorpayError}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-center gap-6 pt-2 text-xs text-slate-400">
+                    <span className="flex items-center gap-1">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" /> RBI Authorized Gateway
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Lock className="w-4 h-4 text-blue-600" /> PCI-DSS Level 1 Certified
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {/* UPI MODE */}
               {method === 'upi' && (
                 <div className="space-y-5 animate-in fade-in duration-200">
-                  {/* UPI Subtabs: QR Code vs Enter VPA */}
                   <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-bold text-slate-600">
                     <button 
                       onClick={() => setUpiSubMode('qr')}
@@ -530,7 +766,6 @@ export default function MockPaymentGateway({
                         )}
                       </div>
 
-                      {/* Quick Apps */}
                       <div>
                         <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Popular UPI Apps</span>
                         <div className="grid grid-cols-3 gap-2">
@@ -557,7 +792,6 @@ export default function MockPaymentGateway({
                     </div>
                   )}
 
-                  {/* Merchant VPA info */}
                   <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100 flex items-center justify-between text-xs">
                     <div>
                       <span className="text-slate-500 block text-[10px] uppercase font-bold">Paying To</span>
@@ -581,7 +815,6 @@ export default function MockPaymentGateway({
               {/* CARD MODE */}
               {method === 'card' && (
                 <div className="space-y-4 animate-in fade-in duration-200">
-                  {/* Card Number Input with Brand Icon */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                       Card Number
@@ -612,7 +845,6 @@ export default function MockPaymentGateway({
                     </div>
                   </div>
 
-                  {/* Card Expiry & CVV */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
@@ -643,7 +875,6 @@ export default function MockPaymentGateway({
                     </div>
                   </div>
 
-                  {/* Cardholder Name */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                       Cardholder Name
@@ -740,7 +971,6 @@ export default function MockPaymentGateway({
                   </span>
 
                   <div className="space-y-2.5">
-                    {/* MarkatVerse Wallet */}
                     <div 
                       onClick={() => setSelectedWallet('markat')}
                       className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
@@ -764,7 +994,6 @@ export default function MockPaymentGateway({
                       </div>
                     </div>
 
-                    {/* Paytm Wallet */}
                     <div 
                       onClick={() => setSelectedWallet('paytm')}
                       className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
@@ -785,7 +1014,6 @@ export default function MockPaymentGateway({
                       <ChevronRight className="w-4 h-4 text-slate-400" />
                     </div>
 
-                    {/* Mobikwik */}
                     <div 
                       onClick={() => setSelectedWallet('mobikwik')}
                       className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
@@ -816,22 +1044,22 @@ export default function MockPaymentGateway({
           <div className="p-4 sm:p-5 border-t border-slate-100 bg-white flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
             <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500">
               <Lock className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Payments are encrypted with AES-256</span>
+              <span>Payments are encrypted with AES-256 via Razorpay</span>
             </div>
 
             <button 
               onClick={handlePay}
-              disabled={status === 'processing'}
+              disabled={status === 'processing' || razorpayLoading}
               className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-75 disabled:shadow-none min-w-[200px]"
             >
-              {status === 'processing' ? (
+              {status === 'processing' || razorpayLoading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
                   <span>{statusMessage}</span>
                 </>
               ) : (
                 <>
-                  <span>Pay ₹{amount.toLocaleString('en-IN')}</span>
+                  <span>Pay ₹{amount.toLocaleString('en-IN')} {method === 'razorpay' ? 'via Razorpay' : ''}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
