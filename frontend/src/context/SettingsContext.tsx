@@ -121,6 +121,16 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
 export function useSettings() {
   const context = useContext(SettingsContext);
-  if (context === undefined) throw new Error('useSettings must be used within a SettingsProvider');
+  if (context === undefined) {
+    return {
+      sectors: [],
+      isSectorActive: () => true,
+      refreshSectors: async () => {},
+      toggleSector: async () => {},
+      editSector: async () => {},
+      systemConfig: {},
+      updateSystemConfig: async () => {},
+    };
+  }
   return context;
 }

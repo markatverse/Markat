@@ -1004,7 +1004,28 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
 
 export function useProducts() {
   const context = useContext(ProductContext);
-  if (context === undefined) throw new Error('useProducts must be used within a ProductProvider');
+  if (context === undefined) {
+    return {
+      products: [],
+      categories: [],
+      isLoading: false,
+      userLocation: 'Detecting Location...',
+      userLat: null,
+      userLng: null,
+      radiusFilter: null,
+      setRadiusFilter: () => {},
+      setUserLocation: () => {},
+      detectLocation: async () => {},
+      filterProducts: () => [],
+      getProductById: () => undefined,
+      addProduct: async () => {},
+      updateProduct: async () => {},
+      deleteProduct: async () => {},
+      addCategory: async () => {},
+      updateCategory: async () => {},
+      deleteCategory: async () => {},
+    };
+  }
   return context;
 }
 

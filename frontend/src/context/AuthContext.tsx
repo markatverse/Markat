@@ -158,6 +158,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) throw new Error('useAuth must be used within an AuthProvider');
+  if (context === undefined) {
+    // Return a safe non-breaking default if called outside AuthProvider or during isolated SSR/Turbopack prerendering
+    return {
+      user: null,
+      isLoading: false,
+      login: async () => false,
+      logout: () => {},
+      allUsers: [],
+      updateUserRole: async () => {},
+      deleteUser: async () => {},
+      addUser: () => {},
+    };
+  }
   return context;
 }

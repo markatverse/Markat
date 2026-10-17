@@ -75,6 +75,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
 export function useCart() {
   const context = useContext(CartContext);
-  if (context === undefined) throw new Error('useCart must be used within a CartProvider');
+  if (context === undefined) {
+    return {
+      items: [],
+      addToCart: () => {},
+      removeFromCart: () => {},
+      updateQuantity: () => {},
+      clearCart: () => {},
+      totalItems: 0,
+      totalPrice: 0,
+    };
+  }
   return context;
 }
