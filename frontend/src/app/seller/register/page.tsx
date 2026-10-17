@@ -8,7 +8,8 @@ import LocationPicker from '@/components/LocationPicker';
 import toast from 'react-hot-toast';
 import { 
   Building2, MapPin, Store, CheckCircle2, ArrowRight, ArrowLeft, 
-  ShieldCheck, Sparkles, Phone, Mail, Clock, FileText, Briefcase
+  ShieldCheck, Sparkles, Phone, Mail, Clock, FileText, Briefcase,
+  Navigation, Check, Star, Zap, Award
 } from 'lucide-react';
 
 const getApiUrl = () => { 
@@ -29,7 +30,7 @@ export default function SellerRegistrationPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Step 1: Model & Categorization (Synchronized with backend config)
+  // Step 1: Model & Categorization
   const [businessModel, setBusinessModel] = useState<string>('B2C');
   const [businessTypes, setBusinessTypes] = useState<any[]>([]);
   const [selectedType, setSelectedType] = useState<string>('');
@@ -55,6 +56,7 @@ export default function SellerRegistrationPage() {
   const [landmark, setLandmark] = useState<string>('');
   const [areas, setAreas] = useState<string[]>([]);
   const [isFetchingPin, setIsFetchingPin] = useState(false);
+  const [isLocatingGPS, setIsLocatingGPS] = useState(false);
 
   // Step 4: Operating Hours
   const [businessHours, setBusinessHours] = useState({
@@ -183,6 +185,65 @@ export default function SellerRegistrationPage() {
     } catch {}
   };
 
+  const handleAutoGPS = () => {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser.');
+      return;
+    }
+    setIsLocatingGPS(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        handleLocationChange(lat, lng);
+        toast.success('Location detected successfully via GPS!');
+        setIsLocatingGPS(false);
+      },
+      (err) => {
+        toast.error('Could not detect location. Please permit GPS or type your PIN code.');
+        setIsLocatingGPS(false);
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  };
+
+  const applyHoursPreset = (type: 'standard' | 'retail' | 'always') => {
+    if (type === 'standard') {
+      setBusinessHours({
+        monday: { open: '09:00', close: '20:00', closed: false },
+        tuesday: { open: '09:00', close: '20:00', closed: false },
+        wednesday: { open: '09:00', close: '20:00', closed: false },
+        thursday: { open: '09:00', close: '20:00', closed: false },
+        friday: { open: '09:00', close: '20:00', closed: false },
+        saturday: { open: '09:00', close: '20:00', closed: false },
+        sunday: { open: '10:00', close: '18:00', closed: true }
+      });
+      toast.success('Applied Standard Hours (Mon-Sat, 9AM - 8PM)');
+    } else if (type === 'retail') {
+      setBusinessHours({
+        monday: { open: '10:00', close: '21:30', closed: false },
+        tuesday: { open: '10:00', close: '21:30', closed: false },
+        wednesday: { open: '10:00', close: '21:30', closed: false },
+        thursday: { open: '10:00', close: '21:30', closed: false },
+        friday: { open: '10:00', close: '22:00', closed: false },
+        saturday: { open: '10:00', close: '22:00', closed: false },
+        sunday: { open: '10:00', close: '22:00', closed: false }
+      });
+      toast.success('Applied Retail / Mall Hours (7 Days, 10AM - 9:30PM)');
+    } else if (type === 'always') {
+      setBusinessHours({
+        monday: { open: '00:00', close: '23:59', closed: false },
+        tuesday: { open: '00:00', close: '23:59', closed: false },
+        wednesday: { open: '00:00', close: '23:59', closed: false },
+        thursday: { open: '00:00', close: '23:59', closed: false },
+        friday: { open: '00:00', close: '23:59', closed: false },
+        saturday: { open: '00:00', close: '23:59', closed: false },
+        sunday: { open: '00:00', close: '23:59', closed: false }
+      });
+      toast.success('Applied 24/7 Hours');
+    }
+  };
+
   const handleFinalRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -228,7 +289,6 @@ export default function SellerRegistrationPage() {
         throw new Error(data.message || 'Registration failed. Please review your details.');
       }
 
-      // Sync updated user token & SELLER business session
       const meRes = await fetch(`${API_URL}/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -263,6 +323,8 @@ export default function SellerRegistrationPage() {
     { id: 5, label: 'Confirm & Launch', desc: 'Activation' },
   ];
 
+  const progressPercentage = Math.round((step / 5) * 100);
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -276,40 +338,74 @@ export default function SellerRegistrationPage() {
   return (
     <div className="min-h-screen bg-[#f8fafc] flex">
       
-      {/* Left Brand Panel */}
-      <aside className="hidden lg:flex w-[420px] bg-gradient-to-br from-[#061224] via-[#091e3a] to-[#040c18] text-white p-8 xl:p-10 flex-col justify-between shrink-0 relative overflow-hidden border-r border-slate-800">
+      {/* Left Brand Panel with Live Preview */}
+      <aside className="hidden lg:flex w-[440px] bg-gradient-to-br from-[#061224] via-[#091e3a] to-[#040c18] text-white p-8 xl:p-10 flex-col justify-between shrink-0 relative overflow-hidden border-r border-slate-800">
         <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Brand Header */}
         <div className="relative z-10">
-          <Link href="/" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-slate-300 hover:text-white transition-all border border-white/10 mb-8">
+          <Link href="/" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-slate-300 hover:text-white transition-all border border-white/10 mb-6">
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Store
           </Link>
 
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 font-black text-2xl text-slate-950">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 font-black text-xl text-slate-950">
               M
             </div>
             <div>
-              <h2 className="text-xl font-black tracking-tight text-white">MarkatVerse</h2>
-              <p className="text-xs text-emerald-400 font-bold uppercase tracking-wider">Merchant Registration</p>
+              <h2 className="text-xl font-black tracking-tight text-white leading-tight">MarkatVerse</h2>
+              <p className="text-[11px] text-emerald-400 font-bold uppercase tracking-wider">Merchant Onboarding</p>
             </div>
           </div>
 
-          <p className="text-sm text-slate-300 leading-relaxed mb-8">
-            Join thousands of verified manufacturers, wholesalers, retailers, and service providers growing their businesses on MarkatVerse.
-          </p>
+          {/* Live Storefront Preview Card (Real-Time Dynamic Interactive Component) */}
+          <div className="mb-6 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 shadow-xl relative overflow-hidden">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-300 flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-emerald-400" /> Live Store Preview
+              </span>
+              <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase ${
+                businessModel === 'SERVICE' ? 'bg-purple-500/30 text-purple-200 border border-purple-400/30' : 'bg-emerald-500/30 text-emerald-200 border border-emerald-400/30'
+              }`}>
+                {businessModel}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3 my-2">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-slate-950 font-black text-lg shadow-md shrink-0">
+                {businessName.trim() ? businessName.charAt(0).toUpperCase() : 'S'}
+              </div>
+              <div className="overflow-hidden">
+                <h3 className="text-sm font-black text-white truncate">
+                  {businessName.trim() || 'Your Store Name'}
+                </h3>
+                <p className="text-[11px] text-slate-300 truncate">
+                  {selectedSector || 'Select a Category'}
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2.5 mt-2.5 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-300">
+              <span className="flex items-center gap-1 truncate max-w-[65%]">
+                <MapPin className="w-3 h-3 text-rose-400 shrink-0" />
+                <span className="truncate">{city ? `${city}, ${stateName}` : 'Location Pin Pending'}</span>
+              </span>
+              <span className="text-emerald-400 font-bold flex items-center gap-1">
+                <Award className="w-3 h-3" /> Verified Partner
+              </span>
+            </div>
+          </div>
 
           {/* Systematic Step Indicator */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {steps.map((s) => {
               const isActive = step === s.id;
               const isCompleted = step > s.id;
 
               return (
-                <div key={s.id} className="flex items-center gap-3.5 group">
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs transition-all ${
+                <div key={s.id} className="flex items-center gap-3 group">
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs transition-all ${
                     isCompleted 
                       ? 'bg-emerald-500 text-slate-950 font-black shadow-md shadow-emerald-500/30' 
                       : isActive 
@@ -331,10 +427,10 @@ export default function SellerRegistrationPage() {
         </div>
 
         {/* Trust Footnote */}
-        <div className="relative z-10 pt-6 border-t border-slate-800/80 flex items-center gap-3">
+        <div className="relative z-10 pt-4 border-t border-slate-800/80 flex items-center gap-2.5">
           <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
-          <span className="text-xs text-slate-400">
-            Official Seller Onboarding Portal • Secure SSL Verification
+          <span className="text-[11px] text-slate-400">
+            SSL 256-Bit Encrypted • Verified Merchant Registration
           </span>
         </div>
       </aside>
@@ -343,13 +439,21 @@ export default function SellerRegistrationPage() {
       <main className="flex-1 flex flex-col justify-between p-4 sm:p-8 lg:p-12 overflow-y-auto max-w-4xl mx-auto w-full">
         
         <div>
-          {/* Header Mobile Stepper */}
-          <div className="flex lg:hidden justify-between items-center mb-6 pb-4 border-b border-slate-200">
-            <span className="text-xs font-bold text-slate-500">Step {step} of 5: {steps[step - 1]?.label}</span>
-            <div className="flex gap-1.5">
-              {[1, 2, 3, 4, 5].map(i => (
-                <div key={i} className={`h-1.5 w-6 rounded-full transition-all ${step >= i ? 'bg-emerald-500' : 'bg-slate-200'}`} />
-              ))}
+          {/* Top Animated Progress Header */}
+          <div className="mb-6 pb-4 border-b border-slate-200">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                Step {step} of 5: <span className="text-slate-900">{steps[step - 1]?.label}</span>
+              </span>
+              <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                {progressPercentage}% Complete
+              </span>
+            </div>
+            <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+              <div 
+                className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full transition-all duration-500 ease-out rounded-full"
+                style={{ width: `${progressPercentage}%` }}
+              />
             </div>
           </div>
 
@@ -553,13 +657,26 @@ export default function SellerRegistrationPage() {
             </div>
           )}
 
-          {/* STEP 3: LOCATION & MAP */}
+          {/* STEP 3: LOCATION & MAP WITH AUTO GPS DETECT */}
           {step === 3 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-              <div className="mb-6">
-                <span className="text-emerald-600 font-extrabold text-xs tracking-wider uppercase">Location & Map</span>
-                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Physical Store & Coordinates</h1>
-                <p className="text-slate-500 text-xs sm:text-sm mt-1">Pin your exact shop location so nearby buyers and token queue visitors can find you.</p>
+              <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <span className="text-emerald-600 font-extrabold text-xs tracking-wider uppercase">Location & Map</span>
+                  <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Physical Store & Coordinates</h1>
+                  <p className="text-slate-500 text-xs sm:text-sm mt-1">Pin your exact shop location so nearby buyers can reach you.</p>
+                </div>
+
+                {/* 1-Click GPS Auto-Detect Button */}
+                <button
+                  type="button"
+                  onClick={handleAutoGPS}
+                  disabled={isLocatingGPS}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold border border-indigo-200 transition-all shadow-xs self-start sm:self-auto shrink-0"
+                >
+                  <Navigation className={`w-3.5 h-3.5 ${isLocatingGPS ? 'animate-spin' : ''}`} />
+                  {isLocatingGPS ? 'Detecting GPS...' : '📍 Auto-Detect My GPS'}
+                </button>
               </div>
 
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6 mb-8">
@@ -567,9 +684,9 @@ export default function SellerRegistrationPage() {
                 <div>
                   <div className="flex justify-between items-center mb-2">
                     <label className="text-xs font-bold text-slate-700 uppercase flex items-center gap-1.5">
-                      <MapPin className="w-4 h-4 text-emerald-600" /> Pin exact location on Map
+                      <MapPin className="w-4 h-4 text-emerald-600" /> Drag or Click Map to Pin Store
                     </label>
-                    <span className="text-[11px] text-slate-500 font-medium">Click map to drop pin</span>
+                    <span className="text-[11px] text-slate-500 font-medium">Auto-synced with address</span>
                   </div>
                   <LocationPicker
                     latitude={latitude}
@@ -687,13 +804,41 @@ export default function SellerRegistrationPage() {
             </div>
           )}
 
-          {/* STEP 4: OPERATING HOURS */}
+          {/* STEP 4: OPERATING HOURS WITH 1-CLICK PRESETS */}
           {step === 4 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="mb-6">
                 <span className="text-emerald-600 font-extrabold text-xs tracking-wider uppercase">Availability</span>
                 <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Weekly Operating Hours</h1>
                 <p className="text-slate-500 text-xs sm:text-sm mt-1">Configure your daily store hours for delivery, pickups, and customer visits.</p>
+              </div>
+
+              {/* Quick Hours Presets */}
+              <div className="flex flex-wrap items-center gap-2 mb-6">
+                <span className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1 mr-2">
+                  <Zap className="w-3.5 h-3.5 text-amber-500" /> 1-Click Presets:
+                </span>
+                <button
+                  type="button"
+                  onClick={() => applyHoursPreset('standard')}
+                  className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:border-emerald-500 hover:text-emerald-600 transition-all shadow-xs"
+                >
+                  Standard (Mon-Sat, 9AM-8PM)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyHoursPreset('retail')}
+                  className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:border-emerald-500 hover:text-emerald-600 transition-all shadow-xs"
+                >
+                  Retail / Mall (7 Days, 10AM-9:30PM)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyHoursPreset('always')}
+                  className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:border-emerald-500 hover:text-emerald-600 transition-all shadow-xs"
+                >
+                  24/7 Always Open
+                </button>
               </div>
 
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-3 mb-8">
