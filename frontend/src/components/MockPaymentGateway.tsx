@@ -1,41 +1,255 @@
 "use client";
-import React, { useState } from 'react';
-import { X, Smartphone, CreditCard, ShieldCheck, CheckCircle2, Loader2, Building2 } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { 
+  X, 
+  Smartphone, 
+  CreditCard, 
+  Building2, 
+  ShieldCheck, 
+  CheckCircle2, 
+  Loader2, 
+  QrCode, 
+  Lock, 
+  AlertCircle, 
+  ArrowRight, 
+  Wallet, 
+  Copy, 
+  Check, 
+  RefreshCw,
+  Search,
+  ExternalLink,
+  ChevronRight,
+  Sparkles
+} from 'lucide-react';
 
 interface MockPaymentGatewayProps {
   amount: number;
+  items?: Array<{ name: string; price: number; quantity: number }>;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export default function MockPaymentGateway({ amount, onSuccess, onCancel }: MockPaymentGatewayProps) {
-  const [method, setMethod] = useState<'upi' | 'card' | 'netbanking'>('upi');
-  const [status, setStatus] = useState<'idle' | 'processing' | 'success'>('idle');
+type PaymentMethodType = 'upi' | 'card' | 'netbanking' | 'wallet';
 
-  const handlePay = () => {
-    setStatus('processing');
-    // Simulate network delay for payment
-    setTimeout(() => {
-      setStatus('success');
-      // Wait a moment so user sees the success state before closing
-      setTimeout(() => {
-        onSuccess();
-      }, 1500);
-    }, 2000);
+export default function MockPaymentGateway({ 
+  amount, 
+  items = [], 
+  onSuccess, 
+  onCancel 
+}: MockPaymentGatewayProps) {
+  const [method, setMethod] = useState<PaymentMethodType>('upi');
+  const [status, setStatus] = useState<'idle' | 'processing' | 'success' | 'failed'>('idle');
+  const [statusMessage, setStatusMessage] = useState('Contacting banking network...');
+  
+  // UPI State
+  const [upiSubMode, setUpiSubMode] = useState<'qr' | 'vpa'>('qr');
+  const [upiId, setUpiId] = useState('');
+  const [upiError, setUpiError] = useState('');
+  const [vpaVerified, setVpaVerified] = useState(false);
+  const [copiedUpi, setCopiedUpi] = useState(false);
+  const [qrExpiry, setQrExpiry] = useState(300); // 5 minutes countdown
+
+  // Card State
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvv, setCardCvv] = useState('');
+  const [cardName, setCardName] = useState('');
+  const [cardBrand, setCardBrand] = useState<'visa' | 'mastercard' | 'rupay' | 'generic'>('generic');
+  const [cardError, setCardError] = useState('');
+
+  // Netbanking State
+  const [selectedBank, setSelectedBank] = useState<string>('HDFC');
+  const [bankSearch, setBankSearch] = useState('');
+
+  // Wallet State
+  const [selectedWallet, setSelectedWallet] = useState<string>('markat');
+
+  // Transaction reference ID generated dynamically
+  const txRef = useMemo(() => `MV-${Math.floor(100000 + Math.random() * 900000)}-${Date.now().toString().slice(-4)}`, []);
+
+  // Countdown timer for QR code
+  useEffect(() => {
+    if (qrExpiry <= 0) return;
+    const timer = setInterval(() => {
+      setQrExpiry(prev => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [qrExpiry]);
+
+  const formattedQrTimer = useMemo(() => {
+    const mins = Math.floor(qrExpiry / 60);
+    const secs = qrExpiry % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  }, [qrExpiry]);
+
+  // Card brand detection & formatting
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 16);
+    // Format into groups of 4
+    const formatted = raw.match(/.{1,4}/g)?.join(' ') || raw;
+    setCardNumber(formatted);
+
+    if (raw.startsWith('4')) {
+      setCardBrand('visa');
+    } else if (/^(5[1-5]|2[2-7])/.test(raw)) {
+      setCardBrand('mastercard');
+    } else if (/^(60|65|81|82|508)/.test(raw)) {
+      setCardBrand('rupay');
+    } else {
+      setCardBrand('generic');
+    }
+
+    if (raw.length === 16) {
+      setCardError('');
+    }
   };
 
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value.replace(/\D/g, '').slice(0, 4);
+    if (raw.length >= 3) {
+      raw = `${raw.slice(0, 2)}/${raw.slice(2)}`;
+    }
+    setCardExpiry(raw);
+  };
+
+  // UPI verification
+  const handleVerifyUpi = () => {
+    if (!upiId || !upiId.includes('@')) {
+      setUpiError('Enter a valid UPI ID (e.g. name@okhdfcbank or 9876543210@paytm)');
+      setVpaVerified(false);
+      return;
+    }
+    setUpiError('');
+    setVpaVerified(true);
+  };
+
+  // Sound effect simulation for modern payment terminal
+  const playSuccessChime = () => {
+    try {
+      if (typeof window !== 'undefined' && 'AudioContext' in window) {
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+      }
+    } catch {
+      // Audio not permitted or supported
+    }
+  };
+
+  const handlePay = () => {
+    // Basic validation
+    if (method === 'card') {
+      const cleanCard = cardNumber.replace(/\s/g, '');
+      if (cleanCard.length < 16) {
+        setCardError('Please enter a valid 16-digit card number');
+        return;
+      }
+      if (!cardExpiry || cardExpiry.length < 5) {
+        setCardError('Please enter a valid expiry (MM/YY)');
+        return;
+      }
+      if (!cardCvv || cardCvv.length < 3) {
+        setCardError('Please enter a valid 3 or 4 digit CVV');
+        return;
+      }
+    }
+
+    if (method === 'upi' && upiSubMode === 'vpa' && !vpaVerified) {
+      if (!upiId || !upiId.includes('@')) {
+        setUpiError('Please verify your UPI ID before continuing');
+        return;
+      }
+    }
+
+    setStatus('processing');
+    setStatusMessage('Authenticating with NPCI / Gateway...');
+
+    setTimeout(() => {
+      setStatusMessage('Authorizing transaction token...');
+      setTimeout(() => {
+        setStatusMessage('Payment verified successfully!');
+        setStatus('success');
+        playSuccessChime();
+
+        setTimeout(() => {
+          onSuccess();
+        }, 1800);
+      }, 1000);
+    }, 1200);
+  };
+
+  const popularBanks = [
+    { id: 'HDFC', name: 'HDFC Bank', code: 'HDFC', logo: '🏦' },
+    { id: 'SBI', name: 'State Bank of India', code: 'SBI', logo: '🏛️' },
+    { id: 'ICICI', name: 'ICICI Bank', code: 'ICICI', logo: '🏢' },
+    { id: 'AXIS', name: 'Axis Bank', code: 'UTIB', logo: '🏧' },
+    { id: 'KOTAK', name: 'Kotak Mahindra', code: 'KKBK', logo: '🏦' },
+    { id: 'PNB', name: 'Punjab National Bank', code: 'PUNB', logo: '🏛️' },
+  ];
+
+  const allOtherBanks = [
+    'Bank of Baroda',
+    'Canara Bank',
+    'Union Bank of India',
+    'IndusInd Bank',
+    'Federal Bank',
+    'IDFC First Bank',
+    'Yes Bank',
+    'South Indian Bank',
+    'Central Bank of India',
+    'Indian Overseas Bank'
+  ];
+
+  const filteredOtherBanks = allOtherBanks.filter(b => 
+    b.toLowerCase().includes(bankSearch.toLowerCase())
+  );
+
+  // Success Screen
   if (status === 'success') {
     return (
-      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-        <div className="bg-white rounded-3xl p-10 flex flex-col items-center justify-center max-w-sm w-full mx-4 shadow-2xl animate-in zoom-in-95 duration-300">
-          <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-6 relative">
-            <div className="absolute inset-0 bg-emerald-400 rounded-full animate-ping opacity-20"></div>
-            <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-300 p-4">
+        <div className="bg-white rounded-3xl p-8 sm:p-10 flex flex-col items-center justify-center max-w-md w-full shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-300 relative overflow-hidden">
+          {/* Confetti-style background shine */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="w-20 h-20 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6 relative border border-emerald-100 shadow-inner">
+            <div className="absolute inset-0 bg-emerald-400 rounded-2xl animate-ping opacity-25"></div>
+            <CheckCircle2 className="w-10 h-10 text-emerald-600" />
           </div>
-          <h2 className="text-2xl font-black text-slate-800 mb-2">Payment Successful</h2>
-          <p className="text-slate-500 font-medium">₹{amount.toLocaleString('en-IN')} paid securely.</p>
-          <div className="mt-8 text-xs text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1">
-            <ShieldCheck className="w-4 h-4 text-emerald-500" /> Secured by Razorpay
+
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100/70 text-emerald-800 text-xs font-bold mb-3">
+            <Sparkles className="w-3.5 h-3.5" /> Payment Verified
+          </div>
+
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-1 text-center">₹{amount.toLocaleString('en-IN')} Paid</h2>
+          <p className="text-slate-500 text-sm font-medium mb-6 text-center">Transaction ID: <span className="font-mono text-slate-700 font-bold">{txRef}</span></p>
+
+          <div className="w-full bg-slate-50 rounded-2xl p-4 border border-slate-200/70 text-xs space-y-2 mb-6">
+            <div className="flex justify-between text-slate-600">
+              <span>Payment Mode</span>
+              <span className="font-bold uppercase text-slate-800">{method}</span>
+            </div>
+            <div className="flex justify-between text-slate-600">
+              <span>Gateway Engine</span>
+              <span className="font-bold text-slate-800">MarkatVerse Shield 2.0</span>
+            </div>
+            <div className="flex justify-between text-slate-600">
+              <span>Timestamp</span>
+              <span className="font-mono text-slate-800">{new Date().toLocaleTimeString()}</span>
+            </div>
+          </div>
+
+          <div className="text-xs text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" /> 256-bit Bank Grade Encryption
           </div>
         </div>
       </div>
@@ -43,159 +257,536 @@ export default function MockPaymentGateway({ amount, onSuccess, onCancel }: Mock
   }
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-[850px] h-[90vh] md:h-[600px] max-h-[90vh] flex flex-col md:flex-row overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-300 p-2 sm:p-4">
+      <div className="bg-white rounded-3xl w-full max-w-[900px] h-[92vh] sm:h-[640px] max-h-[92vh] flex flex-col md:flex-row overflow-hidden shadow-2xl relative border border-slate-200 animate-in zoom-in-95 duration-300">
         
-        {/* Left Side: Summary */}
-        <div className="hidden md:flex w-full md:w-[300px] bg-slate-900 text-white p-6 md:p-8 flex-col">
-          <div className="flex items-center gap-2 mb-12">
-            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-black text-lg">M</div>
-            <span className="font-bold tracking-wide">MarkatVerse</span>
-          </div>
-          
-          <div className="text-slate-400 text-sm font-medium mb-1">Amount to pay</div>
-          <div className="text-4xl font-black mb-8 flex items-start gap-1">
-            <span className="text-xl mt-1 text-slate-300">₹</span>
-            {amount.toLocaleString('en-IN')}
+        {/* Left Side: Summary & Trust Badges */}
+        <div className="w-full md:w-[320px] bg-slate-900 text-white p-6 sm:p-8 flex flex-col justify-between shrink-0 border-b md:border-b-0 md:border-r border-slate-800 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div>
+            {/* Brand Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center font-black text-xl shadow-lg shadow-blue-600/30">
+                  M
+                </div>
+                <div>
+                  <span className="font-extrabold text-base tracking-tight block leading-tight">MarkatVerse</span>
+                  <span className="text-[10px] text-blue-400 font-bold tracking-wider uppercase">Pay Gateway</span>
+                </div>
+              </div>
+              
+              {/* Close Button on Mobile */}
+              <button 
+                onClick={onCancel}
+                className="md:hidden text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800/80"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Total Amount Display */}
+            <div className="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/60 mb-6">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Total Payable</span>
+              <div className="text-3xl sm:text-4xl font-black text-white flex items-baseline gap-1">
+                <span className="text-xl text-blue-400">₹</span>
+                {amount.toLocaleString('en-IN')}
+              </div>
+              <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1 font-mono">
+                Ref: {txRef}
+              </div>
+            </div>
+
+            {/* Order Items Snapshot */}
+            {items.length > 0 && (
+              <div className="hidden sm:block mb-6">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Order Items ({items.length})</span>
+                <div className="space-y-1.5 max-h-[140px] overflow-y-auto pr-1 text-xs">
+                  {items.map((it, idx) => (
+                    <div key={idx} className="flex justify-between text-slate-300">
+                      <span className="truncate max-w-[170px]">{it.quantity}x {it.name}</span>
+                      <span className="font-mono text-slate-400">₹{(it.price * it.quantity).toLocaleString('en-IN')}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="mt-auto hidden md:block">
-            <div className="flex items-center gap-2 text-slate-400 text-xs mb-4">
-              <ShieldCheck className="w-5 h-5 text-emerald-500" />
-              <span>100% Secure Payments</span>
+          {/* Footer Security Badges */}
+          <div className="pt-4 border-t border-slate-800/80 space-y-2">
+            <div className="flex items-center gap-2 text-slate-300 text-xs">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span className="font-medium">100% Secure & PCI-DSS Compliant</span>
             </div>
-            <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
-              Test Mode Gateway
+            <div className="flex items-center gap-2 text-slate-400 text-[11px]">
+              <Lock className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+              <span>Instant Bank Confirmation</span>
             </div>
           </div>
         </div>
 
-        {/* Right Side: Payment Methods */}
-        <div className="flex-1 bg-white flex flex-col relative h-full">
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-slate-100">
-            <h3 className="font-bold text-slate-800 text-lg">Select Payment Method</h3>
-            <button onClick={onCancel} className="text-slate-400 hover:text-slate-700 transition-colors p-2 bg-slate-50 rounded-full hover:bg-slate-100">
-              <X className="w-5 h-5" />
+        {/* Right Side: Interactive Payment Methods & Forms */}
+        <div className="flex-1 bg-white flex flex-col relative h-full overflow-hidden">
+          
+          {/* Header Bar */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+            <div>
+              <h3 className="font-extrabold text-slate-900 text-base sm:text-lg">Select Payment Mode</h3>
+              <p className="text-xs text-slate-500">Choose your preferred transaction method</p>
+            </div>
+            
+            <button 
+              onClick={onCancel}
+              className="hidden md:flex text-slate-400 hover:text-slate-800 transition-colors p-2 bg-white rounded-full border border-slate-200/80 hover:bg-slate-100 shadow-sm"
+              title="Close payment window"
+            >
+              <X className="w-4 h-4" />
             </button>
           </div>
 
           <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-            {/* Sidebar Methods */}
-            <div className="w-full md:w-[200px] border-r border-slate-100 bg-slate-50/50 overflow-y-auto">
+            
+            {/* Payment Method Selector Sidebar */}
+            <div className="w-full md:w-[210px] border-b md:border-b-0 md:border-r border-slate-100 bg-slate-50/70 overflow-x-auto md:overflow-y-auto flex md:flex-col shrink-0 p-2 md:p-3 gap-1.5">
+              
+              {/* UPI Option */}
               <button 
                 onClick={() => setMethod('upi')}
-                className={`w-full flex flex-col items-start p-4 border-l-4 transition-colors ${method === 'upi' ? 'border-blue-600 bg-white shadow-[inset_0_0_10px_rgba(0,0,0,0.02)]' : 'border-transparent text-slate-600 hover:bg-slate-100'}`}
+                className={`flex-1 md:flex-none flex items-center gap-3 p-3 rounded-xl transition-all text-left ${
+                  method === 'upi' 
+                    ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20' 
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/60 font-semibold'
+                }`}
               >
-                <div className="flex items-center gap-3">
-                  <Smartphone className={`w-5 h-5 ${method === 'upi' ? 'text-blue-600' : 'text-slate-400'}`} />
-                  <span className={`font-bold text-sm ${method === 'upi' ? 'text-blue-700' : ''}`}>UPI</span>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${method === 'upi' ? 'bg-white/20' : 'bg-blue-50 text-blue-600'}`}>
+                  <Smartphone className="w-4 h-4" />
                 </div>
-                <span className="text-[10px] text-slate-400 ml-8 mt-1 text-left">GPay, PhonePe, Paytm</span>
+                <div className="truncate">
+                  <div className="text-xs sm:text-sm">UPI</div>
+                  <div className={`text-[10px] truncate ${method === 'upi' ? 'text-blue-100' : 'text-slate-400'}`}>QR & Apps</div>
+                </div>
               </button>
 
+              {/* Card Option */}
               <button 
                 onClick={() => setMethod('card')}
-                className={`w-full flex flex-col items-start p-4 border-l-4 transition-colors ${method === 'card' ? 'border-blue-600 bg-white shadow-[inset_0_0_10px_rgba(0,0,0,0.02)]' : 'border-transparent text-slate-600 hover:bg-slate-100'}`}
+                className={`flex-1 md:flex-none flex items-center gap-3 p-3 rounded-xl transition-all text-left ${
+                  method === 'card' 
+                    ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20' 
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/60 font-semibold'
+                }`}
               >
-                <div className="flex items-center gap-3">
-                  <CreditCard className={`w-5 h-5 ${method === 'card' ? 'text-blue-600' : 'text-slate-400'}`} />
-                  <span className={`font-bold text-sm ${method === 'card' ? 'text-blue-700' : ''}`}>Card</span>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${method === 'card' ? 'bg-white/20' : 'bg-emerald-50 text-emerald-600'}`}>
+                  <CreditCard className="w-4 h-4" />
                 </div>
-                <span className="text-[10px] text-slate-400 ml-8 mt-1 text-left">Visa, MasterCard, RuPay</span>
+                <div className="truncate">
+                  <div className="text-xs sm:text-sm">Cards</div>
+                  <div className={`text-[10px] truncate ${method === 'card' ? 'text-blue-100' : 'text-slate-400'}`}>Debit & Credit</div>
+                </div>
               </button>
 
+              {/* Netbanking Option */}
               <button 
                 onClick={() => setMethod('netbanking')}
-                className={`w-full flex flex-col items-start p-4 border-l-4 transition-colors ${method === 'netbanking' ? 'border-blue-600 bg-white shadow-[inset_0_0_10px_rgba(0,0,0,0.02)]' : 'border-transparent text-slate-600 hover:bg-slate-100'}`}
+                className={`flex-1 md:flex-none flex items-center gap-3 p-3 rounded-xl transition-all text-left ${
+                  method === 'netbanking' 
+                    ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20' 
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/60 font-semibold'
+                }`}
               >
-                <div className="flex items-center gap-3">
-                  <Building2 className={`w-5 h-5 ${method === 'netbanking' ? 'text-blue-600' : 'text-slate-400'}`} />
-                  <span className={`font-bold text-sm ${method === 'netbanking' ? 'text-blue-700' : ''}`}>Netbanking</span>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${method === 'netbanking' ? 'bg-white/20' : 'bg-amber-50 text-amber-600'}`}>
+                  <Building2 className="w-4 h-4" />
                 </div>
-                <span className="text-[10px] text-slate-400 ml-8 mt-1 text-left">All Indian Banks</span>
+                <div className="truncate">
+                  <div className="text-xs sm:text-sm">Netbanking</div>
+                  <div className={`text-[10px] truncate ${method === 'netbanking' ? 'text-blue-100' : 'text-slate-400'}`}>All Indian Banks</div>
+                </div>
               </button>
+
+              {/* Wallet Option */}
+              <button 
+                onClick={() => setMethod('wallet')}
+                className={`flex-1 md:flex-none flex items-center gap-3 p-3 rounded-xl transition-all text-left ${
+                  method === 'wallet' 
+                    ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20' 
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/60 font-semibold'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${method === 'wallet' ? 'bg-white/20' : 'bg-purple-50 text-purple-600'}`}>
+                  <Wallet className="w-4 h-4" />
+                </div>
+                <div className="truncate">
+                  <div className="text-xs sm:text-sm">Wallets</div>
+                  <div className={`text-[10px] truncate ${method === 'wallet' ? 'text-blue-100' : 'text-slate-400'}`}>Markat, Paytm</div>
+                </div>
+              </button>
+
             </div>
 
-            {/* Active Method Details */}
-            <div className="flex-1 p-6 lg:p-8 overflow-y-auto">
+            {/* Active Method Form Body */}
+            <div className="flex-1 p-5 sm:p-7 overflow-y-auto custom-scrollbar">
               
+              {/* UPI MODE */}
               {method === 'upi' && (
-                <div className="animate-in fade-in duration-300 slide-in-from-right-4">
-                  <h4 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
-                    Pay via UPI <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" className="h-4" />
-                  </h4>
-                  <div className="space-y-4">
-                    <div className="border border-slate-200 rounded-xl p-4 hover:border-blue-400 transition-colors cursor-pointer group">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-xl">📸</div>
-                          <div>
-                            <div className="font-bold text-sm text-slate-800">Show QR Code</div>
-                            <div className="text-xs text-slate-500">Scan with any UPI app</div>
-                          </div>
+                <div className="space-y-5 animate-in fade-in duration-200">
+                  {/* UPI Subtabs: QR Code vs Enter VPA */}
+                  <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-bold text-slate-600">
+                    <button 
+                      onClick={() => setUpiSubMode('qr')}
+                      className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all ${upiSubMode === 'qr' ? 'bg-white text-blue-600 shadow-sm' : 'hover:text-slate-900'}`}
+                    >
+                      <QrCode className="w-3.5 h-3.5" /> Scan QR Code
+                    </button>
+                    <button 
+                      onClick={() => setUpiSubMode('vpa')}
+                      className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all ${upiSubMode === 'vpa' ? 'bg-white text-blue-600 shadow-sm' : 'hover:text-slate-900'}`}
+                    >
+                      <Smartphone className="w-3.5 h-3.5" /> Enter UPI ID / Number
+                    </button>
+                  </div>
+
+                  {upiSubMode === 'qr' ? (
+                    <div className="flex flex-col items-center justify-center p-4 border border-slate-200 rounded-2xl bg-slate-50/50 text-center">
+                      <div className="relative p-3 bg-white rounded-2xl shadow-md border border-slate-200 mb-3 group">
+                        <img 
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=markatverse@icici&pn=MarkatVerse%20Commerce&am=${amount}&tr=${txRef}&cu=INR`} 
+                          alt="UPI Payment QR Code" 
+                          className="w-40 h-40 object-contain rounded-xl"
+                        />
+                        <div className="absolute inset-0 bg-blue-600/5 backdrop-blur-[0.5px] rounded-2xl pointer-events-none" />
+                      </div>
+
+                      <div className="text-xs font-semibold text-slate-700 flex items-center gap-1.5 mb-1">
+                        <span>Scan with any app</span>
+                        <div className="flex items-center gap-1 font-bold text-slate-900">
+                          <span className="text-blue-600 font-extrabold">GPay</span> • 
+                          <span className="text-purple-600 font-extrabold">PhonePe</span> • 
+                          <span className="text-sky-600 font-extrabold">Paytm</span>
                         </div>
-                        <div className="w-4 h-4 rounded-full border border-slate-300 group-hover:border-blue-500"></div>
+                      </div>
+
+                      <div className="text-[11px] text-slate-500 flex items-center gap-1 font-medium">
+                        <RefreshCw className="w-3 h-3 text-amber-500 animate-spin" /> QR expires in <span className="font-bold font-mono text-slate-800">{formattedQrTimer}</span>
                       </div>
                     </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                          Virtual Payment Address (VPA)
+                        </label>
+                        <div className="flex gap-2">
+                          <input 
+                            type="text" 
+                            value={upiId}
+                            onChange={(e) => {
+                              setUpiId(e.target.value);
+                              setVpaVerified(false);
+                              setUpiError('');
+                            }}
+                            placeholder="e.g. mobileNumber@upi or yourname@okaxis" 
+                            className={`flex-1 bg-slate-50 border rounded-xl px-4 py-3 text-slate-900 text-sm font-medium focus:outline-none focus:bg-white transition-all ${
+                              upiError ? 'border-red-400 focus:border-red-500' : vpaVerified ? 'border-emerald-500 focus:border-emerald-500' : 'border-slate-200 focus:border-blue-500'
+                            }`}
+                          />
+                          <button 
+                            onClick={handleVerifyUpi}
+                            className={`px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all ${
+                              vpaVerified ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-slate-900 text-white hover:bg-slate-800'
+                            }`}
+                          >
+                            {vpaVerified ? 'Verified ✓' : 'Verify'}
+                          </button>
+                        </div>
+                        {upiError && (
+                          <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+                            <AlertCircle className="w-3.5 h-3.5" /> {upiError}
+                          </p>
+                        )}
+                        {vpaVerified && (
+                          <p className="text-emerald-600 text-xs mt-1.5 flex items-center gap-1 font-medium">
+                            <Check className="w-3.5 h-3.5" /> Verified Name: Markat Registered Buyer
+                          </p>
+                        )}
+                      </div>
 
-                    <div className="relative flex items-center py-2">
-                      <div className="flex-grow border-t border-slate-100"></div>
-                      <span className="flex-shrink-0 mx-4 text-slate-400 text-xs font-bold uppercase">OR</span>
-                      <div className="flex-grow border-t border-slate-100"></div>
+                      {/* Quick Apps */}
+                      <div>
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Popular UPI Apps</span>
+                        <div className="grid grid-cols-3 gap-2">
+                          {[
+                            { name: 'Google Pay', suffix: '@okaxis' },
+                            { name: 'PhonePe', suffix: '@ybl' },
+                            { name: 'Paytm UPI', suffix: '@paytm' }
+                          ].map(app => (
+                            <button
+                              key={app.name}
+                              type="button"
+                              onClick={() => {
+                                setUpiId(`customer${app.suffix}`);
+                                setVpaVerified(true);
+                                setUpiError('');
+                              }}
+                              className="border border-slate-200 rounded-xl p-2.5 text-center hover:border-blue-400 hover:bg-blue-50/50 transition-all text-xs font-bold text-slate-700"
+                            >
+                              {app.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
+                  )}
 
+                  {/* Merchant VPA info */}
+                  <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100 flex items-center justify-between text-xs">
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Enter UPI ID</label>
-                      <input type="text" placeholder="e.g. 9876543210@ybl" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors text-sm font-medium" />
+                      <span className="text-slate-500 block text-[10px] uppercase font-bold">Paying To</span>
+                      <span className="font-bold text-slate-800">markatverse@icici</span>
                     </div>
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard?.writeText('markatverse@icici');
+                        setCopiedUpi(true);
+                        setTimeout(() => setCopiedUpi(false), 2000);
+                      }}
+                      className="text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 bg-white px-2.5 py-1 rounded-lg border border-blue-200 shadow-2xs"
+                    >
+                      {copiedUpi ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                      <span>{copiedUpi ? 'Copied' : 'Copy'}</span>
+                    </button>
                   </div>
                 </div>
               )}
 
+              {/* CARD MODE */}
               {method === 'card' && (
-                <div className="animate-in fade-in duration-300 slide-in-from-right-4">
-                  <h4 className="font-bold text-slate-800 mb-6">Enter Card Details</h4>
-                  <div className="space-y-5">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Card Number</label>
-                      <input type="text" placeholder="XXXX XXXX XXXX XXXX" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors text-sm font-medium font-mono" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Expiry</label>
-                        <input type="text" placeholder="MM/YY" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors text-sm font-medium" />
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  {/* Card Number Input with Brand Icon */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Card Number
+                    </label>
+                    <div className="relative">
+                      <input 
+                        type="text" 
+                        value={cardNumber}
+                        onChange={handleCardNumberChange}
+                        placeholder="4111 2222 3333 4444" 
+                        maxLength={19}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-16 py-3 text-slate-900 font-mono text-sm font-semibold focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
+                        {cardBrand === 'visa' && (
+                          <span className="bg-blue-600 text-white font-black italic text-[11px] px-2 py-0.5 rounded shadow-xs">VISA</span>
+                        )}
+                        {cardBrand === 'mastercard' && (
+                          <span className="bg-red-500 text-white font-bold text-[11px] px-2 py-0.5 rounded shadow-xs">MC</span>
+                        )}
+                        {cardBrand === 'rupay' && (
+                          <span className="bg-emerald-600 text-white font-bold text-[11px] px-2 py-0.5 rounded shadow-xs">RuPay</span>
+                        )}
+                        {cardBrand === 'generic' && (
+                          <CreditCard className="w-5 h-5 text-slate-400" />
+                        )}
                       </div>
-                      <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2">CVV</label>
-                        <input type="password" placeholder="***" maxLength={4} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors text-sm font-medium font-mono" />
-                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card Expiry & CVV */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Valid Thru
+                      </label>
+                      <input 
+                        type="text" 
+                        value={cardExpiry}
+                        onChange={handleExpiryChange}
+                        placeholder="MM/YY" 
+                        maxLength={5}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 text-sm font-mono font-semibold focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                      />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Cardholder Name</label>
-                      <input type="text" placeholder="Name on card" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors text-sm font-medium" />
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                        <span>CVV</span>
+                        <span className="text-[10px] text-slate-400 font-normal">3-4 digits</span>
+                      </label>
+                      <input 
+                        type="password" 
+                        value={cardCvv}
+                        onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                        placeholder="•••" 
+                        maxLength={4}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 text-sm font-mono font-bold focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                      />
                     </div>
+                  </div>
+
+                  {/* Cardholder Name */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Cardholder Name
+                    </label>
+                    <input 
+                      type="text" 
+                      value={cardName}
+                      onChange={(e) => setCardName(e.target.value)}
+                      placeholder="Name as printed on card" 
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 text-sm font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                    />
+                  </div>
+
+                  {cardError && (
+                    <p className="text-red-500 text-xs flex items-center gap-1 font-medium">
+                      <AlertCircle className="w-3.5 h-3.5" /> {cardError}
+                    </p>
+                  )}
+
+                  <div className="flex items-center gap-2 pt-2 text-[11px] text-slate-400">
+                    <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                    <span>Card details are tokenized in compliance with RBI safety guidelines.</span>
                   </div>
                 </div>
               )}
 
+              {/* NETBANKING MODE */}
               {method === 'netbanking' && (
-                <div className="animate-in fade-in duration-300 slide-in-from-right-4">
-                  <h4 className="font-bold text-slate-800 mb-6">Select Bank</h4>
-                  <div className="grid grid-cols-2 gap-3 mb-6">
-                    {['HDFC', 'SBI', 'ICICI', 'Axis'].map(bank => (
-                      <div key={bank} className="border border-slate-200 rounded-xl p-3 text-center hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-colors">
-                        <span className="font-bold text-slate-700 text-sm">{bank}</span>
-                      </div>
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                    Popular Banks
+                  </span>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    {popularBanks.map(bank => (
+                      <button
+                        key={bank.id}
+                        type="button"
+                        onClick={() => setSelectedBank(bank.id)}
+                        className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all text-center ${
+                          selectedBank === bank.id 
+                            ? 'border-blue-600 bg-blue-50/70 text-blue-700 font-bold shadow-xs ring-2 ring-blue-500/20' 
+                            : 'border-slate-200 hover:border-slate-300 bg-white text-slate-700 font-medium'
+                        }`}
+                      >
+                        <span className="text-xl">{bank.logo}</span>
+                        <span className="text-xs truncate w-full">{bank.name}</span>
+                      </button>
                     ))}
                   </div>
-                  <div>
-                    <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:border-blue-500 text-sm font-medium appearance-none">
-                      <option>Select other bank...</option>
-                      <option>Kotak Mahindra Bank</option>
-                      <option>Yes Bank</option>
-                      <option>Bank of Baroda</option>
-                    </select>
+
+                  <div className="pt-2">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Or Search Other Banks
+                    </label>
+                    <div className="relative mb-2">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input 
+                        type="text" 
+                        value={bankSearch}
+                        onChange={(e) => setBankSearch(e.target.value)}
+                        placeholder="Search all Indian banks..." 
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-slate-800 text-xs font-medium focus:outline-none focus:border-blue-500 focus:bg-white"
+                      />
+                    </div>
+
+                    <div className="max-h-[110px] overflow-y-auto space-y-1 border border-slate-200 rounded-xl p-1 bg-slate-50/50">
+                      {filteredOtherBanks.length === 0 ? (
+                        <div className="text-xs text-slate-400 p-2 text-center">No banks matching search</div>
+                      ) : (
+                        filteredOtherBanks.map(b => (
+                          <div 
+                            key={b} 
+                            onClick={() => setSelectedBank(b)}
+                            className={`px-3 py-2 rounded-lg text-xs font-medium cursor-pointer flex items-center justify-between ${
+                              selectedBank === b ? 'bg-blue-600 text-white font-bold' : 'hover:bg-slate-200/60 text-slate-700'
+                            }`}
+                          >
+                            <span>{b}</span>
+                            {selectedBank === b && <Check className="w-3.5 h-3.5" />}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* WALLET MODE */}
+              {method === 'wallet' && (
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                    Available Wallets
+                  </span>
+
+                  <div className="space-y-2.5">
+                    {/* MarkatVerse Wallet */}
+                    <div 
+                      onClick={() => setSelectedWallet('markat')}
+                      className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
+                        selectedWallet === 'markat' 
+                          ? 'border-blue-600 bg-blue-50/60 shadow-xs ring-2 ring-blue-500/20' 
+                          : 'border-slate-200 hover:border-slate-300 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black shadow-xs">
+                          M
+                        </div>
+                        <div>
+                          <div className="font-bold text-sm text-slate-800">MarkatVerse Balance</div>
+                          <div className="text-xs text-slate-500">Instant one-tap checkout</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xs text-slate-400 font-bold">Balance</div>
+                        <div className="text-sm font-extrabold text-emerald-600">₹{(amount + 500).toLocaleString('en-IN')}</div>
+                      </div>
+                    </div>
+
+                    {/* Paytm Wallet */}
+                    <div 
+                      onClick={() => setSelectedWallet('paytm')}
+                      className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
+                        selectedWallet === 'paytm' 
+                          ? 'border-blue-600 bg-blue-50/60 shadow-xs ring-2 ring-blue-500/20' 
+                          : 'border-slate-200 hover:border-slate-300 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center text-white font-bold text-xs shadow-xs">
+                          Paytm
+                        </div>
+                        <div>
+                          <div className="font-bold text-sm text-slate-800">Paytm Wallet & Postpaid</div>
+                          <div className="text-xs text-slate-500">Link your Paytm mobile number</div>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-slate-400" />
+                    </div>
+
+                    {/* Mobikwik */}
+                    <div 
+                      onClick={() => setSelectedWallet('mobikwik')}
+                      className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
+                        selectedWallet === 'mobikwik' 
+                          ? 'border-blue-600 bg-blue-50/60 shadow-xs ring-2 ring-blue-500/20' 
+                          : 'border-slate-200 hover:border-slate-300 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xs shadow-xs">
+                          Mobi
+                        </div>
+                        <div>
+                          <div className="font-bold text-sm text-slate-800">MobiKwik / ZIP Pay Later</div>
+                          <div className="text-xs text-slate-500">Pay next month with 0% interest</div>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-slate-400" />
+                    </div>
                   </div>
                 </div>
               )}
@@ -203,19 +794,28 @@ export default function MockPaymentGateway({ amount, onSuccess, onCancel }: Mock
             </div>
           </div>
 
-          {/* Footer / Pay Button */}
-          <div className="p-4 md:p-6 border-t border-slate-100 bg-white mt-auto">
+          {/* Footer Action Bar */}
+          <div className="p-4 sm:p-5 border-t border-slate-100 bg-white flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+            <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500">
+              <Lock className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Payments are encrypted with AES-256</span>
+            </div>
+
             <button 
               onClick={handlePay}
               disabled={status === 'processing'}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 text-lg disabled:opacity-70 disabled:shadow-none"
+              className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-75 disabled:shadow-none min-w-[200px]"
             >
               {status === 'processing' ? (
                 <>
-                  <Loader2 className="w-6 h-6 animate-spin" /> Processing Payment...
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>{statusMessage}</span>
                 </>
               ) : (
-                `Pay ₹${amount.toLocaleString('en-IN')} securely`
+                <>
+                  <span>Pay ₹{amount.toLocaleString('en-IN')}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
               )}
             </button>
           </div>

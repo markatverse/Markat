@@ -583,6 +583,7 @@ export default function CheckoutPage() {
       {showGateway && (
         <MockPaymentGateway 
           amount={total} 
+          items={items.map(i => ({ name: i.name, price: i.price, quantity: i.quantity }))}
           onSuccess={handlePaymentSuccess} 
           onCancel={() => setShowGateway(false)} 
         />
