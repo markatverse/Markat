@@ -96,10 +96,21 @@ let ProductsService = class ProductsService {
                 return { ...p, _distance: dist };
             });
             const showOutOfRange = data?.showOutOfRange === true;
+            const productsNoRadiusLimit = data?.productsNoRadiusLimit !== false;
             const distanceWeight = data?.distanceWeight ?? 50;
+            const serviceCategories = ['Services', 'Home Services', 'Transport', 'Rentals', 'Organizers', 'Beauty', 'Salon', 'Home', 'Professional'];
+            const isServiceItem = (p) => {
+                if (p.primaryType)
+                    return p.primaryType === 'SERVICE';
+                return serviceCategories.includes(p.categoryName || '');
+            };
             products = withDistances.filter(p => {
                 if (p._distance === Infinity)
                     return true;
+                const isService = isServiceItem(p);
+                if (!isService && productsNoRadiusLimit) {
+                    return true;
+                }
                 const sectorName = getSectorForProduct(p);
                 const radiusToUse = sectorRadiusMap[sectorName] ?? effectiveRadius ?? 50;
                 if (p._distance > radiusToUse) {

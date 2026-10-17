@@ -149,6 +149,24 @@ export default function SettingsPlatformPage() {
                 </div>
                 <span className="text-sm font-medium text-slate-300 group-hover/label:text-white transition-colors">Enforce Strict Boundary</span>
               </label>
+
+              <label className="flex items-center gap-3 group/label cursor-pointer p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 hover:border-blue-500/50 transition-colors whitespace-nowrap">
+                <div className="relative flex items-center">
+                  <input 
+                    type="checkbox" 
+                    checked={systemConfig?.productsNoRadiusLimit ?? true} 
+                    onChange={(e) => updateSystemConfig({ ...systemConfig, productsNoRadiusLimit: e.target.checked })}
+                    disabled={!hasTogglePermission}
+                    className="peer sr-only"
+                  />
+                  <div className="w-5 h-5 border-2 border-blue-400/60 rounded bg-transparent peer-checked:bg-blue-500 peer-checked:border-blue-500 transition-colors"></div>
+                  <Check className="absolute w-3.5 h-3.5 text-white top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 peer-checked:opacity-100 transition-opacity" />
+                </div>
+                <div>
+                  <span className="text-sm font-bold text-blue-200 group-hover/label:text-white transition-colors block">Products: Pan-India (No Limit)</span>
+                  <span className="text-[10px] text-blue-400 font-medium block">Recommend nearest first</span>
+                </div>
+              </label>
             </div>
             
           </div>

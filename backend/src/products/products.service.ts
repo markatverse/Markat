@@ -95,13 +95,27 @@ export class ProductsService {
       });
 
       const showOutOfRange = data?.showOutOfRange === true;
+      const productsNoRadiusLimit = data?.productsNoRadiusLimit !== false; // Default true (products have no hard radius barrier)
       const distanceWeight = data?.distanceWeight ?? 50; // 0-100
+
+      // Helper to check if an item is a physical good vs a service
+      const serviceCategories = ['Services', 'Home Services', 'Transport', 'Rentals', 'Organizers', 'Beauty', 'Salon', 'Home', 'Professional'];
+      const isServiceItem = (p: any) => {
+        if (p.primaryType) return p.primaryType === 'SERVICE';
+        return serviceCategories.includes(p.categoryName || '');
+      };
 
       // Filter out products outside the radius (unless they have no coordinates)
       products = withDistances.filter(p => {
         if (p._distance === Infinity) return true;
         
-        // Find specific radius for this product's sector
+        // If it's a physical product and pan-India product discovery is enabled, do not filter out by distance limit
+        const isService = isServiceItem(p);
+        if (!isService && productsNoRadiusLimit) {
+          return true; // Keep physical products; distance sorting will rank nearer ones first!
+        }
+
+        // Find specific radius for this item's sector
         const sectorName = getSectorForProduct(p);
         const radiusToUse = sectorRadiusMap[sectorName] ?? effectiveRadius ?? 50;
         

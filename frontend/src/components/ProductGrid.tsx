@@ -129,6 +129,7 @@ export default function ProductGrid({ products: propProducts, limit, category, p
                 {(!systemConfig?.strictRadius || (systemConfig?.searchRadius || 50) >= 100) && <option value="100">Within 100 km</option>}
                 {(!systemConfig?.strictRadius || (systemConfig?.searchRadius || 50) >= 250) && <option value="250">Within 250 km</option>}
                 {(!systemConfig?.strictRadius || (systemConfig?.searchRadius || 50) >= 500) && <option value="500">Within 500 km</option>}
+                {(!systemConfig?.strictRadius || (systemConfig?.searchRadius || 50) >= 1000) && <option value="1000">Within 1000 km</option>}
               </select>
             </div>
           )}

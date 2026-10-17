@@ -16,6 +16,7 @@ export default function AdminLocationsPage() {
   
   const [strictRadius, setStrictRadius] = useState(false);
   const [showOutOfRange, setShowOutOfRange] = useState(false);
+  const [productsNoRadiusLimit, setProductsNoRadiusLimit] = useState(true);
   const [distanceWeight, setDistanceWeight] = useState(50);
   
   const [isSaving, setIsSaving] = useState(false);
@@ -39,6 +40,9 @@ export default function AdminLocationsPage() {
       if (typeof systemConfig.showOutOfRange === 'boolean') {
         setShowOutOfRange(systemConfig.showOutOfRange);
       }
+      if (typeof systemConfig.productsNoRadiusLimit === 'boolean') {
+        setProductsNoRadiusLimit(systemConfig.productsNoRadiusLimit);
+      }
       if (typeof systemConfig.distanceWeight === 'number') {
         setDistanceWeight(systemConfig.distanceWeight);
       }
@@ -56,6 +60,7 @@ export default function AdminLocationsPage() {
         sectorRadius: sectorRadii,
         strictRadius,
         showOutOfRange,
+        productsNoRadiusLimit,
         distanceWeight
       });
       setSaved(true);
@@ -167,7 +172,7 @@ export default function AdminLocationsPage() {
             <input 
               type="range" 
               min="1" 
-              max="500" 
+              max="1000" 
               value={defaultRadius}
               disabled={!hasSettingsPermission}
               onChange={(e) => setDefaultRadius(parseInt(e.target.value))}
@@ -175,8 +180,8 @@ export default function AdminLocationsPage() {
             />
             <div className="flex justify-between text-xs font-semibold text-slate-500 mt-2">
               <span>1 km (Hyperlocal)</span>
-              <span>250 km (Regional)</span>
-              <span>500 km (National)</span>
+              <span>500 km (Regional)</span>
+              <span>1000 km (National / All India)</span>
             </div>
           </div>
 
@@ -208,7 +213,7 @@ export default function AdminLocationsPage() {
                     <input 
                       type="range" 
                       min="1" 
-                      max="500" 
+                      max="1000" 
                       value={currentVal}
                       disabled={!hasSettingsPermission}
                       onChange={(e) => handleSectorRadiusChange(sector.name, parseInt(e.target.value))}
@@ -271,6 +276,29 @@ export default function AdminLocationsPage() {
                     onChange={(e) => setShowOutOfRange(e.target.checked)}
                   />
                   <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
+                </label>
+              </div>
+
+              {/* Physical Products Radius Exemption */}
+              <div className="flex items-center justify-between gap-4 md:col-span-2 bg-slate-900/60 p-4 rounded-xl border border-slate-700/60">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-white font-bold">Physical Products: No Distance Limit (Pan-India)</h3>
+                    <span className="text-[10px] font-bold uppercase bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full border border-blue-500/30">Recommended</span>
+                  </div>
+                  <p className="text-sm text-slate-400 mt-0.5">
+                    When enabled, physical shippable products are <strong>not limited by radius</strong>, but nearest items are always <strong>recommended and sorted first</strong>. Distance limits apply only to physical services.
+                  </p>
+                </div>
+                <label className={`relative inline-flex items-center cursor-pointer flex-shrink-0 ${!hasSettingsPermission && 'opacity-50 cursor-not-allowed'}`}>
+                  <input 
+                    type="checkbox" 
+                    className="sr-only peer" 
+                    checked={productsNoRadiusLimit}
+                    disabled={!hasSettingsPermission}
+                    onChange={(e) => setProductsNoRadiusLimit(e.target.checked)}
+                  />
+                  <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
               </div>
             </div>
