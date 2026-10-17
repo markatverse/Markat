@@ -1,5 +1,7 @@
 "use client";
 import React, { useState } from 'react';
+import { getApiUrl } from '@/utils/api';
+const API_URL = getApiUrl();
 import { 
   Search, 
   Package, 
@@ -70,7 +72,7 @@ export default function HelpCenterPage() {
     }
     setIsSendingTicket(true);
     try {
-      const res = await fetch('http://localhost:3001/auth/support-ticket', {
+      const res = await fetch(`${API_URL}/auth/support-ticket`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(ticketForm)
