@@ -12,6 +12,7 @@ import SmartQueueWidget from '@/components/SmartQueueWidget';
 import ReviewsSection from '@/components/ReviewsSection';
 import StarRating from '@/components/StarRating';
 import AdvertisementWidget from '@/components/AdvertisementWidget';
+import { isServiceProduct } from '@/utils/productSearch';
 
 const getApiUrl = () => {
   if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
@@ -52,7 +53,14 @@ export default function ProductDetails() {
   const hasRFQ             = rules.allows('RFQ') || rules.allows('Quote');
   const hasMeeting         = rules.allows('Meeting') || rules.isOptional('Meeting');
   const hasVehicleTestDrive = rules.allows('Vehicle Test Drive');
-  const hasService         = rules.allows('Service') || product?.primaryType === 'SERVICE';
+  const hasService         = rules.allows('Service') || product?.primaryType === 'SERVICE' || isServiceProduct(product as any);
+
+  // If this item is a service, automatically route to the dedicated service booking page (/service/:id)
+  useEffect(() => {
+    if (product && isServiceProduct(product as any)) {
+      router.replace(`/service/${product.id}`);
+    }
+  }, [product?.id, product?.primaryType, product?.category, router]);
 
   const requireAuth = (action: () => void) => {
     if (!user) {
