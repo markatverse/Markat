@@ -267,59 +267,102 @@ function LoginContent() {
     <div className="min-h-screen bg-[#f4f7fa] flex">
       <Toaster position="top-right" />
       {/* ── Left Branding Panel ── */}
-      <div className="hidden lg:flex w-[440px] bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 relative overflow-hidden flex-col justify-between p-12 shrink-0">
+      <div className="hidden lg:flex w-[480px] bg-gradient-to-br from-blue-700 via-blue-800 to-indigo-950 relative overflow-hidden flex-col justify-between p-10 shrink-0 border-r border-blue-600/30 shadow-2xl">
         
-        {/* Back Button */}
-        <Link href="/" className="absolute top-8 left-8 text-blue-200 hover:text-white flex items-center gap-2 text-sm font-semibold z-20 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Back to Home
-        </Link>
+        {/* Top Bar: Back & Tag */}
+        <div className="relative z-20 flex items-center justify-between pb-4">
+          <Link 
+            href="/" 
+            className="group inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-blue-100 hover:text-white text-xs font-semibold backdrop-blur-md border border-white/15 transition-all duration-200"
+          >
+            <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+            <span>Back to Home</span>
+          </Link>
 
-        {/* Decorative circles */}
-        <div className="absolute top-[-80px] left-[-80px] w-[360px] h-[360px] border border-white/10 rounded-full" />
-        <div className="absolute bottom-[-100px] right-[-100px] w-[440px] h-[440px] border border-white/10 rounded-full" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl" />
-
-        <div className="relative z-10 mt-12">
-          <img src="/logo.png" alt="MarkatVerse" className="h-16 brightness-0 invert object-contain" />
+          <span className="text-[11px] font-semibold tracking-wider text-blue-300 uppercase bg-blue-950/70 px-3 py-1 rounded-full border border-blue-500/30">
+            Customer Account
+          </span>
         </div>
 
-        <div className="relative z-10 mb-8">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 mb-8">
-            <ShieldCheck className="w-5 h-5 text-emerald-400" />
-            <span className="text-white/90 text-sm font-semibold">Trusted by 2M+ users</span>
+        {/* Decorative Ambient Background Rings */}
+        <div className="absolute top-[-80px] left-[-80px] w-[340px] h-[340px] border border-white/5 rounded-full pointer-events-none" />
+        <div className="absolute bottom-[-100px] right-[-100px] w-[420px] h-[420px] border border-blue-400/10 rounded-full pointer-events-none" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Main Content (Balanced Spacing, No Dead Gap) */}
+        <div className="relative z-10 flex flex-col justify-center my-auto py-4">
+          
+          {/* Prominent High-Visibility Brand Logo */}
+          <div className="flex items-center gap-3 mb-5">
+            <div className="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 shadow-md">
+              <img 
+                src="/logo.png" 
+                alt="MarkatVerse" 
+                className="h-12 w-auto brightness-0 invert object-contain" 
+              />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-white text-base font-extrabold tracking-wide uppercase">
+                MarkatVerse
+              </span>
+              <span className="text-blue-300 text-[10px] font-bold tracking-[0.2em] uppercase">
+                Global Marketplace
+              </span>
+            </div>
           </div>
-          <h1 className="text-5xl font-extrabold text-white leading-tight mb-6">
+
+          {/* Social Proof Trust Badge */}
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/15 rounded-full px-3.5 py-1.5 w-fit mb-5 shadow-xs">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span className="text-white text-xs font-medium">
+              Trusted by <strong className="text-amber-300 font-bold">2M+</strong> buyers & sellers worldwide
+            </span>
+          </div>
+
+          {/* Heading */}
+          <h1 className="text-3xl xl:text-4xl font-extrabold text-white leading-tight mb-3 tracking-tight">
             Your gateway to the<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-amber-500">global marketplace</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-200 to-blue-200">
+              global marketplace
+            </span>
           </h1>
-          <p className="text-blue-50 text-base leading-relaxed mb-10">
-            Join millions of buyers and sellers worldwide. Discover products, services, and opportunities — all in one place.
+
+          <p className="text-blue-100/90 text-sm leading-relaxed mb-6">
+            Join millions of buyers and sellers worldwide. Discover products, explore verified local services, and track all your orders securely.
           </p>
 
-          <div className="space-y-6">
+          {/* Feature Highlights */}
+          <div className="space-y-2.5">
             {[
-              { icon: '🛒', text: 'Shop from millions of products' },
-              { icon: '💼', text: 'Sell and grow your business' },
-              { icon: '🔒', text: 'Secure & encrypted payments' },
+              { icon: '🛒', title: 'Millions of Products', desc: 'Shop top verified brands and local stores' },
+              { icon: '🔒', title: '100% Safe Payments', desc: 'End-to-end encrypted checkout protection' },
+              { icon: '⚡', title: 'Fast Deliveries & Tracking', desc: 'Real-time order tracking right to your doorstep' },
             ].map((item, i) => (
-              <div key={i} className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-xl shrink-0">{item.icon}</div>
-                <span className="text-blue-50 text-base font-medium">{item.text}</span>
+              <div key={i} className="flex items-start gap-3 bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 hover:border-white/20 transition-colors">
+                <div className="w-8 h-8 bg-white/15 rounded-lg flex items-center justify-center text-base shrink-0">{item.icon}</div>
+                <div>
+                  <div className="text-white text-xs font-bold">{item.title}</div>
+                  <div className="text-blue-200/70 text-[11px] mt-0.5">{item.desc}</div>
+                </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="relative z-10 flex items-center gap-6 text-blue-200/80 text-sm font-medium">
-          <span>🛡️ Secure Platform</span>
-          <span>🔒 SSL Encrypted</span>
-          <span>✅ Verified Sellers</span>
+        {/* Footer Security Badges */}
+        <div className="relative z-10 flex items-center justify-between pt-4 border-t border-white/10 text-blue-200/70 text-xs">
+          <span className="flex items-center gap-1.5">
+            <span>🛡️</span> Buyer Protection
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span>🔒</span> 256-bit SSL Security
+          </span>
         </div>
       </div>
 
-      {/* ── Right Form Panel ── */}
+      {/* ── Right Form Panel (Expanded Comfortable Width) ── */}
       <div className="flex-1 flex flex-col items-center justify-start lg:justify-center p-6 pt-12 lg:p-12 overflow-y-auto relative">
-        <div className="w-full max-w-[440px]">
+        <div className="w-full max-w-[520px]">
 
           {/* Mobile Header (Logo & Back) */}
           <div className="lg:hidden w-full flex items-center justify-between mb-10">
