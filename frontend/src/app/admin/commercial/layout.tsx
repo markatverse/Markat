@@ -10,7 +10,6 @@ export default function CommercialLayout({ children }: { children: React.ReactNo
     { name: 'Commission', href: '/admin/commercial/commission' },
     { name: 'Subscriptions', href: '/admin/commercial/subscriptions' },
     { name: 'Coupons', href: '/admin/commercial/coupons' },
-    { name: 'Advertisements', href: '/admin/commercial/advertisements' },
   ];
 
   return (

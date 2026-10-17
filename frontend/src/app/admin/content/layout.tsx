@@ -9,6 +9,7 @@ export default function ContentLayout({ children }: { children: React.ReactNode 
   const tabs = [
     { name: 'CMS', href: '/admin/content/cms' },
     { name: 'Banners', href: '/admin/content/banners' },
+    { name: 'Advertisements', href: '/admin/content/advertisements' },
     { name: 'Blog', href: '/admin/content/blog' },
     { name: 'SEO', href: '/admin/content/seo' },
   ];

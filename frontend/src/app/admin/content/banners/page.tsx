@@ -3,6 +3,14 @@ import React, { useEffect, useState } from 'react';
 
 const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
 
+const getFullImageUrl = (url?: string) => {
+  if (!url) return '';
+  if (url.startsWith('/') && !url.startsWith('//')) {
+    return `${API_URL}${url}`;
+  }
+  return url;
+};
+
 export default function ContentBannersPage() {
   const [banners, setBanners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -171,7 +179,22 @@ export default function ContentBannersPage() {
                   <tr key={banner.id} className="hover:bg-slate-700/50 transition-all group">
                     <td className="p-4 pl-6 font-bold text-white text-base">{banner.title}</td>
                     <td className="p-4">
-                       <img src={banner.imageUrl} alt={banner.title} className="h-12 w-24 object-cover rounded-md border border-slate-700 bg-slate-900 group-hover:border-emerald-500 transition-colors" />
+                      {banner.imageUrl ? (
+                        <img 
+                          src={getFullImageUrl(banner.imageUrl)} 
+                          alt={banner.title} 
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            target.onerror = null;
+                            target.src = 'https://placehold.co/120x60/1e293b/94a3b8?text=No+Preview';
+                          }}
+                          className="h-12 w-24 object-cover rounded-md border border-slate-700 bg-slate-900 group-hover:border-emerald-500 transition-colors shadow-sm" 
+                        />
+                      ) : (
+                        <div className="h-12 w-24 rounded-md border border-slate-700 bg-slate-900 flex items-center justify-center text-[10px] text-slate-500 font-bold">
+                          No Image
+                        </div>
+                      )}
                     </td>
                     <td className="p-4">
                        <div className="text-xs font-semibold bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg inline-block border border-slate-700">{banner.position}</div>
@@ -227,8 +250,16 @@ export default function ContentBannersPage() {
                     }}
                     className="sm:w-48 border-2 border-dashed border-slate-600 rounded-xl flex items-center justify-center text-center hover:border-emerald-500 hover:bg-slate-800/50 transition-all group relative overflow-hidden"
                   >
-                    {formData.imageUrl && formData.imageUrl.startsWith('data:image') ? (
-                      <img src={formData.imageUrl} alt="Preview" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-30 transition-opacity" />
+                    {formData.imageUrl ? (
+                      <img 
+                        src={getFullImageUrl(formData.imageUrl)} 
+                        alt="Preview" 
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.style.display = 'none';
+                        }}
+                        className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-30 transition-opacity" 
+                      />
                     ) : null}
                     <div className="flex items-center gap-2 z-10 pointer-events-none px-2 py-3">
                       <span className="text-xl drop-shadow-md">📸</span>

@@ -85,15 +85,12 @@ export default function BannerSlideshow({ banners: initialBanners }: { banners: 
                 className="w-full h-full object-cover" 
               />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
-              <span className="text-xs uppercase tracking-widest text-emerald-400 font-bold mb-1">Featured Announcement</span>
-              <h2 className="text-3xl md:text-5xl font-black text-white mb-2 transform translate-y-0 opacity-100 transition-all duration-700 delay-100">{banner.title}</h2>
-              {banner.linkUrl ? (
+              {banner.title && (
+                <h2 className="text-3xl md:text-5xl font-black text-white mb-2 transform translate-y-0 opacity-100 transition-all duration-700 delay-100">{banner.title}</h2>
+              )}
+              {banner.linkUrl && (
                 <Link href={banner.linkUrl} className="inline-block mt-4 bg-emerald-500 hover:bg-emerald-400 text-white px-6 py-3 rounded-xl font-bold transition-all w-fit shadow-lg shadow-emerald-500/20">
                   Explore Offer
-                </Link>
-              ) : (
-                <Link href="/explore" className="inline-block mt-4 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-bold transition-all w-fit shadow-lg shadow-blue-600/20">
-                  Shop Now &rarr;
                 </Link>
               )}
             </div>
