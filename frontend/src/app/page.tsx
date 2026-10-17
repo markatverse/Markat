@@ -59,7 +59,7 @@ async function getBlogPosts() {
     const apiUrl = getApiUrl();
     const res = await fetch(`${apiUrl}/content/blog`, {
       next: { revalidate: 60 },
-      signal: AbortSignal.timeout(2500),
+      signal: AbortSignal.timeout(1500),
     }).catch(() => null);
 
     if (res && res.ok) {
@@ -75,11 +75,7 @@ async function getBlogPosts() {
 }
 
 export default async function Home() {
-  const [ads, banners, blogPosts] = await Promise.all([
-    getAdvertisements(),
-    getBanners(),
-    getBlogPosts()
-  ]);
+  const blogPosts = await getBlogPosts();
 
   return (
     <div className="w-full min-h-[calc(100vh-80px)] flex bg-slate-50">
@@ -88,10 +84,10 @@ export default async function Home() {
       <main className="flex-1 w-full max-w-7xl mx-auto p-3 sm:p-6 lg:p-8 flex flex-col gap-2 sm:gap-4 overflow-hidden">
         
         {/* Banners */}
-        <BannerSlideshow banners={banners} />
+        <BannerSlideshow banners={[]} />
 
         {/* Advertisements */}
-        <AdSlideshow ads={ads} />
+        <AdSlideshow ads={[]} />
 
         {/* Live Token Status */}
         <LiveBookingWidget />

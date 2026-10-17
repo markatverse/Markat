@@ -12,20 +12,41 @@ export default function BannerSlideshow({ banners: initialBanners }: { banners: 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // If initial server banners were provided, use them directly (zero flash)
+    // 1. If server passed banners, use them immediately
     if (initialBanners && initialBanners.length > 0) {
       setBanners(initialBanners);
       setIsLoading(false);
+      try {
+        localStorage.setItem('mv_cache_banners', JSON.stringify(initialBanners));
+      } catch {}
       return;
     }
 
-    // Only fallback fetch if server didn't provide any
+    // 2. Instant cache from localStorage (zero flash / zero wait)
+    try {
+      const cached = localStorage.getItem('mv_cache_banners');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const heroBanners = parsed.filter((b: any) => b.status === 'ACTIVE' && b.position === 'HOME_HERO');
+          if (heroBanners.length > 0) {
+            setBanners(heroBanners);
+            setIsLoading(false);
+          }
+        }
+      }
+    } catch {}
+
+    // 3. Background fresh fetch
     fastFetch<any[]>('/content/banners', { ttlMs: 30000 })
       .then(data => {
         if (Array.isArray(data)) {
           const heroBanners = data.filter((b: any) => b.status === 'ACTIVE' && b.position === 'HOME_HERO');
           if (heroBanners.length > 0) {
             setBanners(heroBanners);
+            try {
+              localStorage.setItem('mv_cache_banners', JSON.stringify(heroBanners));
+            } catch {}
           }
         }
       })

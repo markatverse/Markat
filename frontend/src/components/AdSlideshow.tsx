@@ -10,20 +10,41 @@ export default function AdSlideshow({ ads: initialAds }: { ads: any[] }) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // If initial server ads were provided, use them directly (zero flash)
+    // 1. If server passed ads, use them immediately
     if (initialAds && initialAds.length > 0) {
       setAds(initialAds);
       setIsLoading(false);
+      try {
+        localStorage.setItem('mv_cache_ads', JSON.stringify(initialAds));
+      } catch {}
       return;
     }
 
-    // Only fallback fetch if server didn't provide any
+    // 2. Instant cache from localStorage (zero flash / zero wait)
+    try {
+      const cached = localStorage.getItem('mv_cache_ads');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const homeAds = parsed.filter((ad: any) => ad.status === 'ACTIVE' && ad.position === 'HOMEPAGE');
+          if (homeAds.length > 0) {
+            setAds(homeAds);
+            setIsLoading(false);
+          }
+        }
+      }
+    } catch {}
+
+    // 3. Background fresh fetch
     fastFetch<any[]>('/commercial/advertisements', { ttlMs: 30000 })
       .then(data => {
         if (Array.isArray(data)) {
           const homeAds = data.filter((ad: any) => ad.status === 'ACTIVE' && ad.position === 'HOMEPAGE');
           if (homeAds.length > 0) {
             setAds(homeAds);
+            try {
+              localStorage.setItem('mv_cache_ads', JSON.stringify(homeAds));
+            } catch {}
           }
         }
       })
