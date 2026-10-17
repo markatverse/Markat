@@ -332,13 +332,14 @@ function LoginContent() {
           </p>
 
           {/* Feature Highlights */}
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {[
               { icon: '🛒', title: 'Millions of Products', desc: 'Shop top verified brands and local stores' },
-              { icon: '🔒', title: '100% Safe Payments', desc: 'End-to-end encrypted checkout protection' },
+              { icon: '✂️', title: 'Local Services & Live Booking', desc: 'Book salons, clinics & services with live queue tokens' },
+              { icon: '🔒', title: '100% Safe Payments', desc: 'End-to-end encrypted escrow checkout protection' },
               { icon: '⚡', title: 'Fast Deliveries & Tracking', desc: 'Real-time order tracking right to your doorstep' },
             ].map((item, i) => (
-              <div key={i} className="flex items-start gap-3 bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 hover:border-white/20 transition-colors">
+              <div key={i} className="flex items-start gap-3 bg-white/10 backdrop-blur-md rounded-xl p-2.5 border border-white/10 hover:border-white/20 transition-colors">
                 <div className="w-8 h-8 bg-white/15 rounded-lg flex items-center justify-center text-base shrink-0">{item.icon}</div>
                 <div>
                   <div className="text-white text-xs font-bold">{item.title}</div>
