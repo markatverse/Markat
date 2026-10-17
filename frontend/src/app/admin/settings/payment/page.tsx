@@ -15,7 +15,9 @@ export default function SettingsPaymentPage() {
   const [formData, setFormData] = useState({
     name: '',
     status: 'Active',
-    config: ''
+    config: '',
+    razorpayKeyId: '',
+    razorpayKeySecret: ''
   });
 
   const fetchMethods = async () => {
@@ -36,15 +38,28 @@ export default function SettingsPaymentPage() {
 
   const handleOpenModal = (method?: any) => {
     if (method) {
+      let rzpId = '';
+      let rzpSec = '';
+      try {
+        if (method.config) {
+          const parsed = JSON.parse(method.config);
+          rzpId = parsed.key_id || '';
+          rzpSec = parsed.key_secret || '';
+        }
+      } catch {
+        // Raw config
+      }
       setEditingId(method.id);
       setFormData({
         name: method.name,
         status: method.status,
-        config: method.config || ''
+        config: method.config || '',
+        razorpayKeyId: rzpId,
+        razorpayKeySecret: rzpSec
       });
     } else {
       setEditingId(null);
-      setFormData({ name: '', status: 'Active', config: '' });
+      setFormData({ name: 'Razorpay', status: 'Active', config: '', razorpayKeyId: '', razorpayKeySecret: '' });
     }
     setIsModalOpen(true);
   };
@@ -57,17 +72,31 @@ export default function SettingsPaymentPage() {
   const handleSave = async () => {
     if (!formData.name) return alert('Name is required');
     try {
+      let finalConfig = formData.config;
+      if (formData.name.toLowerCase().includes('razorpay') && (formData.razorpayKeyId || formData.razorpayKeySecret)) {
+        finalConfig = JSON.stringify({
+          key_id: formData.razorpayKeyId.trim(),
+          key_secret: formData.razorpayKeySecret.trim()
+        });
+      }
+
+      const payload = {
+        name: formData.name,
+        status: formData.status,
+        config: finalConfig
+      };
+
       if (editingId) {
         await fetch(`${API_URL}/system-config/payment/${editingId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+          body: JSON.stringify(payload)
         });
       } else {
         await fetch(`${API_URL}/system-config/payment`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+          body: JSON.stringify(payload)
         });
       }
       handleCloseModal();
@@ -222,16 +251,47 @@ export default function SettingsPaymentPage() {
                 />
               </div>
               
-              <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Configuration / API Keys</label>
-                <textarea 
-                  value={formData.config}
-                  onChange={e => setFormData({...formData, config: e.target.value})}
-                  placeholder="Paste JSON config or API keys here"
-                  rows={4}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors font-mono text-sm"
-                />
-              </div>
+              {formData.name.toLowerCase().includes('razorpay') ? (
+                <>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                      Razorpay Key ID
+                    </label>
+                    <input 
+                      type="text" 
+                      value={formData.razorpayKeyId}
+                      onChange={e => setFormData({...formData, razorpayKeyId: e.target.value})}
+                      placeholder="rzp_test_... or rzp_live_..."
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                    />
+                    <span className="text-[11px] text-slate-500 mt-1 block">From Razorpay Dashboard → Account & Settings → API Keys</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                      Razorpay Key Secret
+                    </label>
+                    <input 
+                      type="password" 
+                      value={formData.razorpayKeySecret}
+                      onChange={e => setFormData({...formData, razorpayKeySecret: e.target.value})}
+                      placeholder="Paste your Razorpay Key Secret"
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                    />
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Configuration / API Keys</label>
+                  <textarea 
+                    value={formData.config}
+                    onChange={e => setFormData({...formData, config: e.target.value})}
+                    placeholder="Paste JSON config or API keys here"
+                    rows={4}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors font-mono text-sm"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Status</label>

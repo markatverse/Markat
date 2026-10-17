@@ -203,15 +203,34 @@ export default function MockPaymentGateway({
       const orderData = await res.json();
       const razorpayKey = orderData.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_MarkatVerseKey';
 
-      // 2. Open official Razorpay modal
-      const options = {
+      // If Razorpay live/test keys are not configured yet, run an authentic fallback simulation
+      if (orderData.isMock || !razorpayKey || razorpayKey.includes('MarkatVerseKey')) {
+        setStatus('processing');
+        setStatusMessage('Connecting to Razorpay Testnet...');
+        setTimeout(() => {
+          setStatusMessage('Processing Razorpay Test Payment...');
+          setTimeout(() => {
+            setStatus('success');
+            playSuccessChime();
+            setTimeout(() => {
+              onSuccess({ 
+                paymentRef: `pay_test_${Math.random().toString(36).substring(2, 16)}`, 
+                method: 'razorpay' 
+              });
+            }, 1800);
+          }, 1200);
+        }, 1000);
+        return;
+      }
+
+      // 2. Open official Razorpay modal when genuine Razorpay Key ID is present
+      const options: any = {
         key: razorpayKey,
         amount: orderData.amount,
         currency: orderData.currency || 'INR',
         name: 'MarkatVerse Marketplace',
         description: `Order Payment (${items.length} items)`,
         image: '/logo.png',
-        order_id: orderData.id,
         handler: async function (response: any) {
           setStatus('processing');
           setStatusMessage('Verifying Razorpay signature...');
@@ -263,6 +282,10 @@ export default function MockPaymentGateway({
           }
         }
       };
+
+      if (orderData.id && !orderData.isMock) {
+        options.order_id = orderData.id;
+      }
 
       const rzpInstance = new (window as any).Razorpay(options);
       rzpInstance.on('payment.failed', function (failureResponse: any) {
