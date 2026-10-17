@@ -3,9 +3,35 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-export default function BannerSlideshow({ banners }: { banners: any[] }) {
+export default function BannerSlideshow({ banners: initialBanners }: { banners: any[] }) {
+  const [banners, setBanners] = useState<any[]>(initialBanners || []);
   const [currentIndex, setCurrentIndex] = useState(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // If initial server banners were empty, hydrate directly on client from backend
+    if (!banners || banners.length === 0) {
+      const getApiUrl = () => {
+        if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+        if (typeof window !== 'undefined') {
+          return `${window.location.protocol}//${window.location.hostname}:3001`;
+        }
+        return 'http://127.0.0.1:3001';
+      };
+      const API_URL = getApiUrl();
+      fetch(`${API_URL}/content/banners`)
+        .then(r => r.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            const heroBanners = data.filter((b: any) => b.status === 'ACTIVE' && b.position === 'HOME_HERO');
+            if (heroBanners.length > 0) {
+              setBanners(heroBanners);
+            }
+          }
+        })
+        .catch(() => {});
+    }
+  }, [initialBanners]);
 
   const resetTimeout = () => {
     if (timeoutRef.current) {
