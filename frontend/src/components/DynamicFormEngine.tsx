@@ -898,62 +898,308 @@ export default function DynamicFormEngine({
         )}
 
         {/* Dynamic Options (Variants/Services) */}
-        {!hasPricelist && (canSellB2C || isService) && (
-          <div className="space-y-4 pt-6 border-t border-slate-100">
-            <h4 className="text-sm font-bold text-slate-800">Custom Options & Variants</h4>
-            <p className="text-xs text-slate-500">Add variations like specific services (e.g. Haircut, Massage) or product variants (e.g. Size, Material) with custom pricing.</p>
-            
-            <div className="grid grid-cols-1 gap-3">
-              {options.map((opt, index) => (
-                <div key={opt.id} className="flex gap-3 items-center p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                  <div className="flex flex-col gap-1">
-                    <button type="button" disabled={index === 0} onClick={() => {
-                      const newOpts = [...options];
-                      const temp = newOpts[index - 1];
-                      newOpts[index - 1] = newOpts[index];
-                      newOpts[index] = temp;
-                      setOptions(newOpts);
-                    }} className="text-slate-400 hover:text-blue-600 disabled:opacity-30 disabled:hover:text-slate-400 p-0.5 rounded transition">
-                      <ChevronUp className="w-4 h-4" />
-                    </button>
-                    <button type="button" disabled={index === options.length - 1} onClick={() => {
-                      const newOpts = [...options];
-                      const temp = newOpts[index + 1];
-                      newOpts[index + 1] = newOpts[index];
-                      newOpts[index] = temp;
-                      setOptions(newOpts);
-                    }} className="text-slate-400 hover:text-blue-600 disabled:opacity-30 disabled:hover:text-slate-400 p-0.5 rounded transition">
-                      <ChevronDown className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <div className="flex-1">
-                    <input type="text" value={opt.name} onChange={e => {
-                      const newOpts = [...options];
-                      newOpts[index].name = e.target.value;
-                      setOptions(newOpts);
-                    }} placeholder="Option Name (e.g. Haircut, Size L)" className="w-full px-3 py-2 rounded-lg border border-slate-300 outline-none text-sm" />
-                  </div>
-                  <div className="w-32">
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">₹</span>
-                      <input type="number" value={opt.price} onChange={e => {
-                        const newOpts = [...options];
-                        newOpts[index].price = Number(e.target.value);
-                        setOptions(newOpts);
-                      }} placeholder="0" className="w-full pl-7 pr-3 py-2 rounded-lg border border-slate-300 outline-none text-sm" />
-                    </div>
-                  </div>
-                  <button type="button" onClick={() => setOptions(options.filter((_, i) => i !== index))} className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+        {!hasPricelist && (canSellB2C || isService) && (() => {
+          // Dynamic presets based on Sector, Category, and Subcategory
+          const getPresets = () => {
+            const catLower = (category || '').toLowerCase();
+            const subLower = (subcategory || '').toLowerCase();
+            const sectorLower = (userSector || '').toLowerCase();
+
+            // Food & Dining / Restaurant
+            if (catLower.includes('food') || catLower.includes('dining') || catLower.includes('restaurant') || sectorLower.includes('food') || sectorLower.includes('dining')) {
+              if (subLower.includes('cafe')) {
+                return [
+                  { name: 'Single Window Seat', defaultPrice: 150 },
+                  { name: '2-Seater Table', defaultPrice: 300 },
+                  { name: 'Co-Working Desk (Hourly)', defaultPrice: 200 },
+                  { name: 'Couples Cozy Booth', defaultPrice: 500 },
+                  { name: 'Group Lounge Area (6-8 Guests)', defaultPrice: 1200 }
+                ];
+              }
+              if (subLower.includes('bakery') || subLower.includes('sweet') || subLower.includes('shop')) {
+                return [
+                  { name: 'Small Pack / Portion (250g)', defaultPrice: 120 },
+                  { name: 'Standard Box (500g)', defaultPrice: 240 },
+                  { name: 'Party Pack (1 Kg)', defaultPrice: 450 },
+                  { name: 'Gift Hamper Box', defaultPrice: 850 }
+                ];
+              }
+              return [
+                { name: '2-Seater Table', defaultPrice: 300 },
+                { name: '4-Seater Family Table', defaultPrice: 500 },
+                { name: '6-Seater Group Table', defaultPrice: 800 },
+                { name: 'Candlelight / Romantic Setup', defaultPrice: 1200 },
+                { name: 'Private VIP Dining Cabin', defaultPrice: 2000 },
+                { name: 'Rooftop / Outdoor Table', defaultPrice: 600 }
+              ];
+            }
+
+            // Salon & Spa
+            if (catLower.includes('salon') || catLower.includes('beauty') || catLower.includes('parlour') || catLower.includes('spa') || sectorLower.includes('salon') || sectorLower.includes('beauty')) {
+              if (catLower.includes('spa') || subLower.includes('spa')) {
+                return [
+                  { name: 'Aroma Oil Massage (45 Min)', defaultPrice: 1200 },
+                  { name: 'Deep Tissue Full Body Spa (60 Min)', defaultPrice: 1800 },
+                  { name: 'Foot Reflexology (30 Min)', defaultPrice: 600 },
+                  { name: 'Body Polish & Scrub', defaultPrice: 1500 }
+                ];
+              }
+              return [
+                { name: 'Classic Haircut & Wash', defaultPrice: 250 },
+                { name: 'Beard Trim & Styling', defaultPrice: 150 },
+                { name: 'Hair Spa & Nourishment', defaultPrice: 650 },
+                { name: 'De-Tan Facial & Cleanup', defaultPrice: 800 },
+                { name: 'Hair Coloring & Highlights', defaultPrice: 1200 },
+                { name: 'Keratin / Smoothing Treatment', defaultPrice: 2500 }
+              ];
+            }
+
+            // Healthcare / Clinic / Doctor
+            if (catLower.includes('doctor') || catLower.includes('health') || catLower.includes('dentist') || sectorLower.includes('doctor') || sectorLower.includes('health')) {
+              if (catLower.includes('dentist') || subLower.includes('dentist')) {
+                return [
+                  { name: 'Dental Checkup & Consultation', defaultPrice: 300 },
+                  { name: 'Teeth Scaling & Polishing', defaultPrice: 800 },
+                  { name: 'Cavity Filling (Single Tooth)', defaultPrice: 600 },
+                  { name: 'Root Canal Treatment (RCT)', defaultPrice: 2500 }
+                ];
+              }
+              return [
+                { name: 'Standard Consultation (In-Clinic)', defaultPrice: 500 },
+                { name: 'Follow-up Consultation', defaultPrice: 300 },
+                { name: 'Online Video Consultation', defaultPrice: 400 },
+                { name: 'Emergency / Priority Slot', defaultPrice: 800 },
+                { name: 'Full Health Checkup Consultation', defaultPrice: 1200 }
+              ];
+            }
+
+            // Home Services (Electrician, Plumber, Carpenter, Mechanic)
+            if (catLower.includes('home') || catLower.includes('electrician') || catLower.includes('plumber') || catLower.includes('carpenter') || catLower.includes('repair') || sectorLower.includes('repair')) {
+              if (catLower.includes('electrician') || subLower.includes('electrician')) {
+                return [
+                  { name: 'Inspection & Minor Fix (Up to 1 hr)', defaultPrice: 250 },
+                  { name: 'Fan / Light Fixture Installation', defaultPrice: 150 },
+                  { name: 'Switchboard / MCB Wiring Repair', defaultPrice: 350 },
+                  { name: 'Full Inverter / Heavy Appliance Setup', defaultPrice: 600 }
+                ];
+              }
+              if (catLower.includes('plumber') || subLower.includes('plumber')) {
+                return [
+                  { name: 'Basic Inspection & Diagnosis', defaultPrice: 250 },
+                  { name: 'Tap / Mixer / Shower Repair', defaultPrice: 200 },
+                  { name: 'Drain Blockage Clearance', defaultPrice: 400 },
+                  { name: 'Complete Pipe Leakage Fix', defaultPrice: 700 }
+                ];
+              }
+              return [
+                { name: 'Basic Inspection & Diagnosis', defaultPrice: 250 },
+                { name: 'Minor Repair & Service', defaultPrice: 450 },
+                { name: 'Full Component Overhaul / Replacement', defaultPrice: 950 },
+                { name: 'Emergency Urgent Visit', defaultPrice: 500 }
+              ];
+            }
+
+            // Car Wash / Automobiles
+            if (catLower.includes('car wash') || sectorLower.includes('car') || sectorLower.includes('wash')) {
+              return [
+                { name: 'Bike / Scooter Foam Wash', defaultPrice: 150 },
+                { name: 'Hatchback Exterior + Interior Vacuum', defaultPrice: 350 },
+                { name: 'Sedan Complete Wash & Polish', defaultPrice: 500 },
+                { name: 'SUV / 7-Seater Deep Wash & Detailing', defaultPrice: 750 },
+                { name: 'Underbody & Engine Coating', defaultPrice: 400 }
+              ];
+            }
+
+            // Professional Services (Lawyer, Consultant, Accountant, Tutor)
+            if (catLower.includes('professional') || catLower.includes('consultant') || sectorLower.includes('consultant')) {
+              return [
+                { name: 'Initial Advisory Call (30 Min)', defaultPrice: 500 },
+                { name: '1-Hour Deep Consultation', defaultPrice: 1000 },
+                { name: 'Document Audit & Review', defaultPrice: 1500 },
+                { name: 'Comprehensive Monthly Retainer', defaultPrice: 5000 }
+              ];
+            }
+
+            // Fashion / Apparel
+            if (catLower.includes('fashion') || catLower.includes('apparel') || sectorLower.includes('fashion')) {
+              return [
+                { name: 'Size: S (Small)', defaultPrice: 0 },
+                { name: 'Size: M (Medium)', defaultPrice: 0 },
+                { name: 'Size: L (Large)', defaultPrice: 0 },
+                { name: 'Size: XL (Extra Large)', defaultPrice: 0 },
+                { name: 'Size: XXL (Double XL)', defaultPrice: 50 }
+              ];
+            }
+
+            // Electronics / Devices
+            if (catLower.includes('electronic') || sectorLower.includes('electronic')) {
+              return [
+                { name: 'Standard Edition (Base)', defaultPrice: 0 },
+                { name: 'Pro Edition (+ Higher Spec)', defaultPrice: 2000 },
+                { name: 'With 1-Year Extended Warranty', defaultPrice: 799 },
+                { name: 'Combo with Accessories Pack', defaultPrice: 1200 }
+              ];
+            }
+
+            // Fallback generic presets
+            return isService ? [
+              { name: 'Basic Tier Service', defaultPrice: 299 },
+              { name: 'Standard Complete Package', defaultPrice: 599 },
+              { name: 'Premium / VIP Express Slot', defaultPrice: 999 }
+            ] : [
+              { name: 'Single Pack (1 Unit)', defaultPrice: 0 },
+              { name: 'Pack of 2 (Twin Pack)', defaultPrice: 0 },
+              { name: 'Value Family Pack', defaultPrice: 0 }
+            ];
+          };
+
+          const dynamicPresets = getPresets();
+
+          const dynamicPlaceholder = (() => {
+            const catLower = (category || '').toLowerCase();
+            if (catLower.includes('food') || catLower.includes('restaurant')) return 'e.g. 4-Seater Table, Private Dining Cabin, Rooftop Booth';
+            if (catLower.includes('salon') || catLower.includes('beauty')) return 'e.g. Haircut & Wash, Beard Trim, Facial & De-Tan';
+            if (catLower.includes('doctor') || catLower.includes('health')) return 'e.g. In-Clinic Consultation, Follow-up Visit';
+            if (catLower.includes('car wash')) return 'e.g. Bike Wash, Hatchback Deep Clean, SUV Polish';
+            if (catLower.includes('fashion')) return 'e.g. Size M (Cotton), Size XL (Slim Fit)';
+            return isService ? 'e.g. Standard Service, VIP Slot' : 'e.g. Size L, 128GB Storage, Pack of 2';
+          })();
+
+          const addPreset = (preset: { name: string, defaultPrice: number }) => {
+            if (options.some(o => o.name.toLowerCase() === preset.name.toLowerCase())) return;
+            setOptions([...options, {
+              id: Math.random().toString(36).substr(2, 9),
+              name: preset.name,
+              price: preset.defaultPrice
+            }]);
+          };
+
+          return (
+            <div className="space-y-4 pt-6 border-t border-slate-100">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                    Custom Options & Variants
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                      {category ? `${category}${subcategory ? ` • ${subcategory}` : ''}` : 'Dynamic Presets'}
+                    </span>
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {isService 
+                      ? 'Add specific service options or table/seating choices with custom booking charges.' 
+                      : 'Add product variations (e.g. Size, Color, Storage) with custom individual pricing.'}
+                  </p>
                 </div>
-              ))}
-              <button type="button" onClick={() => setOptions([...options, { id: Math.random().toString(36).substr(2, 9), name: '', price: 0 }])} className="w-full p-3 border-2 border-dashed border-blue-200 bg-blue-50/50 rounded-xl text-blue-600 flex items-center justify-center gap-2 hover:bg-blue-50 hover:border-blue-300 transition-colors font-semibold text-sm">
-                <PlusCircle className="w-4 h-4" /> Add Option / Variant
-              </button>
+              </div>
+
+              {/* Dynamic Suggested Presets as per Sector & Category */}
+              {dynamicPresets.length > 0 && (
+                <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      Suggested for {category || userSector || 'your category'}:
+                    </span>
+                    <span className="text-[10px] text-slate-400">Click to add with 1-click</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {dynamicPresets.map(preset => {
+                      const isAdded = options.some(o => o.name.toLowerCase() === preset.name.toLowerCase());
+                      return (
+                        <button
+                          key={preset.name}
+                          type="button"
+                          onClick={() => addPreset(preset)}
+                          disabled={isAdded}
+                          className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 ${
+                            isAdded
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 cursor-default opacity-80'
+                              : 'bg-white text-slate-700 border-slate-200 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 shadow-sm'
+                          }`}
+                        >
+                          {isAdded ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          ) : (
+                            <PlusCircle className="w-3.5 h-3.5 text-blue-500" />
+                          )}
+                          <span>{preset.name}</span>
+                          {preset.defaultPrice > 0 && (
+                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                              ₹{preset.defaultPrice}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              <div className="grid grid-cols-1 gap-3">
+                {options.map((opt, index) => (
+                  <div key={opt.id} className="flex gap-3 items-center p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors">
+                    <div className="flex flex-col gap-1">
+                      <button type="button" disabled={index === 0} onClick={() => {
+                        const newOpts = [...options];
+                        const temp = newOpts[index - 1];
+                        newOpts[index - 1] = newOpts[index];
+                        newOpts[index] = temp;
+                        setOptions(newOpts);
+                      }} className="text-slate-400 hover:text-blue-600 disabled:opacity-30 disabled:hover:text-slate-400 p-0.5 rounded transition">
+                        <ChevronUp className="w-4 h-4" />
+                      </button>
+                      <button type="button" disabled={index === options.length - 1} onClick={() => {
+                        const newOpts = [...options];
+                        const temp = newOpts[index + 1];
+                        newOpts[index + 1] = newOpts[index];
+                        newOpts[index] = temp;
+                        setOptions(newOpts);
+                      }} className="text-slate-400 hover:text-blue-600 disabled:opacity-30 disabled:hover:text-slate-400 p-0.5 rounded transition">
+                        <ChevronDown className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="flex-1">
+                      <input 
+                        type="text" 
+                        value={opt.name} 
+                        onChange={e => {
+                          const newOpts = [...options];
+                          newOpts[index].name = e.target.value;
+                          setOptions(newOpts);
+                        }} 
+                        placeholder={dynamicPlaceholder} 
+                        className="w-full px-3 py-2 rounded-lg border border-slate-300 outline-none text-sm focus:border-blue-500 bg-white" 
+                      />
+                    </div>
+                    <div className="w-32">
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">₹</span>
+                        <input 
+                          type="number" 
+                          min="0"
+                          value={opt.price} 
+                          onChange={e => {
+                            const newOpts = [...options];
+                            newOpts[index].price = Math.max(0, Number(e.target.value));
+                            setOptions(newOpts);
+                          }} 
+                          placeholder="0" 
+                          className="w-full pl-7 pr-3 py-2 rounded-lg border border-slate-300 outline-none text-sm font-medium focus:border-blue-500 bg-white" 
+                        />
+                      </div>
+                    </div>
+                    <button type="button" onClick={() => setOptions(options.filter((_, i) => i !== index))} className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+                <button type="button" onClick={() => setOptions([...options, { id: Math.random().toString(36).substr(2, 9), name: '', price: 0 }])} className="w-full p-3 border-2 border-dashed border-blue-200 bg-blue-50/50 rounded-xl text-blue-600 flex items-center justify-center gap-2 hover:bg-blue-50 hover:border-blue-300 transition-colors font-semibold text-sm">
+                  <PlusCircle className="w-4 h-4" /> Add Custom Option / Variant
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* 5. MEDIA UPLOAD */}

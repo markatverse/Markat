@@ -714,6 +714,24 @@ const defaultCategories: Category[] = [
     notApplicable: ['Product Stock', 'Vehicle Test Drive', 'Token', 'MOQ'],
     optionalFeatures: ['Meeting']
   },
+  {
+    id: 's15',
+    primaryType: 'SERVICE',
+    name: 'Food & Dining',
+    theme: 'bg-rose-50 text-rose-600',
+    icon: 'Utensils',
+    allowedListingTypes: ['Service'],
+    businessModels: ['B2C', 'Appointment'],
+    workflow: 'Restaurant Booking Workflow',
+    allowedFeatures: ['Service', 'Appointment', 'B2C'],
+    notApplicable: ['Product Stock', 'Vehicle Test Drive', 'RFQ', 'Bulk Pricing', 'B2B', 'Token'],
+    optionalFeatures: ['Meeting'],
+    subcategories: [
+      { name: 'Restaurant', parameters: [{ name: 'Booking Options', type: 'checkbox', options: ['Table Booking', 'Private Dining'] }] },
+      { name: 'Cafe', parameters: [{ name: 'Booking Options', type: 'checkbox', options: ['Table Booking', 'Event Space'] }] },
+      { name: 'Food Shop', parameters: [{ name: 'Type', type: 'radio', options: ['Bakery', 'Sweet Shop', 'Grocery'] }] }
+    ]
+  },
 
   // ── VEHICLE ──
   {
