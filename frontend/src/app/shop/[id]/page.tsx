@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MapPin, Star, Shield, Phone, Mail, Clock, CheckCircle, Ticket, ShoppingCart, Calendar, Stethoscope, Scissors, Wrench, MessageCircle } from 'lucide-react';
+import { MapPin, Star, Shield, Phone, Mail, Clock, CheckCircle, Ticket, ShoppingCart, Calendar, Stethoscope, Scissors, Wrench, MessageCircle, UtensilsCrossed, Utensils } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import ProductGridSkeleton from '@/components/ProductGridSkeleton';
 
@@ -33,11 +33,20 @@ export default function PublicShopPage({ params }: { params: Promise<{ id: strin
       .finally(() => setIsLoading(false));
   }, [shopName]);
 
+  // Check if this venue is Food & Dining / Restaurant
+  const isFoodDining = products.some(p => {
+    const cat = (p.category || '').toLowerCase();
+    const sub = (p.subcategory || '').toLowerCase();
+    const name = (p.name || '').toLowerCase();
+    return cat.includes('food') || cat.includes('dining') || cat.includes('restaurant') ||
+           sub.includes('food') || sub.includes('dining') || sub.includes('restaurant') || sub.includes('cafe') ||
+           name.includes('restaurant') || name.includes('cafe') || name.includes('dining');
+  }) || shopName.toLowerCase().includes('restaurant') || shopName.toLowerCase().includes('cafe') || shopName.toLowerCase().includes('dining') || shopName.toLowerCase().includes('kitchen') || shopName.toLowerCase().includes('food');
+
   // Categorize mock data into Services vs Products
-  // In a real app, this would be based on a boolean like `isService` or `bookingMode`.
   const services = products.filter(p => {
     const searchStr = `${p.category || ''} ${p.name} ${p.tags?.join(' ') || ''}`.toLowerCase();
-    return searchStr.includes('service') || searchStr.includes('salon') || searchStr.includes('hair') || searchStr.includes('doctor') || searchStr.includes('repair') || searchStr.includes('consultation') || searchStr.includes('spa') || searchStr.includes('trim');
+    return !isFoodDining && (searchStr.includes('service') || searchStr.includes('salon') || searchStr.includes('hair') || searchStr.includes('doctor') || searchStr.includes('repair') || searchStr.includes('consultation') || searchStr.includes('spa') || searchStr.includes('trim'));
   });
   
   const physicalProducts = products.filter(p => !services.includes(p));
@@ -52,7 +61,11 @@ export default function PublicShopPage({ params }: { params: Promise<{ id: strin
   let bannerColors = "from-blue-600 to-indigo-900";
   let themeColor = "blue";
   
-  if (isMedical) {
+  if (isFoodDining) {
+    Icon = UtensilsCrossed;
+    bannerColors = "from-rose-600 via-rose-700 to-amber-800";
+    themeColor = "rose";
+  } else if (isMedical) {
     Icon = Stethoscope;
     bannerColors = "from-emerald-600 to-teal-900";
     themeColor = "emerald";
@@ -99,19 +112,22 @@ export default function PublicShopPage({ params }: { params: Promise<{ id: strin
             </div>
             
             <p className="text-slate-500 leading-relaxed max-w-2xl">
-              Welcome to our official store on MarkatVerse! We specialize in providing high-quality {services.length > 0 ? 'services' : ''} {services.length > 0 && physicalProducts.length > 0 ? 'and' : ''} {physicalProducts.length > 0 ? 'products' : ''} tailored to your needs. With over 5 years of excellence, we guarantee satisfaction and top-tier support.
+              {isFoodDining 
+                ? `Welcome to ${shopName}! Explore our culinary menu, reserve dining tables, or book exclusive private cabins for special occasions. We guarantee fresh preparation and top-tier hospitality.`
+                : `Welcome to our official store on MarkatVerse! We specialize in providing high-quality ${services.length > 0 ? 'services' : ''} ${services.length > 0 && physicalProducts.length > 0 ? 'and' : ''} ${physicalProducts.length > 0 ? 'products' : ''} tailored to your needs. With over 5 years of excellence, we guarantee satisfaction and top-tier support.`
+              }
             </p>
           </div>
 
           {/* Contact Actions */}
           <div className="flex flex-col sm:flex-row md:flex-col gap-2.5 w-full md:w-auto shrink-0">
             <a 
-              href={`https://wa.me/919876543210?text=${encodeURIComponent(`Hello ${shopName}! I found your store on MarkatVerse and would like to inquire about your products and services.`)}`}
+              href={`https://wa.me/919876543210?text=${encodeURIComponent(`Hello ${shopName}! I found your ${isFoodDining ? 'restaurant' : 'store'} on MarkatVerse and would like to inquire about reservations and menu.`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2"
             >
-              <MessageCircle className="w-4 h-4" /> WhatsApp Store
+              <MessageCircle className="w-4 h-4" /> {isFoodDining ? 'WhatsApp Venue' : 'WhatsApp Store'}
             </a>
             <a 
               href="tel:+919876543210"
@@ -205,14 +221,29 @@ export default function PublicShopPage({ params }: { params: Promise<{ id: strin
               </div>
             )}
 
-            {/* PRODUCTS SECTION */}
+            {/* PRODUCTS / DINING MENU SECTION */}
             {physicalProducts.length > 0 && (
               <div>
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center">
-                    <ShoppingCart className="w-5 h-5" />
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    isFoodDining 
+                      ? 'bg-rose-100 text-rose-600' 
+                      : 'bg-orange-100 text-orange-600'
+                  }`}>
+                    {isFoodDining ? (
+                      <UtensilsCrossed className="w-5 h-5" />
+                    ) : (
+                      <ShoppingCart className="w-5 h-5" />
+                    )}
                   </div>
-                  <h2 className="text-2xl font-bold text-slate-900">Buy Products</h2>
+                  <div>
+                    <h2 className="text-2xl font-bold text-slate-900">
+                      {isFoodDining ? 'Food & Dining Menu' : 'Buy Products'}
+                    </h2>
+                    {isFoodDining && (
+                      <p className="text-xs text-slate-500 font-medium">Explore dishes, special platters, table reservations & dining setups</p>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -225,9 +256,14 @@ export default function PublicShopPage({ params }: { params: Promise<{ id: strin
                           ) : (
                             <img src="/hero-left-logo.png" alt={product.name} className="w-full h-full object-contain opacity-50 p-4 group-hover:scale-105 transition-transform duration-500" />
                           )}
+                          {isFoodDining && (
+                            <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
+                              <UtensilsCrossed className="w-3 h-3 text-rose-400" /> Menu
+                            </div>
+                          )}
                         </div>
                         <div className="p-4 flex flex-col flex-1">
-                          <h3 className="font-bold text-slate-900 text-sm leading-tight mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                          <h3 className="font-bold text-slate-900 text-sm leading-tight mb-2 line-clamp-2 group-hover:text-rose-600 transition-colors">
                             {product.name}
                           </h3>
                           <div className="flex items-center gap-1.5 mb-3 text-xs">
@@ -237,8 +273,16 @@ export default function PublicShopPage({ params }: { params: Promise<{ id: strin
                           </div>
                           <div className="mt-auto flex items-center justify-between">
                             <span className="text-lg font-black text-slate-900">₹{product.price.toLocaleString()}</span>
-                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                              <ShoppingCart className="w-4 h-4" />
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                              isFoodDining 
+                                ? 'bg-rose-50 text-rose-600 group-hover:bg-rose-600 group-hover:text-white' 
+                                : 'bg-slate-100 text-slate-700 group-hover:bg-blue-600 group-hover:text-white'
+                            }`}>
+                              {isFoodDining ? (
+                                <Utensils className="w-4 h-4" />
+                              ) : (
+                                <ShoppingCart className="w-4 h-4" />
+                              )}
                             </div>
                           </div>
                         </div>
