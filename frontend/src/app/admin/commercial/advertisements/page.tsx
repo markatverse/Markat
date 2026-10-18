@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Plus, X } from 'lucide-react';
+import { getApiUrl } from '@/utils/api';
+import { compressImage } from '@/utils/imageCompression';
 
 export default function CommercialgtAdvertisementsPage() {
   const [items, setItems] = useState<any[]>([]);
@@ -11,14 +13,52 @@ export default function CommercialgtAdvertisementsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImg, setIsUploadingImg] = useState(false);
 
-  const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
+  const API_URL = getApiUrl();
   const getFullImageUrl = (url?: string) => {
     if (!url) return '';
     if (url.startsWith('/') && !url.startsWith('//')) {
       return `${API_URL}${url}`;
     }
     return url;
+  };
+
+  const handleImageUpload = async (file: File) => {
+    setIsUploadingImg(true);
+    try {
+      const optimizedFile = await compressImage(file, 1600, 1200, 0.82);
+      const data = new FormData();
+      data.append('files', optimizedFile);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+      const res = await fetch(`${API_URL}/upload`, {
+        method: 'POST',
+        body: data,
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const json = await res.json().catch(() => null);
+        if (json?.urls && json.urls.length > 0) {
+          setFormData(prev => ({ ...prev, mediaUrl: json.urls[0] }));
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("Server upload fallback to base64", e);
+    } finally {
+      setIsUploadingImg(false);
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData(prev => ({ ...prev, mediaUrl: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const fetchItems = async (isBackground = false) => {
@@ -43,6 +83,7 @@ export default function CommercialgtAdvertisementsPage() {
               const merged = Array.from(map.values());
               try {
                 localStorage.setItem('mv_cache_advertisements', JSON.stringify(merged));
+                localStorage.setItem('mv_cache_ads', JSON.stringify(merged));
               } catch {}
               return merged;
             });
@@ -59,7 +100,7 @@ export default function CommercialgtAdvertisementsPage() {
   useEffect(() => {
     // 1. Instant load from local cache if present
     try {
-      const cached = localStorage.getItem('mv_cache_advertisements');
+      const cached = localStorage.getItem('mv_cache_advertisements') || localStorage.getItem('mv_cache_ads');
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed)) {
@@ -179,6 +220,7 @@ export default function CommercialgtAdvertisementsPage() {
           }
           try {
             localStorage.setItem('mv_cache_advertisements', JSON.stringify(next));
+            localStorage.setItem('mv_cache_ads', JSON.stringify(next));
           } catch {}
           return next;
         });
@@ -201,6 +243,7 @@ export default function CommercialgtAdvertisementsPage() {
         }
         try {
           localStorage.setItem('mv_cache_advertisements', JSON.stringify(next));
+          localStorage.setItem('mv_cache_ads', JSON.stringify(next));
         } catch {}
         return next;
       });
@@ -218,6 +261,7 @@ export default function CommercialgtAdvertisementsPage() {
     setItems(updated);
     try {
       localStorage.setItem('mv_cache_advertisements', JSON.stringify(updated));
+      localStorage.setItem('mv_cache_ads', JSON.stringify(updated));
     } catch {}
 
     try {
@@ -235,6 +279,7 @@ export default function CommercialgtAdvertisementsPage() {
     setItems(updated);
     try {
       localStorage.setItem('mv_cache_advertisements', JSON.stringify(updated));
+      localStorage.setItem('mv_cache_ads', JSON.stringify(updated));
     } catch {}
 
     try {
@@ -372,14 +417,12 @@ export default function CommercialgtAdvertisementsPage() {
                 <div className="flex flex-col sm:flex-row gap-3 items-stretch">
                   <div 
                     onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                    onDrop={(e) => {
+                    onDrop={async (e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       const file = e.dataTransfer.files?.[0];
                       if (file && file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onloadend = () => setFormData({...formData, mediaUrl: reader.result as string});
-                        reader.readAsDataURL(file);
+                        await handleImageUpload(file);
                       }
                     }}
                     className="sm:w-48 border-2 border-dashed border-slate-600 rounded-xl flex items-center justify-center text-center hover:border-emerald-500 hover:bg-slate-800/50 transition-all group relative overflow-hidden min-h-[80px]"
@@ -396,19 +439,19 @@ export default function CommercialgtAdvertisementsPage() {
                       />
                     ) : null}
                     <div className="flex items-center gap-2 z-10 pointer-events-none px-2 py-3">
-                      <span className="text-xl drop-shadow-md">📸</span>
-                      <span className="text-[10px] font-bold text-slate-300 leading-tight drop-shadow-md">Drop image or<br/>click to upload</span>
+                      <span className="text-xl drop-shadow-md">{isUploadingImg ? '⏳' : '📸'}</span>
+                      <span className="text-[10px] font-bold text-slate-300 leading-tight drop-shadow-md">
+                        {isUploadingImg ? 'Compressing & uploading...' : <>Drop image or<br/>click to upload</>}
+                      </span>
                     </div>
                     <input 
                       type="file" 
                       accept="image/*" 
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                      onChange={(e) => {
+                      onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => setFormData({...formData, mediaUrl: reader.result as string});
-                          reader.readAsDataURL(file);
+                          await handleImageUpload(file);
                         }
                       }} 
                     />
