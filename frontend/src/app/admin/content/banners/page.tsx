@@ -21,19 +21,24 @@ export default function ContentBannersPage() {
   const fetchBanners = async (isBackground = false) => {
     try {
       if (!isBackground) setLoading(true);
-      const res = await fetch(`${API_URL}/content/banners`, {
-        cache: 'no-store',
-        signal: AbortSignal.timeout(5000),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setBanners(data);
-        try {
-          localStorage.setItem('mv_cache_banners', JSON.stringify(data));
-        } catch {}
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      try {
+        const res = await fetch(`${API_URL}/content/banners`, {
+          cache: 'no-store',
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+          const data = await res.json();
+          setBanners(data);
+          try {
+            localStorage.setItem('mv_cache_banners', JSON.stringify(data));
+          } catch {}
+        }
+      } catch {
+        clearTimeout(timeoutId);
       }
-    } catch (e) {
-      console.error(e);
     } finally {
       setLoading(false);
     }
