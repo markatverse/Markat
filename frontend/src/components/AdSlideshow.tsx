@@ -36,8 +36,12 @@ export default function AdSlideshow({ ads: initialAds }: { ads: any[] }) {
     } catch {}
 
     // 3. Background fresh fetch
-    fastFetch<any[]>('/commercial/advertisements', { ttlMs: 15000 })
-      .then(data => {
+    const fetchFreshAds = async () => {
+      try {
+        let data = await fastFetch<any[]>('/commercial/advertisements', { ttlMs: 15000 });
+        if (!Array.isArray(data) || data.length === 0) {
+          data = await fastFetch<any[]>('/content/advertisements', { ttlMs: 15000 });
+        }
         if (Array.isArray(data)) {
           const homeAds = data.filter((ad: any) => ad.status === 'ACTIVE' && (ad.position === 'HOMEPAGE' || !ad.position));
           if (homeAds.length > 0) {
@@ -48,9 +52,11 @@ export default function AdSlideshow({ ads: initialAds }: { ads: any[] }) {
             } catch {}
           }
         }
-      })
-      .catch(() => {})
-      .finally(() => setIsLoading(false));
+      } catch {} finally {
+        setIsLoading(false);
+      }
+    };
+    fetchFreshAds();
   }, [initialAds]);
 
   const resetTimeout = () => {

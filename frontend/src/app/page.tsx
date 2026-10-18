@@ -20,11 +20,19 @@ async function getAdvertisements() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 6000);
     try {
-      const res = await fetch(`${apiUrl}/commercial/advertisements`, {
+      let res = await fetch(`${apiUrl}/commercial/advertisements`, {
         next: { revalidate: 30 },
         signal: controller.signal,
-      });
+      }).catch(() => null);
+
+      if (!res || !res.ok) {
+        res = await fetch(`${apiUrl}/content/advertisements`, {
+          next: { revalidate: 30 },
+          signal: controller.signal,
+        }).catch(() => null);
+      }
       clearTimeout(timeoutId);
+
       if (res && res.ok) {
         const data = await res.json().catch(() => []);
         return Array.isArray(data)

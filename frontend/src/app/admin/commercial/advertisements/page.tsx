@@ -67,12 +67,19 @@ export default function CommercialgtAdvertisementsPage() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3500);
       try {
-        const res = await fetch(`${API_URL}/commercial/advertisements`, {
+        let res = await fetch(`${API_URL}/commercial/advertisements`, {
           cache: 'no-store',
           signal: controller.signal,
-        });
+        }).catch(() => null);
+
+        if (!res || !res.ok) {
+          res = await fetch(`${API_URL}/content/advertisements`, {
+            cache: 'no-store',
+            signal: controller.signal,
+          }).catch(() => null);
+        }
         clearTimeout(timeoutId);
-        if (res.ok) {
+        if (res && res.ok) {
           const data = await res.json();
           if (Array.isArray(data)) {
             const realItems = data.filter((item: any) => !item.id?.startsWith('ad-default-'));
@@ -179,6 +186,18 @@ export default function CommercialgtAdvertisementsPage() {
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
+
+      // Also mirror write to /content/advertisements for dual endpoint compatibility
+      try {
+        const contentUrl = isEditing
+          ? `${API_URL}/content/advertisements/${formData.id}`
+          : `${API_URL}/content/advertisements`;
+        fetch(contentUrl, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).catch(() => {});
+      } catch {}
 
       if (res.ok) {
         const saved = await res.json().catch(() => null);
