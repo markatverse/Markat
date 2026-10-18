@@ -97,7 +97,7 @@ export default async function Home() {
           {[
             { name: "Top Deals", icon: "🔥", style: "bg-red-50 text-[24px]", link: "/search?filter=top_deals" },
             { name: "Food & Dining", icon: "🍔", style: "bg-amber-50 border border-amber-200 text-[24px] shadow-sm", link: "/search?category=Food%20%26%20Dining" },
-            { name: "Salon & Spa", icon: "💇‍♀️", style: "bg-pink-50 border border-pink-200 text-[24px] shadow-sm", link: "/salon/queue" },
+            { name: "Salon & Spa", icon: "💇‍♀️", style: "bg-pink-50 border border-pink-200 text-[24px] shadow-sm", link: "/search?service=Salon" },
             { name: "Services", icon: "🛠️", style: "bg-emerald-50 border border-emerald-200 text-[24px] shadow-sm relative", badge: "Live", link: "/search?type=services" },
             { name: "Mobiles", icon: "📱", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Mobiles" },
             { name: "Electronics", icon: "💻", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Electronics" },
@@ -300,7 +300,7 @@ export default async function Home() {
                 
                 <div className="flex items-center gap-2 overflow-x-auto w-full relative z-10 pb-1 custom-scrollbar">
                   {[
-                    { name: "Salon & Spa", icon: "💇‍♀️", link: "/salon/queue" },
+                    { name: "Salon & Spa", icon: "💇‍♀️", link: "/search?service=Salon" },
                     { name: "Food & Dining", icon: "🍽️", link: "/search?category=Food%20%26%20Dining" },
                     { name: "Cleaning", icon: "🧹", link: "/search?service=Cleaning" },
                     { name: "Logistics", icon: "🚚", link: "/search?service=Logistics" },
@@ -432,7 +432,7 @@ export default async function Home() {
               
               <div className="flex items-center gap-3 overflow-x-auto w-full relative z-10 pb-3 custom-scrollbar">
                 {[
-                  { name: "Salon & Spa", icon: "💇‍♀️", link: "/salon/queue" },
+                  { name: "Salon & Spa", icon: "💇‍♀️", link: "/search?service=Salon" },
                   { name: "Food & Dining", icon: "🍽️", link: "/search?category=Food%20%26%20Dining" },
                   { name: "Home Cleaning", icon: "🧹", link: "/search?service=Cleaning" },
                   { name: "Logistics & Delivery", icon: "🚚", link: "/search?service=Logistics" },
