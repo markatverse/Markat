@@ -140,16 +140,25 @@ export default async function Home() {
               
               <div className="flex flex-row flex-nowrap gap-1 sm:gap-3 mb-1 sm:mb-6 relative z-20 w-auto max-w-full sm:pb-2">
                 <div className="flex items-center gap-1 sm:gap-2.5 bg-white/95 backdrop-blur shadow-xs border border-slate-200/90 rounded-lg sm:rounded-2xl py-0.5 px-1.5 sm:py-2.5 sm:px-4">
-                  <div className="text-blue-600 shrink-0"><svg className="w-3.5 h-3.5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></div>
-                  <div className="flex flex-col"><span className="text-[9px] sm:text-xs font-black text-slate-900 leading-tight">B2B</span><span className="text-[7px] sm:text-[10px] text-slate-500 font-semibold leading-tight">Wholesale</span></div>
+                  <div className="text-blue-600 shrink-0"><svg className="w-3 h-3 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] sm:text-xs font-black text-slate-900 leading-none">B2B</span>
+                    <span className="text-[6px] sm:text-[9.5px] text-slate-500 font-medium leading-tight mt-0.5">Business to<br className="sm:hidden" /> Business</span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-1 sm:gap-2.5 bg-white/95 backdrop-blur shadow-xs border border-slate-200/90 rounded-lg sm:rounded-2xl py-0.5 px-1.5 sm:py-2.5 sm:px-4">
-                  <div className="text-orange-500 shrink-0"><svg className="w-3.5 h-3.5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg></div>
-                  <div className="flex flex-col"><span className="text-[9px] sm:text-xs font-black text-slate-900 leading-tight">B2C</span><span className="text-[7px] sm:text-[10px] text-slate-500 font-semibold leading-tight">Retail</span></div>
+                  <div className="text-orange-500 shrink-0"><svg className="w-3 h-3 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg></div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] sm:text-xs font-black text-slate-900 leading-none">B2C</span>
+                    <span className="text-[6px] sm:text-[9.5px] text-slate-500 font-medium leading-tight mt-0.5">Business to<br className="sm:hidden" /> Consumer</span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-1 sm:gap-2.5 bg-white/95 backdrop-blur shadow-xs border border-slate-200/90 rounded-lg sm:rounded-2xl py-0.5 px-1.5 sm:py-2.5 sm:px-4">
-                  <div className="text-emerald-500 shrink-0"><svg className="w-3.5 h-3.5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg></div>
-                  <div className="flex flex-col"><span className="text-[9px] sm:text-xs font-black text-slate-900 leading-tight">Services</span><span className="text-[7px] sm:text-[10px] text-slate-500 font-semibold leading-tight">Solutions</span></div>
+                  <div className="text-emerald-500 shrink-0"><svg className="w-3 h-3 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg></div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] sm:text-xs font-black text-slate-900 leading-none">Services</span>
+                    <span className="text-[6px] sm:text-[9.5px] text-slate-500 font-medium leading-tight mt-0.5">Solutions for<br className="sm:hidden" /> Every Need</span>
+                  </div>
                 </div>
               </div>
 
