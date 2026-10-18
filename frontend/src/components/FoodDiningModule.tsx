@@ -21,6 +21,7 @@ import {
   X,
   Check,
   Search,
+  UtensilsCrossed,
   Filter
 } from 'lucide-react';
 
@@ -39,11 +40,71 @@ export default function FoodDiningModule({
   onAction,
   actionLoading
 }: FoodDiningModuleProps) {
-  const [activeSubTab, setActiveSubTab] = useState<'tables' | 'reservations' | 'kot'>('reservations');
+  const [activeSubTab, setActiveSubTab] = useState<'tables' | 'reservations' | 'kot' | 'menu'>('reservations');
   const [showNewTableModal, setShowNewTableModal] = useState(false);
   const [newTableName, setNewTableName] = useState('');
   const [newTableCapacity, setNewTableCapacity] = useState('4');
   const [selectedTable, setSelectedTable] = useState<any | null>(null);
+
+  // Live Food Menu Items State (Synced with localStorage)
+  const defaultMenuItems = [
+    { id: 'm1', name: 'Dal Makhani Special', category: 'Main Course', price: 280, isVeg: true, inStock: true, description: 'Slow cooked black lentils with butter and cream.' },
+    { id: 'm2', name: 'Paneer Butter Masala', category: 'Main Course', price: 320, isVeg: true, inStock: true, description: 'Cottage cheese cubes in rich tomato cashew gravy.' },
+    { id: 'm3', name: 'Butter Tandoori Roti / Naan', category: 'Breads', price: 45, isVeg: true, inStock: true, description: 'Freshly baked Indian flatbread with butter.' },
+    { id: 'm4', name: 'Crispy Veg Spring Rolls', category: 'Starters', price: 210, isVeg: true, inStock: true, description: 'Golden fried rolls stuffed with seasoned vegetables.' },
+    { id: 'm5', name: 'Cold Coffee with Ice Cream', category: 'Beverages', price: 140, isVeg: true, inStock: true, description: 'Blended chilled espresso with rich vanilla scoop.' }
+  ];
+
+  const [diningMenuItems, setDiningMenuItems] = useState(defaultMenuItems);
+  const [showNewItemModal, setShowNewItemModal] = useState(false);
+  const [newItemName, setNewItemName] = useState('');
+  const [newItemCategory, setNewItemCategory] = useState('Main Course');
+  const [newItemPrice, setNewItemPrice] = useState('');
+  const [newItemDesc, setNewItemDesc] = useState('');
+  const [newItemVeg, setNewItemVeg] = useState(true);
+
+  React.useEffect(() => {
+    try {
+      const stored = localStorage.getItem(`markat_dining_menu_${user?.id || 'default'}`);
+      if (stored) {
+        setDiningMenuItems(JSON.parse(stored));
+      }
+    } catch {}
+  }, [user?.id]);
+
+  const saveMenuItems = (items: typeof defaultMenuItems) => {
+    setDiningMenuItems(items);
+    try {
+      localStorage.setItem(`markat_dining_menu_${user?.id || 'default'}`, JSON.stringify(items));
+    } catch {}
+  };
+
+  const handleAddMenuItem = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newItemName.trim() || !newItemPrice) return;
+    const newItem = {
+      id: `m_${Date.now()}`,
+      name: newItemName.trim(),
+      category: newItemCategory,
+      price: Number(newItemPrice),
+      isVeg: newItemVeg,
+      inStock: true,
+      description: newItemDesc.trim() || 'Freshly made to order.'
+    };
+    saveMenuItems([newItem, ...diningMenuItems]);
+    setNewItemName('');
+    setNewItemPrice('');
+    setNewItemDesc('');
+    setShowNewItemModal(false);
+  };
+
+  const toggleItemStock = (id: string) => {
+    saveMenuItems(diningMenuItems.map(i => i.id === id ? { ...i, inStock: !i.inStock } : i));
+  };
+
+  const deleteMenuItem = (id: string) => {
+    saveMenuItems(diningMenuItems.filter(i => i.id !== id));
+  };
 
   // Live Customer Bookings / Table Reservations State
   const defaultReservations = [
@@ -373,30 +434,38 @@ export default function FoodDiningModule({
       )}
 
       {/* Sub Tabs Toggle */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
         <button
           onClick={() => setActiveSubTab('reservations')}
-          className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 shrink-0 ${
             activeSubTab === 'reservations' ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          <CalendarClock className="w-4 h-4" /> Customer Bookings & Reservations ({reservations.filter(r => r.status === 'Pending').length} Pending)
+          <CalendarClock className="w-4 h-4" /> Bookings & Reservations ({reservations.filter(r => r.status === 'Pending').length} Pending)
+        </button>
+        <button
+          onClick={() => setActiveSubTab('menu' as any)}
+          className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 shrink-0 ${
+            activeSubTab === ('menu' as any) ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20' : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <UtensilsCrossed className="w-4 h-4" /> Food Menu Items ({diningMenuItems.length})
         </button>
         <button
           onClick={() => setActiveSubTab('tables')}
-          className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 shrink-0 ${
             activeSubTab === 'tables' ? 'bg-orange-600 text-white shadow-md shadow-orange-600/20' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          <Utensils className="w-4 h-4" /> Table Floor & Seating ({customTables.length} Tables)
+          <Utensils className="w-4 h-4" /> Table Floor ({customTables.length} Tables)
         </button>
         <button
           onClick={() => setActiveSubTab('kot')}
-          className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 shrink-0 ${
             activeSubTab === 'kot' ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          <ChefHat className="w-4 h-4" /> Kitchen Order Tickets (KOT)
+          <ChefHat className="w-4 h-4" /> Kitchen KOT
         </button>
       </div>
 
@@ -514,6 +583,74 @@ export default function FoodDiningModule({
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* MENU VIEW */}
+      {activeSubTab === 'menu' && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">Food Menu & Dish Management</h3>
+              <p className="text-xs text-slate-500">Add, edit prices, manage availability, or update dining dishes displayed to customers.</p>
+            </div>
+            <button
+              onClick={() => setShowNewItemModal(true)}
+              className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors shadow-sm self-start sm:self-auto cursor-pointer"
+            >
+              <PlusCircle className="w-4 h-4" /> Add New Dish / Menu Item
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {diningMenuItems.map(item => (
+              <div key={item.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                <div>
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-3.5 h-3.5 rounded-sm border-2 flex items-center justify-center ${
+                        item.isVeg ? 'border-emerald-600' : 'border-rose-600'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${item.isVeg ? 'bg-emerald-600' : 'bg-rose-600'}`}></span>
+                      </span>
+                      <h4 className="font-bold text-slate-900 text-base">{item.name}</h4>
+                    </div>
+                    <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-semibold">
+                      {item.category}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 line-clamp-2 mb-3 leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <span className="text-lg font-black text-slate-900">₹{item.price.toLocaleString('en-IN')}</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => toggleItemStock(item.id)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                        item.inStock 
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                          : 'bg-slate-100 text-slate-500 border border-slate-200'
+                      }`}
+                    >
+                      {item.inStock ? 'In Stock' : 'Sold Out'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteMenuItem(item.id)}
+                      className="p-1.5 text-slate-400 hover:text-rose-600 transition-colors"
+                      title="Remove from menu"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -785,6 +922,131 @@ export default function FoodDiningModule({
                   className="flex-1 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-black text-xs shadow-md transition-colors"
                 >
                   Save Table
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* ADD NEW DISH / MENU ITEM MODAL */}
+      {showNewItemModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-black text-slate-900 text-lg flex items-center gap-2">
+                <UtensilsCrossed className="w-5 h-5 text-rose-600" /> Add Food Menu Item
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowNewItemModal(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAddMenuItem} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Dish / Item Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Paneer Tikka or Butter Chicken"
+                  value={newItemName}
+                  onChange={e => setNewItemName(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:border-rose-500 outline-none font-medium"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={newItemCategory}
+                    onChange={e => setNewItemCategory(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:border-rose-500 outline-none font-medium bg-white"
+                  >
+                    <option value="Starters">Starters / Appetizers</option>
+                    <option value="Main Course">Main Course</option>
+                    <option value="Breads">Breads / Roti</option>
+                    <option value="Rice & Biryani">Rice & Biryani</option>
+                    <option value="Desserts">Desserts</option>
+                    <option value="Beverages">Beverages / Drinks</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Price (₹)
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    placeholder="250"
+                    value={newItemPrice}
+                    onChange={e => setNewItemPrice(e.target.value)}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-slate-900 text-sm focus:border-rose-500 outline-none font-medium"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Dietary Tag
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewItemVeg(true)}
+                    className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      newItemVeg ? 'bg-emerald-50 text-emerald-700 border-emerald-400 font-extrabold' : 'bg-white text-slate-600 border-slate-200'
+                    }`}
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> Pure Veg
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewItemVeg(false)}
+                    className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      !newItemVeg ? 'bg-rose-50 text-rose-700 border-rose-400 font-extrabold' : 'bg-white text-slate-600 border-slate-200'
+                    }`}
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-600"></span> Non-Veg
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Description / Ingredients
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Short description of taste, ingredients or portion size..."
+                  value={newItemDesc}
+                  onChange={e => setNewItemDesc(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-slate-900 text-sm focus:border-rose-500 outline-none font-medium resize-none"
+                />
+              </div>
+
+              <div className="pt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowNewItemModal(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 font-bold text-xs text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md transition-colors cursor-pointer"
+                >
+                  Add to Menu
                 </button>
               </div>
             </form>
