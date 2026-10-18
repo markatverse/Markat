@@ -273,17 +273,11 @@ export default function PublicShopPage({ params }: { params: Promise<{ id: strin
                           </div>
                           <div className="mt-auto flex items-center justify-between">
                             <span className="text-lg font-black text-slate-900">₹{product.price.toLocaleString()}</span>
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                              isFoodDining 
-                                ? 'bg-rose-50 text-rose-600 group-hover:bg-rose-600 group-hover:text-white' 
-                                : 'bg-slate-100 text-slate-700 group-hover:bg-blue-600 group-hover:text-white'
-                            }`}>
-                              {isFoodDining ? (
-                                <Utensils className="w-4 h-4" />
-                              ) : (
+                            {!isFoodDining && (
+                              <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
                                 <ShoppingCart className="w-4 h-4" />
-                              )}
-                            </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
