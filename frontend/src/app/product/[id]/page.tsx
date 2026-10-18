@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useProducts, useCategoryRules } from '@/context/ProductContext';
 import { useAuth } from '@/context/AuthContext';
@@ -121,6 +121,22 @@ export default function ProductDetails() {
   const [reservationDate, setReservationDate] = useState('');
   const [reservationTime, setReservationTime] = useState('');
   const [diningMode, setDiningMode] = useState<'reserve' | 'book'>('reserve');
+  const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false);
+  const guestDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (guestDropdownRef.current && !guestDropdownRef.current.contains(e.target as Node)) {
+        setIsGuestDropdownOpen(false);
+      }
+    };
+    if (isGuestDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isGuestDropdownOpen]);
 
   const isRetail = (product?.primaryType === 'SERVICE' || isFoodDining) ? false : (noRulesDefined
     ? !['Services', 'Home Services', 'Organizers', 'Transport', 'Rentals', 'Subscriptions', 'B2B', 'Construction Materials'].includes(product?.category || '')
@@ -840,27 +856,45 @@ export default function ProductDetails() {
 
                     {/* Compact 2-column or 3-column input grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {/* 1. Number of Guests */}
-                      <div>
+                      {/* 1. Number of Guests (Custom Scrollable Menu) */}
+                      <div className="relative" ref={guestDropdownRef}>
                         <label className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
                           <Users className="w-3.5 h-3.5 text-rose-600" /> Guests
                         </label>
-                        <div className="relative">
-                          <select
-                            value={Math.min(partySize, 12)}
-                            onChange={(e) => setPartySize(parseInt(e.target.value, 10))}
-                            className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-sm cursor-pointer appearance-none pr-9 transition-colors"
-                          >
+                        <button
+                          type="button"
+                          onClick={() => setIsGuestDropdownOpen(!isGuestDropdownOpen)}
+                          className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-sm cursor-pointer flex items-center justify-between transition-colors"
+                        >
+                          <span>{partySize} {partySize === 1 ? 'Guest' : 'Guests'}</span>
+                          <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isGuestDropdownOpen ? 'rotate-180 text-rose-600' : ''}`} />
+                        </button>
+
+                        {/* Scrollable Guest Options Dropdown */}
+                        {isGuestDropdownOpen && (
+                          <div className="absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1 max-h-44 overflow-y-auto divide-y divide-slate-50">
                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => (
-                              <option key={num} value={num}>
-                                {num} {num === 1 ? 'Guest' : 'Guests'}
-                              </option>
+                              <button
+                                key={num}
+                                type="button"
+                                onClick={() => {
+                                  setPartySize(num);
+                                  setIsGuestDropdownOpen(false);
+                                }}
+                                className={`w-full px-3.5 py-2 text-left text-sm font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                                  partySize === num
+                                    ? 'bg-rose-50 text-rose-600 font-bold'
+                                    : 'text-slate-700 hover:bg-slate-50'
+                                }`}
+                              >
+                                <span>{num} {num === 1 ? 'Guest' : 'Guests'}</span>
+                                {partySize === num && (
+                                  <span className="text-rose-600 text-xs font-black">✓</span>
+                                )}
+                              </button>
                             ))}
-                          </select>
-                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
-                            <ChevronDown className="w-4 h-4" />
                           </div>
-                        </div>
+                        )}
                       </div>
 
                       {/* 2. Date */}
