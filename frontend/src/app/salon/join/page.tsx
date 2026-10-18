@@ -271,15 +271,9 @@ export default function SalonJoinPage() {
             <div className="space-y-3">
               <Link
                 href={`/salon/token/${result.token.id}`}
-                className="block w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3.5 rounded-2xl transition-all shadow-lg shadow-purple-600/30"
+                className="block w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3.5 rounded-2xl transition-all shadow-lg shadow-purple-600/30 text-center"
               >
                 📍 Track My Token Live
-              </Link>
-              <Link
-                href={`/salon/queue?queueId=${selectedQueue?.id}`}
-                className="block w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold py-3.5 rounded-2xl transition-all"
-              >
-                📺 View Queue Board
               </Link>
             </div>
           </div>

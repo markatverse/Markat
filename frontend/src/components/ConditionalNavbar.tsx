@@ -14,8 +14,7 @@ export default function ConditionalNavbar() {
     pathname?.startsWith('/seller/login') ||
     pathname?.startsWith('/login') ||
     pathname?.startsWith('/admin') ||
-    pathname === '/salon/join' ||
-    pathname === '/salon/queue'
+    pathname === '/salon/join'
   ) {
     return null;
   }

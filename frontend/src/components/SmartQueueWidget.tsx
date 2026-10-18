@@ -319,14 +319,9 @@ export default function SmartQueueWidget({ service }: { service: any }) {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Link href={`/salon/token/${result.token.id}`} className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-2xl text-sm transition-all shadow-lg">
-          <Clock className="w-4 h-4" /> Track Live
-        </Link>
-        <Link href={`/salon/queue?queueId=${selected?.id || ''}`} className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-3.5 rounded-2xl text-sm transition-all">
-          <Users className="w-4 h-4" /> Queue Board
-        </Link>
-      </div>
+      <Link href={`/salon/token/${result.token.id}`} className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-2xl text-sm transition-all shadow-lg w-full">
+        <Clock className="w-4 h-4" /> Track Live Token
+      </Link>
       <p className="text-center text-slate-400 text-xs">💡 You can leave and return when it&apos;s your turn</p>
     </div>
   );

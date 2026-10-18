@@ -248,12 +248,6 @@ export default function SalonManagePage() {
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </button>
           <Link
-            href="/salon/queue"
-            className="text-sm text-purple-400 hover:text-purple-300 font-semibold border border-purple-500/30 px-3 py-1.5 rounded-lg transition-colors"
-          >
-            📺 Live Board
-          </Link>
-          <Link
             href="/salon/join"
             className="text-sm bg-purple-600 hover:bg-purple-500 text-white font-semibold px-3 py-1.5 rounded-lg transition-colors"
           >

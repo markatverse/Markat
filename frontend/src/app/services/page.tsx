@@ -138,15 +138,9 @@ function LiveQueueBadge() {
       <div className="flex gap-2 pt-1">
         <Link
           href="/salon/join"
-          className="flex-1 bg-pink-600 hover:bg-pink-500 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md shadow-pink-200/50 flex items-center justify-center gap-1.5"
+          className="w-full bg-pink-600 hover:bg-pink-500 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md shadow-pink-200/50 flex items-center justify-center gap-1.5"
         >
           <Ticket className="w-4 h-4" /> Walk In &amp; Get Token
-        </Link>
-        <Link
-          href="/salon/queue"
-          className="px-4 bg-pink-50 hover:bg-pink-100 border border-pink-200 text-pink-700 font-bold text-sm py-3 rounded-xl transition-all flex items-center justify-center gap-1.5"
-        >
-          📺 Board
         </Link>
       </div>
     </div>

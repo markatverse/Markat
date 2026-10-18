@@ -13,7 +13,6 @@ export default function ConditionalFooter() {
     pathname?.startsWith('/login') ||
     pathname?.startsWith('/admin') ||
     pathname === '/salon/join' ||
-    pathname === '/salon/queue' ||
     (pathname?.startsWith('/salon/token/') && pathname !== '/salon/token/active')
   ) {
     return null;

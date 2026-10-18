@@ -438,10 +438,6 @@ export default function TokenTrackerPage() {
               
               {/* ── Bottom action strip ────────────────────────────────────────── */}
               <div className="flex flex-col gap-3 mb-6">
-                <Link href={`/salon/queue?id=${queue.shopName}`}
-                  className="w-full flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-3.5 rounded-xl text-sm transition-all">
-                  📺 View Live Store Board
-                </Link>
                 <Link href="/salon/token/active"
                   className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-sm">
                   🎟️ My Tokens Dashboard
