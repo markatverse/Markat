@@ -226,11 +226,11 @@ export default async function Home() {
           </div>
         </section>
         
-        {/* Browse Categories & Services (65% Categories/Services Stack + 35% Graphic Banner on Mobile) */}
+        {/* Browse Categories & Services (65% Categories/Services Stack + 35% Graphic Banner on Mobile, 2-column Desktop on md+) */}
         <ScrollReveal delay={100}>
         <section className="mt-2 w-full">
           {/* Mobile View: 65% Left (Categories & Services stacked vertically) + 35% Right (Compact Graphic Banner) */}
-          <div className="flex flex-row lg:hidden gap-2 sm:gap-3 w-full items-stretch">
+          <div className="flex flex-row md:hidden gap-2 sm:gap-3 w-full items-stretch">
             {/* 65% Left Column: Categories and Services stacked vertically */}
             <div className="w-[65%] flex flex-col gap-2">
               {/* Compact Categories Card */}
@@ -360,7 +360,7 @@ export default async function Home() {
           </div>
 
           {/* Desktop/Tablet View (Original spacious 2-column layout) */}
-          <div className="hidden lg:grid lg:grid-cols-2 gap-4 w-full">
+          <div className="hidden md:grid md:grid-cols-2 gap-4 w-full">
             {/* Categories Panel */}
             <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 lg:p-8 flex flex-col md:flex-row justify-between items-center md:items-start gap-6 lg:gap-8">
               <div className="flex flex-col justify-between items-start text-left gap-4 min-w-[200px] shrink-0">
