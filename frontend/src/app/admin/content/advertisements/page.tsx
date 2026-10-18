@@ -19,9 +19,9 @@ export default function ContentgtAdvertisementsPage() {
 
   const fetchItems = async (isBackground = false) => {
     try {
-      if (!isBackground) setLoading(true);
+      if (!isBackground && items.length === 0) setLoading(true);
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
       try {
         const res = await fetch(`${API_URL}/commercial/advertisements`, {
           cache: 'no-store',
@@ -30,10 +30,12 @@ export default function ContentgtAdvertisementsPage() {
         clearTimeout(timeoutId);
         if (res.ok) {
           const data = await res.json();
-          setItems(data);
-          try {
-            localStorage.setItem('mv_cache_advertisements', JSON.stringify(data));
-          } catch {}
+          if (Array.isArray(data) && data.length > 0) {
+            setItems(data);
+            try {
+              localStorage.setItem('mv_cache_advertisements', JSON.stringify(data));
+            } catch {}
+          }
         }
       } catch {
         clearTimeout(timeoutId);

@@ -17,12 +17,15 @@ export default function ContentBannersPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ title: '', imageUrl: '', linkUrl: '', position: 'HOME_HERO', status: 'ACTIVE' });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [isSaving, setIsSaving] = useState(false);
 
   const fetchBanners = async (isBackground = false) => {
     try {
-      if (!isBackground) setLoading(true);
+      if (!isBackground && banners.length === 0) setLoading(true);
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const timeoutId = setTimeout(() => controller.abort(), 3500); // Fast 3.5s timeout
       try {
         const res = await fetch(`${API_URL}/content/banners`, {
           cache: 'no-store',
@@ -31,10 +34,12 @@ export default function ContentBannersPage() {
         clearTimeout(timeoutId);
         if (res.ok) {
           const data = await res.json();
-          setBanners(data);
-          try {
-            localStorage.setItem('mv_cache_banners', JSON.stringify(data));
-          } catch {}
+          if (Array.isArray(data) && data.length > 0) {
+            setBanners(data);
+            try {
+              localStorage.setItem('mv_cache_banners', JSON.stringify(data));
+            } catch {}
+          }
         }
       } catch {
         clearTimeout(timeoutId);
@@ -45,7 +50,7 @@ export default function ContentBannersPage() {
   };
 
   useEffect(() => {
-    // 1. Instant load from local cache if present
+    // 1. Instant load from local cache if present - ZERO wait
     try {
       const cached = localStorage.getItem('mv_cache_banners');
       if (cached) {
@@ -53,14 +58,14 @@ export default function ContentBannersPage() {
         if (Array.isArray(parsed) && parsed.length > 0) {
           setBanners(parsed);
           setLoading(false);
-          // Refresh silently in background
+          // Background revalidation
           fetchBanners(true);
           return;
         }
       }
     } catch {}
 
-    // 2. Otherwise regular fetch
+    // 2. Otherwise regular fetch with minimal spinner
     fetchBanners(false);
   }, []);
 
@@ -93,8 +98,37 @@ export default function ContentBannersPage() {
       imageUrl: formData.imageUrl.trim() || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1200&q=80',
     };
 
-    let savedBanner: any = null;
+    setIsSaving(true);
 
+    // 1. Instant local & UI update - ZERO waiting!
+    const tempId = editingId || ('bn-' + Date.now());
+    const optimisticBanner = {
+      id: tempId,
+      ...payload,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    setBanners(prev => {
+      let next;
+      if (editingId) {
+        next = prev.map(b => b.id === editingId ? { ...b, ...payload } : b);
+      } else {
+        next = [optimisticBanner, ...prev];
+      }
+      try {
+        localStorage.setItem('mv_cache_banners', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+
+    // Close modal immediately so user doesn't wait
+    setShowModal(false);
+    setIsSaving(false);
+    setEditingId(null);
+    setFormData({ title: '', imageUrl: '', linkUrl: '', position: 'HOME_HERO', status: 'ACTIVE' });
+
+    // 2. Background sync to backend
     try {
       const url = editingId 
         ? `${API_URL}/content/banners/${editingId}` 
@@ -102,7 +136,7 @@ export default function ContentBannersPage() {
       const method = editingId ? 'PATCH' : 'POST';
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000);
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
 
       const res = await fetch(url, {
         method,
@@ -113,35 +147,20 @@ export default function ContentBannersPage() {
       clearTimeout(timeoutId);
 
       if (res.ok) {
-        savedBanner = await res.json().catch(() => null);
+        const saved = await res.json().catch(() => null);
+        if (saved && saved.id) {
+          setBanners(prev => {
+            const updated = prev.map(b => b.id === tempId ? saved : b);
+            try {
+              localStorage.setItem('mv_cache_banners', JSON.stringify(updated));
+            } catch {}
+            return updated;
+          });
+        }
       }
     } catch (e) {
-      console.warn("Server unavailable or slow for banner save; saving locally", e);
+      console.warn("Backend sync notice: Banner saved locally", e);
     }
-
-    // Always update client-side state & localStorage so the UI works 100% reliably
-    setBanners(prev => {
-      let nextBanners;
-      if (editingId) {
-        nextBanners = prev.map(b => b.id === editingId ? (savedBanner || { ...b, ...payload }) : b);
-      } else {
-        const newBanner = savedBanner || {
-          id: 'bn-' + Date.now(),
-          ...payload,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        nextBanners = [newBanner, ...prev];
-      }
-      try {
-        localStorage.setItem('mv_cache_banners', JSON.stringify(nextBanners));
-      } catch {}
-      return nextBanners;
-    });
-
-    setShowModal(false);
-    setEditingId(null);
-    setFormData({ title: '', imageUrl: '', linkUrl: '', position: 'HOME_HERO', status: 'ACTIVE' });
   };
 
   const handleEdit = (banner: any) => {
@@ -177,12 +196,19 @@ export default function ContentBannersPage() {
     }
   };
 
+  // Filter banners based on search and status
+  const filteredBanners = banners.filter(banner => {
+    const matchesSearch = !searchTerm || banner.title?.toLowerCase().includes(searchTerm.toLowerCase()) || banner.position?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'ALL' || banner.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
   return (
     <div className="max-w-6xl mx-auto animate-in fade-in duration-300 w-full relative">
       <header className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight">Content &gt; Banners</h1>
-          <p className="text-slate-400 mt-2 text-sm">Manage and configure promotional banners.</p>
+          <p className="text-slate-400 mt-2 text-sm">Manage and configure promotional banners across the marketplace.</p>
         </div>
         <button 
           onClick={() => {
@@ -190,23 +216,32 @@ export default function ContentBannersPage() {
             setFormData({ title: '', imageUrl: '', linkUrl: '', position: 'HOME_HERO', status: 'ACTIVE' });
             setShowModal(true);
           }}
-          className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] flex items-center gap-2">
+          className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] flex items-center gap-2 cursor-pointer active:scale-95">
           + Add New Banner
         </button>
       </header>
 
       <div className="bg-slate-800 rounded-2xl border border-slate-700 shadow-lg overflow-hidden">
-        <div className="p-4 border-b border-slate-700 flex justify-between">
-          <input type="text" placeholder="Search banners..." className="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 w-64" />
-          <select className="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500">
-            <option>All Status</option>
-            <option>Active</option>
-            <option>Inactive</option>
+        <div className="p-4 border-b border-slate-700 flex flex-col sm:flex-row gap-3 justify-between">
+          <input 
+            type="text" 
+            placeholder="Search banners..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 w-full sm:w-64 text-sm" 
+          />
+          <select 
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 text-sm">
+            <option value="ALL">All Status</option>
+            <option value="ACTIVE">Active</option>
+            <option value="INACTIVE">Inactive</option>
           </select>
         </div>
         
         <div className="overflow-x-auto">
-          {loading ? (
+          {loading && banners.length === 0 ? (
              <table className="w-full text-left border-collapse">
                <thead className="bg-slate-900/80 border-b border-slate-700 text-slate-400 text-[10px] uppercase tracking-widest font-black">
                  <tr>
@@ -229,8 +264,10 @@ export default function ContentBannersPage() {
                  ))}
                </tbody>
              </table>
-          ) : banners.length === 0 ? (
-             <div className="p-8 text-center text-slate-400">No Banners found.</div>
+          ) : filteredBanners.length === 0 ? (
+             <div className="p-8 text-center text-slate-400">
+               {searchTerm || statusFilter !== 'ALL' ? 'No banners match your search filter.' : 'No Banners found.'}
+             </div>
           ) : (
             <table className="w-full text-left border-collapse">
               <thead className="bg-slate-900/80 border-b border-slate-700 text-slate-400 text-[10px] uppercase tracking-widest font-black">
@@ -243,7 +280,7 @@ export default function ContentBannersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-700/50">
-                {banners.map((banner) => (
+                {filteredBanners.map((banner) => (
                   <tr key={banner.id} className="hover:bg-slate-700/50 transition-all group">
                     <td className="p-4 pl-6 font-bold text-white text-base">{banner.title}</td>
                     <td className="p-4">
@@ -275,13 +312,13 @@ export default function ContentBannersPage() {
                       )}
                     </td>
                     <td className="p-4 pr-6 text-right space-x-2">
-                      <button onClick={() => handleToggleStatus(banner)} className="text-xs font-bold text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition-all border border-slate-700/50">
+                      <button onClick={() => handleToggleStatus(banner)} className="text-xs font-bold text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition-all border border-slate-700/50 cursor-pointer">
                         Toggle
                       </button>
-                      <button onClick={() => handleEdit(banner)} className="text-xs font-bold text-slate-400 hover:text-indigo-400 bg-slate-800/50 hover:bg-indigo-500/10 px-3 py-1.5 rounded-lg transition-all border border-slate-700/50">
+                      <button onClick={() => handleEdit(banner)} className="text-xs font-bold text-slate-400 hover:text-indigo-400 bg-slate-800/50 hover:bg-indigo-500/10 px-3 py-1.5 rounded-lg transition-all border border-slate-700/50 cursor-pointer">
                         Edit
                       </button>
-                      <button onClick={() => handleDelete(banner.id)} className="text-xs font-bold text-slate-400 hover:text-rose-400 bg-slate-800/50 hover:bg-rose-500/10 px-3 py-1.5 rounded-lg transition-all border border-slate-700/50">
+                      <button onClick={() => handleDelete(banner.id)} className="text-xs font-bold text-slate-400 hover:text-rose-400 bg-slate-800/50 hover:bg-rose-500/10 px-3 py-1.5 rounded-lg transition-all border border-slate-700/50 cursor-pointer">
                         Delete
                       </button>
                     </td>
@@ -294,13 +331,31 @@ export default function ContentBannersPage() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 w-[500px] shadow-2xl">
-            <h2 className="text-2xl font-bold text-white mb-4">{editingId ? 'Edit Banner' : 'Add Banner'}</h2>
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-900 rounded-2xl border border-slate-700 p-6 w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-5 pb-3 border-b border-slate-800">
+              <h2 className="text-xl font-bold text-white">{editingId ? 'Edit Banner' : 'Add New Banner'}</h2>
+              <button 
+                type="button" 
+                onClick={() => setShowModal(false)}
+                className="text-slate-400 hover:text-white text-lg font-bold p-1 rounded-lg hover:bg-slate-800">
+                ✕
+              </button>
+            </div>
+
             <form onSubmit={handleSave} className="flex flex-col gap-4">
               <div>
-                <input type="text" placeholder="Banner Title" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500" />
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Banner Title</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. Mega Spring Discount 50% Off" 
+                  required 
+                  value={formData.title} 
+                  onChange={e => setFormData({...formData, title: e.target.value})} 
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm" 
+                />
               </div>
+
               <div>
                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Image (Drag & Drop or URL)</label>
                 <div className="flex flex-col sm:flex-row gap-3 items-stretch">
@@ -316,7 +371,7 @@ export default function ContentBannersPage() {
                         reader.readAsDataURL(file);
                       }
                     }}
-                    className="sm:w-48 border-2 border-dashed border-slate-600 rounded-xl flex items-center justify-center text-center hover:border-emerald-500 hover:bg-slate-800/50 transition-all group relative overflow-hidden"
+                    className="sm:w-48 border-2 border-dashed border-slate-600 rounded-xl flex items-center justify-center text-center hover:border-emerald-500 hover:bg-slate-800/50 transition-all group relative overflow-hidden min-h-[80px]"
                   >
                     {formData.imageUrl ? (
                       <img 
@@ -347,24 +402,64 @@ export default function ContentBannersPage() {
                       }} 
                     />
                   </div>
-                  <input type="text" value={formData.imageUrl} onChange={e => setFormData({...formData, imageUrl: e.target.value})} className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-all text-sm min-w-0" placeholder="Or paste image URL here..." />
+                  <input 
+                    type="text" 
+                    value={formData.imageUrl} 
+                    onChange={e => setFormData({...formData, imageUrl: e.target.value})} 
+                    className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm min-w-0" 
+                    placeholder="Or paste image URL here..." 
+                  />
                 </div>
               </div>
+
               <div>
-                <input type="text" placeholder="Link URL (e.g. /category/shoes)" value={formData.linkUrl} onChange={e => setFormData({...formData, linkUrl: e.target.value})} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500" />
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Target Link URL (Optional)</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. /category/electronics or /services" 
+                  value={formData.linkUrl} 
+                  onChange={e => setFormData({...formData, linkUrl: e.target.value})} 
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm" 
+                />
               </div>
-              <select value={formData.position} onChange={e => setFormData({...formData, position: e.target.value})} className="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500">
-                <option value="HOME_HERO">Home Hero</option>
-                <option value="SIDEBAR">Sidebar</option>
-                <option value="TOP_BAR">Top Bar</option>
-              </select>
-              <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500">
-                <option value="INACTIVE">Inactive</option>
-                <option value="ACTIVE">Active</option>
-              </select>
-              <div className="flex justify-end gap-3 mt-4">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-400 hover:text-white">Cancel</button>
-                <button type="submit" className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2 rounded-lg font-bold">{editingId ? 'Update Banner' : 'Save Banner'}</button>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Display Position</label>
+                  <select 
+                    value={formData.position} 
+                    onChange={e => setFormData({...formData, position: e.target.value})} 
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 text-sm">
+                    <option value="HOME_HERO">Home Hero</option>
+                    <option value="SIDEBAR">Sidebar</option>
+                    <option value="TOP_BAR">Top Bar</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Status</label>
+                  <select 
+                    value={formData.status} 
+                    onChange={e => setFormData({...formData, status: e.target.value})} 
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 text-sm">
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-800">
+                <button 
+                  type="button" 
+                  onClick={() => setShowModal(false)} 
+                  className="px-5 py-2.5 rounded-xl font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition-all text-sm cursor-pointer">
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={isSaving}
+                  className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] cursor-pointer text-sm flex items-center gap-2">
+                  {isSaving ? 'Saving...' : (editingId ? 'Update Banner' : 'Save Banner')}
+                </button>
               </div>
             </form>
           </div>
