@@ -16,6 +16,7 @@ export default function CategoryRelationsPage() {
   const WORKFLOWS = [
     'Product Sales Workflow',
     'B2B / Manufacturer Workflow',
+    'Restaurant Booking Workflow',
     'Salon Booking Workflow',
     'Doctor / Queue Workflow',
     'Home Services Workflow',

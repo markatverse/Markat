@@ -169,6 +169,7 @@ let SellersService = class SellersService {
                 latitude: data.latitude !== undefined ? data.latitude : undefined,
                 longitude: data.longitude !== undefined ? data.longitude : undefined,
                 gstNumber: data.gstNumber !== undefined ? data.gstNumber : undefined,
+                businessHours: data.businessHours !== undefined ? data.businessHours : undefined,
                 maxListings: data.maxListings !== undefined ? Number(data.maxListings) : undefined,
                 commissionType: data.commissionType !== undefined ? data.commissionType : undefined,
                 commissionRate: data.commissionRate !== undefined ? Number(data.commissionRate) : undefined,

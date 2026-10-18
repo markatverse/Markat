@@ -33,14 +33,24 @@ export class RecommendationsService {
 
     // Helper to accurately classify if a product record is actually a service
     const isServiceRecord = (p: any) => {
-      const serviceCategories = ['Services', 'Home Services', 'Transport', 'Rentals', 'Organizers', 'Salon', 'Restaurant', 'Food & Dining', 'Healthcare', 'Clinic'];
-      return p.primaryType === 'SERVICE' || serviceCategories.some(sc => (p.category || '').toLowerCase().includes(sc.toLowerCase()));
+      if (p.type === 'SERVICE' || p.primaryType === 'SERVICE') return true;
+      const cat = `${p.categoryName || ''} ${p.category || ''} ${p.subcategory || ''}`.toLowerCase();
+      const serviceCategories = [
+        'service', 'services', 'salon', 'saloon', 'spa', 'parlour', 'parlor',
+        'restaurant', 'dining', 'food & dining', 'cafe', 'food',
+        'doctor', 'clinic', 'healthcare', 'medical', 'hospital', 'dentist',
+        'repair', 'cleaning', 'mechanic', 'carpenter', 'plumber', 'electrician',
+        'wedding', 'consultant', 'lawyer', 'organizer', 'transport', 'rental'
+      ];
+      return serviceCategories.some(sc => cat.includes(sc));
     };
 
     // Format all items to a generic structure
     const allItems = [
       ...products.map((p: any) => ({
         ...p,
+        category: p.categoryName || p.category,
+        primaryType: p.type || p.primaryType,
         itemType: isServiceRecord(p) ? 'service' : 'product',
       })),
       ...services.map((s: any) => ({ ...s, itemType: 'service' }))

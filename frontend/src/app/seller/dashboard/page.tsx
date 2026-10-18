@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useProducts } from '@/context/ProductContext';
@@ -39,15 +39,45 @@ function DashboardContent() {
   
   const { user, login, logout, isLoading } = useAuth();
   const [leads, setLeads] = useState<any[]>([]);
-  
-  // New State variables for Tokens & Bookings Dashboard
+  const [selectedServiceCategory, setSelectedServiceCategory] = useState<string>('All Services');
+  const [searchBookingQuery, setSearchBookingQuery] = useState<string>('');
   const [selectedBookingDetails, setSelectedBookingDetails] = useState<any | null>(null);
-  const [searchBookingQuery, setSearchBookingQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All Status');
-  const [typeFilter, setTypeFilter] = useState('All Types');
-  const [staffFilter, setStaffFilter] = useState('All Staff');
-  const [dateFilter, setDateFilter] = useState('Today');
-  const [selectedServiceCategory, setSelectedServiceCategory] = useState('All Services');
+  
+  // Store Operational & Notification Settings State
+  const defaultStoreSettings = {
+    acceptOrders: true,
+    autoIssueToken: true,
+    soundAlerts: true,
+    smsNotifs: true,
+    whatsappAlerts: true,
+    emailDigest: true,
+    securityAlerts: true,
+  };
+  const [storeSettings, setStoreSettings] = useState(defaultStoreSettings);
+  const [settingsSavedToast, setSettingsSavedToast] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(`markat_seller_settings_${user?.id || 'default'}`);
+      if (stored) {
+        setStoreSettings(JSON.parse(stored));
+      }
+    } catch {
+      // ignore
+    }
+  }, [user?.id]);
+
+  const updateStoreSetting = (key: keyof typeof defaultStoreSettings, value: boolean) => {
+    setStoreSettings(prev => {
+      const updated = { ...prev, [key]: value };
+      try {
+        localStorage.setItem(`markat_seller_settings_${user?.id || 'default'}`, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+    setSettingsSavedToast(true);
+    setTimeout(() => setSettingsSavedToast(false), 2500);
+  };
 
   const myListings = products.filter(p => {
     // Only match strictly by sellerId to prevent generic names from claiming dummy data
@@ -331,9 +361,20 @@ function DashboardContent() {
   const [settingsPin, setSettingsPin] = useState('');
   
   // Profile Editing State
+  const defaultSchedule = {
+    monday: { open: '09:00', close: '18:00', closed: false },
+    tuesday: { open: '09:00', close: '18:00', closed: false },
+    wednesday: { open: '09:00', close: '18:00', closed: false },
+    thursday: { open: '09:00', close: '18:00', closed: false },
+    friday: { open: '09:00', close: '18:00', closed: false },
+    saturday: { open: '09:00', close: '18:00', closed: false },
+    sunday: { open: '09:00', close: '18:00', closed: true },
+  };
+
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({
-    ownerName: '', phone: '', email: '', businessName: '', gstNumber: '', address: '', pincode: '', latitude: null as number | null, longitude: null as number | null
+    ownerName: '', phone: '', email: '', businessName: '', gstNumber: '', address: '', pincode: '', latitude: null as number | null, longitude: null as number | null,
+    businessHours: defaultSchedule as any,
   });
 
   const handleEditProfileInit = () => {
@@ -347,6 +388,9 @@ function DashboardContent() {
       pincode: user?.business?.pincode || '',
       latitude: user?.business?.latitude || null,
       longitude: user?.business?.longitude || null,
+      businessHours: user?.business?.businessHours && typeof user.business.businessHours === 'object'
+        ? { ...defaultSchedule, ...(user.business.businessHours as any) }
+        : defaultSchedule,
     });
     setIsEditingProfile(true);
   };
@@ -754,16 +798,18 @@ function DashboardContent() {
                 className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'bookings' ? 'bg-amber-50 text-amber-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
               >
                 <div className="flex items-center gap-3">
-                  <CalendarClock className="w-5 h-5" /> Bookings & Tokens
+                  <CalendarClock className="w-5 h-5" /> {activeVertical === 'FOOD' ? 'Table Bookings' : 'Bookings & Tokens'}
                 </div>
               </button>
 
-              <button 
-                onClick={() => { setActiveTab('queue'); setIsMobileMenuOpen(false); }} 
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'queue' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-              >
-                <span className="w-5 h-5 flex items-center justify-center text-lg">🎟️</span> Live Queue
-              </button>
+              {activeVertical !== 'FOOD' && (
+                <button 
+                  onClick={() => { setActiveTab('queue'); setIsMobileMenuOpen(false); }} 
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'queue' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                >
+                  <span className="w-5 h-5 flex items-center justify-center text-lg">🎟️</span> Live Queue
+                </button>
+              )}
 
               <button 
                 onClick={() => { setActiveTab('customers'); setIsMobileMenuOpen(false); }} 
@@ -2596,36 +2642,152 @@ function DashboardContent() {
 
                 {/* Operating Hours Table */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-2">Weekly Schedule</label>
-                  <div className="bg-slate-50/80 rounded-xl border border-slate-200/70 overflow-hidden divide-y divide-slate-200/60">
-                    {user?.business?.businessHours ? (
-                      Object.entries(user.business.businessHours as any).map(([day, hrs]: [string, any]) => (
-                        <div key={day} className="flex justify-between items-center px-4 py-2.5 text-xs">
-                          <span className="capitalize font-semibold text-slate-700">{day}</span>
-                          <span className="font-medium text-slate-600">
-                            {hrs.closed ? (
-                              <span className="text-rose-600 font-semibold bg-rose-50 px-2 py-0.5 rounded">Closed</span>
-                            ) : (
-                              `${hrs.open} – ${hrs.close}`
-                            )}
-                          </span>
-                        </div>
-                      ))
-                    ) : (
-                      ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
-                        <div key={day} className="flex justify-between items-center px-4 py-2.5 text-xs">
-                          <span className="capitalize font-semibold text-slate-700">{day}</span>
-                          <span className="font-medium text-slate-600">
-                            {day === 'Sunday' ? (
-                              <span className="text-rose-600 font-semibold bg-rose-50 px-2 py-0.5 rounded">Closed</span>
-                            ) : (
-                              '09:00 – 19:00'
-                            )}
-                          </span>
-                        </div>
-                      ))
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs font-semibold text-slate-500">Weekly Schedule</label>
+                    {isEditingProfile && (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const standard = {
+                              monday: { open: '09:00', close: '18:00', closed: false },
+                              tuesday: { open: '09:00', close: '18:00', closed: false },
+                              wednesday: { open: '09:00', close: '18:00', closed: false },
+                              thursday: { open: '09:00', close: '18:00', closed: false },
+                              friday: { open: '09:00', close: '18:00', closed: false },
+                              saturday: { open: '09:00', close: '18:00', closed: false },
+                              sunday: { open: '09:00', close: '18:00', closed: true },
+                            };
+                            setProfileForm(p => ({ ...p, businessHours: standard }));
+                          }}
+                          className="text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded transition-colors"
+                        >
+                          Standard 9-6
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const allOpen = {
+                              monday: { open: '08:00', close: '22:00', closed: false },
+                              tuesday: { open: '08:00', close: '22:00', closed: false },
+                              wednesday: { open: '08:00', close: '22:00', closed: false },
+                              thursday: { open: '08:00', close: '22:00', closed: false },
+                              friday: { open: '08:00', close: '23:00', closed: false },
+                              saturday: { open: '08:00', close: '23:00', closed: false },
+                              sunday: { open: '09:00', close: '21:00', closed: false },
+                            };
+                            setProfileForm(p => ({ ...p, businessHours: allOpen }));
+                          }}
+                          className="text-[10px] font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded transition-colors"
+                        >
+                          All 7 Days
+                        </button>
+                      </div>
                     )}
                   </div>
+
+                  {isEditingProfile ? (
+                    <div className="bg-slate-50/90 rounded-2xl border border-slate-200/80 p-3 space-y-2.5">
+                      {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => {
+                        const dayConfig = (profileForm.businessHours && profileForm.businessHours[day]) || { open: '09:00', close: '18:00', closed: day === 'sunday' };
+                        return (
+                          <div key={day} className={`flex flex-col sm:flex-row sm:items-center justify-between p-2.5 rounded-xl border transition-all ${dayConfig.closed ? 'bg-slate-100/60 border-slate-200 opacity-75' : 'bg-white border-slate-200/90 shadow-2xs'}`}>
+                            <div className="flex items-center justify-between sm:justify-start gap-3 min-w-[110px]">
+                              <span className="capitalize font-bold text-xs text-slate-800">{day}</span>
+                              <label className="inline-flex items-center gap-1.5 cursor-pointer text-[11px] font-semibold">
+                                <input
+                                  type="checkbox"
+                                  checked={dayConfig.closed}
+                                  onChange={(e) => {
+                                    const updated = {
+                                      ...profileForm.businessHours,
+                                      [day]: { ...dayConfig, closed: e.target.checked }
+                                    };
+                                    setProfileForm({ ...profileForm, businessHours: updated });
+                                  }}
+                                  className="w-3.5 h-3.5 rounded text-rose-600 focus:ring-rose-500 border-slate-300"
+                                />
+                                <span className={dayConfig.closed ? 'text-rose-600 font-bold' : 'text-slate-500'}>
+                                  {dayConfig.closed ? 'Closed today' : 'Open'}
+                                </span>
+                              </label>
+                            </div>
+
+                            {!dayConfig.closed ? (
+                              <div className="flex items-center gap-2 mt-2 sm:mt-0">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-[10px] font-medium text-slate-400">From</span>
+                                  <input
+                                    type="time"
+                                    value={dayConfig.open || '09:00'}
+                                    onChange={(e) => {
+                                      const updated = {
+                                        ...profileForm.businessHours,
+                                        [day]: { ...dayConfig, open: e.target.value }
+                                      };
+                                      setProfileForm({ ...profileForm, businessHours: updated });
+                                    }}
+                                    className="px-2 py-1 text-xs font-semibold text-slate-800 bg-white border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                                  />
+                                </div>
+                                <span className="text-slate-400 text-xs font-bold">–</span>
+                                <div className="flex items-center gap-1">
+                                  <span className="text-[10px] font-medium text-slate-400">To</span>
+                                  <input
+                                    type="time"
+                                    value={dayConfig.close || '18:00'}
+                                    onChange={(e) => {
+                                      const updated = {
+                                        ...profileForm.businessHours,
+                                        [day]: { ...dayConfig, close: e.target.value }
+                                      };
+                                      setProfileForm({ ...profileForm, businessHours: updated });
+                                    }}
+                                    className="px-2 py-1 text-xs font-semibold text-slate-800 bg-white border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="mt-1 sm:mt-0 text-[11px] font-semibold text-rose-500 italic bg-rose-50/80 px-2 py-0.5 rounded-md">
+                                Store closed for walk-ins & bookings
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="bg-slate-50/80 rounded-xl border border-slate-200/70 overflow-hidden divide-y divide-slate-200/60">
+                      {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => {
+                        const schedule = (user?.business?.businessHours as any) || defaultSchedule;
+                        const hrs = schedule[day] || (day === 'sunday' ? { closed: true } : { open: '09:00', close: '18:00', closed: false });
+                        
+                        // Check if today matches this day to highlight
+                        const todayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date()).toLowerCase();
+                        const isToday = todayName === day;
+
+                        return (
+                          <div key={day} className={`flex justify-between items-center px-4 py-2.5 text-xs transition-colors ${isToday ? 'bg-blue-50/70 font-semibold' : ''}`}>
+                            <div className="flex items-center gap-2">
+                              <span className="capitalize font-semibold text-slate-700">{day}</span>
+                              {isToday && (
+                                <span className="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.2 rounded bg-blue-600 text-white">
+                                  Today
+                                </span>
+                              )}
+                            </div>
+                            <span className="font-medium text-slate-600">
+                              {hrs.closed ? (
+                                <span className="text-rose-600 font-semibold bg-rose-50 border border-rose-100 px-2 py-0.5 rounded">Closed</span>
+                              ) : (
+                                <span className="text-slate-800 font-semibold">{hrs.open} – {hrs.close}</span>
+                              )}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -2668,7 +2830,12 @@ function DashboardContent() {
                     <div className="text-xs text-slate-500">Temporarily pause incoming bookings or order requests during rush hours.</div>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" defaultChecked className="sr-only peer" />
+                    <input 
+                      type="checkbox" 
+                      checked={storeSettings.acceptOrders} 
+                      onChange={(e) => updateStoreSetting('acceptOrders', e.target.checked)}
+                      className="sr-only peer" 
+                    />
                     <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                   </label>
                 </div>
@@ -2679,7 +2846,12 @@ function DashboardContent() {
                     <div className="text-xs text-slate-500">Instantly generate sequential queue numbers without manual seller approval.</div>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" defaultChecked className="sr-only peer" />
+                    <input 
+                      type="checkbox" 
+                      checked={storeSettings.autoIssueToken} 
+                      onChange={(e) => updateStoreSetting('autoIssueToken', e.target.checked)}
+                      className="sr-only peer" 
+                    />
                     <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                   </label>
                 </div>
@@ -2690,7 +2862,12 @@ function DashboardContent() {
                     <div className="text-xs text-slate-500">Play an audible chime on your device when a customer joins queue or checks out.</div>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" defaultChecked className="sr-only peer" />
+                    <input 
+                      type="checkbox" 
+                      checked={storeSettings.soundAlerts} 
+                      onChange={(e) => updateStoreSetting('soundAlerts', e.target.checked)}
+                      className="sr-only peer" 
+                    />
                     <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
@@ -2711,7 +2888,12 @@ function DashboardContent() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label className="flex items-start gap-3 p-3.5 rounded-2xl border border-slate-200/80 hover:bg-slate-50 cursor-pointer transition-colors">
-                  <input type="checkbox" defaultChecked className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                  <input 
+                    type="checkbox" 
+                    checked={storeSettings.smsNotifs} 
+                    onChange={(e) => updateStoreSetting('smsNotifs', e.target.checked)}
+                    className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" 
+                  />
                   <div>
                     <div className="text-xs font-bold text-slate-800">SMS Order Notifications</div>
                     <div className="text-[11px] text-slate-500">Instant SMS to registered seller phone on high-priority orders.</div>
@@ -2719,7 +2901,12 @@ function DashboardContent() {
                 </label>
 
                 <label className="flex items-start gap-3 p-3.5 rounded-2xl border border-slate-200/80 hover:bg-slate-50 cursor-pointer transition-colors">
-                  <input type="checkbox" defaultChecked className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                  <input 
+                    type="checkbox" 
+                    checked={storeSettings.whatsappAlerts} 
+                    onChange={(e) => updateStoreSetting('whatsappAlerts', e.target.checked)}
+                    className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" 
+                  />
                   <div>
                     <div className="text-xs font-bold text-slate-800">WhatsApp Alert Dispatch</div>
                     <div className="text-[11px] text-slate-500">Direct WhatsApp updates for token dispatch and reservations.</div>
@@ -2727,7 +2914,12 @@ function DashboardContent() {
                 </label>
 
                 <label className="flex items-start gap-3 p-3.5 rounded-2xl border border-slate-200/80 hover:bg-slate-50 cursor-pointer transition-colors">
-                  <input type="checkbox" defaultChecked className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                  <input 
+                    type="checkbox" 
+                    checked={storeSettings.emailDigest} 
+                    onChange={(e) => updateStoreSetting('emailDigest', e.target.checked)}
+                    className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" 
+                  />
                   <div>
                     <div className="text-xs font-bold text-slate-800">Email Daily Sales Digest</div>
                     <div className="text-[11px] text-slate-500">Receive summary of daily revenue, closed tokens, and settlements.</div>
@@ -2735,7 +2927,12 @@ function DashboardContent() {
                 </label>
 
                 <label className="flex items-start gap-3 p-3.5 rounded-2xl border border-slate-200/80 hover:bg-slate-50 cursor-pointer transition-colors">
-                  <input type="checkbox" defaultChecked className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                  <input 
+                    type="checkbox" 
+                    checked={storeSettings.securityAlerts} 
+                    onChange={(e) => updateStoreSetting('securityAlerts', e.target.checked)}
+                    className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" 
+                  />
                   <div>
                     <div className="text-xs font-bold text-slate-800">Critical System Security Alerts</div>
                     <div className="text-[11px] text-slate-500">Notifications on new device logins and bank account modifications.</div>
@@ -2743,6 +2940,16 @@ function DashboardContent() {
                 </label>
               </div>
             </div>
+
+            {settingsSavedToast && (
+              <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-slate-800 animate-in slide-in-from-bottom-3 duration-200">
+                <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-bold">✓</div>
+                <div>
+                  <div className="text-xs font-bold">Preferences Saved</div>
+                  <div className="text-[10px] text-slate-400">Settings updated and active in real-time.</div>
+                </div>
+              </div>
+            )}
 
             {/* 3. SECURITY & CREDENTIALS */}
             <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6 md:p-8 space-y-6">

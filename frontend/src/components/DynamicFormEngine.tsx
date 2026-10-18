@@ -53,8 +53,13 @@ export default function DynamicFormEngine({
     { minQty: 100, price: 0, discountPct: '' }
   ]);
   
-  // Dynamic Attributes
+  // Inventory & Stock
+  const [stock, setStock] = useState<string>(initialData?.stock !== undefined ? initialData.stock.toString() : '50');
+  const [sku, setSku] = useState<string>(initialData?.sku || '');
+  
+  // Dynamic Attributes & Specifications
   const [parameters, setParameters] = useState<Record<string, string | string[]>>(initialData?.parameters || {});
+  const [customSpecs, setCustomSpecs] = useState<{ key: string, value: string }[]>([]);
   
   // Custom Options (Variants/Services Menu)
   const [options, setOptions] = useState<{ id: string, name: string, price: number, discountPercentage?: number }[]>(initialData?.options || []);
@@ -342,28 +347,37 @@ export default function DynamicFormEngine({
 
     const finalLocationString = [locArea, locCity, locDistrict, locState, pincode].filter(Boolean).join(', ');
 
-    const payload = {
-      name,
-      description,
-      primaryType,
-      category,
-      subcategory,
-      nestedSubcategory,
-      isB2B: sellingType === 'B2B',
-      price: finalPrice,
-      originalPrice: finalOriginalPrice,
-      discount: finalDiscount,
-      quantity: 999, // default if not tracked
-      wholesaleTiers: sellingType === 'B2B' ? wholesaleTiers : undefined,
-      images: uploadedImages.length > 0 ? uploadedImages : undefined,
-      image: uploadedImages.length > 0 ? uploadedImages[0] : '/hero-left-logo.png',
-      parameters,
-      options: options.length > 0 ? options : undefined,
-      location: finalLocationString,
-      pincode,
-      latitude,
-      longitude
-    };
+      const mergedParams = { ...parameters };
+      customSpecs.forEach(item => {
+        if (item.key.trim() && item.value.trim()) {
+          mergedParams[item.key.trim()] = item.value.trim();
+        }
+      });
+
+      const payload = {
+        name,
+        description,
+        primaryType,
+        category,
+        subcategory,
+        nestedSubcategory,
+        isB2B: sellingType === 'B2B',
+        price: finalPrice,
+        originalPrice: finalOriginalPrice,
+        discount: finalDiscount,
+        quantity: !isService && stock ? Number(stock) : 999, // default if not tracked
+        stock: !isService && stock ? Number(stock) : 0,
+        sku: sku || undefined,
+        wholesaleTiers: sellingType === 'B2B' ? wholesaleTiers : undefined,
+        images: uploadedImages.length > 0 ? uploadedImages : undefined,
+        image: uploadedImages.length > 0 ? uploadedImages[0] : '/hero-left-logo.png',
+        parameters: mergedParams,
+        options: options.length > 0 ? options : undefined,
+        location: finalLocationString,
+        pincode,
+        latitude,
+        longitude
+      };
 
     await onSave(payload);
     setIsSubmitting(false);
@@ -524,8 +538,8 @@ export default function DynamicFormEngine({
         </div>
       </div>
 
-      {/* 3. DYNAMIC ATTRIBUTES */}
-      {activeParameters.length > 0 && (
+      {/* 3. DYNAMIC ATTRIBUTES & TECHNICAL SPECIFICATIONS */}
+      {(activeParameters.length > 0 || !isService) && (
         <div className="space-y-4 p-5 rounded-xl bg-slate-50/70 border border-slate-200">
           <div className="flex items-center gap-2.5 border-b border-slate-200/60 pb-2.5">
             <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs border border-emerald-100">
@@ -533,110 +547,168 @@ export default function DynamicFormEngine({
             </div>
             <div>
               <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Specifications & Attributes</h3>
-              <p className="text-[11px] text-slate-500">Configure sector-specific parameters for this listing.</p>
+              <p className="text-[11px] text-slate-500">Configure sector-specific parameters and technical details for this listing.</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-white rounded-xl border border-slate-200">
-            {activeParameters.map(param => (
-              <div key={param.name} className={`space-y-3 ${param.type === 'pricelist' ? 'col-span-1 md:col-span-2 lg:col-span-3' : ''}`}>
-                <label className="text-sm font-semibold text-slate-700">{param.name}</label>
-                
-                {param.type === 'text' && (
-                  <input type="text" value={(parameters[param.name] as string) || ''} onChange={e => setParameters({...parameters, [param.name]: e.target.value})} placeholder={param.placeholder} className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-blue-500 outline-none text-sm" />
-                )}
 
-                {param.type === 'number' && (
-                  <input type="number" value={(parameters[param.name] as string) || ''} onChange={e => setParameters({...parameters, [param.name]: e.target.value})} placeholder={param.placeholder} className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-blue-500 outline-none text-sm" />
-                )}
+          {activeParameters.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-white rounded-xl border border-slate-200">
+              {activeParameters.map(param => (
+                <div key={param.name} className={`space-y-3 ${param.type === 'pricelist' ? 'col-span-1 md:col-span-2 lg:col-span-3' : ''}`}>
+                  <label className="text-sm font-semibold text-slate-700">{param.name}</label>
+                  
+                  {param.type === 'text' && (
+                    <input type="text" value={(parameters[param.name] as string) || ''} onChange={e => setParameters({...parameters, [param.name]: e.target.value})} placeholder={param.placeholder} className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-blue-500 outline-none text-sm" />
+                  )}
 
-                {param.type === 'radio' && param.options && (
-                  <div className="flex flex-col gap-2">
-                    {param.options.map(opt => (
-                      <label key={opt} className="flex items-center gap-2 cursor-pointer text-sm text-slate-600">
-                        <input type="radio" name={param.name} value={opt} checked={parameters[param.name] === opt} onChange={e => setParameters({...parameters, [param.name]: e.target.value})} className="w-4 h-4 text-blue-600" />
-                        {opt}
-                      </label>
-                    ))}
-                  </div>
-                )}
+                  {param.type === 'number' && (
+                    <input type="number" value={(parameters[param.name] as string) || ''} onChange={e => setParameters({...parameters, [param.name]: e.target.value})} placeholder={param.placeholder} className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-blue-500 outline-none text-sm" />
+                  )}
 
-                {param.type === 'checkbox' && param.options && (
-                  <div className="flex flex-col gap-2">
-                    {param.options.map(opt => {
-                      const isChecked = ((parameters[param.name] as string[]) || []).includes(opt);
-                      return (
+                  {param.type === 'radio' && param.options && (
+                    <div className="flex flex-col gap-2">
+                      {param.options.map(opt => (
                         <label key={opt} className="flex items-center gap-2 cursor-pointer text-sm text-slate-600">
-                          <input type="checkbox" checked={isChecked} onChange={e => handleCheckboxChange(param.name, opt, e.target.checked)} className="w-4 h-4 text-blue-600 rounded" />
+                          <input type="radio" name={param.name} value={opt} checked={parameters[param.name] === opt} onChange={e => setParameters({...parameters, [param.name]: e.target.value})} className="w-4 h-4 text-blue-600" />
                           {opt}
                         </label>
-                      );
-                    })}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
 
-                {param.type === 'pricelist' && (
-                  <div className="flex flex-col gap-4 w-full bg-white p-4 rounded-xl border border-slate-200 shadow-sm mt-1">
-                    <p className="text-xs text-slate-500 font-medium">Select the options you offer and set your pricing.</p>
-                    <div className="space-y-3">
-                      {Array.from(new Set([...(param.options || []), ...options.map(o => o.name)])).map(optName => {
-                        const existingOption = options.find(o => o.name === optName);
-                        const isChecked = !!existingOption;
+                  {param.type === 'checkbox' && param.options && (
+                    <div className="flex flex-col gap-2">
+                      {param.options.map(opt => {
+                        const isChecked = ((parameters[param.name] as string[]) || []).includes(opt);
                         return (
-                          <div key={optName} className={`flex flex-wrap items-center gap-4 p-3 rounded-xl border transition-colors ${isChecked ? 'bg-blue-50/50 border-blue-200' : 'bg-slate-50 border-slate-100'}`}>
-                            <label className="flex items-center gap-3 cursor-pointer min-w-[150px] flex-1">
-                              <input 
-                                type="checkbox" 
-                                checked={isChecked}
-                                onChange={e => {
-                                  if (e.target.checked) {
-                                    setOptions([...options, { id: Math.random().toString(36).substr(2, 9), name: optName, price: 0 }]);
-                                  } else {
-                                    setOptions(options.filter(o => o.name !== optName));
-                                  }
-                                }}
-                                className="w-5 h-5 text-blue-600 rounded border-slate-300 focus:ring-blue-500" 
-                              />
-                              <span className={`font-semibold ${isChecked ? 'text-blue-800' : 'text-slate-600'}`}>{optName}</span>
-                            </label>
-                            {isChecked && (
-                              <div className="flex gap-3 flex-wrap items-center">
-                                <div className="w-32">
-                                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Price</label>
-                                  <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium">₹</span>
-                                    <input type="number" min="0" value={existingOption.price || ''} onChange={e => setOptions(options.map(o => o.name === optName ? { ...o, price: Math.max(0, Number(e.target.value)) } : o))} className="w-full pl-7 pr-3 py-1.5 rounded-lg border border-slate-300 outline-none text-sm bg-white focus:border-blue-500" />
-                                  </div>
-                                </div>
-                                <div className="w-24">
-                                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Discount</label>
-                                  <div className="relative">
-                                    <input type="number" min="0" max="100" value={existingOption.discountPercentage || ''} onChange={e => setOptions(options.map(o => o.name === optName ? { ...o, discountPercentage: Math.min(100, Math.max(0, Number(e.target.value))) } : o))} placeholder="0" className="w-full pl-3 pr-7 py-1.5 rounded-lg border border-slate-300 outline-none text-sm bg-white focus:border-blue-500" />
-                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium">%</span>
-                                  </div>
-                                </div>
-                                {!(param.options || []).includes(optName) && (
-                                  <button type="button" onClick={() => setOptions(options.filter(o => o.name !== optName))} className="mt-5 p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
-                                )}
-                              </div>
-                            )}
-                          </div>
+                          <label key={opt} className="flex items-center gap-2 cursor-pointer text-sm text-slate-600">
+                            <input type="checkbox" checked={isChecked} onChange={e => handleCheckboxChange(param.name, opt, e.target.checked)} className="w-4 h-4 text-blue-600 rounded" />
+                            {opt}
+                          </label>
                         );
                       })}
                     </div>
-                    <button type="button" onClick={() => {
-                        const customName = prompt('Enter custom option name:');
-                        if (customName && customName.trim()) {
-                          if (!options.find(o => o.name.toLowerCase() === customName.trim().toLowerCase()) && !(param.options || []).some(o => o.toLowerCase() === customName.trim().toLowerCase())) {
-                            setOptions([...options, { id: Math.random().toString(36).substr(2, 9), name: customName.trim(), price: 0 }]);
+                  )}
+
+                  {param.type === 'pricelist' && (
+                    <div className="flex flex-col gap-4 w-full bg-white p-4 rounded-xl border border-slate-200 shadow-sm mt-1">
+                      <p className="text-xs text-slate-500 font-medium">Select the options you offer and set your pricing.</p>
+                      <div className="space-y-3">
+                        {Array.from(new Set([...(param.options || []), ...options.map(o => o.name)])).map(optName => {
+                          const existingOption = options.find(o => o.name === optName);
+                          const isChecked = !!existingOption;
+                          return (
+                            <div key={optName} className={`flex flex-wrap items-center gap-4 p-3 rounded-xl border transition-colors ${isChecked ? 'bg-blue-50/50 border-blue-200' : 'bg-slate-50 border-slate-100'}`}>
+                              <label className="flex items-center gap-3 cursor-pointer min-w-[150px] flex-1">
+                                <input 
+                                  type="checkbox" 
+                                  checked={isChecked}
+                                  onChange={e => {
+                                    if (e.target.checked) {
+                                      setOptions([...options, { id: Math.random().toString(36).substr(2, 9), name: optName, price: 0 }]);
+                                    } else {
+                                      setOptions(options.filter(o => o.name !== optName));
+                                    }
+                                  }}
+                                  className="w-5 h-5 text-blue-600 rounded border-slate-300 focus:ring-blue-500" 
+                                />
+                                <span className={`font-semibold ${isChecked ? 'text-blue-800' : 'text-slate-600'}`}>{optName}</span>
+                              </label>
+                              {isChecked && (
+                                <div className="flex gap-3 flex-wrap items-center">
+                                  <div className="w-32">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Price</label>
+                                    <div className="relative">
+                                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium">₹</span>
+                                      <input type="number" min="0" value={existingOption.price || ''} onChange={e => setOptions(options.map(o => o.name === optName ? { ...o, price: Math.max(0, Number(e.target.value)) } : o))} className="w-full pl-7 pr-3 py-1.5 rounded-lg border border-slate-300 outline-none text-sm bg-white focus:border-blue-500" />
+                                    </div>
+                                  </div>
+                                  <div className="w-24">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Discount</label>
+                                    <div className="relative">
+                                      <input type="number" min="0" max="100" value={existingOption.discountPercentage || ''} onChange={e => setOptions(options.map(o => o.name === optName ? { ...o, discountPercentage: Math.min(100, Math.max(0, Number(e.target.value))) } : o))} placeholder="0" className="w-full pl-3 pr-7 py-1.5 rounded-lg border border-slate-300 outline-none text-sm bg-white focus:border-blue-500" />
+                                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium">%</span>
+                                    </div>
+                                  </div>
+                                  {!(param.options || []).includes(optName) && (
+                                    <button type="button" onClick={() => setOptions(options.filter(o => o.name !== optName))} className="mt-5 p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <button type="button" onClick={() => {
+                          const customName = prompt('Enter custom option name:');
+                          if (customName && customName.trim()) {
+                            if (!options.find(o => o.name.toLowerCase() === customName.trim().toLowerCase()) && !(param.options || []).some(o => o.toLowerCase() === customName.trim().toLowerCase())) {
+                              setOptions([...options, { id: Math.random().toString(36).substr(2, 9), name: customName.trim(), price: 0 }]);
+                            }
                           }
-                        }
-                      }} className="mt-2 w-full p-3 border-2 border-dashed border-blue-200 bg-blue-50/50 rounded-xl text-blue-600 flex items-center justify-center gap-2 hover:bg-blue-50 hover:border-blue-300 transition-colors font-semibold text-sm">
-                      <PlusCircle className="w-4 h-4" /> Add Custom {param.name}
+                        }} className="mt-2 w-full p-3 border-2 border-dashed border-blue-200 bg-blue-50/50 rounded-xl text-blue-600 flex items-center justify-center gap-2 hover:bg-blue-50 hover:border-blue-300 transition-colors font-semibold text-sm">
+                        <PlusCircle className="w-4 h-4" /> Add Custom {param.name}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Additional Custom Specifications & Technical Attributes */}
+          <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-xs font-bold text-slate-800 uppercase tracking-wider">Custom Technical Specifications</div>
+                <div className="text-[11px] text-slate-500">Add any specific hardware, dimension, or technical detail (e.g., Refresh Rate, Connectivity, Power).</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCustomSpecs([...customSpecs, { key: '', value: '' }])}
+                className="text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-200 flex items-center gap-1 transition"
+              >
+                <PlusCircle className="w-3.5 h-3.5" /> Add Spec
+              </button>
+            </div>
+
+            {customSpecs.length > 0 && (
+              <div className="space-y-2 pt-2">
+                {customSpecs.map((spec, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={spec.key}
+                      onChange={e => {
+                        const updated = [...customSpecs];
+                        updated[idx].key = e.target.value;
+                        setCustomSpecs(updated);
+                      }}
+                      placeholder="Spec Name (e.g. Refresh Rate)"
+                      className="w-1/3 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 outline-none focus:border-blue-500"
+                    />
+                    <input
+                      type="text"
+                      value={spec.value}
+                      onChange={e => {
+                        const updated = [...customSpecs];
+                        updated[idx].value = e.target.value;
+                        setCustomSpecs(updated);
+                      }}
+                      placeholder="Spec Value (e.g. 120 Hz, HDMI 2.1)"
+                      className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-300 outline-none focus:border-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCustomSpecs(customSpecs.filter((_, i) => i !== idx))}
+                      className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition"
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
-                )}
+                ))}
               </div>
-            ))}
+            )}
           </div>
         </div>
       )}
@@ -777,6 +849,35 @@ export default function DynamicFormEngine({
                   }} placeholder="0" className="w-full pl-3 pr-7 py-2 rounded-lg border border-slate-300 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium" />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">%</span>
                 </div>
+              </div>
+            )}
+
+            {!isService && (
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Available Stock (Units) *</label>
+                <div className="relative">
+                  <input 
+                    type="number" 
+                    min="0" 
+                    value={stock} 
+                    onChange={e => setStock(e.target.value)} 
+                    placeholder="e.g. 50" 
+                    className="w-full px-3.5 py-2 rounded-lg border border-slate-300 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium" 
+                  />
+                </div>
+              </div>
+            )}
+
+            {!isService && (
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">SKU / Model No.</label>
+                <input 
+                  type="text" 
+                  value={sku} 
+                  onChange={e => setSku(e.target.value)} 
+                  placeholder="e.g. LG-55-OLED-2024" 
+                  className="w-full px-3.5 py-2 rounded-lg border border-slate-300 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium font-mono" 
+                />
               </div>
             )}
             
@@ -928,6 +1029,7 @@ export default function DynamicFormEngine({
                 { name: '2-Seater Table', defaultPrice: 300 },
                 { name: '4-Seater Family Table', defaultPrice: 500 },
                 { name: '6-Seater Group Table', defaultPrice: 800 },
+                { name: '8-Seater Large Party Table', defaultPrice: 1100 },
                 { name: 'Candlelight / Romantic Setup', defaultPrice: 1200 },
                 { name: 'Private VIP Dining Cabin', defaultPrice: 2000 },
                 { name: 'Rooftop / Outdoor Table', defaultPrice: 600 }

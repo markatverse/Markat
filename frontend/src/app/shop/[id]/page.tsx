@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MapPin, Star, Shield, Phone, Mail, Clock, CheckCircle, Ticket, ShoppingCart, Calendar, Stethoscope, Scissors, Wrench } from 'lucide-react';
+import { MapPin, Star, Shield, Phone, Mail, Clock, CheckCircle, Ticket, ShoppingCart, Calendar, Stethoscope, Scissors, Wrench, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import ProductGridSkeleton from '@/components/ProductGridSkeleton';
 
@@ -18,9 +18,12 @@ export default function PublicShopPage({ params }: { params: Promise<{ id: strin
     fetch(`${API_URL}/products`)
       .then(res => res.json())
       .then(data => {
-        let shopProducts = data.filter((p: any) => (p.sellerName || 'Unknown').toLowerCase().includes(shopName.toLowerCase().split(' ')[0]));
+        const items: any[] = Array.isArray(data) ? data : (data && Array.isArray(data.data) ? data.data : []);
+        let shopProducts = items.filter((p: any) => 
+          (p.sellerName || p.seller || '').toLowerCase().includes(shopName.toLowerCase().split(' ')[0])
+        );
         if (shopProducts.length === 0) {
-          shopProducts = data.slice(0, 6);
+          shopProducts = items.slice(0, 6);
         }
         setProducts(shopProducts);
       })
@@ -38,6 +41,7 @@ export default function PublicShopPage({ params }: { params: Promise<{ id: strin
   });
   
   const physicalProducts = products.filter(p => !services.includes(p));
+  const shopProducts = products;
 
   // Determine Shop Theme based on what they offer
   const isMedical = shopName.toLowerCase().includes('clinic') || shopName.toLowerCase().includes('doctor') || shopName.toLowerCase().includes('hospital');
@@ -100,13 +104,27 @@ export default function PublicShopPage({ params }: { params: Promise<{ id: strin
           </div>
 
           {/* Contact Actions */}
-          <div className="flex flex-col gap-3 w-full md:w-auto shrink-0">
-            <button className={`px-8 py-3 bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white rounded-xl font-bold transition-all shadow-md shadow-${themeColor}-600/20 w-full flex items-center justify-center gap-2`}>
-              <Phone className="w-4 h-4" /> Contact Seller
-            </button>
-            <button className="px-8 py-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-bold transition-all shadow-sm w-full flex items-center justify-center gap-2">
-              <Mail className="w-4 h-4" /> Message
-            </button>
+          <div className="flex flex-col sm:flex-row md:flex-col gap-2.5 w-full md:w-auto shrink-0">
+            <a 
+              href={`https://wa.me/919876543210?text=${encodeURIComponent(`Hello ${shopName}! I found your store on MarkatVerse and would like to inquire about your products and services.`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2"
+            >
+              <MessageCircle className="w-4 h-4" /> WhatsApp Store
+            </a>
+            <a 
+              href="tel:+919876543210"
+              className={`px-6 py-2.5 bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white rounded-xl font-bold text-xs transition-all shadow-md shadow-${themeColor}-600/20 flex items-center justify-center gap-2`}
+            >
+              <Phone className="w-4 h-4" /> Call Direct
+            </a>
+            <a 
+              href={`mailto:support@${shopName.replace(/\s+/g, '').toLowerCase()}.com?subject=${encodeURIComponent(`Customer Inquiry from MarkatVerse: ${shopName}`)}`}
+              className="px-6 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-bold text-xs transition-all shadow-xs flex items-center justify-center gap-2"
+            >
+              <Mail className="w-4 h-4" /> Send Email
+            </a>
           </div>
         </div>
 

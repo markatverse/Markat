@@ -99,9 +99,21 @@ export default function Recommendations() {
 
       <div className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory">
         {realItems.map((item) => {
-          const isService = item.itemType === 'service' || 
-            item.primaryType === 'SERVICE' || 
-            ['Services', 'Home Services', 'Transport', 'Rentals', 'Organizers', 'Salon', 'Restaurant', 'Food & Dining', 'Clinic'].some(c => (item.category || '').toLowerCase().includes(c.toLowerCase()));
+          const typeStr = (item.primaryType || item.type || item.itemType || '').toUpperCase();
+          const catStr = `${item.categoryName || ''} ${item.category || ''} ${item.subcategory || ''} ${item.name || ''} ${item.title || ''}`.toLowerCase();
+          
+          const serviceKeywords = [
+            'service', 'salon', 'saloon', 'spa', 'beauty parlour', 'parlor', 'haircut', 'trim',
+            'restaurant', 'dining', 'food & dining', 'cafe', 'food', 'table', 'dine-in', 'takeaway',
+            'doctor', 'clinic', 'healthcare', 'medical', 'hospital', 'dentist', 'physiotherapy',
+            'repair', 'plumber', 'electrician', 'carpenter', 'mechanic', 'cleaning',
+            'wedding', 'consultant', 'lawyer', 'organizer', 'transport', 'rental'
+          ];
+          
+          const isService = typeStr === 'SERVICE' || 
+            item.itemType === 'service' ||
+            !!item.parameters?.bookingModel ||
+            serviceKeywords.some(k => catStr.includes(k));
           
           return (
             <div

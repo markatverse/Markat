@@ -4,7 +4,7 @@ import {
   X, 
   Smartphone, 
   CreditCard, 
-  Building2, 
+  Banknote, 
   ShieldCheck, 
   CheckCircle2, 
   Loader2, 
@@ -27,7 +27,7 @@ import { loadRazorpayScript } from '@/utils/loadRazorpay';
 interface MockPaymentGatewayProps {
   amount: number;
   items?: Array<{ name: string; price: number; quantity: number }>;
-  defaultMethod?: 'razorpay' | 'upi' | 'card' | 'netbanking' | 'wallet';
+  defaultMethod?: 'upi' | 'card' | 'cod' | 'wallet';
   inline?: boolean;
   customerDetails?: {
     name?: string;
@@ -38,12 +38,12 @@ interface MockPaymentGatewayProps {
   onCancel?: () => void;
 }
 
-type PaymentMethodType = 'razorpay' | 'upi' | 'card' | 'netbanking' | 'wallet';
+type PaymentMethodType = 'upi' | 'card' | 'cod' | 'wallet';
 
 export default function MockPaymentGateway({ 
   amount, 
   items = [], 
-  defaultMethod = 'razorpay',
+  defaultMethod = 'upi',
   inline = false,
   customerDetails,
   onSuccess, 
@@ -73,9 +73,8 @@ export default function MockPaymentGateway({
   const [cardBrand, setCardBrand] = useState<'visa' | 'mastercard' | 'rupay' | 'generic'>('generic');
   const [cardError, setCardError] = useState('');
 
-  // Netbanking State
-  const [selectedBank, setSelectedBank] = useState<string>('HDFC');
-  const [bankSearch, setBankSearch] = useState('');
+  // COD State
+  const [codAgreed, setCodAgreed] = useState(true);
 
   // Wallet State
   const [selectedWallet, setSelectedWallet] = useState<string>('markat');
@@ -203,34 +202,15 @@ export default function MockPaymentGateway({
       const orderData = await res.json();
       const razorpayKey = orderData.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_MarkatVerseKey';
 
-      // If Razorpay live/test keys are not configured yet, run an authentic fallback simulation
-      if (orderData.isMock || !razorpayKey || razorpayKey.includes('MarkatVerseKey')) {
-        setStatus('processing');
-        setStatusMessage('Connecting to Razorpay Testnet...');
-        setTimeout(() => {
-          setStatusMessage('Processing Razorpay Test Payment...');
-          setTimeout(() => {
-            setStatus('success');
-            playSuccessChime();
-            setTimeout(() => {
-              onSuccess({ 
-                paymentRef: `pay_test_${Math.random().toString(36).substring(2, 16)}`, 
-                method: 'razorpay' 
-              });
-            }, 1800);
-          }, 1200);
-        }, 1000);
-        return;
-      }
-
-      // 2. Open official Razorpay modal when genuine Razorpay Key ID is present
-      const options: any = {
+      // 2. Open official Razorpay modal
+      const options = {
         key: razorpayKey,
         amount: orderData.amount,
         currency: orderData.currency || 'INR',
         name: 'MarkatVerse Marketplace',
         description: `Order Payment (${items.length} items)`,
         image: '/logo.png',
+        order_id: orderData.id,
         handler: async function (response: any) {
           setStatus('processing');
           setStatusMessage('Verifying Razorpay signature...');
@@ -283,10 +263,6 @@ export default function MockPaymentGateway({
         }
       };
 
-      if (orderData.id && !orderData.isMock) {
-        options.order_id = orderData.id;
-      }
-
       const rzpInstance = new (window as any).Razorpay(options);
       rzpInstance.on('payment.failed', function (failureResponse: any) {
         console.error('Razorpay payment failed:', failureResponse.error);
@@ -304,10 +280,6 @@ export default function MockPaymentGateway({
   };
 
   const handlePay = () => {
-    if (method === 'razorpay') {
-      handleLaunchRazorpay();
-      return;
-    }
 
     if (method === 'card') {
       const cleanCard = cardNumber.replace(/\s/g, '');
@@ -332,6 +304,21 @@ export default function MockPaymentGateway({
       }
     }
 
+    if (method === 'cod') {
+      setStatus('processing');
+      setStatusMessage('Confirming Cash on Delivery Order...');
+      setTimeout(() => {
+        setStatusMessage('Order booked with Pay on Delivery!');
+        setStatus('success');
+        playSuccessChime();
+
+        setTimeout(() => {
+          onSuccess({ paymentRef: `COD-${txRef}`, method: 'cod' });
+        }, 1500);
+      }, 900);
+      return;
+    }
+
     setStatus('processing');
     setStatusMessage('Authenticating with NPCI / Gateway...');
 
@@ -348,32 +335,6 @@ export default function MockPaymentGateway({
       }, 1000);
     }, 1200);
   };
-
-  const popularBanks = [
-    { id: 'HDFC', name: 'HDFC Bank', code: 'HDFC', logo: '🏦' },
-    { id: 'SBI', name: 'State Bank of India', code: 'SBI', logo: '🏛️' },
-    { id: 'ICICI', name: 'ICICI Bank', code: 'ICICI', logo: '🏢' },
-    { id: 'AXIS', name: 'Axis Bank', code: 'UTIB', logo: '🏧' },
-    { id: 'KOTAK', name: 'Kotak Mahindra', code: 'KKBK', logo: '🏦' },
-    { id: 'PNB', name: 'Punjab National Bank', code: 'PUNB', logo: '🏛️' },
-  ];
-
-  const allOtherBanks = [
-    'Bank of Baroda',
-    'Canara Bank',
-    'Union Bank of India',
-    'IndusInd Bank',
-    'Federal Bank',
-    'IDFC First Bank',
-    'Yes Bank',
-    'South Indian Bank',
-    'Central Bank of India',
-    'Indian Overseas Bank'
-  ];
-
-  const filteredOtherBanks = allOtherBanks.filter(b => 
-    b.toLowerCase().includes(bankSearch.toLowerCase())
-  );
 
   // Success Screen
   if (status === 'success') {
@@ -397,11 +358,11 @@ export default function MockPaymentGateway({
           <div className="w-full bg-slate-50 rounded-2xl p-4 border border-slate-200/70 text-xs space-y-2 mb-6">
             <div className="flex justify-between text-slate-600">
               <span>Payment Mode</span>
-              <span className="font-bold uppercase text-slate-800">{method === 'razorpay' ? 'Razorpay Official' : method}</span>
+              <span className="font-bold uppercase text-slate-800">{method}</span>
             </div>
             <div className="flex justify-between text-slate-600">
               <span>Gateway Engine</span>
-              <span className="font-bold text-slate-800">{method === 'razorpay' ? 'Razorpay PG v1' : 'MarkatVerse Shield 2.0'}</span>
+              <span className="font-bold text-slate-800">Razorpay Protected</span>
             </div>
             <div className="flex justify-between text-slate-600">
               <span>Timestamp</span>
@@ -505,8 +466,8 @@ export default function MockPaymentGateway({
           {/* Header Bar */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
             <div>
-              <h3 className="font-extrabold text-slate-900 text-base sm:text-lg">Select Payment Mode</h3>
-              <p className="text-xs text-slate-500">Pay securely with Razorpay or direct banking methods</p>
+              <h3 className="font-extrabold text-slate-900 text-base sm:text-lg">Select Payment Method</h3>
+              <p className="text-xs text-slate-500">Choose your preferred payment method below</p>
             </div>
             
             {!inline && onCancel && (
@@ -524,27 +485,6 @@ export default function MockPaymentGateway({
             
             {/* Payment Method Selector Sidebar */}
             <div className="w-full md:w-[210px] border-b md:border-b-0 md:border-r border-slate-100 bg-slate-50/70 overflow-x-auto md:overflow-y-auto flex md:flex-col shrink-0 p-2 md:p-3 gap-1.5">
-              
-              {/* Official Razorpay Option */}
-              <button 
-                onClick={() => setMethod('razorpay')}
-                className={`flex-1 md:flex-none flex items-center gap-3 p-3 rounded-xl transition-all text-left relative overflow-hidden ${
-                  method === 'razorpay' 
-                    ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20' 
-                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/60 font-semibold'
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${method === 'razorpay' ? 'bg-white/20' : 'bg-blue-100 text-blue-700'}`}>
-                  <Zap className="w-4 h-4 text-amber-400 fill-amber-400" />
-                </div>
-                <div className="truncate">
-                  <div className="text-xs sm:text-sm flex items-center gap-1.5">
-                    Razorpay
-                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-400 text-slate-950 font-black uppercase tracking-tight">Fast</span>
-                  </div>
-                  <div className={`text-[10px] truncate ${method === 'razorpay' ? 'text-blue-100' : 'text-slate-400'}`}>Official Gateway</div>
-                </div>
-              </button>
 
               {/* UPI Option */}
               <button 
@@ -582,21 +522,21 @@ export default function MockPaymentGateway({
                 </div>
               </button>
 
-              {/* Netbanking Option */}
+              {/* Cash on Delivery (COD) Option */}
               <button 
-                onClick={() => setMethod('netbanking')}
+                onClick={() => setMethod('cod')}
                 className={`flex-1 md:flex-none flex items-center gap-3 p-3 rounded-xl transition-all text-left ${
-                  method === 'netbanking' 
+                  method === 'cod' 
                     ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20' 
                     : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/60 font-semibold'
                 }`}
               >
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${method === 'netbanking' ? 'bg-white/20' : 'bg-amber-50 text-amber-600'}`}>
-                  <Building2 className="w-4 h-4" />
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${method === 'cod' ? 'bg-white/20' : 'bg-emerald-50 text-emerald-600'}`}>
+                  <Banknote className="w-4 h-4" />
                 </div>
                 <div className="truncate">
-                  <div className="text-xs sm:text-sm">Netbanking</div>
-                  <div className={`text-[10px] truncate ${method === 'netbanking' ? 'text-blue-100' : 'text-slate-400'}`}>All Indian Banks</div>
+                  <div className="text-xs sm:text-sm">Cash on Delivery</div>
+                  <div className={`text-[10px] truncate ${method === 'cod' ? 'text-blue-100' : 'text-slate-400'}`}>Pay at Doorstep</div>
                 </div>
               </button>
 
@@ -622,89 +562,6 @@ export default function MockPaymentGateway({
 
             {/* Active Method Form Body */}
             <div className="flex-1 p-5 sm:p-7 overflow-y-auto custom-scrollbar">
-              
-              {/* RAZORPAY MODE */}
-              {method === 'razorpay' && (
-                <div className="space-y-5 animate-in fade-in duration-200">
-                  <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-900 to-indigo-950 text-white relative overflow-hidden shadow-lg border border-blue-800">
-                    <div className="absolute right-0 top-0 w-64 h-64 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
-                    
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-black text-xl text-white shadow-md">
-                          R
-                        </div>
-                        <div>
-                          <h4 className="font-extrabold text-base tracking-tight">Razorpay Standard Checkout</h4>
-                          <span className="text-[11px] text-blue-300 font-medium">India's #1 Secure Payment Solution</span>
-                        </div>
-                      </div>
-                      <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full font-bold">
-                        Live SDK
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-blue-200 leading-relaxed mb-5">
-                      Pay easily via Google Pay, PhonePe, Paytm, all Major Credit/Debit Cards, Netbanking (50+ Banks), CRED, and EMI.
-                    </p>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 text-[11px]">
-                      <div className="bg-white/10 rounded-xl p-2.5 backdrop-blur-xs text-center border border-white/5">
-                        <span className="block font-bold text-white">⚡ Instant</span>
-                        <span className="text-[10px] text-blue-200">Zero latency</span>
-                      </div>
-                      <div className="bg-white/10 rounded-xl p-2.5 backdrop-blur-xs text-center border border-white/5">
-                        <span className="block font-bold text-white">🔒 256-Bit</span>
-                        <span className="text-[10px] text-blue-200">Bank SSL Encrypted</span>
-                      </div>
-                      <div className="bg-white/10 rounded-xl p-2.5 backdrop-blur-xs text-center border border-white/5">
-                        <span className="block font-bold text-white">💳 All Cards</span>
-                        <span className="text-[10px] text-blue-200">Visa, MC, RuPay</span>
-                      </div>
-                      <div className="bg-white/10 rounded-xl p-2.5 backdrop-blur-xs text-center border border-white/5">
-                        <span className="block font-bold text-white">📱 UPI Direct</span>
-                        <span className="text-[10px] text-blue-200">Any UPI App</span>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleLaunchRazorpay}
-                      disabled={razorpayLoading || status === 'processing'}
-                      className="w-full bg-blue-500 hover:bg-blue-400 active:bg-blue-600 text-white font-black py-3.5 px-6 rounded-xl transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2.5 text-sm sm:text-base disabled:opacity-70 cursor-pointer"
-                    >
-                      {razorpayLoading ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          <span>Opening Razorpay Secure Window...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Zap className="w-5 h-5 fill-amber-300 text-amber-300" />
-                          <span>Pay ₹{amount.toLocaleString('en-IN')} with Razorpay</span>
-                          <ArrowRight className="w-4 h-4 ml-1" />
-                        </>
-                      )}
-                    </button>
-                  </div>
-
-                  {razorpayError && (
-                    <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 shrink-0" />
-                      <span>{razorpayError}</span>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-center gap-6 pt-2 text-xs text-slate-400">
-                    <span className="flex items-center gap-1">
-                      <ShieldCheck className="w-4 h-4 text-emerald-600" /> RBI Authorized Gateway
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Lock className="w-4 h-4 text-blue-600" /> PCI-DSS Level 1 Certified
-                    </span>
-                  </div>
-                </div>
-              )}
 
               {/* UPI MODE */}
               {method === 'upi' && (
@@ -924,65 +781,57 @@ export default function MockPaymentGateway({
                 </div>
               )}
 
-              {/* NETBANKING MODE */}
-              {method === 'netbanking' && (
+              {/* CASH ON DELIVERY (COD) MODE */}
+              {method === 'cod' && (
                 <div className="space-y-4 animate-in fade-in duration-200">
-                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1">
-                    Popular Banks
-                  </span>
-                  
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                    {popularBanks.map(bank => (
-                      <button
-                        key={bank.id}
-                        type="button"
-                        onClick={() => setSelectedBank(bank.id)}
-                        className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all text-center ${
-                          selectedBank === bank.id 
-                            ? 'border-blue-600 bg-blue-50/70 text-blue-700 font-bold shadow-xs ring-2 ring-blue-500/20' 
-                            : 'border-slate-200 hover:border-slate-300 bg-white text-slate-700 font-medium'
-                        }`}
-                      >
-                        <span className="text-xl">{bank.logo}</span>
-                        <span className="text-xs truncate w-full">{bank.name}</span>
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="pt-2">
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                      Or Search Other Banks
-                    </label>
-                    <div className="relative mb-2">
-                      <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                      <input 
-                        type="text" 
-                        value={bankSearch}
-                        onChange={(e) => setBankSearch(e.target.value)}
-                        placeholder="Search all Indian banks..." 
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-slate-800 text-xs font-medium focus:outline-none focus:border-blue-500 focus:bg-white"
-                      />
+                  <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200/80">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-sm shrink-0">
+                        <Banknote className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-slate-900 text-sm sm:text-base">Cash / Pay on Delivery</h4>
+                        <p className="text-xs text-emerald-700 font-medium">Pay via Cash, UPI, or Card upon doorstep delivery</p>
+                      </div>
                     </div>
 
-                    <div className="max-h-[110px] overflow-y-auto space-y-1 border border-slate-200 rounded-xl p-1 bg-slate-50/50">
-                      {filteredOtherBanks.length === 0 ? (
-                        <div className="text-xs text-slate-400 p-2 text-center">No banks matching search</div>
-                      ) : (
-                        filteredOtherBanks.map(b => (
-                          <div 
-                            key={b} 
-                            onClick={() => setSelectedBank(b)}
-                            className={`px-3 py-2 rounded-lg text-xs font-medium cursor-pointer flex items-center justify-between ${
-                              selectedBank === b ? 'bg-blue-600 text-white font-bold' : 'hover:bg-slate-200/60 text-slate-700'
-                            }`}
-                          >
-                            <span>{b}</span>
-                            {selectedBank === b && <Check className="w-3.5 h-3.5" />}
-                          </div>
-                        ))
-                      )}
+                    <div className="bg-white/90 rounded-xl p-3.5 border border-emerald-100 text-xs text-slate-600 space-y-2">
+                      <div className="flex items-start gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>No advance online payment required. Pay directly to the delivery executive.</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>Our delivery partners carry wireless QR & POS swipe machines for UPI / Card payment at door.</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>Free delivery & hassle-free verification on order delivery.</span>
+                      </div>
                     </div>
                   </div>
+
+                  <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">Total Amount to Pay</span>
+                      <span className="text-xl font-black text-slate-900">₹{amount.toLocaleString('en-IN')}</span>
+                    </div>
+                    <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-full border border-emerald-200">
+                      Zero Extra Convenience Fee
+                    </span>
+                  </div>
+
+                  <label className="flex items-center gap-2.5 cursor-pointer pt-1">
+                    <input 
+                      type="checkbox" 
+                      checked={codAgreed} 
+                      onChange={(e) => setCodAgreed(e.target.checked)}
+                      className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300"
+                    />
+                    <span className="text-xs text-slate-600 font-medium">
+                      I confirm I will be available at the delivery address to receive and pay for this order.
+                    </span>
+                  </label>
                 </div>
               )}
 
@@ -1072,7 +921,7 @@ export default function MockPaymentGateway({
 
             <button 
               onClick={handlePay}
-              disabled={status === 'processing' || razorpayLoading}
+              disabled={status === 'processing' || razorpayLoading || (method === 'cod' && !codAgreed)}
               className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-75 disabled:shadow-none min-w-[200px]"
             >
               {status === 'processing' || razorpayLoading ? (
@@ -1082,7 +931,7 @@ export default function MockPaymentGateway({
                 </>
               ) : (
                 <>
-                  <span>Pay ₹{amount.toLocaleString('en-IN')} {method === 'razorpay' ? 'via Razorpay' : ''}</span>
+                  <span>{method === 'cod' ? `Place COD Order (₹${amount.toLocaleString('en-IN')})` : `Pay ₹${amount.toLocaleString('en-IN')}`}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

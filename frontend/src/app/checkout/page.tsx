@@ -444,7 +444,7 @@ export default function CheckoutPage() {
                   <MockPaymentGateway 
                     amount={total} 
                     items={items.map(i => ({ name: i.name, price: i.price, quantity: i.quantity }))}
-                    defaultMethod="razorpay"
+                    defaultMethod="upi"
                     customerDetails={{
                       name: `${firstName} ${lastName}`.trim() || user?.name || '',
                       email: user?.email || '',

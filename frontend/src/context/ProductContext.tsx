@@ -487,9 +487,37 @@ const defaultCategories: Category[] = [
           }
         ]
       },
-      { name: 'Laptop' },
-      { name: 'TV' },
-      { name: 'Camera' }
+      {
+        name: 'Laptop',
+        parameters: [
+          { name: 'Processor / CPU', type: 'radio', options: ['Intel Core i3 / Ryzen 3', 'Intel Core i5 / Ryzen 5', 'Intel Core i7 / Ryzen 7', 'Apple M-Series', 'Intel Core i9 / Extreme'] },
+          { name: 'RAM Capacity', type: 'radio', options: ['8 GB DDR4/DDR5', '16 GB DDR4/DDR5', '32 GB Unified/DDR5', '64 GB+'] },
+          { name: 'Storage SSD', type: 'radio', options: ['256 GB NVMe SSD', '512 GB NVMe SSD', '1 TB NVMe SSD', '2 TB+ SSD'] },
+          { name: 'Screen Size', type: 'radio', options: ['13.3" - 14" Portable', '15.6" Standard', '16" - 17.3" Creator/Gaming'] },
+          { name: 'Operating System', type: 'radio', options: ['Windows 11 Home', 'Windows 11 Pro', 'macOS', 'DOS / Linux'] },
+          { name: 'Warranty Period', type: 'text', placeholder: 'e.g. 1 Year Onsite Manufacturer Warranty' }
+        ]
+      },
+      { 
+        name: 'TV',
+        parameters: [
+          { name: 'Screen Size (Inches)', type: 'radio', options: ['32 Inch', '43 Inch', '50 Inch', '55 Inch', '65 Inch', '75 Inch+'] },
+          { name: 'Display Resolution', type: 'radio', options: ['HD Ready (720p)', 'Full HD (1080p)', '4K Ultra HD (2160p)', '8K Ultra HD'] },
+          { name: 'Panel Technology', type: 'radio', options: ['LED / DLED', 'QLED', 'OLED', 'Mini-LED'] },
+          { name: 'Smart TV OS', type: 'radio', options: ['Google TV / Android', 'LG webOS', 'Samsung Tizen OS', 'Fire OS', 'Standard Non-Smart'] },
+          { name: 'Sound Output (Watts)', type: 'radio', options: ['20W Dolby Audio', '24W - 30W Sound', '40W+ with Subwoofer', 'Dolby Atmos Tuned'] },
+          { name: 'Warranty', type: 'text', placeholder: 'e.g. 2 Years Comprehensive + 3 Years Panel' }
+        ]
+      },
+      { 
+        name: 'Camera',
+        parameters: [
+          { name: 'Camera Type', type: 'radio', options: ['Mirrorless Full-Frame', 'Mirrorless APS-C', 'DSLR Camera', 'Action Camera / GoPro', 'Point & Shoot Compact'] },
+          { name: 'Sensor Resolution', type: 'radio', options: ['12 - 20 MP', '24 - 33 MP', '45 - 61 MP Ultra High Res'] },
+          { name: 'Video Capabilities', type: 'radio', options: ['1080p 60fps', '4K 60fps', '4K 120fps / 8K Cinema'] },
+          { name: 'Kit Lens Included', type: 'radio', options: ['Body Only (No Lens)', 'Standard Zoom Kit (18-55mm / 24-70mm)', 'Dual Lens Kit'] }
+        ]
+      }
     ]
   },
   {
