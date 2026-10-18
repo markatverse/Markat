@@ -12,7 +12,7 @@ export default function BannerSlideshow({ banners: initialBanners }: { banners: 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // 1. If server passed banners, use them immediately
+    // 1. If server passed banners with items, use them immediately
     if (initialBanners && initialBanners.length > 0) {
       setBanners(initialBanners);
       setIsLoading(false);
@@ -28,7 +28,7 @@ export default function BannerSlideshow({ banners: initialBanners }: { banners: 
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const heroBanners = parsed.filter((b: any) => b.status === 'ACTIVE' && b.position === 'HOME_HERO');
+          const heroBanners = parsed.filter((b: any) => b.status === 'ACTIVE' && (b.position === 'HOME_HERO' || b.position === 'HOMEPAGE' || !b.position));
           if (heroBanners.length > 0) {
             setBanners(heroBanners);
             setIsLoading(false);
@@ -38,10 +38,10 @@ export default function BannerSlideshow({ banners: initialBanners }: { banners: 
     } catch {}
 
     // 3. Background fresh fetch
-    fastFetch<any[]>('/content/banners', { ttlMs: 30000 })
+    fastFetch<any[]>('/content/banners', { ttlMs: 15000 })
       .then(data => {
         if (Array.isArray(data)) {
-          const heroBanners = data.filter((b: any) => b.status === 'ACTIVE' && b.position === 'HOME_HERO');
+          const heroBanners = data.filter((b: any) => b.status === 'ACTIVE' && (b.position === 'HOME_HERO' || b.position === 'HOMEPAGE' || !b.position));
           if (heroBanners.length > 0) {
             setBanners(heroBanners);
             try {

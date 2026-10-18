@@ -28,15 +28,31 @@ export class ContentService {
 
   // --- Banners ---
   async getBanners() {
-    return this.prisma.banner.findMany({ orderBy: { updatedAt: 'desc' }, take: 5 });
+    try {
+      const banners = await this.prisma.banner.findMany({ take: 100 });
+      return (banners || []).sort((a: any, b: any) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime());
+    } catch (err: any) {
+      console.error('Error in getBanners:', err?.message || err);
+      return [];
+    }
   }
 
   async getBannerById(id: string) {
-    return this.prisma.banner.findUnique({ where: { id } });
+    try {
+      return await this.prisma.banner.findUnique({ where: { id } });
+    } catch (err: any) {
+      console.error('Error in getBannerById:', err?.message || err);
+      return null;
+    }
   }
 
   async createBanner(data: any) {
-    return this.prisma.banner.create({ data });
+    try {
+      return await this.prisma.banner.create({ data });
+    } catch (err: any) {
+      console.error('Error in createBanner:', err?.message || err);
+      throw err;
+    }
   }
 
   async updateBanner(id: string, data: any) {
@@ -45,6 +61,43 @@ export class ContentService {
 
   async deleteBanner(id: string) {
     return this.prisma.banner.delete({ where: { id } });
+  }
+
+  // --- Advertisements ---
+  async getAdvertisements() {
+    try {
+      const ads = await this.prisma.advertisement.findMany({ take: 100 });
+      return (ads || []).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } catch (err: any) {
+      console.error('Error in ContentService.getAdvertisements:', err?.message || err);
+      return [];
+    }
+  }
+
+  async getAdvertisementById(id: string) {
+    try {
+      return await this.prisma.advertisement.findUnique({ where: { id } });
+    } catch (err: any) {
+      console.error('Error in ContentService.getAdvertisementById:', err?.message || err);
+      return null;
+    }
+  }
+
+  async createAdvertisement(data: any) {
+    try {
+      return await this.prisma.advertisement.create({ data });
+    } catch (err: any) {
+      console.error('Error in ContentService.createAdvertisement:', err?.message || err);
+      throw err;
+    }
+  }
+
+  async updateAdvertisement(id: string, data: any) {
+    return this.prisma.advertisement.update({ where: { id }, data });
+  }
+
+  async deleteAdvertisement(id: string) {
+    return this.prisma.advertisement.delete({ where: { id } });
   }
 
   // --- Blog Posts ---

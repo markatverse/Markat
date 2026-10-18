@@ -9,6 +9,14 @@ import { MulterModule } from '@nestjs/platform-express';
 import { UploadController } from './upload.controller.js';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { existsSync, mkdirSync } from 'fs';
+const uploadDir = process.env.VERCEL ? '/tmp' : './uploads';
+if (!existsSync(uploadDir)) {
+    try {
+        mkdirSync(uploadDir, { recursive: true });
+    }
+    catch { }
+}
 let UploadModule = class UploadModule {
 };
 UploadModule = __decorate([
@@ -16,7 +24,15 @@ UploadModule = __decorate([
         imports: [
             MulterModule.register({
                 storage: diskStorage({
-                    destination: process.env.VERCEL ? '/tmp' : './uploads',
+                    destination: (req, file, cb) => {
+                        if (!existsSync(uploadDir)) {
+                            try {
+                                mkdirSync(uploadDir, { recursive: true });
+                            }
+                            catch { }
+                        }
+                        cb(null, uploadDir);
+                    },
                     filename: (req, file, cb) => {
                         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
                         const ext = extname(file.originalname);
@@ -24,7 +40,7 @@ UploadModule = __decorate([
                     },
                 }),
                 limits: {
-                    fileSize: 5 * 1024 * 1024,
+                    fileSize: 10 * 1024 * 1024,
                 },
             }),
         ],

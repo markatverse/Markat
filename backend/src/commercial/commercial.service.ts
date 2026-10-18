@@ -7,15 +7,31 @@ export class CommercialService {
 
   // Advertisements
   async getAdvertisements() {
-    return this.prisma.advertisement.findMany({ orderBy: { createdAt: 'desc' }, take: 5 });
+    try {
+      const ads = await this.prisma.advertisement.findMany({ take: 100 });
+      return (ads || []).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } catch (err: any) {
+      console.error('Error in getAdvertisements:', err?.message || err);
+      return [];
+    }
   }
   async getAdvertisement(id: string) {
-    const item = await this.prisma.advertisement.findUnique({ where: { id } });
-    if (!item) throw new NotFoundException('Advertisement not found');
-    return item;
+    try {
+      const item = await this.prisma.advertisement.findUnique({ where: { id } });
+      if (!item) throw new NotFoundException('Advertisement not found');
+      return item;
+    } catch (err: any) {
+      console.error('Error in getAdvertisement:', err?.message || err);
+      throw err;
+    }
   }
   async createAdvertisement(data: any) {
-    return this.prisma.advertisement.create({ data });
+    try {
+      return await this.prisma.advertisement.create({ data });
+    } catch (err: any) {
+      console.error('Error in createAdvertisement:', err?.message || err);
+      throw err;
+    }
   }
   async updateAdvertisement(id: string, data: any) {
     return this.prisma.advertisement.update({ where: { id }, data });

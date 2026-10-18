@@ -1,6 +1,6 @@
-import { Controller, Post, Get, Param, Res, UseInterceptors, UploadedFiles, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Get, Param, Res, Req, UseInterceptors, UploadedFiles, BadRequestException, NotFoundException } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import { existsSync, createReadStream } from 'fs';
 import { join, extname } from 'path';
 
@@ -17,12 +17,14 @@ const MIME_MAP: Record<string, string> = {
 export class UploadController {
   @Post('upload')
   @UseInterceptors(FilesInterceptor('files', 10))
-  uploadFiles(@UploadedFiles() files: Array<Express.Multer.File>) {
+  uploadFiles(@UploadedFiles() files: Array<Express.Multer.File>, @Req() req: Request) {
     if (!files || files.length === 0) {
       throw new BadRequestException('No files uploaded');
     }
 
-    const baseUrl = process.env.BASE_URL || 'http://localhost:3001';
+    const host = req.get('host') || 'localhost:3001';
+    const protocol = req.protocol || 'http';
+    const baseUrl = process.env.BASE_URL || `${protocol}://${host}`;
     const urls = files.map(file => `${baseUrl}/public/uploads/${file.filename}`);
 
     return {
@@ -33,7 +35,7 @@ export class UploadController {
   }
 
   // Stream uploads reliably on Vercel Serverless and local dev
-  @Get('public/uploads/:filename')
+  @Get(['public/uploads/:filename', 'uploads/:filename'])
   serveFile(@Param('filename') filename: string, @Res() res: Response) {
     // Prevent directory traversal
     const safeFilename = filename.replace(/(\.\.[\/\\])+/g, '');

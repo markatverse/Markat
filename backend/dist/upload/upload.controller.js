@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Controller, Post, Get, Param, Res, UseInterceptors, UploadedFiles, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Get, Param, Res, Req, UseInterceptors, UploadedFiles, BadRequestException, NotFoundException } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { existsSync, createReadStream } from 'fs';
 import { join, extname } from 'path';
@@ -23,11 +23,13 @@ const MIME_MAP = {
     '.svg': 'image/svg+xml',
 };
 let UploadController = class UploadController {
-    uploadFiles(files) {
+    uploadFiles(files, req) {
         if (!files || files.length === 0) {
             throw new BadRequestException('No files uploaded');
         }
-        const baseUrl = process.env.BASE_URL || 'http://localhost:3001';
+        const host = req.get('host') || 'localhost:3001';
+        const protocol = req.protocol || 'http';
+        const baseUrl = process.env.BASE_URL || `${protocol}://${host}`;
         const urls = files.map(file => `${baseUrl}/public/uploads/${file.filename}`);
         return {
             message: 'Files uploaded successfully',
@@ -63,12 +65,13 @@ __decorate([
     Post('upload'),
     UseInterceptors(FilesInterceptor('files', 10)),
     __param(0, UploadedFiles()),
+    __param(1, Req()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Array]),
+    __metadata("design:paramtypes", [Array, Object]),
     __metadata("design:returntype", void 0)
 ], UploadController.prototype, "uploadFiles", null);
 __decorate([
-    Get('public/uploads/:filename'),
+    Get(['public/uploads/:filename', 'uploads/:filename']),
     __param(0, Param('filename')),
     __param(1, Res()),
     __metadata("design:type", Function),

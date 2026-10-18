@@ -47,6 +47,21 @@ let ContentController = class ContentController {
     deleteBanner(id) {
         return this.contentService.deleteBanner(id);
     }
+    getAdvertisements() {
+        return this.contentService.getAdvertisements();
+    }
+    getAdvertisement(id) {
+        return this.contentService.getAdvertisementById(id);
+    }
+    createAdvertisement(data) {
+        return this.contentService.createAdvertisement(data);
+    }
+    updateAdvertisement(id, data) {
+        return this.contentService.updateAdvertisement(id, data);
+    }
+    deleteAdvertisement(id) {
+        return this.contentService.deleteAdvertisement(id);
+    }
     getBlogPosts() {
         return this.contentService.getBlogPosts();
     }
@@ -148,6 +163,41 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ContentController.prototype, "deleteBanner", null);
+__decorate([
+    Get('advertisements'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], ContentController.prototype, "getAdvertisements", null);
+__decorate([
+    Get('advertisements/:id'),
+    __param(0, Param('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ContentController.prototype, "getAdvertisement", null);
+__decorate([
+    Post('advertisements'),
+    __param(0, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], ContentController.prototype, "createAdvertisement", null);
+__decorate([
+    Patch('advertisements/:id'),
+    __param(0, Param('id')),
+    __param(1, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], ContentController.prototype, "updateAdvertisement", null);
+__decorate([
+    Delete('advertisements/:id'),
+    __param(0, Param('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ContentController.prototype, "deleteAdvertisement", null);
 __decorate([
     Get('blog'),
     __metadata("design:type", Function),

@@ -1,7 +1,8 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 
-const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
+import { getApiUrl } from '@/utils/api';
+import { compressImage } from '@/utils/imageCompression';
 
 const getFullImageUrl = (url?: string) => {
   if (!url) return '';
@@ -20,6 +21,46 @@ export default function ContentBannersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImg, setIsUploadingImg] = useState(false);
+
+  const handleImageUpload = async (file: File) => {
+    setIsUploadingImg(true);
+    try {
+      // 1. Automatically compress and convert to lightweight WebP (saves 80-90% bandwidth & storage)
+      const optimizedFile = await compressImage(file, 1920, 1080, 0.82);
+
+      const data = new FormData();
+      data.append('files', optimizedFile);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+      const res = await fetch(`${API_URL}/upload`, {
+        method: 'POST',
+        body: data,
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const json = await res.json().catch(() => null);
+        if (json?.urls && json.urls.length > 0) {
+          setFormData(prev => ({ ...prev, imageUrl: json.urls[0] }));
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("Server upload fallback to base64", e);
+    } finally {
+      setIsUploadingImg(false);
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   const fetchBanners = async (isBackground = false) => {
     try {
@@ -34,11 +75,18 @@ export default function ContentBannersPage() {
         clearTimeout(timeoutId);
         if (res.ok) {
           const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            setBanners(data);
-            try {
-              localStorage.setItem('mv_cache_banners', JSON.stringify(data));
-            } catch {}
+          if (Array.isArray(data)) {
+            const realData = data.filter((b: any) => !b.id?.startsWith('bn-dummy-'));
+            setBanners(prev => {
+              const map = new Map<string, any>();
+              prev.forEach(b => { if (b?.id && !b.id.startsWith('bn-dummy-')) map.set(b.id, b); });
+              realData.forEach(b => { if (b?.id && !b.id.startsWith('bn-dummy-')) map.set(b.id, b); });
+              const merged = Array.from(map.values());
+              try {
+                localStorage.setItem('mv_cache_banners', JSON.stringify(merged));
+              } catch {}
+              return merged;
+            });
           }
         }
       } catch {
@@ -99,36 +147,9 @@ export default function ContentBannersPage() {
     };
 
     setIsSaving(true);
-
-    // 1. Instant local & UI update - ZERO waiting!
     const tempId = editingId || ('bn-' + Date.now());
-    const optimisticBanner = {
-      id: tempId,
-      ...payload,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
 
-    setBanners(prev => {
-      let next;
-      if (editingId) {
-        next = prev.map(b => b.id === editingId ? { ...b, ...payload } : b);
-      } else {
-        next = [optimisticBanner, ...prev];
-      }
-      try {
-        localStorage.setItem('mv_cache_banners', JSON.stringify(next));
-      } catch {}
-      return next;
-    });
-
-    // Close modal immediately so user doesn't wait
-    setShowModal(false);
-    setIsSaving(false);
-    setEditingId(null);
-    setFormData({ title: '', imageUrl: '', linkUrl: '', position: 'HOME_HERO', status: 'ACTIVE' });
-
-    // 2. Background sync to backend
+    // 1. Save directly to backend
     try {
       const url = editingId 
         ? `${API_URL}/content/banners/${editingId}` 
@@ -136,7 +157,7 @@ export default function ContentBannersPage() {
       const method = editingId ? 'PATCH' : 'POST';
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
 
       const res = await fetch(url, {
         method,
@@ -148,18 +169,77 @@ export default function ContentBannersPage() {
 
       if (res.ok) {
         const saved = await res.json().catch(() => null);
-        if (saved && saved.id) {
-          setBanners(prev => {
-            const updated = prev.map(b => b.id === tempId ? saved : b);
-            try {
-              localStorage.setItem('mv_cache_banners', JSON.stringify(updated));
-            } catch {}
-            return updated;
-          });
-        }
+        const savedBanner = (saved && saved.id) ? saved : {
+          id: tempId,
+          ...payload,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        setBanners(prev => {
+          let next;
+          if (editingId) {
+            next = prev.map(b => b.id === editingId ? savedBanner : b);
+          } else {
+            next = [savedBanner, ...prev.filter(b => b.id !== savedBanner.id)];
+          }
+          try {
+            localStorage.setItem('mv_cache_banners', JSON.stringify(next));
+          } catch {}
+          return next;
+        });
+
+        setShowModal(false);
+        setEditingId(null);
+        setFormData({ title: '', imageUrl: '', linkUrl: '', position: 'HOME_HERO', status: 'ACTIVE' });
+      } else {
+        const fallbackBanner = {
+          id: tempId,
+          ...payload,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        setBanners(prev => {
+          let next;
+          if (editingId) {
+            next = prev.map(b => b.id === editingId ? fallbackBanner : b);
+          } else {
+            next = [fallbackBanner, ...prev];
+          }
+          try {
+            localStorage.setItem('mv_cache_banners', JSON.stringify(next));
+          } catch {}
+          return next;
+        });
+        setShowModal(false);
+        setEditingId(null);
+        setFormData({ title: '', imageUrl: '', linkUrl: '', position: 'HOME_HERO', status: 'ACTIVE' });
       }
-    } catch (e) {
+    } catch (e: any) {
       console.warn("Backend sync notice: Banner saved locally", e);
+      const fallbackBanner = {
+        id: tempId,
+        ...payload,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setBanners(prev => {
+        let next;
+        if (editingId) {
+          next = prev.map(b => b.id === editingId ? fallbackBanner : b);
+        } else {
+          next = [fallbackBanner, ...prev];
+        }
+        try {
+          localStorage.setItem('mv_cache_banners', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+      setShowModal(false);
+      setEditingId(null);
+      setFormData({ title: '', imageUrl: '', linkUrl: '', position: 'HOME_HERO', status: 'ACTIVE' });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -361,14 +441,12 @@ export default function ContentBannersPage() {
                 <div className="flex flex-col sm:flex-row gap-3 items-stretch">
                   <div 
                     onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                    onDrop={(e) => {
+                    onDrop={async (e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       const file = e.dataTransfer.files?.[0];
                       if (file && file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onloadend = () => setFormData({...formData, imageUrl: reader.result as string});
-                        reader.readAsDataURL(file);
+                        await handleImageUpload(file);
                       }
                     }}
                     className="sm:w-48 border-2 border-dashed border-slate-600 rounded-xl flex items-center justify-center text-center hover:border-emerald-500 hover:bg-slate-800/50 transition-all group relative overflow-hidden min-h-[80px]"
@@ -386,18 +464,18 @@ export default function ContentBannersPage() {
                     ) : null}
                     <div className="flex items-center gap-2 z-10 pointer-events-none px-2 py-3">
                       <span className="text-xl drop-shadow-md">📸</span>
-                      <span className="text-[10px] font-bold text-slate-300 leading-tight drop-shadow-md">Drop image or<br/>click to upload</span>
+                      <span className="text-[10px] font-bold text-slate-300 leading-tight drop-shadow-md">
+                        {isUploadingImg ? 'Uploading...' : 'Drop image or\nclick to upload'}
+                      </span>
                     </div>
                     <input 
                       type="file" 
                       accept="image/*" 
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                      onChange={(e) => {
+                      onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => setFormData({...formData, imageUrl: reader.result as string});
-                          reader.readAsDataURL(file);
+                          await handleImageUpload(file);
                         }
                       }} 
                     />

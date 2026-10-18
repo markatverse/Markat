@@ -57,6 +57,32 @@ export class ContentController {
     return this.contentService.deleteBanner(id);
   }
 
+  // --- Advertisements ---
+  @Get('advertisements')
+  getAdvertisements() {
+    return this.contentService.getAdvertisements();
+  }
+
+  @Get('advertisements/:id')
+  getAdvertisement(@Param('id') id: string) {
+    return this.contentService.getAdvertisementById(id);
+  }
+
+  @Post('advertisements')
+  createAdvertisement(@Body() data: any) {
+    return this.contentService.createAdvertisement(data);
+  }
+
+  @Patch('advertisements/:id')
+  updateAdvertisement(@Param('id') id: string, @Body() data: any) {
+    return this.contentService.updateAdvertisement(id, data);
+  }
+
+  @Delete('advertisements/:id')
+  deleteAdvertisement(@Param('id') id: string) {
+    return this.contentService.deleteAdvertisement(id);
+  }
+
   // --- Blog ---
   @Get('blog')
   getBlogPosts() {

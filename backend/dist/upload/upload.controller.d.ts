@@ -1,6 +1,6 @@
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 export declare class UploadController {
-    uploadFiles(files: Array<Express.Multer.File>): {
+    uploadFiles(files: Array<Express.Multer.File>, req: Request): {
         message: string;
         urls: string[];
         files: {

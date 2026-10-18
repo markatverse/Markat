@@ -21,14 +21,14 @@ async function getAdvertisements() {
     const timeoutId = setTimeout(() => controller.abort(), 6000);
     try {
       const res = await fetch(`${apiUrl}/commercial/advertisements`, {
-        next: { revalidate: 60 },
+        next: { revalidate: 30 },
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
       if (res && res.ok) {
         const data = await res.json().catch(() => []);
         return Array.isArray(data)
-          ? data.filter((ad: any) => ad.status === 'ACTIVE' && ad.position === 'HOMEPAGE')
+          ? data.filter((ad: any) => ad.status === 'ACTIVE' && (ad.position === 'HOMEPAGE' || !ad.position))
           : [];
       }
     } catch {
@@ -48,14 +48,14 @@ async function getBanners() {
     const timeoutId = setTimeout(() => controller.abort(), 6000);
     try {
       const res = await fetch(`${apiUrl}/content/banners`, {
-        next: { revalidate: 60 },
+        next: { revalidate: 30 },
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
       if (res && res.ok) {
         const data = await res.json().catch(() => []);
         return Array.isArray(data)
-          ? data.filter((banner: any) => banner.status === 'ACTIVE' && banner.position === 'HOME_HERO')
+          ? data.filter((banner: any) => banner.status === 'ACTIVE' && (banner.position === 'HOME_HERO' || banner.position === 'HOMEPAGE' || !banner.position))
           : [];
       }
     } catch {
@@ -96,7 +96,11 @@ async function getBlogPosts() {
 }
 
 export default async function Home() {
-  const blogPosts = await getBlogPosts();
+  const [blogPosts, serverBanners, serverAds] = await Promise.all([
+    getBlogPosts(),
+    getBanners(),
+    getAdvertisements(),
+  ]);
 
   return (
     <div className="w-full min-h-[calc(100vh-80px)] flex bg-slate-50">
@@ -105,10 +109,10 @@ export default async function Home() {
       <main className="flex-1 w-full max-w-7xl mx-auto p-3 sm:p-6 lg:p-8 flex flex-col gap-2 sm:gap-4 overflow-hidden">
         
         {/* Banners */}
-        <BannerSlideshow banners={[]} />
+        <BannerSlideshow banners={serverBanners} />
 
         {/* Advertisements */}
-        <AdSlideshow ads={[]} />
+        <AdSlideshow ads={serverAds} />
 
         {/* Live Token Status */}
         <LiveBookingWidget />
