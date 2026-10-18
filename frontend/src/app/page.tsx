@@ -96,6 +96,7 @@ export default async function Home() {
         <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 lg:p-5 flex items-center justify-between overflow-x-auto gap-4 lg:gap-8 w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {[
             { name: "Top Deals", icon: "🔥", style: "bg-red-50 text-[24px]", link: "/search?filter=top_deals" },
+            { name: "Services", icon: "🛠️", style: "bg-emerald-50 border border-emerald-200 text-[24px] shadow-sm relative", badge: "Live", link: "/search?type=services" },
             { name: "Mobiles", icon: "📱", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Mobiles" },
             { name: "Electronics", icon: "💻", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Electronics" },
             { name: "Fashion", icon: "👕", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Fashion" },
@@ -104,12 +105,17 @@ export default async function Home() {
             { name: "Auto", icon: "🚗", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Auto" },
             { name: "Sports", icon: "⚽", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Sports" },
             { name: "View All", icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>, style: "bg-[#0f1928] text-white", link: "/explore" }
-          ].map((cat, idx) => (
-            <Link href={cat.link} key={idx} className="flex flex-col items-center gap-2 min-w-[65px] cursor-pointer group no-underline">
+          ].map((cat: any, idx) => (
+            <Link href={cat.link} key={idx} className="flex flex-col items-center gap-2 min-w-[65px] cursor-pointer group no-underline relative">
               <div className={`w-[52px] h-[52px] rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-105 ${cat.style.includes('text-') ? cat.style : cat.style + ' text-2xl'}`}>
                 {cat.icon}
+                {cat.badge && (
+                  <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-[8px] font-black uppercase px-1.5 py-0.2 rounded-full shadow-xs border border-white">
+                    {cat.badge}
+                  </span>
+                )}
               </div>
-              <span className="text-[11px] font-bold text-[#0f1928] whitespace-nowrap group-hover:text-blue-600 transition-colors">{cat.name}</span>
+              <span className={`text-[11px] font-bold whitespace-nowrap transition-colors ${cat.name === 'Services' ? 'text-emerald-700' : 'text-[#0f1928] group-hover:text-blue-600'}`}>{cat.name}</span>
             </Link>
           ))}
         </section>
@@ -132,34 +138,40 @@ export default async function Home() {
                   <h1 className="text-base sm:text-3xl lg:text-4xl xl:text-[2.8rem] font-black text-[#0f1928] leading-[1.1] mb-1 sm:mb-3 tracking-tight relative z-20 drop-shadow-xs">
                     One Platform.<br />Endless Possibilities.
                   </h1>
-                  <p className="text-slate-600 font-medium mb-2 sm:mb-6 text-[10px] sm:text-base relative z-20 pr-1">
-                    Shop, Sell & Grow with MarkatVerse
+                  <p className="text-slate-600 font-semibold mb-2 sm:mb-6 text-[10px] sm:text-base relative z-20 pr-1">
+                    Buy Products & Book Services in One Place
                   </p>
                 </div>
               </div>
               
               <div className="flex flex-row flex-nowrap gap-1 sm:gap-3 mb-1 sm:mb-6 relative z-20 w-auto max-w-full sm:pb-2">
-                <div className="flex items-center gap-1 sm:gap-2.5 bg-white/95 backdrop-blur shadow-xs border border-slate-200/90 rounded-lg sm:rounded-2xl py-0.5 px-1.5 sm:py-2.5 sm:px-4">
-                  <div className="text-blue-600 shrink-0"><svg className="w-3 h-3 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></div>
-                  <div className="flex flex-col">
-                    <span className="text-[9px] sm:text-xs font-black text-slate-900 leading-none">B2B</span>
-                    <span className="text-[6px] sm:text-[9.5px] text-slate-500 font-medium leading-tight mt-0.5">Business to<br className="sm:hidden" /> Business</span>
+                <Link href="/b2b" className="no-underline">
+                  <div className="flex items-center gap-1 sm:gap-2.5 bg-white/95 hover:bg-blue-50/60 backdrop-blur shadow-xs border border-slate-200/90 hover:border-blue-300 rounded-lg sm:rounded-2xl py-0.5 px-1.5 sm:py-2.5 sm:px-4 transition-all cursor-pointer">
+                    <div className="text-blue-600 shrink-0"><svg className="w-3 h-3 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></div>
+                    <div className="flex flex-col">
+                      <span className="text-[9px] sm:text-xs font-black text-slate-900 leading-none">B2B</span>
+                      <span className="text-[6px] sm:text-[9.5px] text-slate-500 font-medium leading-tight mt-0.5">Business to<br className="sm:hidden" /> Business</span>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-1 sm:gap-2.5 bg-white/95 backdrop-blur shadow-xs border border-slate-200/90 rounded-lg sm:rounded-2xl py-0.5 px-1.5 sm:py-2.5 sm:px-4">
-                  <div className="text-orange-500 shrink-0"><svg className="w-3 h-3 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg></div>
-                  <div className="flex flex-col">
-                    <span className="text-[9px] sm:text-xs font-black text-slate-900 leading-none">B2C</span>
-                    <span className="text-[6px] sm:text-[9.5px] text-slate-500 font-medium leading-tight mt-0.5">Business to<br className="sm:hidden" /> Consumer</span>
+                </Link>
+                <Link href="/search" className="no-underline">
+                  <div className="flex items-center gap-1 sm:gap-2.5 bg-white/95 hover:bg-orange-50/60 backdrop-blur shadow-xs border border-slate-200/90 hover:border-orange-300 rounded-lg sm:rounded-2xl py-0.5 px-1.5 sm:py-2.5 sm:px-4 transition-all cursor-pointer">
+                    <div className="text-orange-500 shrink-0"><svg className="w-3 h-3 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg></div>
+                    <div className="flex flex-col">
+                      <span className="text-[9px] sm:text-xs font-black text-slate-900 leading-none">B2C</span>
+                      <span className="text-[6px] sm:text-[9.5px] text-slate-500 font-medium leading-tight mt-0.5">Business to<br className="sm:hidden" /> Consumer</span>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-1 sm:gap-2.5 bg-white/95 backdrop-blur shadow-xs border border-slate-200/90 rounded-lg sm:rounded-2xl py-0.5 px-1.5 sm:py-2.5 sm:px-4">
-                  <div className="text-emerald-500 shrink-0"><svg className="w-3 h-3 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg></div>
-                  <div className="flex flex-col">
-                    <span className="text-[9px] sm:text-xs font-black text-slate-900 leading-none">Services</span>
-                    <span className="text-[6px] sm:text-[9.5px] text-slate-500 font-medium leading-tight mt-0.5">Solutions for<br className="sm:hidden" /> Every Need</span>
+                </Link>
+                <Link href="/search?type=services" className="no-underline">
+                  <div className="flex items-center gap-1 sm:gap-2.5 bg-white/95 hover:bg-emerald-50/60 backdrop-blur shadow-xs border border-slate-200/90 hover:border-emerald-300 rounded-lg sm:rounded-2xl py-0.5 px-1.5 sm:py-2.5 sm:px-4 transition-all cursor-pointer">
+                    <div className="text-emerald-500 shrink-0"><svg className="w-3 h-3 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg></div>
+                    <div className="flex flex-col">
+                      <span className="text-[9px] sm:text-xs font-black text-slate-900 leading-none">Services</span>
+                      <span className="text-[6px] sm:text-[9.5px] text-slate-500 font-medium leading-tight mt-0.5">Solutions for<br className="sm:hidden" /> Every Need</span>
+                    </div>
                   </div>
-                </div>
+                </Link>
               </div>
 
               <div className="hidden sm:flex flex-row flex-nowrap gap-2 sm:gap-3 relative z-20 mt-auto w-[95%] sm:w-full">
