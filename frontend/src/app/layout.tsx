@@ -22,15 +22,21 @@ export async function generateMetadata(): Promise<Metadata> {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     // On Vercel build servers, do not attempt to contact localhost:3001
     if (apiUrl && !apiUrl.includes('localhost') && !apiUrl.includes('127.0.0.1')) {
-      const res = await fetch(`${apiUrl}/system-config/seo`, {
-        next: { revalidate: 60 },
-        signal: AbortSignal.timeout(3000),
-      }).catch(() => null);
-
-      if (res && res.ok) {
-        const data = await res.json().catch(() => null);
-        if (data?.title) title = data.title;
-        if (data?.description) description = data.description;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      try {
+        const res = await fetch(`${apiUrl}/system-config/seo`, {
+          next: { revalidate: 60 },
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        if (res && res.ok) {
+          const data = await res.json().catch(() => null);
+          if (data?.title) title = data.title;
+          if (data?.description) description = data.description;
+        }
+      } catch {
+        clearTimeout(timeoutId);
       }
     }
   } catch {

@@ -17,16 +17,23 @@ const ProductGrid = nextDynamic(() => import('@/components/ProductGrid'));
 async function getAdvertisements() {
   try {
     const apiUrl = getApiUrl();
-    const res = await fetch(`${apiUrl}/commercial/advertisements`, {
-      next: { revalidate: 30 },
-      signal: AbortSignal.timeout(2000),
-    }).catch(() => null);
-
-    if (res && res.ok) {
-      const data = await res.json().catch(() => []);
-      return Array.isArray(data)
-        ? data.filter((ad: any) => ad.status === 'ACTIVE' && ad.position === 'HOMEPAGE')
-        : [];
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    try {
+      const res = await fetch(`${apiUrl}/commercial/advertisements`, {
+        next: { revalidate: 60 },
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      if (res && res.ok) {
+        const data = await res.json().catch(() => []);
+        return Array.isArray(data)
+          ? data.filter((ad: any) => ad.status === 'ACTIVE' && ad.position === 'HOMEPAGE')
+          : [];
+      }
+    } catch {
+      clearTimeout(timeoutId);
+      return [];
     }
   } catch {
     // Graceful fallback
@@ -37,16 +44,23 @@ async function getAdvertisements() {
 async function getBanners() {
   try {
     const apiUrl = getApiUrl();
-    const res = await fetch(`${apiUrl}/content/banners`, {
-      next: { revalidate: 30 },
-      signal: AbortSignal.timeout(2000),
-    }).catch(() => null);
-
-    if (res && res.ok) {
-      const data = await res.json().catch(() => []);
-      return Array.isArray(data)
-        ? data.filter((banner: any) => banner.status === 'ACTIVE' && banner.position === 'HOME_HERO')
-        : [];
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    try {
+      const res = await fetch(`${apiUrl}/content/banners`, {
+        next: { revalidate: 60 },
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      if (res && res.ok) {
+        const data = await res.json().catch(() => []);
+        return Array.isArray(data)
+          ? data.filter((banner: any) => banner.status === 'ACTIVE' && banner.position === 'HOME_HERO')
+          : [];
+      }
+    } catch {
+      clearTimeout(timeoutId);
+      return [];
     }
   } catch {
     // Graceful fallback
@@ -57,16 +71,23 @@ async function getBanners() {
 async function getBlogPosts() {
   try {
     const apiUrl = getApiUrl();
-    const res = await fetch(`${apiUrl}/content/blog`, {
-      next: { revalidate: 60 },
-      signal: AbortSignal.timeout(1500),
-    }).catch(() => null);
-
-    if (res && res.ok) {
-      const data = await res.json().catch(() => []);
-      return Array.isArray(data)
-        ? data.filter((post: any) => post.status === 'PUBLISHED').slice(0, 3)
-        : [];
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    try {
+      const res = await fetch(`${apiUrl}/content/blog`, {
+        next: { revalidate: 60 },
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      if (res && res.ok) {
+        const data = await res.json().catch(() => []);
+        return Array.isArray(data)
+          ? data.filter((post: any) => post.status === 'PUBLISHED').slice(0, 3)
+          : [];
+      }
+    } catch {
+      clearTimeout(timeoutId);
+      return [];
     }
   } catch {
     // Graceful fallback
