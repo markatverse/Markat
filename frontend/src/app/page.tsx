@@ -96,6 +96,8 @@ export default async function Home() {
         <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 lg:p-5 flex items-center justify-between overflow-x-auto gap-4 lg:gap-8 w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {[
             { name: "Top Deals", icon: "🔥", style: "bg-red-50 text-[24px]", link: "/search?filter=top_deals" },
+            { name: "Food & Dining", icon: "🍔", style: "bg-amber-50 border border-amber-200 text-[24px] shadow-sm", link: "/search?category=Food%20%26%20Dining" },
+            { name: "Salon & Spa", icon: "💇‍♀️", style: "bg-pink-50 border border-pink-200 text-[24px] shadow-sm", link: "/salon/queue" },
             { name: "Services", icon: "🛠️", style: "bg-emerald-50 border border-emerald-200 text-[24px] shadow-sm relative", badge: "Live", link: "/search?type=services" },
             { name: "Mobiles", icon: "📱", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Mobiles" },
             { name: "Electronics", icon: "💻", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Electronics" },
@@ -298,12 +300,14 @@ export default async function Home() {
                 
                 <div className="flex items-center gap-2 overflow-x-auto w-full relative z-10 pb-1 custom-scrollbar">
                   {[
-                    { name: "Logistics", icon: "🚚" },
-                    { name: "Setup", icon: "🔧" },
-                    { name: "Support", icon: "👨‍🔧" },
-                    { name: "Consulting", icon: "💼" }
+                    { name: "Salon & Spa", icon: "💇‍♀️", link: "/salon/queue" },
+                    { name: "Food & Dining", icon: "🍽️", link: "/search?category=Food%20%26%20Dining" },
+                    { name: "Cleaning", icon: "🧹", link: "/search?service=Cleaning" },
+                    { name: "Logistics", icon: "🚚", link: "/search?service=Logistics" },
+                    { name: "Electrician", icon: "⚡", link: "/search?service=Electrician" },
+                    { name: "Consulting", icon: "💼", link: "/search?service=Consulting" }
                   ].map((srv, idx) => (
-                    <Link href={`/search?service=${encodeURIComponent(srv.name)}`} key={idx} className="flex flex-col items-center gap-1 min-w-[46px] text-center cursor-pointer group no-underline shrink-0">
+                    <Link href={srv.link} key={idx} className="flex flex-col items-center gap-1 min-w-[50px] text-center cursor-pointer group no-underline shrink-0">
                       <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base shadow-xs bg-white border border-emerald-100">
                         {srv.icon}
                       </div>
@@ -428,12 +432,14 @@ export default async function Home() {
               
               <div className="flex items-center gap-3 overflow-x-auto w-full relative z-10 pb-3 custom-scrollbar">
                 {[
-                  { name: "Logistics & Delivery", icon: "🚚" },
-                  { name: "Installation & Setup", icon: "🔧" },
-                  { name: "Maintenance & Support", icon: "👨‍🔧" },
-                  { name: "Business Consulting", icon: "💼" }
+                  { name: "Salon & Spa", icon: "💇‍♀️", link: "/salon/queue" },
+                  { name: "Food & Dining", icon: "🍽️", link: "/search?category=Food%20%26%20Dining" },
+                  { name: "Home Cleaning", icon: "🧹", link: "/search?service=Cleaning" },
+                  { name: "Logistics & Delivery", icon: "🚚", link: "/search?service=Logistics" },
+                  { name: "Installation & Setup", icon: "🔧", link: "/search?service=Setup" },
+                  { name: "Business Consulting", icon: "💼", link: "/search?service=Consulting" }
                 ].map((srv, idx) => (
-                  <Link href={`/search?service=${encodeURIComponent(srv.name)}`} key={idx} className="flex flex-col items-center gap-2 min-w-[75px] text-center cursor-pointer group no-underline">
+                  <Link href={srv.link} key={idx} className="flex flex-col items-center gap-2 min-w-[75px] text-center cursor-pointer group no-underline">
                     <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl transition-transform group-hover:scale-105 shadow-sm bg-white border border-emerald-100">
                       {srv.icon}
                     </div>
