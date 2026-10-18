@@ -7,7 +7,7 @@ import { useWishlist } from '@/context/WishlistContext';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useUserTrends } from '@/hooks/useUserTrends';
-import { ShieldCheck, Camera, Ruler, ZoomIn, Package, Star, Building2, MapPin, PhoneCall, CalendarClock, Heart, UtensilsCrossed, Users, Clock, Utensils, Sparkles, MessageCircle, Phone, Share2 } from 'lucide-react';
+import { ShieldCheck, Camera, Ruler, ZoomIn, Package, Star, Building2, MapPin, PhoneCall, Calendar, CalendarClock, Heart, UtensilsCrossed, Users, Clock, Utensils, Sparkles, MessageCircle, Phone, Share2, ChevronDown } from 'lucide-react';
 import SmartQueueWidget from '@/components/SmartQueueWidget';
 import ReviewsSection from '@/components/ReviewsSection';
 import StarRating from '@/components/StarRating';
@@ -745,285 +745,256 @@ export default function ProductDetails() {
 
               {/* ── FOOD & DINING / RESTAURANT TABLE RESERVATION ── */}
               {isFoodDining && !hasToken && (
-                <div className="flex flex-col gap-5 w-full p-6 sm:p-7 bg-white rounded-3xl border border-rose-200/90 shadow-xl shadow-rose-950/5 relative overflow-hidden">
-                  {/* Subtle decorative background gradient */}
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-rose-100/40 via-amber-100/20 to-transparent rounded-full -mr-20 -mt-20 pointer-events-none" />
-
-                  {/* Segmented Sliding Tab: Reserve Table vs Private Dining */}
-                  <div className="bg-slate-100/90 p-1.5 rounded-2xl flex items-center relative border border-slate-200/80">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDiningMode('reserve');
-                        const standardOpt = product.options?.find(o => !o.name.toLowerCase().includes('vip') && !o.name.toLowerCase().includes('private') && !o.name.toLowerCase().includes('cabin') && !o.name.toLowerCase().includes('candlelight') && !o.name.toLowerCase().includes('romantic'));
-                        if (standardOpt) setSelectedOptionId(standardOpt.id);
-                      }}
-                      className={`flex-1 py-2.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
-                        diningMode === 'reserve'
-                          ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30'
-                          : 'text-slate-600 hover:text-slate-900 font-bold'
-                      }`}
-                    >
-                      <UtensilsCrossed className="w-4 h-4" />
-                      <span>Reserve Table</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDiningMode('book');
-                        const privateOpt = product.options?.find(o => o.name.toLowerCase().includes('vip') || o.name.toLowerCase().includes('private') || o.name.toLowerCase().includes('cabin') || o.name.toLowerCase().includes('candlelight') || o.name.toLowerCase().includes('romantic') || o.name.toLowerCase().includes('rooftop'));
-                        if (privateOpt) setSelectedOptionId(privateOpt.id);
-                      }}
-                      className={`flex-1 py-2.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
-                        diningMode === 'book'
-                          ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30'
-                          : 'text-slate-600 hover:text-slate-900 font-bold'
-                      }`}
-                    >
-                      <Sparkles className="w-4 h-4 text-amber-300" />
-                      <span>Private Dining</span>
-                    </button>
-                  </div>
-
-                  {/* Header Snapshot */}
-                  <div className="flex items-center gap-3 pb-4 border-b border-rose-100">
-                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-600 text-white flex items-center justify-center shadow-md shadow-rose-600/25 shrink-0">
-                      {diningMode === 'reserve' ? <UtensilsCrossed className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
-                    </div>
-                    <div>
-                      <span className="text-slate-900 font-black text-base sm:text-lg block leading-tight">
-                        {diningMode === 'reserve' ? 'Instant Table Reservation' : 'Exclusive Private Dining'}
-                      </span>
-                      <span className="text-xs text-slate-500 font-medium block mt-0.5">
-                        {diningMode === 'reserve' ? `Confirmed table booking at ${product.seller}` : `Private cabin, VIP seating & special arrangements at ${product.seller}`}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Private Dining Cabin / Setup Selector (Only shown in Private Dining mode) */}
-                  {diningMode === 'book' && product.options && product.options.length > 0 && (() => {
-                    const isPrivateName = (name: string) => {
-                      const lower = name.toLowerCase();
-                      return lower.includes('vip') || lower.includes('private') || lower.includes('cabin') || lower.includes('candlelight') || lower.includes('romantic') || lower.includes('rooftop');
-                    };
-
-                    const relevantOptions = product.options.filter(o => isPrivateName(o.name));
-                    const optionsToDisplay = relevantOptions.length > 0 ? relevantOptions : product.options;
-
-                    return (
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
-                          <span className="flex items-center gap-1.5">
-                            <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Choose Private Cabin / VIP Setup
-                          </span>
-                          <span className="text-[11px] text-slate-400 font-normal">Special dining experience</span>
-                        </label>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                          {optionsToDisplay.map(option => {
-                            const isSelected = selectedOptionId === option.id;
-                            return (
-                              <button
-                                key={option.id}
-                                type="button"
-                                onClick={() => setSelectedOptionId(option.id)}
-                                className={`px-4 py-3 rounded-2xl font-bold text-xs sm:text-sm transition-all border text-left flex items-center justify-between gap-2 ${
-                                  isSelected
-                                    ? 'bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-600/20'
-                                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
-                                }`}
-                              >
-                                <span>{option.name}</span>
-                                {option.price && option.price > 0 && (
-                                  <span className={`text-xs font-mono font-black ${isSelected ? 'text-white' : 'text-rose-600'}`}>
-                                    ₹{option.price.toLocaleString('en-IN')}
-                                  </span>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
+                <div className="w-full bg-white rounded-2xl border border-slate-200/90 shadow-md p-5 sm:p-6 transition-all">
+                  {/* Compact Header with Segmented Switcher */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                        {diningMode === 'reserve' ? <UtensilsCrossed className="w-5 h-5" /> : <Sparkles className="w-5 h-5 text-amber-500" />}
                       </div>
-                    );
-                  })()}
-
-                  {/* Party Size Selector */}
-                  <div className="space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5 text-rose-600" /> Number of Guests / Party Size
-                      </label>
-                      <span className="text-xs font-black text-rose-600 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full">
-                        {partySize} {partySize === 1 ? 'Guest' : 'Guests'}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      {[1, 2, 3, 4, 6, 8, 10, 12].map(num => (
-                        <button
-                          key={num}
-                          type="button"
-                          onClick={() => setPartySize(num)}
-                          className={`w-11 h-10 rounded-xl font-black text-sm transition-all border ${
-                            partySize === num
-                              ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
-                              : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-rose-300 hover:bg-white'
-                          }`}
-                        >
-                          {num}
-                        </button>
-                      ))}
-
-                      {/* Custom / Large Party Input */}
-                      <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 shadow-2xs hover:border-slate-300">
-                        <span className="text-[11px] font-bold text-slate-400 uppercase">Other:</span>
-                        <input
-                          type="number"
-                          min="1"
-                          max="150"
-                          value={partySize}
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value, 10);
-                            if (!isNaN(val) && val > 0) {
-                              setPartySize(val);
-                            } else if (e.target.value === '') {
-                              setPartySize(1);
-                            }
-                          }}
-                          placeholder="15"
-                          className="w-12 text-center text-sm font-black text-slate-800 bg-transparent outline-none focus:text-rose-600"
-                        />
-                        <span className="text-[11px] font-bold text-slate-400">guests</span>
+                      <div>
+                        <h3 className="text-slate-900 font-extrabold text-base leading-tight">
+                          {diningMode === 'reserve' ? 'Book a Table' : 'Exclusive VIP Dining'}
+                        </h3>
+                        <p className="text-xs text-slate-500 font-medium">
+                          {diningMode === 'reserve' ? `Instant confirmed seating at ${product.seller}` : `Private cabin & special arrangement at ${product.seller}`}
+                        </p>
                       </div>
                     </div>
 
-                    {partySize > 12 && (
-                      <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200/80 rounded-xl px-3 py-2 flex items-center gap-2 font-medium">
-                        <span>ℹ️</span> Large gathering ({partySize} guests): Adjoining group tables or a private banquet hall section will be reserved.
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Date & Time Selection */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
-                    <div>
-                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-rose-600" /> Reservation Date
-                      </label>
-                      <input 
-                        type="date" 
-                        value={reservationDate}
-                        onChange={e => setReservationDate(e.target.value)}
-                        className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-slate-50 focus:bg-white transition-colors shadow-2xs font-medium text-sm" 
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-rose-600" /> Preferred Seating Slot
-                      </label>
-                      <select
-                        value={reservationTime}
-                        onChange={e => setReservationTime(e.target.value)}
-                        className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-slate-50 focus:bg-white transition-colors shadow-2xs font-medium text-sm cursor-pointer"
+                    {/* Segmented Switcher */}
+                    <div className="inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200/80 self-start sm:self-auto shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDiningMode('reserve');
+                          const standardOpt = product.options?.find(o => !o.name.toLowerCase().includes('vip') && !o.name.toLowerCase().includes('private') && !o.name.toLowerCase().includes('cabin') && !o.name.toLowerCase().includes('candlelight') && !o.name.toLowerCase().includes('romantic'));
+                          if (standardOpt) setSelectedOptionId(standardOpt.id);
+                        }}
+                        className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                          diningMode === 'reserve'
+                            ? 'bg-white text-rose-600 shadow-xs border border-slate-200/60'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
                       >
-                        <option value="">Select Time Slot</option>
-                        {['12:30 PM (Lunch)', '01:30 PM (Lunch)', '07:00 PM (Dinner)', '07:45 PM (Dinner)', '08:30 PM (Prime Dinner)', '09:15 PM (Late Dining)'].map(slot => (
-                          <option key={slot} value={slot}>{slot}</option>
-                        ))}
-                      </select>
+                        <UtensilsCrossed className="w-3.5 h-3.5" />
+                        <span>Regular Table</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDiningMode('book');
+                          const privateOpt = product.options?.find(o => o.name.toLowerCase().includes('vip') || o.name.toLowerCase().includes('private') || o.name.toLowerCase().includes('cabin') || o.name.toLowerCase().includes('candlelight') || o.name.toLowerCase().includes('romantic') || o.name.toLowerCase().includes('rooftop'));
+                          if (privateOpt) setSelectedOptionId(privateOpt.id);
+                        }}
+                        className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                          diningMode === 'book'
+                            ? 'bg-rose-600 text-white shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                        <span>Private Cabin</span>
+                      </button>
                     </div>
                   </div>
 
-                  {/* Dining Notice */}
-                  <div className="bg-rose-50/70 p-3.5 rounded-2xl border border-rose-200/70 text-xs text-slate-700 flex items-center gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0">✓</span>
-                    <span>{diningMode === 'reserve' ? 'Table held for 90 minutes. Instant SMS & WhatsApp confirmation.' : 'Meal prepared in advance for zero wait time upon arrival.'}</span>
-                  </div>
-
-                  {/* Primary Call to Action */}
-                  <button
-                    className="w-full py-4 bg-gradient-to-r from-rose-600 via-rose-600 to-amber-600 hover:from-rose-700 hover:to-amber-700 text-white rounded-2xl font-black text-base sm:text-lg transition-all shadow-lg shadow-rose-600/30 hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-3 mt-1 cursor-pointer"
-                    onClick={() => requireAuth(() => {
-                      if (!reservationDate) {
-                        alert('Please select your preferred reservation date.');
-                        return;
-                      }
-                      if (!reservationTime) {
-                        alert('Please select your preferred seating time slot.');
-                        return;
-                      }
-
-                      const selectedPlan = activeOption ? activeOption.name : (partySize <= 2 ? '2-Seater Table' : partySize <= 4 ? '4-Seater Table' : partySize <= 6 ? '6-Seater Table' : '8-Seater Table');
-                      const newBooking = {
-                        id: `RES-${Math.floor(1000 + Math.random() * 9000)}`,
-                        customerName: user?.name || 'Customer',
-                        phone: user?.phone || '+91 98765 43210',
-                        guests: partySize,
-                        date: reservationDate,
-                        timeSlot: reservationTime,
-                        type: diningMode === 'reserve' ? 'Standard Table' : selectedPlan,
-                        notes: diningMode === 'reserve' ? `Online reservation for ${partySize} guests` : `Private Dining Package (${selectedPlan})`,
-                        assignedTable: selectedPlan,
-                        status: 'Confirmed',
-                        source: diningMode === 'reserve' ? 'Online Table Booking' : 'Private Dining Booking',
-                        timestamp: new Date().toISOString()
+                  {/* Booking Fields */}
+                  <div className="mt-4 space-y-3.5">
+                    {/* VIP Cabin / Setup Dropdown (Only when Private Dining is selected) */}
+                    {diningMode === 'book' && product.options && product.options.length > 0 && (() => {
+                      const isPrivateName = (name: string) => {
+                        const lower = name.toLowerCase();
+                        return lower.includes('vip') || lower.includes('private') || lower.includes('cabin') || lower.includes('candlelight') || lower.includes('romantic') || lower.includes('rooftop');
                       };
 
-                      try {
-                        const existing = JSON.parse(localStorage.getItem('markat_table_reservations') || '[]');
-                        localStorage.setItem('markat_table_reservations', JSON.stringify([newBooking, ...existing]));
+                      const relevantOptions = product.options.filter(o => isPrivateName(o.name));
+                      const optionsToDisplay = relevantOptions.length > 0 ? relevantOptions : product.options;
 
-                        // Record Customer Notification
-                        const customerNotifs = JSON.parse(localStorage.getItem(`markat_notifs_${user?.id || 'guest'}`) || '[]');
-                        const custNotif = {
-                          id: `NOTIF-${Date.now()}`,
-                          type: 'RESERVATION_CONFIRMED',
-                          title: `Table Confirmed at ${product.seller}`,
-                          message: `Your booking for ${partySize} guests on ${reservationDate} (${reservationTime}) is confirmed. Ref: ${newBooking.id}`,
-                          timestamp: new Date().toISOString(),
-                          read: false
-                        };
-                        localStorage.setItem(`markat_notifs_${user?.id || 'guest'}`, JSON.stringify([custNotif, ...customerNotifs]));
+                      return (
+                        <div>
+                          <label className="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center justify-between mb-1.5">
+                            <span className="flex items-center gap-1.5">
+                              <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Cabin / VIP Setup
+                            </span>
+                          </label>
+                          <div className="relative">
+                            <select
+                              value={selectedOptionId || (optionsToDisplay[0]?.id || '')}
+                              onChange={(e) => setSelectedOptionId(e.target.value)}
+                              className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-sm cursor-pointer appearance-none pr-9 transition-colors"
+                            >
+                              {optionsToDisplay.map(option => (
+                                <option key={option.id} value={option.id}>
+                                  {option.name} {option.price && option.price > 0 ? `— ₹${option.price.toLocaleString('en-IN')}` : ''}
+                                </option>
+                              ))}
+                            </select>
+                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                              <ChevronDown className="w-4 h-4" />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
 
-                        // Record Seller Notification Alert
-                        const sellerNotifs = JSON.parse(localStorage.getItem('markat_seller_notifications') || '[]');
-                        const sNotif = {
-                          id: `NOTIF-S-${Date.now()}`,
-                          type: 'NEW_TABLE_RESERVATION',
-                          title: `New Table Booking (${partySize} Guests)`,
-                          message: `${user?.name || 'Customer'} reserved ${selectedPlan} for ${reservationDate} at ${reservationTime}. Ref: ${newBooking.id}`,
-                          timestamp: new Date().toISOString(),
-                          read: false
-                        };
-                        localStorage.setItem('markat_seller_notifications', JSON.stringify([sNotif, ...sellerNotifs]));
+                    {/* Compact 2-column or 3-column input grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {/* 1. Number of Guests */}
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                          <Users className="w-3.5 h-3.5 text-rose-600" /> Guests
+                        </label>
+                        <div className="relative">
+                          <select
+                            value={Math.min(partySize, 12)}
+                            onChange={(e) => setPartySize(parseInt(e.target.value, 10))}
+                            className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-sm cursor-pointer appearance-none pr-9 transition-colors"
+                          >
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => (
+                              <option key={num} value={num}>
+                                {num} {num === 1 ? 'Guest' : 'Guests'}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                            <ChevronDown className="w-4 h-4" />
+                          </div>
+                        </div>
+                      </div>
 
-                        // Native Browser Push Notification (if permitted)
-                        if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-                          new Notification(`Table Reserved at ${product.seller}`, {
-                            body: `Confirmed for ${partySize} guests on ${reservationDate} (${reservationTime}). Booking ID: ${newBooking.id}`,
-                            icon: '/logo.png'
-                          });
-                        }
-                      } catch {
-                        // ignore localStorage write errors
-                      }
+                      {/* 2. Date */}
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-rose-600" /> Date
+                        </label>
+                        <input 
+                          type="date" 
+                          value={reservationDate}
+                          onChange={e => setReservationDate(e.target.value)}
+                          className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-sm transition-colors" 
+                        />
+                      </div>
 
-                      alert(`🎉 Reservation Confirmed!\n\nBooking ID: ${newBooking.id}\nRestaurant: ${product.seller}\nParty Size: ${partySize} Guests\nDate: ${reservationDate}\nSlot: ${reservationTime}\nSetup: ${selectedPlan}\n\n✓ Instant SMS & WhatsApp notification sent to customer.\n✓ Live reservation alert dispatched to seller operations desk.`);
-                    })}
-                  >
-                    <UtensilsCrossed className="w-5 h-5" /> 
-                    <span>
-                      {diningMode === 'reserve' 
-                        ? `Reserve Table for ${partySize} ${partySize === 1 ? 'Guest' : 'Guests'}` 
-                        : `Book Private Dining for ₹${currentActivePrice.toLocaleString('en-IN')}`}
-                    </span>
-                  </button>
+                      {/* 3. Time Slot */}
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-rose-600" /> Time Slot
+                        </label>
+                        <div className="relative">
+                          <select
+                            value={reservationTime}
+                            onChange={e => setReservationTime(e.target.value)}
+                            className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-sm cursor-pointer appearance-none pr-9 transition-colors"
+                          >
+                            <option value="">Select Time</option>
+                            {['12:30 PM (Lunch)', '01:30 PM (Lunch)', '07:00 PM (Dinner)', '07:45 PM (Dinner)', '08:30 PM (Prime Dinner)', '09:15 PM (Late Dining)'].map(slot => (
+                              <option key={slot} value={slot}>{slot}</option>
+                            ))}
+                          </select>
+                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                            <ChevronDown className="w-4 h-4" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
-                  <a
-                    href="tel:+919876543210"
-                    className="w-full py-2 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-700 hover:text-slate-900 font-semibold text-xs sm:text-sm transition-colors flex items-center justify-center gap-2 border border-slate-200"
-                  >
-                    <PhoneCall className="w-4 h-4 text-rose-600" /> Call Restaurant Directly (+91-9876543210)
-                  </a>
+                    {/* Notice line */}
+                    <div className="flex items-center gap-2 py-2 px-3 bg-slate-50 border border-slate-200/70 rounded-xl text-xs text-slate-600">
+                      <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px] shrink-0">✓</span>
+                      <span className="truncate">
+                        {diningMode === 'reserve' ? 'Table held for 90 minutes. Instant confirmation.' : 'Meal prepared in advance for zero wait time.'}
+                      </span>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="pt-1 flex flex-col sm:flex-row gap-2.5">
+                      <button
+                        className="flex-1 py-3 px-5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-rose-600/20 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
+                        onClick={() => requireAuth(() => {
+                          if (!reservationDate) {
+                            alert('Please select your preferred reservation date.');
+                            return;
+                          }
+                          if (!reservationTime) {
+                            alert('Please select your preferred seating time slot.');
+                            return;
+                          }
+
+                          const selectedPlan = activeOption ? activeOption.name : (partySize <= 2 ? '2-Seater Table' : partySize <= 4 ? '4-Seater Table' : partySize <= 6 ? '6-Seater Table' : '8-Seater Table');
+                          const newBooking = {
+                            id: `RES-${Math.floor(1000 + Math.random() * 9000)}`,
+                            customerName: user?.name || 'Customer',
+                            phone: user?.phone || '+91 98765 43210',
+                            guests: partySize,
+                            date: reservationDate,
+                            timeSlot: reservationTime,
+                            type: diningMode === 'reserve' ? 'Standard Table' : selectedPlan,
+                            notes: diningMode === 'reserve' ? `Online reservation for ${partySize} guests` : `Private Dining Package (${selectedPlan})`,
+                            assignedTable: selectedPlan,
+                            status: 'Confirmed',
+                            source: diningMode === 'reserve' ? 'Online Table Booking' : 'Private Dining Booking',
+                            timestamp: new Date().toISOString()
+                          };
+
+                          try {
+                            const existing = JSON.parse(localStorage.getItem('markat_table_reservations') || '[]');
+                            localStorage.setItem('markat_table_reservations', JSON.stringify([newBooking, ...existing]));
+
+                            // Customer notification
+                            const customerNotifs = JSON.parse(localStorage.getItem(`markat_notifs_${user?.id || 'guest'}`) || '[]');
+                            const custNotif = {
+                              id: `NOTIF-${Date.now()}`,
+                              type: 'RESERVATION_CONFIRMED',
+                              title: `Table Confirmed at ${product.seller}`,
+                              message: `Your booking for ${partySize} guests on ${reservationDate} (${reservationTime}) is confirmed. Ref: ${newBooking.id}`,
+                              timestamp: new Date().toISOString(),
+                              read: false
+                            };
+                            localStorage.setItem(`markat_notifs_${user?.id || 'guest'}`, JSON.stringify([custNotif, ...customerNotifs]));
+
+                            // Seller notification
+                            const sellerNotifs = JSON.parse(localStorage.getItem('markat_seller_notifications') || '[]');
+                            const sNotif = {
+                              id: `NOTIF-S-${Date.now()}`,
+                              type: 'NEW_TABLE_RESERVATION',
+                              title: `New Table Booking (${partySize} Guests)`,
+                              message: `${user?.name || 'Customer'} reserved ${selectedPlan} for ${reservationDate} at ${reservationTime}. Ref: ${newBooking.id}`,
+                              timestamp: new Date().toISOString(),
+                              read: false
+                            };
+                            localStorage.setItem('markat_seller_notifications', JSON.stringify([sNotif, ...sellerNotifs]));
+
+                            if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                              new Notification(`Table Reserved at ${product.seller}`, {
+                                body: `Confirmed for ${partySize} guests on ${reservationDate} (${reservationTime}). Booking ID: ${newBooking.id}`,
+                                icon: '/logo.png'
+                              });
+                            }
+                          } catch {
+                            // ignore write error
+                          }
+
+                          alert(`🎉 Reservation Confirmed!\n\nBooking ID: ${newBooking.id}\nRestaurant: ${product.seller}\nParty Size: ${partySize} Guests\nDate: ${reservationDate}\nSlot: ${reservationTime}\nSetup: ${selectedPlan}\n\n✓ Instant SMS & WhatsApp notification sent to customer.\n✓ Live reservation alert dispatched to seller operations desk.`);
+                        })}
+                      >
+                        <UtensilsCrossed className="w-4 h-4" /> 
+                        <span>
+                          {diningMode === 'reserve' 
+                            ? `Confirm Table (${partySize} ${partySize === 1 ? 'Guest' : 'Guests'})` 
+                            : `Book Private Dining — ₹${currentActivePrice.toLocaleString('en-IN')}`}
+                        </span>
+                      </button>
+
+                      <a
+                        href="tel:+919876543210"
+                        className="py-3 px-4 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-700 hover:text-slate-900 font-semibold text-xs sm:text-sm transition-colors flex items-center justify-center gap-1.5 border border-slate-200 shrink-0"
+                      >
+                        <PhoneCall className="w-3.5 h-3.5 text-rose-600" />
+                        <span>Call Venue</span>
+                      </a>
+                    </div>
+                  </div>
                 </div>
               )}
 
