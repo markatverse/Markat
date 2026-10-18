@@ -1,10 +1,21 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { getApiUrl, fastFetch } from '@/utils/api';
+import { getApiUrl, fastFetch, resolveMediaUrl } from '@/utils/api';
+
+const DEFAULT_AD = {
+  id: 'default-ad-1',
+  title: 'Exclusive Deals on MarkatVerse',
+  mediaUrl: '/hero-right-graphic.jpg',
+  linkUrl: '/search',
+  position: 'HOMEPAGE',
+  status: 'ACTIVE'
+};
 
 export default function AdSlideshow({ ads: initialAds }: { ads: any[] }) {
-  const [ads, setAds] = useState<any[]>(initialAds || []);
+  const [ads, setAds] = useState<any[]>(
+    initialAds && initialAds.length > 0 ? initialAds : [DEFAULT_AD]
+  );
   const [isLoading, setIsLoading] = useState<boolean>(!initialAds || initialAds.length === 0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -88,7 +99,7 @@ export default function AdSlideshow({ ads: initialAds }: { ads: any[] }) {
     return null;
   }
 
-  if (!ads || ads.length === 0) return null;
+  const displayAds = ads && ads.length > 0 ? ads : [DEFAULT_AD];
 
   return (
     <div className="w-full relative rounded-2xl overflow-hidden shadow-sm group">
@@ -96,11 +107,8 @@ export default function AdSlideshow({ ads: initialAds }: { ads: any[] }) {
         className="flex transition-transform duration-700 ease-in-out h-[90px] sm:h-[120px] md:h-[160px]"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
-        {ads.map((ad: any) => {
-          const rawUrl = ad.mediaUrl || '';
-          const fullImgUrl = rawUrl.startsWith('/') && !rawUrl.startsWith('//')
-            ? `${getApiUrl()}${rawUrl}`
-            : rawUrl;
+        {displayAds.map((ad: any) => {
+          const fullImgUrl = resolveMediaUrl(ad.mediaUrl || ad.imageUrl);
 
           return (
             <div key={ad.id || ad._id} className="min-w-full relative flex items-center h-full">

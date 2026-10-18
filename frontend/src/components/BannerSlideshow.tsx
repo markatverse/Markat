@@ -3,10 +3,20 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-import { getApiUrl, fastFetch } from '@/utils/api';
+import { getApiUrl, fastFetch, resolveMediaUrl } from '@/utils/api';
+
+const DEFAULT_BANNER = {
+  id: 'default-hero-1',
+  title: 'Welcome to MarkatVerse',
+  imageUrl: '/hero-left-graphic.jpg',
+  linkUrl: '/explore',
+  status: 'ACTIVE'
+};
 
 export default function BannerSlideshow({ banners: initialBanners }: { banners: any[] }) {
-  const [banners, setBanners] = useState<any[]>(initialBanners || []);
+  const [banners, setBanners] = useState<any[]>(
+    initialBanners && initialBanners.length > 0 ? initialBanners : [DEFAULT_BANNER]
+  );
   const [isLoading, setIsLoading] = useState<boolean>(!initialBanners || initialBanners.length === 0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -83,7 +93,7 @@ export default function BannerSlideshow({ banners: initialBanners }: { banners: 
     return null;
   }
 
-  if (!banners || banners.length === 0) return null;
+  const displayBanners = banners && banners.length > 0 ? banners : [DEFAULT_BANNER];
 
   return (
     <div className="w-full relative rounded-3xl overflow-hidden shadow-sm group">
@@ -91,17 +101,14 @@ export default function BannerSlideshow({ banners: initialBanners }: { banners: 
         className="flex transition-transform duration-700 ease-in-out h-[180px] sm:h-[250px] md:h-[400px]"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
-        {banners.map((banner: any, idx: number) => {
-          const rawUrl = banner.imageUrl || '';
-          const fullImgUrl = rawUrl.startsWith('/') && !rawUrl.startsWith('//')
-            ? `${getApiUrl()}${rawUrl}`
-            : rawUrl;
+        {displayBanners.map((banner: any, idx: number) => {
+          const fullImgUrl = resolveMediaUrl(banner.imageUrl);
 
           return (
-            <div key={banner.id} className="min-w-full relative h-[180px] sm:h-[250px] md:h-[400px] bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900">
+            <div key={banner.id || idx} className="min-w-full relative h-[180px] sm:h-[250px] md:h-[400px] bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900">
               <img 
                 src={fullImgUrl} 
-                alt={banner.title} 
+                alt={banner.title || 'MarkatVerse'} 
                 loading={idx === 0 ? "eager" : "lazy"}
                 // @ts-ignore
                 fetchPriority={idx === 0 ? "high" : "auto"}

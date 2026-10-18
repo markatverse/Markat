@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { getApiUrl } from '@/utils/api';
 import { compressImage } from '@/utils/imageCompression';
 
+const API_URL = getApiUrl();
+
 const getFullImageUrl = (url?: string) => {
   if (!url) return '';
   if (url.startsWith('/') && !url.startsWith('//')) {
@@ -50,16 +52,26 @@ export default function ContentBannersPage() {
         }
       }
     } catch (e) {
-      console.warn("Server upload fallback to base64", e);
+      console.warn("Server upload fallback", e);
     } finally {
       setIsUploadingImg(false);
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
-    };
-    reader.readAsDataURL(file);
+    // Safe compressed base64 fallback (max 1200px, 0.7 quality)
+    try {
+      const fallbackFile = await compressImage(file, 1200, 800, 0.70);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
+      };
+      reader.readAsDataURL(fallbackFile);
+    } catch {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const fetchBanners = async (isBackground = false) => {
