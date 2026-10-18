@@ -101,7 +101,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="flex flex-wrap md:flex-nowrap items-center justify-between py-2 px-3 sm:px-6 bg-white border-b border-slate-200 sticky top-0 z-[100] shadow-sm gap-y-3 gap-x-2">
+    <nav className="flex flex-wrap md:flex-nowrap items-center justify-between py-2 px-3 sm:px-6 bg-white border-b border-slate-200 sticky top-0 z-[999] shadow-sm gap-y-3 gap-x-2">
       {/* 1. Logo (Top Left on Mobile, Left on Desktop) */}
       <div className="flex items-center shrink-0 order-1">
         <Link href="/" className="flex items-center no-underline hover:opacity-90 transition-opacity ml-1 sm:ml-0 mr-4 sm:mr-8 md:mr-12 lg:mr-24 shrink-0">
