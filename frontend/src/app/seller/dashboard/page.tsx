@@ -185,28 +185,37 @@ function DashboardContent() {
       const fallbackName = user.business?.name || user.name || '';
 
       // 1. Fetch all queues by sellerId
-      const res = await fetch(`${API_URL}/service-queue/seller/${user.id}`);
-      if (!res.ok) {
-        if (res.status === 429) return; // Rate limited, ignore and retry later
-        throw new Error(`Failed to fetch queues: ${res.statusText}`);
+      let queues: any[] = [];
+      try {
+        const res = await fetch(`${API_URL}/service-queue/seller/${user.id}`);
+        if (res.ok) {
+          const text = await res.text();
+          const data = text ? JSON.parse(text) : null;
+          queues = Array.isArray(data) ? data : (data ? [data] : []);
+        }
+      } catch (err) {
+        // Network or fetch failed, fallback gracefully
       }
-      const text = await res.text();
-      const data = text ? JSON.parse(text) : null;
-      let queues = Array.isArray(data) ? data : (data ? [data] : []);
 
       let activeQueueId = forceQueueId || selectedQueueId;
 
       // 2. Auto-create if no queue exists (saves massive bandwidth instead of searching all queues)
       if (queues.length === 0 && !isPolling) {
-        const createRes = await fetch(`${API_URL}/service-queue/queue`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ shopName: fallbackName, sellerId: user.id })
-        });
-        const newData = await createRes.json();
-        if (newData?.id) {
-          queues = [newData];
-          activeQueueId = newData.id;
+        try {
+          const createRes = await fetch(`${API_URL}/service-queue/queue`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ shopName: fallbackName, sellerId: user.id })
+          });
+          if (createRes.ok) {
+            const newData = await createRes.json();
+            if (newData?.id) {
+              queues = [newData];
+              activeQueueId = newData.id;
+            }
+          }
+        } catch {
+          // Backend might be offline or initializing
         }
       }
 
@@ -219,34 +228,40 @@ function DashboardContent() {
 
       // 3. Fetch status and analytics for the active queue
       if (activeQueueId) {
-        const [statusRes, analyticsRes] = await Promise.all([
-          fetch(`${API_URL}/service-queue/${activeQueueId}/status`),
-          fetch(`${API_URL}/service-queue/${activeQueueId}/analytics`)
-        ]);
-        if (statusRes.ok) {
-          setQueueData(await statusRes.json());
-        }
-        if (analyticsRes.ok) {
-          setQueueAnalytics(await analyticsRes.json());
+        try {
+          const [statusRes, analyticsRes] = await Promise.all([
+            fetch(`${API_URL}/service-queue/${activeQueueId}/status`).catch(() => null),
+            fetch(`${API_URL}/service-queue/${activeQueueId}/analytics`).catch(() => null)
+          ]);
+          if (statusRes && statusRes.ok) {
+            setQueueData(await statusRes.json());
+          }
+          if (analyticsRes && analyticsRes.ok) {
+            setQueueAnalytics(await analyticsRes.json());
+          }
+        } catch {
+          // Fallback gracefully without throwing
         }
       }
     } catch (err) {
-      console.error(err);
+      console.warn('Queue fetch warning:', err);
     } finally {
       if (!isPolling) setIsQueueLoading(false);
     }
   };
 
   React.useEffect(() => {
-    fetchQueue(undefined, false);
-    // Auto-poll for new tokens every 3 seconds for near real-time updates
-    const interval = setInterval(() => {
-      if (user?.id && isServiceProvider) {
-        fetchQueue(undefined, true);
-      }
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [user, isServiceProvider]);
+    if (isServiceProvider) {
+      fetchQueue(undefined, false);
+      // Auto-poll for new tokens every 5 seconds for service providers
+      const interval = setInterval(() => {
+        if (user?.id && isServiceProvider) {
+          fetchQueue(undefined, true);
+        }
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [user?.id, isServiceProvider]);
 
   // Walk-in Customer Form State
   const [showWalkInForm, setShowWalkInForm] = useState(false);
@@ -303,7 +318,142 @@ function DashboardContent() {
     }
   }, [user]);
 
-  // Live Bookings State synced with Queue Tokens
+  // Live Dining & Table Reservations State (Synced with localStorage and real bookings)
+  const defaultDiningReservations = [
+    {
+      id: 'RES-8921',
+      customerName: 'Rahul Sharma',
+      phone: '+91 98765 43210',
+      guests: 4,
+      date: 'Today',
+      timeSlot: '07:30 PM - 09:00 PM',
+      type: 'Standard Table',
+      notes: 'Anniversary celebration, window table requested',
+      assignedTable: 'Table 2 (Booth)',
+      status: 'Pending',
+      source: 'Online Booking'
+    },
+    {
+      id: 'RES-8922',
+      customerName: 'Pooja Verma',
+      phone: '+91 98112 34567',
+      guests: 8,
+      date: 'Today',
+      timeSlot: '08:00 PM - 09:30 PM',
+      type: 'Standard Table',
+      notes: 'Family dinner with kids, baby high-chair needed',
+      assignedTable: 'Table 7 (Large Party)',
+      status: 'Pending',
+      source: 'Online Booking'
+    },
+    {
+      id: 'RES-8919',
+      customerName: 'Vikram Joshi',
+      phone: '+91 99887 76655',
+      guests: 2,
+      date: 'Today',
+      timeSlot: '06:30 PM - 08:00 PM',
+      type: 'Private VIP Dining Cabin',
+      notes: 'Candlelight romantic setup package',
+      assignedTable: 'Table 5 (VIP)',
+      status: 'Confirmed',
+      source: 'Private Dining'
+    },
+    {
+      id: 'RES-8918',
+      customerName: 'Sanjay Gupta',
+      phone: '+91 97654 32109',
+      guests: 6,
+      date: 'Tomorrow',
+      timeSlot: '01:30 PM - 03:00 PM',
+      type: 'Standard Table',
+      notes: 'Corporate lunch meeting',
+      assignedTable: 'Table 3 (Family)',
+      status: 'Confirmed',
+      source: 'Online Booking'
+    }
+  ];
+
+  const [diningReservations, setDiningReservations] = useState<any[]>([]);
+  const [diningTables, setDiningTables] = useState<any[]>([]);
+  const [diningKotOrders, setDiningKotOrders] = useState<any[]>([]);
+
+  // Default initial configuration for freshly initialized restaurants
+  const getInitialTables = () => [
+    { id: 't1', name: 'Table 1 (Window)', type: 'Table', capacity: 2, status: 'Available', currentGuest: null, orderTotal: 0, timeElapsed: null },
+    { id: 't2', name: 'Table 2 (Booth)', type: 'Table', capacity: 4, status: 'Available', currentGuest: null, orderTotal: 0, timeElapsed: null },
+    { id: 't3', name: 'Table 3 (Family)', type: 'Table', capacity: 6, status: 'Available', currentGuest: null, orderTotal: 0, timeElapsed: null },
+    { id: 't4', name: 'Table 4 (Outdoor)', type: 'Table', capacity: 2, status: 'Available', currentGuest: null, orderTotal: 0, timeElapsed: null },
+    { id: 't5', name: 'Table 5 (VIP)', type: 'Table', capacity: 4, status: 'Available', currentGuest: null, orderTotal: 0, timeElapsed: null },
+    { id: 't6', name: 'Table 6 (Corner)', type: 'Table', capacity: 4, status: 'Available', currentGuest: null, orderTotal: 0, timeElapsed: null },
+    { id: 't7', name: 'Table 7 (Large Party)', type: 'Table', capacity: 8, status: 'Available', currentGuest: null, orderTotal: 0, timeElapsed: null },
+  ];
+
+  // Load and continuously sync real reservations, tables, and KOT orders from localStorage
+  const syncDiningState = () => {
+    try {
+      // 1. Sync Reservations
+      const storedRes = localStorage.getItem('markat_table_reservations');
+      if (storedRes) {
+        const parsed = JSON.parse(storedRes);
+        if (Array.isArray(parsed)) {
+          setDiningReservations(parsed);
+        }
+      } else {
+        setDiningReservations([]);
+      }
+
+      // 2. Sync Tables
+      const tablesKey = `markat_dining_tables_${user?.id || 'default'}`;
+      const storedTables = localStorage.getItem(tablesKey);
+      if (storedTables) {
+        const parsed = JSON.parse(storedTables);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setDiningTables(parsed);
+        } else {
+          const init = getInitialTables();
+          setDiningTables(init);
+          localStorage.setItem(tablesKey, JSON.stringify(init));
+        }
+      } else {
+        const init = getInitialTables();
+        setDiningTables(init);
+        localStorage.setItem(tablesKey, JSON.stringify(init));
+      }
+
+      // 3. Sync KOT Orders
+      const kotKey = `markat_dining_kot_${user?.id || 'default'}`;
+      const storedKot = localStorage.getItem(kotKey);
+      if (storedKot) {
+        const parsed = JSON.parse(storedKot);
+        if (Array.isArray(parsed)) {
+          setDiningKotOrders(parsed);
+        }
+      } else {
+        setDiningKotOrders([]);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    syncDiningState();
+    const interval = setInterval(syncDiningState, 2000);
+    return () => clearInterval(interval);
+  }, [user?.id]);
+
+  const handleUpdateReservationStatus = (id: string, newStatus: string) => {
+    setDiningReservations(prev => {
+      const updated = prev.map(r => r.id === id ? { ...r, status: newStatus } : r);
+      try {
+        localStorage.setItem('markat_table_reservations', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  // Live Bookings State synced with Queue Tokens & Appointments
   const [bookings, setBookings] = useState<any[]>([]);
 
   React.useEffect(() => {
@@ -616,7 +766,7 @@ function DashboardContent() {
       {/* Mobile Header */}
       <div className="lg:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200 shrink-0 sticky top-0 z-40">
         <Link href="/" className="flex items-center no-underline">
-          <img src="/logo.png" alt="MarkatVerse" className="h-12 object-contain scale-[2] origin-left" />
+          <img src="/logo.png" alt="MarkatVerse" loading="eager" fetchPriority="high" decoding="sync" className="h-12 object-contain scale-[2] origin-left" />
         </Link>
         <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
           {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -642,7 +792,7 @@ function DashboardContent() {
         <div className="px-5 py-4 border-b border-slate-100">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center no-underline hover:opacity-90 transition-opacity overflow-visible py-1">
-              <img src="/logo.png" alt="MarkatVerse" className="h-12 object-contain scale-[1.7] origin-left" />
+              <img src="/logo.png" alt="MarkatVerse" loading="eager" fetchPriority="high" decoding="sync" className="h-12 object-contain scale-[1.7] origin-left" />
             </Link>
             <span className="text-[9px] font-black tracking-wider uppercase bg-amber-50 text-amber-700 border border-amber-200/60 px-2 py-0.5 rounded-md shrink-0">
               Seller
@@ -757,47 +907,19 @@ function DashboardContent() {
           {/* SERVICE PROVIDER FLOW (Phase 1 MVP) */}
           {(isService || isServiceProvider) && (
             <>
-              {/* FOOD & DINING: Elegant, unified, non-duplicated operational tabs */}
+              {/* FOOD & DINING: Clean, unified single sidebar menu item */}
               {activeVertical === 'FOOD' ? (
                 <>
                   <button 
-                    onClick={() => { setFoodSubTab('tables'); setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' && foodSubTab === 'tables' ? 'bg-orange-50 text-orange-700 font-bold border border-orange-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                    onClick={() => { setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' ? 'bg-orange-50 text-orange-700 font-bold border border-orange-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                   >
                     <div className="flex items-center gap-3">
-                      <Utensils className="w-5 h-5 text-orange-500" /> Table Floor
+                      <Utensils className="w-5 h-5 text-orange-500" /> Dining & Kitchen
                     </div>
-                    <span className="px-2 py-0.5 bg-orange-100 text-orange-800 rounded text-[10px] font-bold">Floor</span>
-                  </button>
-
-                  <button 
-                    onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' && foodSubTab === 'reservations' ? 'bg-rose-50 text-rose-700 font-bold border border-rose-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <CalendarClock className="w-5 h-5 text-rose-500" /> Reservations
-                    </div>
-                    <span className="px-2 py-0.5 bg-rose-100 text-rose-800 rounded text-[10px] font-bold">Bookings</span>
-                  </button>
-
-                  <button 
-                    onClick={() => { setFoodSubTab('kot'); setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' && foodSubTab === 'kot' ? 'bg-amber-50 text-amber-700 font-bold border border-amber-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <ChefHat className="w-5 h-5 text-amber-500" /> Kitchen Orders
-                    </div>
-                    <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-bold">KOT</span>
-                  </button>
-
-                  <button 
-                    onClick={() => { setFoodSubTab('menu'); setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' && foodSubTab === 'menu' ? 'bg-purple-50 text-purple-700 font-bold border border-purple-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <UtensilsCrossed className="w-5 h-5 text-purple-500" /> Food Menu Items
-                    </div>
-                    <span className="px-2 py-0.5 bg-purple-100 text-purple-800 rounded text-[10px] font-bold">Dishes</span>
+                    <span className="px-2 py-0.5 bg-orange-100 text-orange-800 rounded text-[10px] font-bold capitalize">
+                      {foodSubTab === 'tables' ? 'Floor' : (foodSubTab === 'reservations' ? 'Bookings' : (foodSubTab === 'kot' ? 'KOT' : 'Menu'))}
+                    </span>
                   </button>
 
                   <button 
@@ -1019,81 +1141,109 @@ function DashboardContent() {
 
             {/* SECTOR-ADAPTIVE KPI METRIC CARDS */}
             {activeVertical === 'FOOD' ? (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                {/* 1. Dine-in Revenue */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-emerald-300 transition-all relative overflow-hidden group">
-                  <div className="flex items-center justify-between text-slate-400 mb-2">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Today&apos;s Revenue</span>
-                    <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                      <TrendingUp className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="text-3xl font-black text-slate-900 mb-1">₹3,640</div>
-                  <div className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
-                    <span>↑ 18%</span>
-                    <span className="text-slate-400 font-normal">vs yesterday</span>
-                  </div>
-                </div>
+              (() => {
+                const occupiedTables = diningTables.filter(t => t.status === 'Occupied' || t.status === 'Food Served');
+                const totalTablesCount = diningTables.length || 7;
+                const availableTablesCount = diningTables.filter(t => t.status === 'Available').length;
+                const activeKotCount = diningKotOrders.filter(o => o.status === 'Preparing').length;
+                const pendingReservationsCount = diningReservations.filter(r => r.status === 'Pending').length;
+                const totalReservationsCount = diningReservations.length;
+                
+                // Dine-in total today calculation from active table orders + queue analytics
+                const floorLiveTotal = diningTables.reduce((acc, t) => acc + (Number(t.orderTotal) || 0), 0);
+                const todayRevenue = (queueAnalytics?.totalTodayCollection || 0) + floorLiveTotal;
 
-                {/* 2. Active Tables */}
-                <div 
-                  onClick={() => { setFoodSubTab('tables'); setActiveTab('sector_station'); }}
-                  className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-orange-300 transition-all cursor-pointer relative overflow-hidden group"
-                >
-                  <div className="flex items-center justify-between text-slate-400 mb-2">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Table Floor</span>
-                    <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center">
-                      <Utensils className="w-4 h-4" />
+                return (
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    {/* 1. Dine-in Revenue */}
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-emerald-300 transition-all relative overflow-hidden group">
+                      <div className="flex items-center justify-between text-slate-400 mb-2">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Today&apos;s Revenue</span>
+                        <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                          <TrendingUp className="w-4 h-4" />
+                        </div>
+                      </div>
+                      <div className="text-3xl font-black text-slate-900 mb-1">
+                        ₹{todayRevenue.toLocaleString('en-IN')}
+                      </div>
+                      <div className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+                        <span>{todayRevenue > 0 ? '● Live today' : '₹0 collected today'}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-3xl font-black text-slate-900 mb-1">3 / 7</div>
-                  <div className="text-xs font-semibold text-orange-600">
-                    3 tables ready for walk-ins →
-                  </div>
-                </div>
 
-                {/* 3. Live KOT Orders */}
-                <div 
-                  onClick={() => { setFoodSubTab('kot'); setActiveTab('sector_station'); }}
-                  className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-amber-300 transition-all cursor-pointer relative overflow-hidden group"
-                >
-                  <div className="flex items-center justify-between text-slate-400 mb-2">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Live Kitchen KOT</span>
-                    <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center">
-                      <ChefHat className="w-4 h-4" />
+                    {/* 2. Active Tables */}
+                    <div 
+                      onClick={() => { setFoodSubTab('tables'); setActiveTab('sector_station'); }}
+                      className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-orange-300 transition-all cursor-pointer relative overflow-hidden group"
+                    >
+                      <div className="flex items-center justify-between text-slate-400 mb-2">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Table Floor</span>
+                        <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center">
+                          <Utensils className="w-4 h-4" />
+                        </div>
+                      </div>
+                      <div className="text-3xl font-black text-slate-900 mb-1">
+                        {occupiedTables.length} / {totalTablesCount}
+                      </div>
+                      <div className="text-xs font-semibold text-orange-600">
+                        {availableTablesCount} {availableTablesCount === 1 ? 'table' : 'tables'} ready for walk-ins →
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-3xl font-black text-slate-900 mb-1">2</div>
-                  <div className="text-xs font-semibold text-amber-600">
-                    Avg prep time: 14 mins →
-                  </div>
-                </div>
 
-                {/* 4. Reservations Pending */}
-                <div 
-                  onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); }}
-                  className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-rose-300 transition-all cursor-pointer relative overflow-hidden group"
-                >
-                  <div className="flex items-center justify-between text-slate-400 mb-2">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Table Bookings</span>
-                    <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center">
-                      <CalendarClock className="w-4 h-4" />
+                    {/* 3. Live KOT Orders */}
+                    <div 
+                      onClick={() => { setFoodSubTab('kot'); setActiveTab('sector_station'); }}
+                      className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-amber-300 transition-all cursor-pointer relative overflow-hidden group"
+                    >
+                      <div className="flex items-center justify-between text-slate-400 mb-2">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Live Kitchen KOT</span>
+                        <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center">
+                          <ChefHat className="w-4 h-4" />
+                        </div>
+                      </div>
+                      <div className="text-3xl font-black text-slate-900 mb-1">
+                        {activeKotCount}
+                      </div>
+                      <div className="text-xs font-semibold text-amber-600">
+                        {activeKotCount > 0 ? `${activeKotCount} tickets active in kitchen →` : 'Kitchen queue is clear →'}
+                      </div>
+                    </div>
+
+                    {/* 4. Reservations Pending */}
+                    <div 
+                      onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); }}
+                      className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-rose-300 transition-all cursor-pointer relative overflow-hidden group"
+                    >
+                      <div className="flex items-center justify-between text-slate-400 mb-2">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Table Bookings</span>
+                        <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center">
+                          <CalendarClock className="w-4 h-4" />
+                        </div>
+                      </div>
+                      <div className="text-3xl font-black text-slate-900 mb-1">
+                        {totalReservationsCount}
+                      </div>
+                      <div className="text-xs font-semibold text-rose-600">
+                        {pendingReservationsCount > 0 
+                          ? `${pendingReservationsCount} ${pendingReservationsCount === 1 ? 'request needs' : 'requests need'} review →` 
+                          : 'All bookings reviewed →'}
+                      </div>
                     </div>
                   </div>
-                  <div className="text-3xl font-black text-slate-900 mb-1">3</div>
-                  <div className="text-xs font-semibold text-rose-600">
-                    1 request needs review →
-                  </div>
-                </div>
-              </div>
+                );
+              })()
             ) : (
               /* STANDARD RETAIL / SERVICE SECTOR METRICS */
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
                   <div>
                     <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Total Sales</div>
-                    <div className="text-3xl font-black text-slate-900">₹0</div>
-                    <span className="text-xs text-slate-400 mt-1 block">No sales yet</span>
+                    <div className="text-3xl font-black text-slate-900">
+                      ₹{(queueAnalytics?.totalTodayCollection || 0).toLocaleString('en-IN')}
+                    </div>
+                    <span className="text-xs text-slate-400 mt-1 block">
+                      {queueAnalytics?.totalTodayCollection ? 'Live transactions today' : 'No sales yet'}
+                    </span>
                   </div>
                   <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
                     <TrendingUp className="w-6 h-6" />
@@ -1273,67 +1423,113 @@ function DashboardContent() {
                 </div>
 
                 <div className="divide-y divide-slate-100">
-                  <div className="p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 font-bold flex items-center justify-center text-sm">
-                        #2
+                  {/* Real Occupied Tables Summary */}
+                  {diningTables
+                    .filter(t => t.status === 'Occupied' || t.status === 'Food Served')
+                    .slice(0, 2)
+                    .map((table) => (
+                      <div key={table.id} className="p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3 hover:bg-slate-50/60 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-xl font-bold flex items-center justify-center text-sm ${
+                            table.status === 'Food Served' 
+                              ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
+                              : 'bg-amber-50 text-amber-600 border border-amber-100'
+                          }`}>
+                            #{table.name.match(/\d+/)?.[0] || table.name.slice(0, 2)}
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-900 text-sm">
+                              {table.name} • {table.capacity} Guests
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              Seated: {table.currentGuest || 'Guest'} {table.timeElapsed ? `• Elapsed: ${table.timeElapsed}` : ''}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 self-end sm:self-auto">
+                          <span className={`text-xs font-bold px-2.5 py-1 rounded-md border ${
+                            table.status === 'Food Served'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-amber-50 text-amber-700 border-amber-200'
+                          }`}>
+                            {table.status}
+                          </span>
+                          <span className="text-sm font-bold text-slate-900">
+                            ₹{table.orderTotal || 0}
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-bold text-slate-900 text-sm">Table 2 (Booth) • 4 Guests</div>
-                        <div className="text-xs text-slate-500">Seated: Suresh Raina • Order: Paneer Butter Masala, Butter Naan</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 self-end sm:self-auto">
-                      <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
-                        Food Preparing
-                      </span>
-                      <span className="text-sm font-bold text-slate-900">₹860</span>
-                    </div>
-                  </div>
+                    ))}
 
-                  <div className="p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 font-bold flex items-center justify-center text-sm">
-                        #5
+                  {/* Real Dynamic Recent Reservation */}
+                  {diningReservations.slice(0, 2).map((res) => (
+                    <div key={res.id} className="p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3 hover:bg-slate-50/60 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl font-bold flex items-center justify-center text-xs ${
+                          res.status === 'Confirmed' 
+                            ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
+                            : (res.status === 'Pending' 
+                                ? 'bg-rose-50 text-rose-600 border border-rose-100' 
+                                : 'bg-slate-100 text-slate-600')
+                        }`}>
+                          RES
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-900 text-sm">
+                            {res.customerName} ({res.guests} Guests) • {res.timeSlot || res.date}
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            {res.assignedTable || res.type} • {res.notes || 'No special requests'}
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-bold text-slate-900 text-sm">Table 5 (VIP) • 2 Guests</div>
-                        <div className="text-xs text-slate-500">Seated: Ananya Sharma • Order: Margherita Pizza, Cold Coffee</div>
+                      <div className="flex items-center gap-2 self-end sm:self-auto">
+                        {res.status === 'Pending' ? (
+                          <>
+                            <button
+                              onClick={() => handleUpdateReservationStatus(res.id, 'Confirmed')}
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-2xs"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); }}
+                              className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition-colors border border-rose-200"
+                            >
+                              Review
+                            </button>
+                          </>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              {res.status}
+                            </span>
+                            <button
+                              onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); }}
+                              className="px-2.5 py-1 text-slate-500 hover:text-slate-800 text-xs font-medium"
+                            >
+                              Details →
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 self-end sm:self-auto">
-                      <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        Food Served
-                      </span>
-                      <span className="text-sm font-bold text-slate-900">₹580</span>
-                    </div>
-                  </div>
+                  ))}
 
-                  <div className="p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 font-bold flex items-center justify-center text-sm">
-                        RES
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-900 text-sm">Pooja Verma (8 Guests) • 08:00 PM Tonight</div>
-                        <div className="text-xs text-slate-500">Standard Table 7 (Large Party) • Family dinner with kids</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 self-end sm:self-auto">
+                  {/* Empty state when no active tables and no reservations */}
+                  {diningTables.filter(t => t.status === 'Occupied' || t.status === 'Food Served').length === 0 && diningReservations.length === 0 && (
+                    <div className="p-8 text-center text-slate-500">
+                      <Utensils className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                      <p className="text-sm font-semibold text-slate-700">No active tables or bookings yet</p>
+                      <p className="text-xs text-slate-400 mt-1">Walk-in customers seated on the floor or online table reservations will appear here live.</p>
                       <button
-                        onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); }}
-                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors"
+                        onClick={() => { setFoodSubTab('tables'); setActiveTab('sector_station'); }}
+                        className="mt-3 px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-xl text-xs font-bold transition-colors border border-orange-200"
                       >
-                        Accept
-                      </button>
-                      <button
-                        onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); }}
-                        className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition-colors border border-rose-200"
-                      >
-                        Review
+                        Seat Walk-in Customer →
                       </button>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}
@@ -1351,6 +1547,7 @@ function DashboardContent() {
                 onAction={handleQueueAction}
                 actionLoading={actionLoading}
                 initialSubTab={foodSubTab}
+                onSubTabChange={(tab) => setFoodSubTab(tab)}
               />
             )}
             {activeVertical === 'DOCTOR' && (

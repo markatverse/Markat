@@ -31,7 +31,13 @@ let ServiceQueueService = class ServiceQueueService {
             },
         });
     }
+    isValidObjectId(id) {
+        return typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id);
+    }
     async getQueueBySeller(sellerId) {
+        if (!this.isValidObjectId(sellerId)) {
+            return null;
+        }
         return this.prisma.serviceQueue.findFirst({
             where: { sellerId },
         });
@@ -43,6 +49,9 @@ let ServiceQueueService = class ServiceQueueService {
         });
     }
     async getQueueStatus(queueId) {
+        if (!this.isValidObjectId(queueId)) {
+            throw new NotFoundException('Invalid queue ID format');
+        }
         const queue = await this.prisma.serviceQueue.findUnique({
             where: { id: queueId },
             include: {
@@ -352,6 +361,9 @@ let ServiceQueueService = class ServiceQueueService {
         });
     }
     async getAnalytics(queueId) {
+        if (!this.isValidObjectId(queueId)) {
+            throw new NotFoundException('Invalid queue ID format');
+        }
         const queue = await this.prisma.serviceQueue.findUnique({
             where: { id: queueId },
             include: { staff: true }

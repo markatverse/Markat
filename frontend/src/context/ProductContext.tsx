@@ -1172,11 +1172,24 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       })
       .finally(() => setIsLoading(false));
 
-    // Fetch categories with fastFetch (cached & deduplicated)
+    // Fetch categories with instant local cache + fastFetch
+    try {
+      const cachedCat = localStorage.getItem('mv_cache_categories');
+      if (cachedCat) {
+        const parsedCat = JSON.parse(cachedCat);
+        if (Array.isArray(parsedCat) && parsedCat.length > 0) {
+          setCategories(parsedCat);
+        }
+      }
+    } catch {}
+
     fastFetch<any[]>(`${API_URL}/categories`, { ttlMs: 60000 })
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
           setCategories(data);
+          try {
+            localStorage.setItem('mv_cache_categories', JSON.stringify(data));
+          } catch {}
         } else {
           setCategories(defaultCategories);
         }

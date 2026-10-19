@@ -33,8 +33,16 @@ export class ServiceQueueService {
     });
   }
 
+  /** Helper to validate MongoDB 24-char hex ObjectId */
+  private isValidObjectId(id: string): boolean {
+    return typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id);
+  }
+
   /** Get queue by seller */
   async getQueueBySeller(sellerId: string) {
+    if (!this.isValidObjectId(sellerId)) {
+      return null;
+    }
     return this.prisma.serviceQueue.findFirst({
       where: { sellerId },
     });
@@ -50,6 +58,9 @@ export class ServiceQueueService {
 
   /** Get live status of a queue */
   async getQueueStatus(queueId: string) {
+    if (!this.isValidObjectId(queueId)) {
+      throw new NotFoundException('Invalid queue ID format');
+    }
     const queue = await this.prisma.serviceQueue.findUnique({
       where: { id: queueId },
       include: {
@@ -457,6 +468,9 @@ export class ServiceQueueService {
   // ─── Analytics ───────────────────────────────────────────────────────────────
 
   async getAnalytics(queueId: string) {
+    if (!this.isValidObjectId(queueId)) {
+      throw new NotFoundException('Invalid queue ID format');
+    }
     const queue = await this.prisma.serviceQueue.findUnique({
       where: { id: queueId },
       include: { staff: true }

@@ -67,6 +67,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable}>
+      <head>
+        {/* Instant Logo Preload - eliminates any delay, blank frame or latency */}
+        <link rel="preload" href="/logo.png" as="image" type="image/png" fetchPriority="high" />
+      </head>
       <body className="antialiased">
         <Providers>
           <Toaster position="top-right" />

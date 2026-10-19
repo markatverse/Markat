@@ -27,6 +27,7 @@ type CartItem = {
 type CartContextType = {
   items: CartItem[];
   savedItems: CartItem[];
+  isLoaded: boolean;
   addToCart: (item: Omit<CartItem, 'quantity'>) => boolean;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
@@ -146,6 +147,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     <CartContext.Provider value={{
       items,
       savedItems,
+      isLoaded,
       addToCart,
       removeFromCart,
       updateQuantity,
@@ -166,7 +168,8 @@ export function useCart() {
     return {
       items: [],
       savedItems: [],
-      addToCart: () => {},
+      isLoaded: false,
+      addToCart: () => false,
       removeFromCart: () => {},
       updateQuantity: () => {},
       clearCart: () => {},

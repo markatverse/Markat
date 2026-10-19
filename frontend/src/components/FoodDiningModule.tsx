@@ -32,6 +32,7 @@ interface FoodDiningModuleProps {
   onAction: (actionId: string, endpoint: string, method?: string, body?: any) => Promise<void>;
   actionLoading: string | null;
   initialSubTab?: 'tables' | 'reservations' | 'kot' | 'menu';
+  onSubTabChange?: (tab: 'tables' | 'reservations' | 'kot' | 'menu') => void;
 }
 
 export default function FoodDiningModule({
@@ -40,15 +41,23 @@ export default function FoodDiningModule({
   onRefresh,
   onAction,
   actionLoading,
-  initialSubTab
+  initialSubTab,
+  onSubTabChange
 }: FoodDiningModuleProps) {
-  const [activeSubTab, setActiveSubTab] = useState<'tables' | 'reservations' | 'kot' | 'menu'>(initialSubTab || 'reservations');
+  const [activeSubTab, setActiveSubTab] = useState<'tables' | 'reservations' | 'kot' | 'menu'>(initialSubTab || 'tables');
 
   React.useEffect(() => {
-    if (initialSubTab) {
+    if (initialSubTab && initialSubTab !== activeSubTab) {
       setActiveSubTab(initialSubTab);
     }
   }, [initialSubTab]);
+
+  const changeSubTab = (tab: 'tables' | 'reservations' | 'kot' | 'menu') => {
+    setActiveSubTab(tab);
+    if (onSubTabChange) {
+      onSubTabChange(tab);
+    }
+  };
   const [showNewTableModal, setShowNewTableModal] = useState(false);
   const [newTableName, setNewTableName] = useState('');
   const [newTableCapacity, setNewTableCapacity] = useState('4');
@@ -114,82 +123,72 @@ export default function FoodDiningModule({
     saveMenuItems(diningMenuItems.filter(i => i.id !== id));
   };
 
-  // Live Customer Bookings / Table Reservations State
-  const defaultReservations = [
-    {
-      id: 'RES-8921',
-      customerName: 'Rahul Sharma',
-      phone: '+91 98765 43210',
-      guests: 4,
-      date: 'Today',
-      timeSlot: '07:30 PM - 09:00 PM',
-      type: 'Standard Table',
-      notes: 'Anniversary celebration, window table requested',
-      assignedTable: 'Table 2 (Booth)',
-      status: 'Pending', // Pending | Confirmed | Rejected | Seated
-      source: 'Online Booking'
-    },
-    {
-      id: 'RES-8922',
-      customerName: 'Pooja Verma',
-      phone: '+91 98112 34567',
-      guests: 8,
-      date: 'Today',
-      timeSlot: '08:00 PM - 09:30 PM',
-      type: 'Standard Table',
-      notes: 'Family dinner with kids, baby high-chair needed',
-      assignedTable: 'Table 7 (Large Party)',
-      status: 'Pending',
-      source: 'Online Booking'
-    },
-    {
-      id: 'RES-8919',
-      customerName: 'Vikram Joshi',
-      phone: '+91 99887 76655',
-      guests: 2,
-      date: 'Today',
-      timeSlot: '06:30 PM - 08:00 PM',
-      type: 'Private VIP Dining Cabin',
-      notes: 'Candlelight romantic setup package',
-      assignedTable: 'Table 5 (VIP)',
-      status: 'Confirmed',
-      source: 'Private Dining'
-    },
-    {
-      id: 'RES-8918',
-      customerName: 'Sanjay Gupta',
-      phone: '+91 97654 32109',
-      guests: 6,
-      date: 'Tomorrow',
-      timeSlot: '01:30 PM - 03:00 PM',
-      type: 'Standard Table',
-      notes: 'Corporate lunch meeting',
-      assignedTable: 'Table 3 (Family)',
-      status: 'Confirmed',
-      source: 'Online Booking'
-    }
+  // Initial default layout for tables
+  const getDefaultTables = () => [
+    { id: 't1', name: 'Table 1 (Window)', type: 'Table', capacity: 2, status: 'Available', currentGuest: null, orderTotal: 0, timeElapsed: null },
+    { id: 't2', name: 'Table 2 (Booth)', type: 'Table', capacity: 4, status: 'Available', currentGuest: null, orderTotal: 0, timeElapsed: null },
+    { id: 't3', name: 'Table 3 (Family)', type: 'Table', capacity: 6, status: 'Available', currentGuest: null, orderTotal: 0, timeElapsed: null },
+    { id: 't4', name: 'Table 4 (Outdoor)', type: 'Table', capacity: 2, status: 'Available', currentGuest: null, orderTotal: 0, timeElapsed: null },
+    { id: 't5', name: 'Table 5 (VIP)', type: 'Table', capacity: 4, status: 'Available', currentGuest: null, orderTotal: 0, timeElapsed: null },
+    { id: 't6', name: 'Table 6 (Corner)', type: 'Table', capacity: 4, status: 'Available', currentGuest: null, orderTotal: 0, timeElapsed: null },
+    { id: 't7', name: 'Table 7 (Large Party)', type: 'Table', capacity: 8, status: 'Available', currentGuest: null, orderTotal: 0, timeElapsed: null },
   ];
 
-  const [reservations, setReservations] = useState(defaultReservations);
+  const [reservations, setReservations] = useState<any[]>([]);
+  const [customTables, setCustomTables] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
 
-  // Sync with client-side reservations made on product details page
-  React.useEffect(() => {
+  // Tables & KOT storage key helpers
+  const tablesKey = `markat_dining_tables_${user?.id || 'default'}`;
+  const kotKey = `markat_dining_kot_${user?.id || 'default'}`;
+
+  // Sync state continuously with localStorage
+  const loadDiningData = () => {
     try {
-      const stored = localStorage.getItem('markat_table_reservations');
-      if (stored) {
-        const parsed = JSON.parse(stored);
+      // 1. Reservations
+      const storedRes = localStorage.getItem('markat_table_reservations');
+      if (storedRes) {
+        const parsed = JSON.parse(storedRes);
+        if (Array.isArray(parsed)) setReservations(parsed);
+      } else {
+        setReservations([]);
+      }
+
+      // 2. Tables
+      const storedTables = localStorage.getItem(tablesKey);
+      if (storedTables) {
+        const parsed = JSON.parse(storedTables);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setReservations(prev => {
-            const existingIds = new Set(prev.map(r => r.id));
-            const newItems = parsed.filter(p => !existingIds.has(p.id));
-            return [...newItems, ...prev];
-          });
+          setCustomTables(parsed);
+        } else {
+          const init = getDefaultTables();
+          setCustomTables(init);
+          localStorage.setItem(tablesKey, JSON.stringify(init));
         }
+      } else {
+        const init = getDefaultTables();
+        setCustomTables(init);
+        localStorage.setItem(tablesKey, JSON.stringify(init));
+      }
+
+      // 3. KOT Orders
+      const storedKot = localStorage.getItem(kotKey);
+      if (storedKot) {
+        const parsed = JSON.parse(storedKot);
+        if (Array.isArray(parsed)) setOrders(parsed);
+      } else {
+        setOrders([]);
       }
     } catch {
       // ignore
     }
-  }, []);
+  };
+
+  React.useEffect(() => {
+    loadDiningData();
+    const interval = setInterval(loadDiningData, 2000);
+    return () => clearInterval(interval);
+  }, [tablesKey, kotKey]);
 
   // Real-time Seller Reservation Notification Alerts
   const [latestAlert, setLatestAlert] = useState<{ title: string; message: string; id: string } | null>(null);
@@ -213,28 +212,39 @@ export default function FoodDiningModule({
     return () => clearInterval(interval);
   }, []);
 
-  // Tables State
-  const [customTables, setCustomTables] = useState<any[]>([
-    { id: 't1', name: 'Table 1 (Window)', type: 'Table', capacity: 2, status: 'Occupied', currentGuest: 'Karan Mehra', orderTotal: 540, timeElapsed: '24m' },
-    { id: 't2', name: 'Table 2 (Booth)', type: 'Table', capacity: 4, status: 'Occupied', currentGuest: 'Suresh Raina', orderTotal: 860, timeElapsed: '15m' },
-    { id: 't3', name: 'Table 3 (Family)', type: 'Table', capacity: 6, status: 'Available', currentGuest: null, orderTotal: 0, timeElapsed: null },
-    { id: 't4', name: 'Table 4 (Outdoor)', type: 'Table', capacity: 2, status: 'Reserved', currentGuest: 'Rohit K. (7:30 PM)', orderTotal: 0, timeElapsed: null },
-    { id: 't5', name: 'Table 5 (VIP)', type: 'Table', capacity: 4, status: 'Food Served', currentGuest: 'Ananya Sharma', orderTotal: 580, timeElapsed: '38m' },
-    { id: 't6', name: 'Table 6 (Corner)', type: 'Table', capacity: 4, status: 'Available', currentGuest: null, orderTotal: 0, timeElapsed: null },
-    { id: 't7', name: 'Table 7 (Large Party)', type: 'Table', capacity: 8, status: 'Available', currentGuest: null, orderTotal: 0, timeElapsed: null },
-  ]);
+  const saveTables = (newTables: any[]) => {
+    setCustomTables(newTables);
+    try {
+      localStorage.setItem(tablesKey, JSON.stringify(newTables));
+    } catch {}
+  };
+
+  const saveReservations = (newRes: any[]) => {
+    setReservations(newRes);
+    try {
+      localStorage.setItem('markat_table_reservations', JSON.stringify(newRes));
+    } catch {}
+  };
+
+  const saveOrders = (newOrders: any[]) => {
+    setOrders(newOrders);
+    try {
+      localStorage.setItem(kotKey, JSON.stringify(newOrders));
+    } catch {}
+  };
 
   const handleAcceptReservation = (id: string) => {
-    setReservations(prev => prev.map(r => r.id === id ? { ...r, status: 'Confirmed' } : r));
+    saveReservations(reservations.map(r => r.id === id ? { ...r, status: 'Confirmed' } : r));
   };
 
   const handleRejectReservation = (id: string) => {
-    setReservations(prev => prev.map(r => r.id === id ? { ...r, status: 'Rejected' } : r));
+    saveReservations(reservations.map(r => r.id === id ? { ...r, status: 'Rejected' } : r));
   };
 
   const handleSeatReservation = (id: string, assignedTable: string) => {
-    setReservations(prev => prev.map(r => r.id === id ? { ...r, status: 'Seated' } : r));
-    setCustomTables(prev => prev.map(t => t.name === assignedTable ? { ...t, status: 'Occupied', currentGuest: reservations.find(r => r.id === id)?.customerName || 'Guest' } : t));
+    saveReservations(reservations.map(r => r.id === id ? { ...r, status: 'Seated' } : r));
+    const guestName = reservations.find(r => r.id === id)?.customerName || 'Guest';
+    saveTables(customTables.map(t => (t.name === assignedTable || t.id === assignedTable) ? { ...t, status: 'Occupied', currentGuest: guestName, timeElapsed: 'Just seated' } : t));
   };
 
   const handleAddTable = (e: React.FormEvent) => {
@@ -250,58 +260,14 @@ export default function FoodDiningModule({
       orderTotal: 0,
       timeElapsed: null
     };
-    setCustomTables(prev => [...prev, newT]);
+    saveTables([...customTables, newT]);
     setNewTableName('');
     setNewTableCapacity('4');
     setShowNewTableModal(false);
   };
 
-  // Quick Live Orders for Kitchen & Dine-in (KOT)
-  const [orders, setOrders] = useState([
-    {
-      id: 'KOT-101',
-      table: 'Table 2 (Booth)',
-      customer: 'Suresh Raina',
-      type: 'Dine-in',
-      time: '5 mins ago',
-      status: 'Preparing',
-      items: [
-        { name: 'Paneer Butter Masala', qty: 2, note: 'Less spicy', price: 280 },
-        { name: 'Butter Naan', qty: 4, note: 'Crispy', price: 45 },
-        { name: 'Jeera Rice', qty: 1, note: '', price: 160 }
-      ],
-      total: 860
-    },
-    {
-      id: 'KOT-102',
-      table: 'Table 5 (VIP)',
-      customer: 'Ananya Sharma',
-      type: 'Dine-in',
-      time: '12 mins ago',
-      status: 'Ready',
-      items: [
-        { name: 'Margherita Pizza (12")', qty: 1, note: 'Extra cheese', price: 340 },
-        { name: 'Cold Coffee with Ice Cream', qty: 2, note: '', price: 120 }
-      ],
-      total: 580
-    },
-    {
-      id: 'KOT-103',
-      table: 'Takeaway #12',
-      customer: 'Vikram Joshi',
-      type: 'Takeaway',
-      time: '2 mins ago',
-      status: 'New',
-      items: [
-        { name: 'Chicken Biryani Special', qty: 2, note: 'Extra Raita', price: 320 },
-        { name: 'Gulab Jamun (2 pcs)', qty: 2, note: 'Warm', price: 70 }
-      ],
-      total: 780
-    }
-  ]);
-
   const handleStatusChange = (orderId: string, nextStatus: string) => {
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: nextStatus } : o));
+    saveOrders(orders.map(o => o.id === orderId ? { ...o, status: nextStatus } : o));
   };
 
   return (
@@ -309,89 +275,143 @@ export default function FoodDiningModule({
       {/* Top Banner / Metrics */}
       <div className="bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
         <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-2 text-orange-200 text-xs font-black tracking-widest uppercase mb-1">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 text-orange-200 text-xs font-black tracking-widest uppercase mb-1.5">
               <ChefHat className="w-4 h-4" /> Food & Dining Station Operations
             </div>
-            <h2 className="text-2xl md:text-3xl font-black">{user?.business?.name || 'Restaurant & Dining'}</h2>
-            <p className="text-orange-100 text-sm mt-1 max-w-xl">
+            <h2 className="text-2xl md:text-3xl font-black tracking-tight">{user?.business?.name || 'Restaurant & Dining'}</h2>
+            <p className="text-orange-100 text-xs md:text-sm mt-1 max-w-xl leading-relaxed">
               Live table floor status, digital Kitchen Order Tickets (KOT), floor occupancy and table turnover.
             </p>
           </div>
-          <div className="flex items-center gap-3">
+
+          {/* Quick Station Navigation Buttons */}
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 shrink-0">
             <button
-              onClick={() => setActiveSubTab('kot')}
-              className={`px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-sm ${
-                activeSubTab === 'kot' ? 'bg-white text-orange-700 shadow-md' : 'bg-black/20 text-white hover:bg-black/30'
+              onClick={() => changeSubTab('tables')}
+              className={`h-12 px-4 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-2 border shadow-xs ${
+                activeSubTab === 'tables' 
+                  ? 'bg-white text-orange-700 border-white shadow-md' 
+                  : 'bg-black/20 hover:bg-black/30 text-white border-white/15'
               }`}
             >
-              <Flame className="w-4 h-4 text-orange-400" /> Kitchen KOT ({orders.filter(o => o.status !== 'Done').length})
+              <Utensils className={`w-4 h-4 ${activeSubTab === 'tables' ? 'text-orange-600' : 'text-amber-300'}`} />
+              <span>Table Floor</span>
             </button>
             <button
-              onClick={() => setActiveSubTab('tables')}
-              className={`px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-sm ${
-                activeSubTab === 'tables' ? 'bg-white text-orange-700 shadow-md' : 'bg-black/20 text-white hover:bg-black/30'
+              onClick={() => changeSubTab('reservations')}
+              className={`h-12 px-4 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-2 border shadow-xs ${
+                activeSubTab === 'reservations' 
+                  ? 'bg-white text-rose-700 border-white shadow-md' 
+                  : 'bg-black/20 hover:bg-black/30 text-white border-white/15'
               }`}
             >
-              <Utensils className="w-4 h-4 text-amber-300" /> Table Floor
+              <CalendarClock className={`w-4 h-4 ${activeSubTab === 'reservations' ? 'text-rose-600' : 'text-rose-300'}`} />
+              <span>Reservations</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[11px] font-black ${
+                activeSubTab === 'reservations' ? 'bg-rose-100 text-rose-700' : 'bg-white/20 text-white'
+              }`}>
+                {reservations.filter(r => r.status === 'Pending').length}
+              </span>
+            </button>
+            <button
+              onClick={() => changeSubTab('kot')}
+              className={`h-12 px-4 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-2 border shadow-xs ${
+                activeSubTab === 'kot' 
+                  ? 'bg-white text-amber-700 border-white shadow-md' 
+                  : 'bg-black/20 hover:bg-black/30 text-white border-white/15'
+              }`}
+            >
+              <Flame className={`w-4 h-4 ${activeSubTab === 'kot' ? 'text-amber-600' : 'text-orange-300'}`} />
+              <span>Kitchen KOT</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[11px] font-black ${
+                activeSubTab === 'kot' ? 'bg-amber-100 text-amber-700' : 'bg-white/20 text-white'
+              }`}>
+                {orders.filter(o => o.status !== 'Done').length}
+              </span>
             </button>
           </div>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between text-slate-400 mb-1">
-            <span className="text-xs font-bold uppercase tracking-wider">Active Tables</span>
-            <Utensils className="w-4 h-4 text-orange-500" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div 
+          onClick={() => changeSubTab('tables')}
+          className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-orange-300 transition-all cursor-pointer flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between text-slate-400 mb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Active Tables</span>
+            <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center">
+              <Utensils className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-2xl font-black text-slate-900">
-            {customTables.filter(t => t.status === 'Occupied' || t.status === 'Food Served').length} / {customTables.length}
+          <div>
+            <div className="text-3xl font-black text-slate-900 mb-1">
+              {customTables.filter(t => t.status === 'Occupied' || t.status === 'Food Served').length} / {customTables.length}
+            </div>
+            <span className="text-xs font-semibold text-emerald-600">
+              {customTables.filter(t => t.status === 'Available').length} tables ready for guests
+            </span>
           </div>
-          <span className="text-[11px] font-semibold text-emerald-600">
-            {customTables.filter(t => t.status === 'Available').length} tables ready for guests
-          </span>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between text-slate-400 mb-1">
-            <span className="text-xs font-bold uppercase tracking-wider">Live KOT Orders</span>
-            <Flame className="w-4 h-4 text-rose-500" />
+        <div 
+          onClick={() => changeSubTab('kot')}
+          className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-amber-300 transition-all cursor-pointer flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between text-slate-400 mb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Live KOT Orders</span>
+            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+              <Flame className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-2xl font-black text-slate-900">
-            {orders.filter(o => o.status === 'Preparing' || o.status === 'New').length}
+          <div>
+            <div className="text-3xl font-black text-slate-900 mb-1">
+              {orders.filter(o => o.status === 'Preparing' || o.status === 'New').length}
+            </div>
+            <span className="text-xs font-semibold text-amber-600">
+              Avg prep time: 14 mins
+            </span>
           </div>
-          <span className="text-[11px] font-semibold text-amber-600">
-            Avg prep time: 14 mins
-          </span>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between text-slate-400 mb-1">
-            <span className="text-xs font-bold uppercase tracking-wider">Dine-in Revenue</span>
-            <DollarSign className="w-4 h-4 text-emerald-500" />
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-emerald-300 transition-all flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-400 mb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Dine-in Revenue</span>
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <DollarSign className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-2xl font-black text-emerald-600">
-            ₹{orders.reduce((sum, o) => sum + o.total, 1420).toLocaleString('en-IN')}
+          <div>
+            <div className="text-3xl font-black text-emerald-600 mb-1">
+              ₹{(customTables.reduce((sum, t) => sum + (Number(t.orderTotal) || 0), 0) + orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0)).toLocaleString('en-IN')}
+            </div>
+            <span className="text-xs font-semibold text-slate-400">
+              Includes active table orders
+            </span>
           </div>
-          <span className="text-[11px] font-semibold text-slate-500">
-            Includes active table orders
-          </span>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between text-slate-400 mb-1">
-            <span className="text-xs font-bold uppercase tracking-wider">Booked Tables</span>
-            <CalendarClock className="w-4 h-4 text-rose-500" />
+        <div 
+          onClick={() => changeSubTab('reservations')}
+          className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-rose-300 transition-all cursor-pointer flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between text-slate-400 mb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Booked Tables</span>
+            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+              <CalendarClock className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-2xl font-black text-slate-900">
-            {reservations.filter(r => r.status === 'Confirmed' || r.status === 'Pending').length}
+          <div>
+            <div className="text-3xl font-black text-slate-900 mb-1">
+              {reservations.filter(r => r.status === 'Confirmed' || r.status === 'Pending').length}
+            </div>
+            <span className="text-xs font-semibold text-rose-600">
+              {reservations.filter(r => r.status === 'Pending').length} pending requests
+            </span>
           </div>
-          <span className="text-[11px] font-semibold text-rose-600">
-            {reservations.filter(r => r.status === 'Pending').length} pending requests
-          </span>
         </div>
       </div>
 
@@ -418,7 +438,7 @@ export default function FoodDiningModule({
               <button
                 type="button"
                 onClick={() => {
-                  setActiveSubTab('reservations');
+                  changeSubTab('reservations');
                   setLatestAlert(null);
                   try {
                     const list = JSON.parse(localStorage.getItem('markat_seller_notifications') || '[]');
@@ -441,39 +461,47 @@ export default function FoodDiningModule({
         </div>
       )}
 
-      {/* Sub Tabs Toggle */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
+      {/* Sub Tabs Navigation Bar */}
+      <div className="bg-slate-100/80 p-1.5 rounded-2xl flex items-center gap-1.5 overflow-x-auto border border-slate-200/80">
         <button
-          onClick={() => setActiveSubTab('reservations')}
-          className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 shrink-0 ${
-            activeSubTab === 'reservations' ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20' : 'text-slate-600 hover:bg-slate-100'
+          onClick={() => changeSubTab('tables')}
+          className={`px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center gap-2 shrink-0 ${
+            activeSubTab === 'tables' 
+              ? 'bg-white text-orange-600 shadow-sm border border-slate-200/60' 
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
           }`}
         >
-          <CalendarClock className="w-4 h-4" /> Bookings & Reservations ({reservations.filter(r => r.status === 'Pending').length} Pending)
+          <Utensils className="w-4 h-4 text-orange-500" /> Table Floor ({customTables.length})
         </button>
         <button
-          onClick={() => setActiveSubTab('menu' as any)}
-          className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 shrink-0 ${
-            activeSubTab === ('menu' as any) ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20' : 'text-slate-600 hover:bg-slate-100'
+          onClick={() => changeSubTab('reservations')}
+          className={`px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center gap-2 shrink-0 ${
+            activeSubTab === 'reservations' 
+              ? 'bg-white text-rose-600 shadow-sm border border-slate-200/60' 
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
           }`}
         >
-          <UtensilsCrossed className="w-4 h-4" /> Food Menu Items ({diningMenuItems.length})
+          <CalendarClock className="w-4 h-4 text-rose-500" /> Bookings & Reservations ({reservations.filter(r => r.status === 'Pending').length} Pending)
         </button>
         <button
-          onClick={() => setActiveSubTab('tables')}
-          className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 shrink-0 ${
-            activeSubTab === 'tables' ? 'bg-orange-600 text-white shadow-md shadow-orange-600/20' : 'text-slate-600 hover:bg-slate-100'
+          onClick={() => changeSubTab('kot')}
+          className={`px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center gap-2 shrink-0 ${
+            activeSubTab === 'kot' 
+              ? 'bg-white text-amber-600 shadow-sm border border-slate-200/60' 
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
           }`}
         >
-          <Utensils className="w-4 h-4" /> Table Floor ({customTables.length} Tables)
+          <ChefHat className="w-4 h-4 text-amber-500" /> Kitchen KOT ({orders.filter(o => o.status !== 'Done').length})
         </button>
         <button
-          onClick={() => setActiveSubTab('kot')}
-          className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 shrink-0 ${
-            activeSubTab === 'kot' ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20' : 'text-slate-600 hover:bg-slate-100'
+          onClick={() => changeSubTab('menu')}
+          className={`px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center gap-2 shrink-0 ${
+            activeSubTab === 'menu' 
+              ? 'bg-white text-purple-600 shadow-sm border border-slate-200/60' 
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
           }`}
         >
-          <ChefHat className="w-4 h-4" /> Kitchen KOT
+          <UtensilsCrossed className="w-4 h-4 text-purple-500" /> Food Menu Items ({diningMenuItems.length})
         </button>
       </div>
 
@@ -493,104 +521,114 @@ export default function FoodDiningModule({
           </div>
 
           <div className="grid grid-cols-1 gap-4">
-            {reservations.map(res => {
-              const isPending = res.status === 'Pending';
-              const isConfirmed = res.status === 'Confirmed';
-              const isSeated = res.status === 'Seated';
-              const isRejected = res.status === 'Rejected';
+            {reservations.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-xs">
+                <CalendarClock className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                <h4 className="font-bold text-slate-800 text-base">No Table Bookings Yet</h4>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
+                  Customer table bookings submitted via your online storefront will appear here live with instant notification alerts.
+                </p>
+              </div>
+            ) : (
+              reservations.map(res => {
+                const isPending = res.status === 'Pending';
+                const isConfirmed = res.status === 'Confirmed';
+                const isSeated = res.status === 'Seated';
+                const isRejected = res.status === 'Rejected';
 
-              return (
-                <div 
-                  key={res.id} 
-                  className={`bg-white rounded-2xl border-2 p-5 shadow-sm transition-all flex flex-col md:flex-row md:items-center justify-between gap-5 ${
-                    isPending ? 'border-amber-300 bg-amber-50/20' :
-                    isConfirmed ? 'border-emerald-300 bg-emerald-50/10' :
-                    isSeated ? 'border-indigo-300 bg-indigo-50/10' : 'border-slate-200 opacity-60'
-                  }`}
-                >
-                  <div className="space-y-1.5 flex-1">
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono text-xs font-bold text-slate-400">{res.id}</span>
-                      <h4 className="font-black text-slate-900 text-base">{res.customerName}</h4>
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                        isPending ? 'bg-amber-100 text-amber-800 border border-amber-300' :
-                        isConfirmed ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
-                        isSeated ? 'bg-indigo-100 text-indigo-800 border border-indigo-300' :
-                        'bg-rose-100 text-rose-800 border border-rose-300'
-                      }`}>
-                        {res.status}
-                      </span>
-                      <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                        {res.source}
-                      </span>
+                return (
+                  <div 
+                    key={res.id} 
+                    className={`bg-white rounded-2xl border-2 p-5 shadow-sm transition-all flex flex-col md:flex-row md:items-center justify-between gap-5 ${
+                      isPending ? 'border-amber-300 bg-amber-50/20' :
+                      isConfirmed ? 'border-emerald-300 bg-emerald-50/10' :
+                      isSeated ? 'border-indigo-300 bg-indigo-50/10' : 'border-slate-200 opacity-60'
+                    }`}
+                  >
+                    <div className="space-y-1.5 flex-1">
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-xs font-bold text-slate-400">{res.id}</span>
+                        <h4 className="font-black text-slate-900 text-base">{res.customerName}</h4>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                          isPending ? 'bg-amber-100 text-amber-800 border border-amber-300' :
+                          isConfirmed ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                          isSeated ? 'bg-indigo-100 text-indigo-800 border border-indigo-300' :
+                          'bg-rose-100 text-rose-800 border border-rose-300'
+                        }`}>
+                          {res.status}
+                        </span>
+                        <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                          {res.source}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-slate-600 font-medium">
+                        <span className="flex items-center gap-1 text-slate-900 font-bold">
+                          <Users className="w-3.5 h-3.5 text-rose-600" /> {res.guests} Guests
+                        </span>
+                        <span className="flex items-center gap-1 text-slate-700">
+                          <Clock className="w-3.5 h-3.5 text-slate-400" /> {res.date} • {res.timeSlot}
+                        </span>
+                        <span className="flex items-center gap-1 text-indigo-700 font-bold">
+                          <Utensils className="w-3.5 h-3.5 text-indigo-500" /> {res.assignedTable}
+                        </span>
+                        <span className="text-slate-500 font-mono">📞 {res.phone}</span>
+                      </div>
+
+                      {res.notes && (
+                        <p className="text-xs text-slate-500 italic bg-white/60 p-2 rounded-lg border border-slate-200/60 mt-1">
+                          &ldquo;{res.notes}&rdquo;
+                        </p>
+                      )}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-slate-600 font-medium">
-                      <span className="flex items-center gap-1 text-slate-900 font-bold">
-                        <Users className="w-3.5 h-3.5 text-rose-600" /> {res.guests} Guests
-                      </span>
-                      <span className="flex items-center gap-1 text-slate-700">
-                        <Clock className="w-3.5 h-3.5 text-slate-400" /> {res.date} • {res.timeSlot}
-                      </span>
-                      <span className="flex items-center gap-1 text-indigo-700 font-bold">
-                        <Utensils className="w-3.5 h-3.5 text-indigo-500" /> {res.assignedTable}
-                      </span>
-                      <span className="text-slate-500 font-mono">📞 {res.phone}</span>
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-2 self-end md:self-center shrink-0">
+                      {isPending && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleAcceptReservation(res.id)}
+                            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
+                          >
+                            <Check className="w-4 h-4" /> Accept Booking
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRejectReservation(res.id)}
+                            className="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center gap-1.5 border border-rose-200 transition-all"
+                          >
+                            <X className="w-4 h-4" /> Reject
+                          </button>
+                        </>
+                      )}
+
+                      {isConfirmed && (
+                        <button
+                          type="button"
+                          onClick={() => handleSeatReservation(res.id, res.assignedTable)}
+                          className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
+                        >
+                          <Utensils className="w-4 h-4" /> Guest Arrived: Seat at {res.assignedTable}
+                        </button>
+                      )}
+
+                      {isSeated && (
+                        <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-200 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-indigo-500" /> Seated & Active
+                        </span>
+                      )}
+
+                      {isRejected && (
+                        <span className="text-xs font-bold text-rose-500 bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-200">
+                          Cancelled
+                        </span>
+                      )}
                     </div>
-
-                    {res.notes && (
-                      <p className="text-xs text-slate-500 italic bg-white/60 p-2 rounded-lg border border-slate-200/60 mt-1">
-                        &ldquo;{res.notes}&rdquo;
-                      </p>
-                    )}
                   </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-2 self-end md:self-center shrink-0">
-                    {isPending && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => handleAcceptReservation(res.id)}
-                          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
-                        >
-                          <Check className="w-4 h-4" /> Accept Booking
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleRejectReservation(res.id)}
-                          className="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center gap-1.5 border border-rose-200 transition-all"
-                        >
-                          <X className="w-4 h-4" /> Reject
-                        </button>
-                      </>
-                    )}
-
-                    {isConfirmed && (
-                      <button
-                        type="button"
-                        onClick={() => handleSeatReservation(res.id, res.assignedTable)}
-                        className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
-                      >
-                        <Utensils className="w-4 h-4" /> Guest Arrived: Seat at {res.assignedTable}
-                      </button>
-                    )}
-
-                    {isSeated && (
-                      <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-200 flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-indigo-500" /> Seated & Active
-                      </span>
-                    )}
-
-                    {isRejected && (
-                      <span className="text-xs font-bold text-rose-500 bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-200">
-                        Cancelled
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
       )}
@@ -780,76 +818,86 @@ export default function FoodDiningModule({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {orders.map(order => (
-              <div key={order.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
-                <div className={`p-4 text-white flex justify-between items-center ${
-                  order.status === 'New' ? 'bg-rose-500' :
-                  order.status === 'Preparing' ? 'bg-amber-500' :
-                  order.status === 'Ready' ? 'bg-emerald-600' : 'bg-slate-700'
-                }`}>
-                  <div>
-                    <div className="font-black text-lg">{order.table}</div>
-                    <div className="text-xs opacity-90">{order.customer} • {order.type}</div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs font-black uppercase tracking-wider bg-black/20 px-2 py-0.5 rounded-md">
-                      {order.status}
-                    </span>
-                    <div className="text-[11px] opacity-80 mt-1">{order.time}</div>
-                  </div>
-                </div>
-
-                <div className="p-4 flex-1 space-y-2">
-                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Items to cook</div>
-                  {order.items.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-start py-1.5 border-b border-slate-100 text-sm">
-                      <div>
-                        <span className="font-black text-slate-900 mr-2">{item.qty}x</span>
-                        <span className="font-semibold text-slate-700">{item.name}</span>
-                        {item.note && (
-                          <div className="text-[11px] text-rose-500 font-bold ml-6">
-                            * Note: {item.note}
-                          </div>
-                        )}
-                      </div>
-                      <span className="font-mono text-xs text-slate-500">₹{item.price * item.qty}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                  <div className="font-black text-slate-800 text-sm">
-                    Total: ₹{order.total}
-                  </div>
-                  <div className="flex gap-2">
-                    {order.status === 'New' && (
-                      <button
-                        onClick={() => handleStatusChange(order.id, 'Preparing')}
-                        className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
-                      >
-                        <Flame className="w-3.5 h-3.5" /> Start Cooking
-                      </button>
-                    )}
-                    {order.status === 'Preparing' && (
-                      <button
-                        onClick={() => handleStatusChange(order.id, 'Ready')}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Mark Ready
-                      </button>
-                    )}
-                    {order.status === 'Ready' && (
-                      <button
-                        onClick={() => handleStatusChange(order.id, 'Done')}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
-                      >
-                        <Utensils className="w-3.5 h-3.5" /> Served / Delivered
-                      </button>
-                    )}
-                  </div>
-                </div>
+            {orders.length === 0 ? (
+              <div className="col-span-full bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-xs">
+                <ChefHat className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                <h4 className="font-bold text-slate-800 text-base">Kitchen Display Is Clear</h4>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
+                  Active food order tickets placed from dining tables or customer takeaways will appear here in real-time.
+                </p>
               </div>
-            ))}
+            ) : (
+              orders.map(order => (
+                <div key={order.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+                  <div className={`p-4 text-white flex justify-between items-center ${
+                    order.status === 'New' ? 'bg-rose-500' :
+                    order.status === 'Preparing' ? 'bg-amber-500' :
+                    order.status === 'Ready' ? 'bg-emerald-600' : 'bg-slate-700'
+                  }`}>
+                    <div>
+                      <div className="font-black text-lg">{order.table}</div>
+                      <div className="text-xs opacity-90">{order.customer} • {order.type}</div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs font-black uppercase tracking-wider bg-black/20 px-2 py-0.5 rounded-md">
+                        {order.status}
+                      </span>
+                      <div className="text-[11px] opacity-80 mt-1">{order.time}</div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 flex-1 space-y-2">
+                    <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Items to cook</div>
+                    {order.items.map((item: any, idx: number) => (
+                      <div key={idx} className="flex justify-between items-start py-1.5 border-b border-slate-100 text-sm">
+                        <div>
+                          <span className="font-black text-slate-900 mr-2">{item.qty}x</span>
+                          <span className="font-semibold text-slate-700">{item.name}</span>
+                          {item.note && (
+                            <div className="text-[11px] text-rose-500 font-bold ml-6">
+                              * Note: {item.note}
+                            </div>
+                          )}
+                        </div>
+                        <span className="font-mono text-xs text-slate-500">₹{item.price * item.qty}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                    <div className="font-black text-slate-800 text-sm">
+                      Total: ₹{order.total}
+                    </div>
+                    <div className="flex gap-2">
+                      {order.status === 'New' && (
+                        <button
+                          onClick={() => handleStatusChange(order.id, 'Preparing')}
+                          className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                        >
+                          <Flame className="w-3.5 h-3.5" /> Start Cooking
+                        </button>
+                      )}
+                      {order.status === 'Preparing' && (
+                        <button
+                          onClick={() => handleStatusChange(order.id, 'Ready')}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Mark Ready
+                        </button>
+                      )}
+                      {order.status === 'Ready' && (
+                        <button
+                          onClick={() => handleStatusChange(order.id, 'Done')}
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                        >
+                          <Utensils className="w-3.5 h-3.5" /> Served / Delivered
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}

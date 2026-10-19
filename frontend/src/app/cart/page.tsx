@@ -7,7 +7,15 @@ import { Trash2, ShoppingBag, ArrowRight, ShieldCheck, CreditCard, Camera, Star,
 
 export default function CartPage() {
   const router = useRouter();
-  const { items, savedItems, updateQuantity, removeFromCart, saveForLater, moveToCart, removeSaved, total } = useCart();
+  const { items, savedItems, isLoaded, updateQuantity, removeFromCart, saveForLater, moveToCart, removeSaved, total } = useCart();
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center p-10 bg-slate-50">
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   if (items.length === 0 && savedItems.length === 0) {
     return (
