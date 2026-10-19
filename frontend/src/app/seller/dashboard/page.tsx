@@ -42,6 +42,7 @@ function DashboardContent() {
   const [selectedServiceCategory, setSelectedServiceCategory] = useState<string>('All Services');
   const [searchBookingQuery, setSearchBookingQuery] = useState<string>('');
   const [selectedBookingDetails, setSelectedBookingDetails] = useState<any | null>(null);
+  const [foodSubTab, setFoodSubTab] = useState<'tables' | 'reservations' | 'kot' | 'menu'>('tables');
   
   // Store Operational & Notification Settings State
   const defaultStoreSettings = {
@@ -756,85 +757,128 @@ function DashboardContent() {
           {/* SERVICE PROVIDER FLOW (Phase 1 MVP) */}
           {(isService || isServiceProvider) && (
             <>
-              {/* Sector-specific primary station tab */}
-              {activeVertical === 'FOOD' && (
-                <button 
-                  onClick={() => { setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' ? 'bg-orange-50 text-orange-700 font-bold border border-orange-200' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Utensils className="w-5 h-5 text-orange-500" /> Tables & KOT
-                  </div>
-                  <span className="px-2 py-0.5 bg-orange-100 text-orange-800 rounded text-[10px] font-bold">Food</span>
-                </button>
-              )}
+              {/* FOOD & DINING: Elegant, unified, non-duplicated operational tabs */}
+              {activeVertical === 'FOOD' ? (
+                <>
+                  <button 
+                    onClick={() => { setFoodSubTab('tables'); setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' && foodSubTab === 'tables' ? 'bg-orange-50 text-orange-700 font-bold border border-orange-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Utensils className="w-5 h-5 text-orange-500" /> Table Floor
+                    </div>
+                    <span className="px-2 py-0.5 bg-orange-100 text-orange-800 rounded text-[10px] font-bold">Floor</span>
+                  </button>
 
-              {activeVertical === 'DOCTOR' && (
-                <button 
-                  onClick={() => { setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' ? 'bg-emerald-50 text-emerald-700 font-bold border border-emerald-200' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Stethoscope className="w-5 h-5 text-emerald-600" /> OPD & Consults
-                  </div>
-                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">Clinic</span>
-                </button>
-              )}
+                  <button 
+                    onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' && foodSubTab === 'reservations' ? 'bg-rose-50 text-rose-700 font-bold border border-rose-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <CalendarClock className="w-5 h-5 text-rose-500" /> Reservations
+                    </div>
+                    <span className="px-2 py-0.5 bg-rose-100 text-rose-800 rounded text-[10px] font-bold">Bookings</span>
+                  </button>
 
-              {activeVertical === 'SALON' && (
-                <button 
-                  onClick={() => { setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Scissors className="w-5 h-5 text-indigo-600" /> Chairs & Stylists
-                  </div>
-                  <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded text-[10px] font-bold">Salon</span>
-                </button>
-              )}
+                  <button 
+                    onClick={() => { setFoodSubTab('kot'); setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' && foodSubTab === 'kot' ? 'bg-amber-50 text-amber-700 font-bold border border-amber-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <ChefHat className="w-5 h-5 text-amber-500" /> Kitchen Orders
+                    </div>
+                    <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-bold">KOT</span>
+                  </button>
 
-              <button 
-                onClick={() => { setActiveTab('bookings'); setIsMobileMenuOpen(false); }} 
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'bookings' ? 'bg-amber-50 text-amber-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-              >
-                <div className="flex items-center gap-3">
-                  <CalendarClock className="w-5 h-5" /> {activeVertical === 'FOOD' ? 'Table Bookings' : 'Bookings & Tokens'}
-                </div>
-              </button>
+                  <button 
+                    onClick={() => { setFoodSubTab('menu'); setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' && foodSubTab === 'menu' ? 'bg-purple-50 text-purple-700 font-bold border border-purple-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <UtensilsCrossed className="w-5 h-5 text-purple-500" /> Food Menu Items
+                    </div>
+                    <span className="px-2 py-0.5 bg-purple-100 text-purple-800 rounded text-[10px] font-bold">Dishes</span>
+                  </button>
 
-              {activeVertical !== 'FOOD' && (
-                <button 
-                  onClick={() => { setActiveTab('queue'); setIsMobileMenuOpen(false); }} 
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'queue' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-                >
-                  <span className="w-5 h-5 flex items-center justify-center text-lg">🎟️</span> Live Queue
-                </button>
+                  <button 
+                    onClick={() => { setActiveTab('services'); setIsMobileMenuOpen(false); }} 
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'services' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Store className="w-5 h-5 text-blue-600" /> Restaurant Profile
+                    </div>
+                    <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-[10px] font-bold">Store</span>
+                  </button>
+                </>
+              ) : (
+                /* CLINIC, SALON & OTHER SERVICE SECTORS */
+                <>
+                  {activeVertical === 'DOCTOR' && (
+                    <button 
+                      onClick={() => { setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' ? 'bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Stethoscope className="w-5 h-5 text-emerald-600" /> OPD & Consults
+                      </div>
+                      <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">Clinic</span>
+                    </button>
+                  )}
+
+                  {activeVertical === 'SALON' && (
+                    <button 
+                      onClick={() => { setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Scissors className="w-5 h-5 text-indigo-600" /> Chairs & Stylists
+                      </div>
+                      <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded text-[10px] font-bold">Salon</span>
+                    </button>
+                  )}
+
+                  <button 
+                    onClick={() => { setActiveTab('bookings'); setIsMobileMenuOpen(false); }} 
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'bookings' ? 'bg-amber-50 text-amber-700 font-bold border border-amber-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <CalendarClock className="w-5 h-5" /> Bookings & Tokens
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => { setActiveTab('queue'); setIsMobileMenuOpen(false); }} 
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'queue' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                  >
+                    <span className="w-5 h-5 flex items-center justify-center text-lg">🎟️</span> Live Queue
+                  </button>
+
+                  <button 
+                    onClick={() => { setActiveTab('services'); setIsMobileMenuOpen(false); }} 
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'services' ? 'bg-purple-50 text-purple-700 font-bold border border-purple-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                  >
+                    <Briefcase className="w-5 h-5" /> Services & Catalog
+                  </button>
+                </>
               )}
 
               <button 
                 onClick={() => { setActiveTab('customers'); setIsMobileMenuOpen(false); }} 
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'customers' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'customers' ? 'bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
               >
                 <Users className="w-5 h-5" /> Customers
               </button>
 
               <button 
-                onClick={() => { setActiveTab('services'); setIsMobileMenuOpen(false); }} 
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'services' ? 'bg-purple-50 text-purple-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-              >
-                <Briefcase className="w-5 h-5" /> Services & Menu
-              </button>
-
-              <button 
                 onClick={() => { setActiveTab('staff'); setIsMobileMenuOpen(false); }} 
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'staff' ? 'bg-rose-50 text-rose-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'staff' ? 'bg-rose-50 text-rose-700 font-bold border border-rose-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
               >
                 <UserPlus className="w-5 h-5" /> {activeVertical === 'DOCTOR' ? 'Doctors & Staff' : (activeVertical === 'FOOD' ? 'Kitchen & Waiters' : 'Stylists & Staff')}
               </button>
 
               <button 
                 onClick={() => { setActiveTab('earnings'); setIsMobileMenuOpen(false); }} 
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'earnings' ? 'bg-green-50 text-green-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'earnings' ? 'bg-green-50 text-green-700 font-bold border border-green-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
               >
                 <TrendingUp className="w-5 h-5" /> Earnings
               </button>
@@ -1012,18 +1056,18 @@ function DashboardContent() {
 
                 // 2. Services or Catalog
                 quickActions.push({ 
-                  label: isServiceProvider ? 'Services & Menu' : (isB2B ? 'B2B Catalog' : 'My Listings'), 
-                  subtitle: isServiceProvider ? 'Manage prices & items' : 'Manage your inventory',
+                  label: activeVertical === 'FOOD' ? 'Restaurant Profile' : (isServiceProvider ? 'Services & Menu' : (isB2B ? 'B2B Catalog' : 'My Listings')), 
+                  subtitle: activeVertical === 'FOOD' ? 'Cover charges & venue info' : (isServiceProvider ? 'Manage prices & items' : 'Manage your inventory'),
                   icon: Briefcase,
                   iconColor: 'text-purple-500',
                   bgGrad: 'from-purple-50 to-pink-50/50 hover:border-purple-300',
                   tab: isServiceProvider ? 'services' : 'listings' 
                 });
 
-                // 3. Queue & Tokens (for live queue, dining, salon, doctor)
-                if (isQueueFlow) {
+                // 3. Queue & Tokens (for live queue, salon, doctor)
+                if (isQueueFlow && activeVertical !== 'FOOD') {
                   quickActions.push({ 
-                    label: activeVertical === 'FOOD' ? 'Tokens & Waitlist' : 'Queue & Tokens', 
+                    label: 'Queue & Tokens', 
                     subtitle: 'Live customer queue',
                     icon: Clock,
                     iconColor: 'text-amber-500',
@@ -1109,6 +1153,7 @@ function DashboardContent() {
                 onRefresh={() => fetchQueue()}
                 onAction={handleQueueAction}
                 actionLoading={actionLoading}
+                initialSubTab={foodSubTab}
               />
             )}
             {activeVertical === 'DOCTOR' && (
@@ -2344,6 +2389,176 @@ function DashboardContent() {
         )}
 
 
+
+        {/* CUSTOMERS MANAGEMENT TAB */}
+        {activeTab === 'customers' && (
+          <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+              <div>
+                <h1 className="text-3xl font-bold text-slate-900">Customer Directory</h1>
+                <p className="text-slate-500 mt-1">
+                  {activeVertical === 'FOOD'
+                    ? 'Track your restaurant guests, repeat diners, reservation history, and VIP tables.'
+                    : 'Manage client relationships, visit histories, and customer contact info.'}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="px-3.5 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold">
+                  ● Live Sync Active
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg">
+                  👥
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-slate-900">128</div>
+                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Total Guests / Clients</div>
+                </div>
+              </div>
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg">
+                  ⭐
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-slate-900">42</div>
+                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Repeat Diners / VIP</div>
+                </div>
+              </div>
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg">
+                  📈
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-slate-900">₹1,420</div>
+                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Average Ticket Size</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-50/50">
+                <span className="font-bold text-slate-800 text-sm">Recent Diners & Guests</span>
+                <span className="text-xs text-slate-500">Auto-logged from table bookings & queue tokens</span>
+              </div>
+              <div className="divide-y divide-slate-100">
+                {[
+                  { name: 'Rahul Sharma', phone: '+91 98765 43210', visits: 4, tag: 'VIP Diner', lastVisit: 'Today', totalSpent: '₹3,450' },
+                  { name: 'Pooja Verma', phone: '+91 98112 34567', visits: 1, tag: 'Family Party', lastVisit: 'Today', totalSpent: '₹1,820' },
+                  { name: 'Vikram Joshi', phone: '+91 99887 76655', visits: 7, tag: 'Regular Guest', lastVisit: 'Yesterday', totalSpent: '₹6,200' },
+                  { name: 'Sanjay Gupta', phone: '+91 97654 32109', visits: 3, tag: 'Corporate', lastVisit: '3 days ago', totalSpent: '₹4,100' },
+                  { name: 'Ananya Sharma', phone: '+91 98223 11445', visits: 2, tag: 'Private Dining', lastVisit: 'Last week', totalSpent: '₹2,680' }
+                ].map((cust, idx) => (
+                  <div key={idx} className="p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3 hover:bg-slate-50/80 transition-colors">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-slate-700 text-sm">
+                        {cust.name.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-900 text-sm">{cust.name}</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-orange-50 text-orange-700 border border-orange-200">
+                            {cust.tag}
+                          </span>
+                        </div>
+                        <span className="text-xs text-slate-500 font-mono">{cust.phone}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-6 sm:text-right">
+                      <div>
+                        <div className="text-xs text-slate-400 font-medium">Visits</div>
+                        <div className="text-sm font-bold text-slate-800">{cust.visits} times</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-slate-400 font-medium">Lifetime Spend</div>
+                        <div className="text-sm font-bold text-emerald-600">{cust.totalSpent}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-slate-400 font-medium">Last Visit</div>
+                        <div className="text-xs font-semibold text-slate-600">{cust.lastVisit}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* STAFF & WAITERS MANAGEMENT TAB */}
+        {activeTab === 'staff' && (
+          <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+              <div>
+                <h1 className="text-3xl font-bold text-slate-900">
+                  {activeVertical === 'FOOD' ? 'Kitchen & Service Staff' : (activeVertical === 'DOCTOR' ? 'Doctors & Clinic Staff' : 'Stylists & Salon Team')}
+                </h1>
+                <p className="text-slate-500 mt-1">
+                  {activeVertical === 'FOOD' 
+                    ? 'Manage your chefs, captains, and waiters for dining tables & KOT assignments.' 
+                    : 'Manage active working staff, shift schedules, and resource desks.'}
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowStaffModal(true)}
+                className="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md shadow-rose-600/20 transition-colors flex items-center gap-2 text-sm"
+              >
+                <PlusCircle className="w-4 h-4" /> Add Staff Member
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {[
+                { name: 'Chef Rajesh Kumar', role: 'Head Chef', shift: 'Morning & Evening', status: 'On Duty', assigned: 'Kitchen Main (KOT)' },
+                { name: 'Amit Singh', role: 'Captain / Waiter', shift: 'Full Day', status: 'Active on Floor', assigned: 'Tables 1 to 4' },
+                { name: 'Sunil Rawat', role: 'Service Waiter', shift: 'Evening Shift', status: 'Active on Floor', assigned: 'Tables 5 to 7' },
+                { name: 'Vikas Mehra', role: 'Tandoor & Breads Chef', shift: 'Morning & Evening', status: 'On Duty', assigned: 'Live Tandoor Station' }
+              ].map((member, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between group hover:border-rose-300 transition-all">
+                  <div>
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-black text-base">
+                        {member.name.charAt(0)}
+                      </div>
+                      <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        ● {member.status}
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-base text-slate-900">{member.name}</h3>
+                    <p className="text-xs font-semibold text-rose-600 mt-0.5">{member.role}</p>
+                    <div className="mt-4 pt-3 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Assignment:</span>
+                        <span className="font-semibold text-slate-800">{member.assigned}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Shift:</span>
+                        <span className="font-semibold text-slate-700">{member.shift}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-5 pt-3 border-t border-slate-100 flex gap-2">
+                    <button 
+                      onClick={() => setShowStaffModal(true)}
+                      className="flex-1 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                    >
+                      Edit Shift
+                    </button>
+                    <button 
+                      onClick={() => alert(`Shift status for ${member.name} updated.`)}
+                      className="px-3 py-2 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
+                    >
+                      Take Break
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {['projects', 'milestones', 'enquiries', 'inventory', 'proposals'].includes(activeTab) && (
           <div className="max-w-6xl mx-auto py-20 text-center animate-in fade-in duration-300">

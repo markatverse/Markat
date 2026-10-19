@@ -31,6 +31,7 @@ interface FoodDiningModuleProps {
   onRefresh: () => void;
   onAction: (actionId: string, endpoint: string, method?: string, body?: any) => Promise<void>;
   actionLoading: string | null;
+  initialSubTab?: 'tables' | 'reservations' | 'kot' | 'menu';
 }
 
 export default function FoodDiningModule({
@@ -38,9 +39,16 @@ export default function FoodDiningModule({
   user,
   onRefresh,
   onAction,
-  actionLoading
+  actionLoading,
+  initialSubTab
 }: FoodDiningModuleProps) {
-  const [activeSubTab, setActiveSubTab] = useState<'tables' | 'reservations' | 'kot' | 'menu'>('reservations');
+  const [activeSubTab, setActiveSubTab] = useState<'tables' | 'reservations' | 'kot' | 'menu'>(initialSubTab || 'reservations');
+
+  React.useEffect(() => {
+    if (initialSubTab) {
+      setActiveSubTab(initialSubTab);
+    }
+  }, [initialSubTab]);
   const [showNewTableModal, setShowNewTableModal] = useState(false);
   const [newTableName, setNewTableName] = useState('');
   const [newTableCapacity, setNewTableCapacity] = useState('4');
