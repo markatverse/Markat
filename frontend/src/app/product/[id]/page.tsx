@@ -897,20 +897,20 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                       );
                     })()}
 
-                    {/* Compact 2-column or 3-column input grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {/* 2-column horizontal grid on mobile, 3-column on tablet/desktop */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
                       {/* 1. Number of Guests (Custom Scrollable Menu) */}
                       <div className="relative" ref={guestDropdownRef}>
-                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                          <Users className="w-3.5 h-3.5 text-rose-600" /> Guests
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5 truncate">
+                          <Users className="w-3.5 h-3.5 text-rose-600 shrink-0" /> Guests
                         </label>
                         <button
                           type="button"
                           onClick={() => setIsGuestDropdownOpen(!isGuestDropdownOpen)}
-                          className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-sm cursor-pointer flex items-center justify-between transition-colors"
+                          className="w-full px-3 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-xs sm:text-sm cursor-pointer flex items-center justify-between transition-colors"
                         >
-                          <span>{partySize} {partySize === 1 ? 'Guest' : 'Guests'}</span>
-                          <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isGuestDropdownOpen ? 'rotate-180 text-rose-600' : ''}`} />
+                          <span className="truncate">{partySize} {partySize === 1 ? 'Guest' : 'Guests'}</span>
+                          <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${isGuestDropdownOpen ? 'rotate-180 text-rose-600' : ''}`} />
                         </button>
 
                         {/* Scrollable Guest Options Dropdown */}
@@ -924,7 +924,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                                   setPartySize(num);
                                   setIsGuestDropdownOpen(false);
                                 }}
-                                className={`w-full px-3.5 py-2 text-left text-sm font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                                className={`w-full px-3 py-2 text-left text-xs sm:text-sm font-medium flex items-center justify-between transition-colors cursor-pointer ${
                                   partySize === num
                                     ? 'bg-rose-50 text-rose-600 font-bold'
                                     : 'text-slate-700 hover:bg-slate-50'
@@ -942,27 +942,27 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
 
                       {/* 2. Date */}
                       <div>
-                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5 text-rose-600" /> Date
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5 truncate">
+                          <Calendar className="w-3.5 h-3.5 text-rose-600 shrink-0" /> Date
                         </label>
                         <input 
                           type="date" 
                           value={reservationDate}
                           onChange={e => setReservationDate(e.target.value)}
-                          className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-sm transition-colors" 
+                          className="w-full px-2.5 sm:px-3 py-2 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-xs sm:text-sm transition-colors" 
                         />
                       </div>
 
-                      {/* 3. Time Slot */}
-                      <div>
-                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-rose-600" /> Time Slot
+                      {/* 3. Time Slot (full width on mobile col-span-2, single column on desktop) */}
+                      <div className="col-span-2 sm:col-span-1">
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5 truncate">
+                          <Clock className="w-3.5 h-3.5 text-rose-600 shrink-0" /> Time Slot
                         </label>
                         <div className="relative">
                           <select
                             value={reservationTime}
                             onChange={e => setReservationTime(e.target.value)}
-                            className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-sm cursor-pointer appearance-none pr-9 transition-colors"
+                            className="w-full px-3 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-xs sm:text-sm cursor-pointer appearance-none pr-9 transition-colors"
                           >
                             <option value="">Select Time</option>
                             {['12:30 PM (Lunch)', '01:30 PM (Lunch)', '07:00 PM (Dinner)', '07:45 PM (Dinner)', '08:30 PM (Prime Dinner)', '09:15 PM (Late Dining)'].map(slot => (
