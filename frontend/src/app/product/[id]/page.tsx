@@ -151,8 +151,53 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
   ) : false;
 
   const [partySize, setPartySize] = useState(2);
-  const [reservationDate, setReservationDate] = useState('');
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
+
+  const [reservationDate, setReservationDate] = useState(() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  });
   const [reservationTime, setReservationTime] = useState('');
+
+  // Dining time slots configuration with 24-hr start time for past-time filtering
+  const allDiningSlots = useMemo(() => [
+    { label: '12:30 PM (Lunch)', hour: 12, minute: 30 },
+    { label: '01:30 PM (Lunch)', hour: 13, minute: 30 },
+    { label: '07:00 PM (Dinner)', hour: 19, minute: 0 },
+    { label: '07:45 PM (Dinner)', hour: 19, minute: 45 },
+    { label: '08:30 PM (Prime Dinner)', hour: 20, minute: 30 },
+    { label: '09:15 PM (Late Dining)', hour: 21, minute: 15 },
+    { label: '10:00 PM (Late Night)', hour: 22, minute: 0 },
+  ], []);
+
+  // Filter available time slots if today is selected
+  const availableTimeSlots = useMemo(() => {
+    if (!reservationDate) return allDiningSlots;
+    if (reservationDate > todayStr) return allDiningSlots;
+    if (reservationDate === todayStr) {
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      // Keep only slots that are at least 15 minutes ahead of current time
+      return allDiningSlots.filter(s => (s.hour * 60 + s.minute) > (currentMinutes + 15));
+    }
+    return [];
+  }, [reservationDate, todayStr, allDiningSlots]);
+
+  // If currently selected slot is not valid for the date, reset it
+  useEffect(() => {
+    if (reservationTime && !availableTimeSlots.some(s => s.label === reservationTime)) {
+      setReservationTime('');
+    }
+  }, [availableTimeSlots, reservationTime]);
   const [diningMode, setDiningMode] = useState<'reserve' | 'book'>('reserve');
   const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false);
   const guestDropdownRef = useRef<HTMLDivElement>(null);
@@ -947,6 +992,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                         </label>
                         <input 
                           type="date" 
+                          min={todayStr}
                           value={reservationDate}
                           onChange={e => setReservationDate(e.target.value)}
                           className="w-full px-2.5 sm:px-3 py-2 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-xs sm:text-sm transition-colors" 
@@ -962,11 +1008,14 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                           <select
                             value={reservationTime}
                             onChange={e => setReservationTime(e.target.value)}
-                            className="w-full px-3 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-xs sm:text-sm cursor-pointer appearance-none pr-9 transition-colors"
+                            disabled={availableTimeSlots.length === 0}
+                            className="w-full px-3 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-xs sm:text-sm cursor-pointer appearance-none pr-9 transition-colors disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
                           >
-                            <option value="">Select Time</option>
-                            {['12:30 PM (Lunch)', '01:30 PM (Lunch)', '07:00 PM (Dinner)', '07:45 PM (Dinner)', '08:30 PM (Prime Dinner)', '09:15 PM (Late Dining)'].map(slot => (
-                              <option key={slot} value={slot}>{slot}</option>
+                            <option value="">
+                              {availableTimeSlots.length === 0 ? 'No more slots today' : 'Select Time'}
+                            </option>
+                            {availableTimeSlots.map(slot => (
+                              <option key={slot.label} value={slot.label}>{slot.label}</option>
                             ))}
                           </select>
                           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
@@ -991,6 +1040,10 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                         onClick={() => requireAuth(() => {
                           if (!reservationDate) {
                             alert('Please select your preferred reservation date.');
+                            return;
+                          }
+                          if (reservationDate < todayStr) {
+                            alert('Cannot book a reservation for a past date. Please select today or an upcoming date.');
                             return;
                           }
                           if (!reservationTime) {

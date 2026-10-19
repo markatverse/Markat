@@ -27,8 +27,50 @@ export default function RestaurantProfilePage() {
   const params = useParams();
   const [activeTab, setActiveTab] = useState<'RESERVE' | 'MENU'>('RESERVE');
   const [partySize, setPartySize] = useState(2);
-  const [date, setDate] = useState('');
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
+
+  const [date, setDate] = useState(() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  });
   const [time, setTime] = useState('');
+
+  const restaurantSlots = useMemo(() => [
+    { label: '18:00', hour: 18, minute: 0 },
+    { label: '18:30', hour: 18, minute: 30 },
+    { label: '19:00', hour: 19, minute: 0 },
+    { label: '19:30', hour: 19, minute: 30 },
+    { label: '20:00', hour: 20, minute: 0 },
+    { label: '20:30', hour: 20, minute: 30 },
+    { label: '21:00', hour: 21, minute: 0 },
+  ], []);
+
+  const availableRestaurantSlots = useMemo(() => {
+    if (!date) return restaurantSlots;
+    if (date > todayStr) return restaurantSlots;
+    if (date === todayStr) {
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      return restaurantSlots.filter(s => (s.hour * 60 + s.minute) > (currentMinutes + 15));
+    }
+    return [];
+  }, [date, todayStr, restaurantSlots]);
+
+  useEffect(() => {
+    if (time && !availableRestaurantSlots.some(s => s.label === time)) {
+      setTime('');
+    }
+  }, [availableRestaurantSlots, time]);
+
   const [preOrderItems, setPreOrderItems] = useState<Record<number, number>>({});
 
   const handlePreOrder = (itemId: number, change: number) => {
@@ -126,6 +168,7 @@ export default function RestaurantProfilePage() {
                   <label className="block text-xs font-bold text-slate-400 mb-2 uppercase">Date</label>
                   <input 
                     type="date"
+                    min={todayStr}
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                     className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-rose-500"
@@ -138,11 +181,14 @@ export default function RestaurantProfilePage() {
                     <select 
                       value={time} 
                       onChange={(e) => setTime(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:border-rose-500 appearance-none"
+                      disabled={availableRestaurantSlots.length === 0}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:border-rose-500 appearance-none disabled:bg-slate-900 disabled:text-slate-500 disabled:cursor-not-allowed"
                     >
-                      <option value="">Select Time</option>
-                      {['18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00'].map(t => (
-                        <option key={t} value={t}>{t}</option>
+                      <option value="">
+                        {availableRestaurantSlots.length === 0 ? 'No more slots today' : 'Select Time'}
+                      </option>
+                      {availableRestaurantSlots.map(t => (
+                        <option key={t.label} value={t.label}>{t.label}</option>
                       ))}
                     </select>
                   </div>
