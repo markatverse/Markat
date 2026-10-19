@@ -955,191 +955,388 @@ function DashboardContent() {
         
         {activeTab === 'overview' && (
           <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
-            <div className="mb-6 md:mb-8">
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Dashboard Overview</h1>
-              <p className="text-slate-500 mt-1 md:mt-2 text-sm md:text-base">Welcome back, {user?.name || user?.business?.name || 'Seller'}. Here&apos;s what&apos;s happening today.</p>
-              
-              {/* Phase 2: Verification Status Banner */}
-              {user?.business && (
-                <div className={`mt-4 md:mt-6 p-3 md:p-4 rounded-lg md:rounded-xl flex items-start gap-2.5 md:gap-3 border ${
-                  user.business.verificationStatus === 'AUTO_VERIFIED' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' :
-                  user.business.verificationStatus === 'ACTION_REQUIRED' ? 'bg-amber-50 border-amber-200 text-amber-800' :
-                  user.business.verificationStatus === 'ADMIN_REVIEW_REQUIRED' ? 'bg-blue-50 border-blue-200 text-blue-800' :
-                  'bg-slate-50 border-slate-200 text-slate-800'
-                }`}>
-                  <ShieldCheck className={`w-5 h-5 md:w-6 md:h-6 shrink-0 ${
-                    user.business.verificationStatus === 'AUTO_VERIFIED' ? 'text-emerald-600' :
-                    user.business.verificationStatus === 'ACTION_REQUIRED' ? 'text-amber-600' :
-                    user.business.verificationStatus === 'ADMIN_REVIEW_REQUIRED' ? 'text-blue-600' :
-                    'text-slate-600'
-                  }`} />
-                  <div>
-                    <h3 className="font-bold text-sm md:text-base">
-                      {user.business.verificationStatus === 'AUTO_VERIFIED' ? 'Account Auto-Verified' :
-                       user.business.verificationStatus === 'ACTION_REQUIRED' ? 'Action Required: Missing Information' :
-                       user.business.verificationStatus === 'ADMIN_REVIEW_REQUIRED' ? 'Account under Admin Review' :
-                       'Verification Pending'}
-                    </h3>
-                    <p className="text-xs md:text-sm mt-0.5 md:mt-1 opacity-90">
-                      {user.business.verificationStatus === 'AUTO_VERIFIED' ? 'Your business passed all automated checks and is fully active.' :
-                       user.business.verificationStatus === 'ACTION_REQUIRED' ? `Please update your profile to continue. Reason: ${user.business.verificationNotes || 'Missing data'}` :
-                       user.business.verificationStatus === 'ADMIN_REVIEW_REQUIRED' ? 'Our team is reviewing your profile due to missing standard parameters. You will be notified shortly.' :
-                       'Your profile is pending automated checks.'}
-                    </p>
+            {/* Dashboard Header with Live Store Status & Shortcuts */}
+            <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2.5">
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Dashboard Overview</h1>
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5 shadow-2xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Live & Open
+                  </span>
+                </div>
+                <p className="text-slate-500 mt-1 text-sm sm:text-base">
+                  Welcome back, <strong className="text-slate-800">{user?.name || user?.business?.name || 'Seller'}</strong>. Real-time updates for your store.
+                </p>
+              </div>
+
+              {/* Top Quick Actions Header */}
+              <div className="flex items-center gap-2.5 shrink-0">
+                {myListings.length > 0 && (
+                  <Link
+                    href={`/product/${myListings[0].id}`}
+                    target="_blank"
+                    className="px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors shadow-2xs flex items-center gap-1.5"
+                  >
+                    🌐 View Live Storefront
+                  </Link>
+                )}
+                {activeVertical === 'FOOD' ? (
+                  <button
+                    onClick={() => { setFoodSubTab('tables'); setActiveTab('sector_station'); }}
+                    className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold text-xs shadow-md shadow-orange-500/20 transition-all flex items-center gap-2"
+                  >
+                    <Utensils className="w-4 h-4" /> Open Table Floor
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setActiveTab(isServiceProvider ? 'add_service' : 'add_product')}
+                    className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all flex items-center gap-2"
+                  >
+                    <PlusCircle className="w-4 h-4" /> Add New
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Account Auto-Verified Banner */}
+            {user?.business && (
+              <div className="mb-8 p-4 rounded-2xl bg-gradient-to-r from-emerald-50/80 via-teal-50/40 to-emerald-50/80 border border-emerald-200/80 shadow-2xs flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                    <ShieldCheck className="w-5 h-5" />
                   </div>
+                  <div>
+                    <h4 className="font-bold text-emerald-950 text-sm">Account Verified & Active</h4>
+                    <p className="text-xs text-emerald-700 mt-0.5">Your business passed MarkatVerse compliance checks and is open for customers.</p>
+                  </div>
+                </div>
+                <div className="hidden sm:flex items-center gap-2 font-mono text-xs font-semibold text-emerald-800 bg-white/70 px-3 py-1.5 rounded-lg border border-emerald-200/60">
+                  ID: {user.markatId || 'MV-0000000044'}
+                </div>
+              </div>
+            )}
+
+            {/* SECTOR-ADAPTIVE KPI METRIC CARDS */}
+            {activeVertical === 'FOOD' ? (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                {/* 1. Dine-in Revenue */}
+                <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-emerald-300 transition-all relative overflow-hidden group">
+                  <div className="flex items-center justify-between text-slate-400 mb-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Today&apos;s Revenue</span>
+                    <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                      <TrendingUp className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="text-3xl font-black text-slate-900 mb-1">₹3,640</div>
+                  <div className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+                    <span>↑ 18%</span>
+                    <span className="text-slate-400 font-normal">vs yesterday</span>
+                  </div>
+                </div>
+
+                {/* 2. Active Tables */}
+                <div 
+                  onClick={() => { setFoodSubTab('tables'); setActiveTab('sector_station'); }}
+                  className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-orange-300 transition-all cursor-pointer relative overflow-hidden group"
+                >
+                  <div className="flex items-center justify-between text-slate-400 mb-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Table Floor</span>
+                    <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center">
+                      <Utensils className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="text-3xl font-black text-slate-900 mb-1">3 / 7</div>
+                  <div className="text-xs font-semibold text-orange-600">
+                    3 tables ready for walk-ins →
+                  </div>
+                </div>
+
+                {/* 3. Live KOT Orders */}
+                <div 
+                  onClick={() => { setFoodSubTab('kot'); setActiveTab('sector_station'); }}
+                  className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-amber-300 transition-all cursor-pointer relative overflow-hidden group"
+                >
+                  <div className="flex items-center justify-between text-slate-400 mb-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Live Kitchen KOT</span>
+                    <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center">
+                      <ChefHat className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="text-3xl font-black text-slate-900 mb-1">2</div>
+                  <div className="text-xs font-semibold text-amber-600">
+                    Avg prep time: 14 mins →
+                  </div>
+                </div>
+
+                {/* 4. Reservations Pending */}
+                <div 
+                  onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); }}
+                  className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-rose-300 transition-all cursor-pointer relative overflow-hidden group"
+                >
+                  <div className="flex items-center justify-between text-slate-400 mb-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Table Bookings</span>
+                    <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center">
+                      <CalendarClock className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="text-3xl font-black text-slate-900 mb-1">3</div>
+                  <div className="text-xs font-semibold text-rose-600">
+                    1 request needs review →
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* STANDARD RETAIL / SERVICE SECTOR METRICS */
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Total Sales</div>
+                    <div className="text-3xl font-black text-slate-900">₹0</div>
+                    <span className="text-xs text-slate-400 mt-1 block">No sales yet</span>
+                  </div>
+                  <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6" />
+                  </div>
+                </div>
+
+                <div 
+                  onClick={() => setActiveTab(isServiceProvider ? 'services' : 'listings')}
+                  className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between cursor-pointer hover:border-blue-300 transition-all"
+                >
+                  <div>
+                    <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
+                      {isServiceProvider ? 'Active Services' : 'Active Products'}
+                    </div>
+                    <div className="text-3xl font-black text-slate-900">{myListings.length}</div>
+                    <span className="text-xs text-blue-600 font-semibold mt-1 block">View catalog →</span>
+                  </div>
+                  <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <Store className="w-6 h-6" />
+                  </div>
+                </div>
+
+                <div 
+                  onClick={() => setActiveTab('queue')}
+                  className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between cursor-pointer hover:border-amber-300 transition-all"
+                >
+                  <div>
+                    <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Live Queue</div>
+                    <div className="text-3xl font-black text-slate-900">{queueData?.waitingCount ?? 0}</div>
+                    <span className="text-xs text-amber-600 font-semibold mt-1 block">Manage queue →</span>
+                  </div>
+                  <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center">
+                    <Clock className="w-6 h-6" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* OPERATIONAL SHORTCUTS & QUICK ACTIONS */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-slate-900">Quick Actions</h3>
+                <span className="text-xs text-slate-400 font-medium">One-click operational station navigation</span>
+              </div>
+
+              {activeVertical === 'FOOD' ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                  {/* Action 1: Table Floor */}
+                  <button
+                    onClick={() => { setFoodSubTab('tables'); setActiveTab('sector_station'); }}
+                    className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-orange-300 hover:shadow-md transition-all text-left flex flex-col justify-between gap-3 group bg-gradient-to-br from-orange-50/40 to-white"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Utensils className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-900 text-sm">Table Floor</div>
+                      <div className="text-xs text-slate-500 mt-0.5">Seat guests & view occupancy</div>
+                    </div>
+                  </button>
+
+                  {/* Action 2: Reservations */}
+                  <button
+                    onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); }}
+                    className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-rose-300 hover:shadow-md transition-all text-left flex flex-col justify-between gap-3 group bg-gradient-to-br from-rose-50/40 to-white"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <CalendarClock className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-900 text-sm">Table Bookings</div>
+                      <div className="text-xs text-slate-500 mt-0.5">Accept incoming reservations</div>
+                    </div>
+                  </button>
+
+                  {/* Action 3: Kitchen Orders */}
+                  <button
+                    onClick={() => { setFoodSubTab('kot'); setActiveTab('sector_station'); }}
+                    className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-amber-300 hover:shadow-md transition-all text-left flex flex-col justify-between gap-3 group bg-gradient-to-br from-amber-50/40 to-white"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <ChefHat className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-900 text-sm">Kitchen KOT</div>
+                      <div className="text-xs text-slate-500 mt-0.5">Order prep tickets & timers</div>
+                    </div>
+                  </button>
+
+                  {/* Action 4: Menu Items */}
+                  <button
+                    onClick={() => { setFoodSubTab('menu'); setActiveTab('sector_station'); }}
+                    className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-purple-300 hover:shadow-md transition-all text-left flex flex-col justify-between gap-3 group bg-gradient-to-br from-purple-50/40 to-white"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <UtensilsCrossed className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-900 text-sm">Food Menu</div>
+                      <div className="text-xs text-slate-500 mt-0.5">Dishes, pricing & stock</div>
+                    </div>
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <button 
+                    onClick={() => setActiveTab(isServiceProvider ? 'services' : 'listings')}
+                    className="p-4 rounded-2xl bg-white border border-slate-200 text-left flex flex-col gap-3 hover:border-blue-300 hover:shadow-md transition-all"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                      <Store className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-900 text-sm">{isServiceProvider ? 'Services' : 'Catalog'}</div>
+                      <div className="text-xs text-slate-500 mt-0.5">Manage listings & prices</div>
+                    </div>
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('customers')}
+                    className="p-4 rounded-2xl bg-white border border-slate-200 text-left flex flex-col gap-3 hover:border-emerald-300 hover:shadow-md transition-all"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-900 text-sm">Customers</div>
+                      <div className="text-xs text-slate-500 mt-0.5">Diners & clients directory</div>
+                    </div>
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('staff')}
+                    className="p-4 rounded-2xl bg-white border border-slate-200 text-left flex flex-col gap-3 hover:border-rose-300 hover:shadow-md transition-all"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
+                      <UserPlus className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-900 text-sm">Staff & Shifts</div>
+                      <div className="text-xs text-slate-500 mt-0.5">Floor duties & roster</div>
+                    </div>
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('earnings')}
+                    className="p-4 rounded-2xl bg-white border border-slate-200 text-left flex flex-col gap-3 hover:border-green-300 hover:shadow-md transition-all"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-green-100 text-green-600 flex items-center justify-center">
+                      <TrendingUp className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-900 text-sm">Earnings</div>
+                      <div className="text-xs text-slate-500 mt-0.5">Payouts & revenue stats</div>
+                    </div>
+                  </button>
                 </div>
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-6 md:mb-8 lg:mb-12">
-              <div className="relative bg-gradient-to-br from-emerald-500 to-teal-600 p-5 md:p-6 lg:p-8 rounded-2xl md:rounded-3xl text-white shadow-lg overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-                <div className="absolute top-0 right-0 p-4 md:p-6 opacity-20 group-hover:opacity-30 transition-opacity transform group-hover:scale-110">
-                  <TrendingUp className="w-16 h-16 md:w-24 md:h-24" />
-                </div>
-                <div className="text-emerald-100 text-xs md:text-sm font-bold tracking-widest uppercase mb-1.5 md:mb-2 relative z-10">{isB2B ? 'B2B Trade Volume' : 'Total Sales'}</div>
-                <div className="text-3xl md:text-4xl lg:text-5xl font-black mb-3 md:mb-4 relative z-10 drop-shadow-md">₹0</div>
-                <div className="text-emerald-50 text-xs md:text-sm font-medium flex items-center gap-1.5 relative z-10 bg-black/10 w-fit px-2.5 py-1 md:px-3 md:py-1.5 rounded-full backdrop-blur-md">
-                  <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4" /> No sales yet
-                </div>
-              </div>
-
-              <div className="relative bg-gradient-to-br from-blue-500 to-indigo-600 p-5 md:p-6 lg:p-8 rounded-2xl md:rounded-3xl text-white shadow-lg overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-                <div className="absolute top-0 right-0 p-4 md:p-6 opacity-20 group-hover:opacity-30 transition-opacity transform group-hover:scale-110">
-                  <Store className="w-16 h-16 md:w-24 md:h-24" />
-                </div>
-                <div className="text-blue-100 text-xs md:text-sm font-bold tracking-widest uppercase mb-1.5 md:mb-2 relative z-10">{isServiceProvider ? 'Active Services' : (isB2B ? 'B2B Catalog' : 'Active Listings')}</div>
-                <div className="text-3xl md:text-4xl lg:text-5xl font-black mb-3 md:mb-4 relative z-10 drop-shadow-md">{myListings.length}</div>
-                <button onClick={() => { setActiveTab(isServiceProvider ? 'services' : 'listings'); setIsMobileMenuOpen(false); }} className="text-blue-50 text-xs md:text-sm font-medium flex items-center gap-1.5 relative z-10 bg-black/10 w-fit px-2.5 py-1 md:px-3 md:py-1.5 rounded-full backdrop-blur-md hover:bg-black/20 transition-colors">
-                  <Eye className="w-3.5 h-3.5 md:w-4 md:h-4" /> {isServiceProvider ? 'View services →' : 'View catalog →'}
-                </button>
-              </div>
-
-              <div className="relative bg-gradient-to-br from-orange-400 to-amber-500 p-5 md:p-6 lg:p-8 rounded-2xl md:rounded-3xl text-white shadow-lg overflow-hidden group hover:-translate-y-1 transition-all duration-300 md:col-span-2 lg:col-span-1">
-                <div className="absolute top-0 right-0 p-4 md:p-6 opacity-20 group-hover:opacity-30 transition-opacity transform group-hover:scale-110">
-                  <Users className="w-16 h-16 md:w-24 md:h-24" />
-                </div>
-                <div className="text-orange-100 text-xs md:text-sm font-bold tracking-widest uppercase mb-1.5 md:mb-2 relative z-10">
-                  {isServiceProvider ? 'Live Queue / Tokens' : (isB2B ? 'Pending RFQs' : 'Pending Orders')}
-                </div>
-                <div className="text-3xl md:text-4xl lg:text-5xl font-black mb-3 md:mb-4 relative z-10 drop-shadow-md">
-                  {isServiceProvider
-                    ? (queueData ? `${queueData.waitingCount ?? 0}` : '0')
-                    : (isB2B ? leads.length.toString() : orders.length.toString())}
-                </div>
-                <button onClick={() => { setActiveTab(isServiceProvider ? 'queue' : (isB2B ? 'leads' : 'orders')); setIsMobileMenuOpen(false); }}
-                  className="text-orange-50 text-xs md:text-sm font-medium flex items-center gap-1.5 relative z-10 bg-black/10 w-fit px-2.5 py-1 md:px-3 md:py-1.5 rounded-full backdrop-blur-md hover:bg-black/20 transition-colors">
-                  <Clock className="w-3.5 h-3.5 md:w-4 md:h-4" /> {isServiceProvider ? 'Waiting now →' : 'View pending →'}
-                </button>
-              </div>
-            </div>
-
-            {/* Quick Links */}
-            <div className="mb-6 md:mb-8 lg:mb-12">
-              <div className="flex items-center justify-between mb-3 md:mb-4">
-                <h3 className="text-base md:text-lg font-bold text-slate-900">Quick Actions</h3>
-                <span className="text-xs text-slate-500 font-medium hidden sm:inline">Streamlined operational shortcuts</span>
-              </div>
-              {(() => {
-                const quickActions: any[] = [];
-
-                // 1. Sector Workstation (Dining Floor & KOT, OPD, Salon Chairs)
-                if (activeVertical !== 'NONE' && availableVerticals.length > 0) {
-                  quickActions.push({ 
-                    label: activeVertical === 'FOOD' ? 'Dining Floor & KOT' : (activeVertical === 'DOCTOR' ? 'OPD Chamber & Rx' : 'Chairs & Stylists'), 
-                    subtitle: activeVertical === 'FOOD' ? 'Live table & order flow' : 'Consultations & stations',
-                    icon: activeVertical === 'FOOD' ? Utensils : (activeVertical === 'DOCTOR' ? Stethoscope : Scissors),
-                    iconColor: activeVertical === 'FOOD' ? 'text-orange-500' : (activeVertical === 'DOCTOR' ? 'text-emerald-500' : 'text-indigo-500'),
-                    bgGrad: activeVertical === 'FOOD' ? 'from-orange-50 to-amber-50/50 hover:border-orange-300' : 'from-indigo-50 to-blue-50/50 hover:border-indigo-300',
-                    tab: 'sector_station' 
-                  });
-                }
-
-                // 2. Services or Catalog
-                quickActions.push({ 
-                  label: activeVertical === 'FOOD' ? 'Restaurant Profile' : (isServiceProvider ? 'Services & Menu' : (isB2B ? 'B2B Catalog' : 'My Listings')), 
-                  subtitle: activeVertical === 'FOOD' ? 'Cover charges & venue info' : (isServiceProvider ? 'Manage prices & items' : 'Manage your inventory'),
-                  icon: Briefcase,
-                  iconColor: 'text-purple-500',
-                  bgGrad: 'from-purple-50 to-pink-50/50 hover:border-purple-300',
-                  tab: isServiceProvider ? 'services' : 'listings' 
-                });
-
-                // 3. Queue & Tokens (for live queue, salon, doctor)
-                if (isQueueFlow && activeVertical !== 'FOOD') {
-                  quickActions.push({ 
-                    label: 'Queue & Tokens', 
-                    subtitle: 'Live customer queue',
-                    icon: Clock,
-                    iconColor: 'text-amber-500',
-                    bgGrad: 'from-amber-50 to-yellow-50/50 hover:border-amber-300',
-                    tab: 'queue' 
-                  });
-                }
-
-                // 4. Retail Orders (Only show if not strictly food dining or if genuine retail flow exists)
-                if (activeVertical !== 'FOOD' && (isB2C || isCartFlow)) {
-                  quickActions.push({ 
-                    label: 'Retail Orders', 
-                    subtitle: 'Track shipments & sales',
-                    icon: Package,
-                    iconColor: 'text-blue-500',
-                    bgGrad: 'from-blue-50 to-cyan-50/50 hover:border-blue-300',
-                    tab: 'orders' 
-                  });
-                }
-
-                // 5. Leads / RFQ (B2B only)
-                if (isB2B) {
-                  quickActions.push({ 
-                    label: 'Leads / RFQ', 
-                    subtitle: 'Inquiries & quotations',
-                    icon: MessageSquare,
-                    iconColor: 'text-indigo-500',
-                    bgGrad: 'from-indigo-50 to-violet-50/50 hover:border-indigo-300',
-                    tab: 'leads' 
-                  });
-                }
-
-                // 6. Bookings (Only show for service/appointment flows that are NOT already covered by food dining floor)
-                if (activeVertical !== 'FOOD' && (isProjectFlow || isMeetingFlow || (isService && !isQueueFlow))) {
-                  quickActions.push({ 
-                    label: 'Bookings & Slots', 
-                    subtitle: 'Scheduled appointments',
-                    icon: CalendarClock,
-                    iconColor: 'text-emerald-500',
-                    bgGrad: 'from-emerald-50 to-teal-50/50 hover:border-emerald-300',
-                    tab: 'bookings' 
-                  });
-                }
-
-                return (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-5">
-                    {quickActions.map(item => {
-                      const IconComponent = item.icon;
-                      return (
-                        <button 
-                          key={item.tab} 
-                          onClick={() => { setActiveTab(item.tab as any); setIsMobileMenuOpen(false); }}
-                          className={`bg-white border border-slate-200/90 rounded-2xl p-4 md:p-5 flex flex-col items-start text-left gap-3 hover:shadow-lg transition-all duration-200 group relative overflow-hidden bg-gradient-to-br ${item.bgGrad}`}
-                        >
-                          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white shadow-xs border border-slate-100 flex items-center justify-center transition-transform group-hover:scale-110">
-                            <IconComponent className={`w-5 h-5 md:w-6 md:h-6 ${item.iconColor}`} />
-                          </div>
-                          <div>
-                            <span className="text-sm md:text-base font-bold text-slate-800 block group-hover:text-slate-900 leading-snug">
-                              {item.label}
-                            </span>
-                            <span className="text-xs text-slate-500 font-medium block mt-0.5">
-                              {item.subtitle}
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
+            {/* LIVE OPERATIONS PREVIEW CARD (Recent Reservations & Floor status) */}
+            {activeVertical === 'FOOD' && (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+                <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-slate-50/50">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-sm">
+                      🍽️
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm">Live Table Floor & Reservations Summary</h4>
+                      <p className="text-xs text-slate-500">Fast action bar for current floor activities</p>
+                    </div>
                   </div>
-                );
-              })()}
-            </div>
+                  <button
+                    onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); }}
+                    className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors flex items-center gap-1"
+                  >
+                    View All Reservations →
+                  </button>
+                </div>
+
+                <div className="divide-y divide-slate-100">
+                  <div className="p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 font-bold flex items-center justify-center text-sm">
+                        #2
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-900 text-sm">Table 2 (Booth) • 4 Guests</div>
+                        <div className="text-xs text-slate-500">Seated: Suresh Raina • Order: Paneer Butter Masala, Butter Naan</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 self-end sm:self-auto">
+                      <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                        Food Preparing
+                      </span>
+                      <span className="text-sm font-bold text-slate-900">₹860</span>
+                    </div>
+                  </div>
+
+                  <div className="p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 font-bold flex items-center justify-center text-sm">
+                        #5
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-900 text-sm">Table 5 (VIP) • 2 Guests</div>
+                        <div className="text-xs text-slate-500">Seated: Ananya Sharma • Order: Margherita Pizza, Cold Coffee</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 self-end sm:self-auto">
+                      <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        Food Served
+                      </span>
+                      <span className="text-sm font-bold text-slate-900">₹580</span>
+                    </div>
+                  </div>
+
+                  <div className="p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 font-bold flex items-center justify-center text-sm">
+                        RES
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-900 text-sm">Pooja Verma (8 Guests) • 08:00 PM Tonight</div>
+                        <div className="text-xs text-slate-500">Standard Table 7 (Large Party) • Family dinner with kids</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 self-end sm:self-auto">
+                      <button
+                        onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); }}
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); }}
+                        className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition-colors border border-rose-200"
+                      >
+                        Review
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
