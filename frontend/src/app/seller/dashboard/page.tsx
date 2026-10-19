@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useProducts } from '@/context/ProductContext';
-import { Store, BarChart3, Package, PlusCircle, ArrowLeft, Trash2, Edit2, CheckCircle2, CalendarClock, Settings, Menu, X, Users, TrendingUp, Ticket, Clock, Ban, Search, Phone, Mail, FileText, MapPin, ChevronDown, Activity, Scissors, User, UserPlus, Sparkles, Palette, Droplet, Briefcase, Eye, ShieldCheck, Utensils, Stethoscope, HeartPulse, ChefHat, MessageSquare, Lock, Check, Info, Bell, Key } from 'lucide-react';
+import { Store, BarChart3, Package, PlusCircle, ArrowLeft, Trash2, Edit2, CheckCircle2, CalendarClock, Settings, Menu, X, Users, TrendingUp, Ticket, Clock, Ban, Search, Phone, Mail, FileText, MapPin, ChevronDown, Activity, Scissors, User, UserPlus, Sparkles, Palette, Droplet, Briefcase, Eye, ShieldCheck, Utensils, UtensilsCrossed, Stethoscope, HeartPulse, ChefHat, MessageSquare, Lock, Check, Info, Bell, Key } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Suspense } from 'react';
 import StaffResourceManagementModal from '@/components/StaffResourceManagementModal';
