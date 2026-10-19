@@ -89,16 +89,10 @@ export default function ContentBannersPage() {
           const data = await res.json();
           if (Array.isArray(data)) {
             const realData = data.filter((b: any) => !b.id?.startsWith('bn-dummy-'));
-            setBanners(prev => {
-              const map = new Map<string, any>();
-              prev.forEach(b => { if (b?.id && !b.id.startsWith('bn-dummy-')) map.set(b.id, b); });
-              realData.forEach(b => { if (b?.id && !b.id.startsWith('bn-dummy-')) map.set(b.id, b); });
-              const merged = Array.from(map.values());
-              try {
-                localStorage.setItem('mv_cache_banners', JSON.stringify(merged));
-              } catch {}
-              return merged;
-            });
+            setBanners(realData);
+            try {
+              localStorage.setItem('mv_cache_banners', JSON.stringify(realData));
+            } catch {}
           }
         }
       } catch {

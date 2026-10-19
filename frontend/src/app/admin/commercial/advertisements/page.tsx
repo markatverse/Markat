@@ -93,17 +93,11 @@ export default function CommercialgtAdvertisementsPage() {
           const data = await res.json();
           if (Array.isArray(data)) {
             const realItems = data.filter((item: any) => !item.id?.startsWith('ad-default-'));
-            setItems(prev => {
-              const map = new Map<string, any>();
-              prev.forEach(it => { if (it?.id && !it.id.startsWith('ad-default-')) map.set(it.id, it); });
-              realItems.forEach(it => { if (it?.id && !it.id.startsWith('ad-default-')) map.set(it.id, it); });
-              const merged = Array.from(map.values());
-              try {
-                localStorage.setItem('mv_cache_advertisements', JSON.stringify(merged));
-                localStorage.setItem('mv_cache_ads', JSON.stringify(merged));
-              } catch {}
-              return merged;
-            });
+            setItems(realItems);
+            try {
+              localStorage.setItem('mv_cache_advertisements', JSON.stringify(realItems));
+              localStorage.setItem('mv_cache_ads', JSON.stringify(realItems));
+            } catch {}
           }
         }
       } catch {

@@ -86,23 +86,60 @@ export default function SellerRegistrationPage() {
     }
   }, [user, router]);
 
+  // Fallback sectors map in case configuration endpoint has empty sectors or network drops
+  const FALLBACK_SECTORS: Record<string, { id: string; name: string }[]> = {
+    'B2C': [
+      { id: 'b2c_food', name: 'Food & Dining / Restaurant' },
+      { id: 'b2c_retail', name: 'Retail & Supermarket' },
+      { id: 'b2c_fashion', name: 'Fashion & Apparel' },
+      { id: 'b2c_electronics', name: 'Electronics & Appliances' },
+      { id: 'b2c_home', name: 'Home & Kitchen Essentials' },
+      { id: 'b2c_health', name: 'Health & Pharmacy' },
+    ],
+    'B2B': [
+      { id: 'b2b_wholesale', name: 'Wholesale & Distribution' },
+      { id: 'b2b_mfg', name: 'Manufacturing & Industrial' },
+      { id: 'b2b_construction', name: 'Construction & Materials' },
+      { id: 'b2b_fmcg', name: 'FMCG Bulk Supply' },
+    ],
+    'BOTH': [
+      { id: 'both_retail_wholesale', name: 'Both B2B & B2C' },
+      { id: 'both_food', name: 'Food & Beverage Supply' },
+      { id: 'both_textiles', name: 'Textiles & Garments' },
+    ],
+    'SERVICE': [
+      { id: 'srv_food', name: 'Food & Dining / Restaurant' },
+      { id: 'srv_salon', name: 'Salon & Beauty Services' },
+      { id: 'srv_health', name: 'Healthcare & Clinic' },
+      { id: 'srv_home', name: 'Home Maintenance & Repair' },
+      { id: 'srv_events', name: 'Events & Catering' },
+    ]
+  };
+
   // Fetch Business Types dynamically based on selected Model
   useEffect(() => {
     if (!businessModel) return;
     setLoadingConfig(true);
     fetch(`${API_URL}/configuration/business-types?mainType=${businessModel}`)
-      .then(res => res.json())
+      .then(res => res.ok ? res.json() : [])
       .then(data => {
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           setBusinessTypes(data);
-          if (data.length > 0) {
-            setSelectedType(data[0].id);
-          } else {
-            setSelectedType('');
-          }
+          // Prefer type that already has sectors defined, otherwise default to first
+          const typeWithSectors = data.find((t: any) => t.sectors && t.sectors.length > 0) || data[0];
+          setSelectedType(typeWithSectors.id);
+        } else {
+          // Fallback business type if database is empty
+          const fallbackType = { id: `default_${businessModel.toLowerCase()}`, name: `${businessModel} Enterprise`, sectors: [] };
+          setBusinessTypes([fallbackType]);
+          setSelectedType(fallbackType.id);
         }
       })
-      .catch(() => setBusinessTypes([]))
+      .catch(() => {
+        const fallbackType = { id: `default_${businessModel.toLowerCase()}`, name: `${businessModel} Store`, sectors: [] };
+        setBusinessTypes([fallbackType]);
+        setSelectedType(fallbackType.id);
+      })
       .finally(() => setLoadingConfig(false));
   }, [businessModel]);
 
@@ -115,49 +152,63 @@ export default function SellerRegistrationPage() {
     }
     setLoadingConfig(true);
     fetch(`${API_URL}/configuration/sectors?businessTypeId=${selectedType}`)
-      .then(res => res.json())
+      .then(res => res.ok ? res.json() : [])
       .then(data => {
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           setSectors(data);
-          if (data.length > 0) {
-            setSelectedSector(data[0].name || data[0].id);
-          } else {
-            setSelectedSector('');
-          }
+          setSelectedSector(data[0].name || data[0].id);
+        } else {
+          // Use model-based fallback sectors so the seller is never blocked with an empty sector
+          const fallbacks = FALLBACK_SECTORS[businessModel] || FALLBACK_SECTORS['B2C'];
+          setSectors(fallbacks);
+          setSelectedSector(fallbacks[0].name);
         }
       })
-      .catch(() => setSectors([]))
+      .catch(() => {
+        const fallbacks = FALLBACK_SECTORS[businessModel] || FALLBACK_SECTORS['B2C'];
+        setSectors(fallbacks);
+        setSelectedSector(fallbacks[0].name);
+      })
       .finally(() => setLoadingConfig(false));
-  }, [selectedType]);
+  }, [selectedType, businessModel]);
 
-  // Pincode lookup for automated City, State and Locality
+  // Pincode lookup for automated City, State and Locality with timeout and error resilience
   useEffect(() => {
     if (pinCode.length === 6) {
       setIsFetchingPin(true);
-      fetch(`https://api.postalpincode.in/pincode/${pinCode}`)
-        .then(res => res.json())
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+      fetch(`https://api.postalpincode.in/pincode/${pinCode}`, { signal: controller.signal })
+        .then(res => res.ok ? res.json() : null)
         .then(data => {
-          if (data && data[0] && data[0].Status === 'Success') {
-            const fetchedAreas = data[0].PostOffice.map((po: any) => po.Name);
-            setAreas(fetchedAreas);
-            if (fetchedAreas.length > 0 && !locality) {
-              setLocality(fetchedAreas[0]);
+          if (data && data[0] && data[0].Status === 'Success' && Array.isArray(data[0].PostOffice)) {
+            const fetchedAreas = data[0].PostOffice.map((po: any) => po.Name).filter(Boolean);
+            if (fetchedAreas.length > 0) {
+              setAreas(fetchedAreas);
+              if (!locality) setLocality(fetchedAreas[0]);
             }
             const state = data[0].PostOffice[0].State;
             const district = data[0].PostOffice[0].District;
-            if (state) setStateName(state);
-            if (district) setCity(district);
+            if (state && !stateName) setStateName(state);
+            if (district && !city) setCity(district);
           }
         })
         .catch(() => {})
-        .finally(() => setIsFetchingPin(false));
+        .finally(() => {
+          clearTimeout(timeoutId);
+          setIsFetchingPin(false);
+        });
 
+      // Geocoding fallback with graceful catch
       fetch(`https://nominatim.openstreetmap.org/search?postalcode=${pinCode}&country=india&format=json`)
-        .then(res => res.ok ? res.json() : Promise.reject())
+        .then(res => res.ok ? res.json() : null)
         .then(data => {
-          if (data && data.length > 0) {
-            setLatitude(parseFloat(data[0].lat));
-            setLongitude(parseFloat(data[0].lon));
+          if (Array.isArray(data) && data.length > 0) {
+            if (data[0].lat && data[0].lon) {
+              setLatitude(parseFloat(data[0].lat));
+              setLongitude(parseFloat(data[0].lon));
+            }
           }
         })
         .catch(() => {});
@@ -171,13 +222,13 @@ export default function SellerRegistrationPage() {
       const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
       if (res.ok) {
         const data = await res.json();
-        if (data.address) {
+        if (data && data.address) {
           if (data.address.postcode) setPinCode(data.address.postcode);
-          if (data.address.state) setStateName(data.address.state);
+          if (data.address.state && !stateName) setStateName(data.address.state);
           const detectedCity = data.address.city || data.address.town || data.address.district || data.address.county;
-          if (detectedCity) setCity(detectedCity);
+          if (detectedCity && !city) setCity(detectedCity);
           const detectedLocality = data.address.suburb || data.address.neighbourhood || '';
-          if (detectedLocality) setLocality(detectedLocality);
+          if (detectedLocality && !locality) setLocality(detectedLocality);
         }
       }
     } catch {}
@@ -191,66 +242,81 @@ export default function SellerRegistrationPage() {
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
       if (!token) {
+        toast.error('Session expired. Please log in to complete registration.');
         router.replace('/seller/login');
         return;
       }
 
       const selectedTypeObj = businessTypes.find(t => t.id === selectedType);
-      const typeName = selectedTypeObj ? selectedTypeObj.name : selectedType;
+      const typeName = selectedTypeObj ? selectedTypeObj.name : (selectedType || `${businessModel} Merchant`);
+      const finalSector = selectedSector || (FALLBACK_SECTORS[businessModel] ? FALLBACK_SECTORS[businessModel][0].name : 'General');
 
       const payload = {
-        ownerName: ownerName || user?.name,
-        businessName: businessName.trim() || 'My Business',
+        ownerName: ownerName || user?.name || 'Seller',
+        businessName: businessName.trim() || 'My Store',
         businessType: typeName,
         mainType: businessModel,
-        sector: selectedSector,
-        address: `${streetAddress}${locality ? ', ' + locality : ''}${landmark ? ' (Near ' + landmark + ')' : ''}, ${city}, ${stateName}`,
-        pincode: pinCode,
-        latitude,
-        longitude,
-        email: ownerEmail || user?.email,
+        sector: finalSector,
+        address: `${streetAddress}${locality ? ', ' + locality : ''}${landmark ? ' (Near ' + landmark + ')' : ''}, ${city || 'City'}, ${stateName || 'State'}`,
+        pincode: pinCode || '000000',
+        latitude: latitude || 28.6139,
+        longitude: longitude || 77.2090,
+        email: ownerEmail || user?.email || '',
         phone: businessPhone || user?.phone || '',
         gstNumber: gstNumber || '',
         businessHours,
       };
 
-      const res = await fetch(`${API_URL}/sellers`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload)
-      });
+      let res: Response;
+      try {
+        res = await fetch(`${API_URL}/sellers`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload)
+        });
+      } catch (networkErr: any) {
+        throw new Error(`Unable to connect to server at ${API_URL}. Please ensure backend service is running.`);
+      }
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || 'Registration failed. Please review your details.');
+        let errMessage = 'Registration failed. Please review your details.';
+        try {
+          const data = await res.json();
+          errMessage = Array.isArray(data.message) ? data.message[0] : (data.message || errMessage);
+        } catch {}
+        throw new Error(errMessage);
       }
 
       // Sync updated user token & SELLER business session
-      const meRes = await fetch(`${API_URL}/auth/me`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (meRes.ok) {
-        const data = await meRes.json();
-        login({
-          id: data.id,
-          markatId: data.markatId,
-          name: data.name,
-          email: data.email,
-          phone: data.phone || '',
-          role: data.role?.toLowerCase() as any,
-          status: 'active',
-          business: data.business,
-        }, token);
-      }
+      try {
+        const meRes = await fetch(`${API_URL}/auth/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (meRes.ok) {
+          const data = await meRes.json();
+          login({
+            id: data.id,
+            markatId: data.markatId,
+            name: data.name,
+            email: data.email,
+            phone: data.phone || '',
+            role: data.role?.toLowerCase() as any,
+            status: 'active',
+            business: data.business,
+          }, token);
+        }
+      } catch {}
 
       toast.success('Registration successful! Welcome to Merchant Central.');
       router.push('/seller/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Failed to complete registration.');
-      toast.error(err.message || 'Registration failed.');
+      console.error('Seller Registration Error:', err);
+      const friendlyMsg = err.message || 'Failed to complete registration.';
+      setError(friendlyMsg);
+      toast.error(friendlyMsg);
       setIsSubmitting(false);
     }
   };

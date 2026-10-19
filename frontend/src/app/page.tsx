@@ -18,16 +18,16 @@ async function getAdvertisements() {
   try {
     const apiUrl = getApiUrl();
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
     try {
       let res = await fetch(`${apiUrl}/commercial/advertisements`, {
-        next: { revalidate: 30 },
+        cache: 'no-store',
         signal: controller.signal,
       }).catch(() => null);
 
       if (!res || !res.ok) {
         res = await fetch(`${apiUrl}/content/advertisements`, {
-          next: { revalidate: 30 },
+          cache: 'no-store',
           signal: controller.signal,
         }).catch(() => null);
       }
@@ -53,10 +53,10 @@ async function getBanners() {
   try {
     const apiUrl = getApiUrl();
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
     try {
       const res = await fetch(`${apiUrl}/content/banners`, {
-        next: { revalidate: 30 },
+        cache: 'no-store',
         signal: controller.signal,
       });
       clearTimeout(timeoutId);

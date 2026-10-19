@@ -85,17 +85,39 @@ export default function ServiceDirectoryList({ products }: { products: Product[]
             </button>
           </div>
 
-          {/* Icon/Avatar and Category */}
-          <div className="flex items-start justify-between pr-10">
-            <div className="w-[60px] h-[60px] bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl shrink-0 border border-indigo-100 group-hover:scale-105 transition-transform">
-              {product.category === 'Services' ? '✂️' : product.category === 'Home Services' ? '🛠️' : '🏪'}
-            </div>
-            <div className="flex flex-col items-end gap-1">
-              <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded-md">
+          {/* Shop / Service Image Banner */}
+          <div className="w-full h-40 bg-slate-100 rounded-xl overflow-hidden relative border border-slate-100 shrink-0">
+            {product.image ? (
+              <img 
+                src={product.image} 
+                alt={product.name} 
+                loading="lazy" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+              />
+            ) : (
+              <div className="w-full h-full relative">
+                <img 
+                  src={
+                    product.category?.toLowerCase().includes('food') || product.category?.toLowerCase().includes('dining')
+                      ? 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80'
+                      : product.category?.toLowerCase().includes('beauty') || product.category?.toLowerCase().includes('salon')
+                      ? 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=600&q=80'
+                      : product.category?.toLowerCase().includes('health') || product.category?.toLowerCase().includes('doctor')
+                      ? 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=600&q=80'
+                      : 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=600&q=80'
+                  }
+                  alt={product.name}
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+            )}
+            <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 z-10">
+              <span className="text-[10px] font-bold text-white uppercase tracking-wider bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg">
                 {product.category}
               </span>
               {product.isPremium && (
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md flex items-center gap-1">
+                <span className="text-[10px] font-bold text-white bg-emerald-600/90 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1">
                   🎟️ Token
                 </span>
               )}

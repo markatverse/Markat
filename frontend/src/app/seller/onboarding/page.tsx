@@ -331,55 +331,68 @@ export default function SellerOnboarding() {
     setIsSubmitting(true);
     try {
       const token = registeredToken || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
-      const res = await fetch(`${API_URL}/sellers`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          ownerName,
-          businessName: businessName || 'My Business',
-          businessType: sellerRole,
-          mainType: mainType,
-          sector: businessSector,
-          address: `${businessLocation}${locality ? ', ' + locality : ''}${landmark ? ', ' + landmark : ''}, ${city}, ${stateName}`,
-          pincode: pinCode,
-          latitude,
-          longitude,
-          email,
-          phone,
-          gstNumber,
-          businessHours,
-        }),
-      });
+      let res: Response;
+      try {
+        res = await fetch(`${API_URL}/sellers`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            ownerName: ownerName || 'Seller',
+            businessName: businessName || 'My Business',
+            businessType: sellerRole || 'Retailer',
+            mainType: mainType || 'B2C',
+            sector: businessSector || 'General',
+            address: `${businessLocation || ''}${locality ? ', ' + locality : ''}${landmark ? ', ' + landmark : ''}, ${city || 'City'}, ${stateName || 'State'}`,
+            pincode: pinCode || '000000',
+            latitude: latitude || 28.6139,
+            longitude: longitude || 77.2090,
+            email: email || '',
+            phone: phone || '',
+            gstNumber: gstNumber || '',
+            businessHours,
+          }),
+        });
+      } catch (networkErr: any) {
+        throw new Error(`Unable to connect to server at ${API_URL}. Please verify your connection.`);
+      }
+
       if (res.ok) {
         if (token) {
-          const userRes = await fetch(`${API_URL}/auth/me`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (userRes.ok) {
-            const data = await userRes.json();
-            login({
-              id: data.id,
-              markatId: data.markatId,
-              name: data.name,
-              email: data.email,
-              phone: data.phone || '',
-              role: data.role?.toLowerCase() as any,
-              status: 'active',
-              business: data.business,
-            }, token);
-          }
+          try {
+            const userRes = await fetch(`${API_URL}/auth/me`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (userRes.ok) {
+              const data = await userRes.json();
+              login({
+                id: data.id,
+                markatId: data.markatId,
+                name: data.name,
+                email: data.email,
+                phone: data.phone || '',
+                role: data.role?.toLowerCase() as any,
+                status: 'active',
+                business: data.business,
+              }, token);
+            }
+          } catch {}
         }
         setIsSubmitting(false);
         setStep(6);
       } else {
-        const data = await res.json();
-        throw new Error(data.message || 'Failed to register. Please try again.');
+        let errMessage = 'Registration failed. Please review your details.';
+        try {
+          const data = await res.json();
+          errMessage = Array.isArray(data.message) ? data.message[0] : (data.message || errMessage);
+        } catch {}
+        throw new Error(errMessage);
       }
     } catch (err: any) {
-      toast.error(err.message);
+      console.error('Onboarding Submit Error:', err);
+      toast.error(err.message || 'Registration failed.');
       setIsSubmitting(false);
     }
   };

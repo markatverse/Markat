@@ -13,58 +13,58 @@ const DEFAULT_AD = {
 };
 
 export default function AdSlideshow({ ads: initialAds }: { ads: any[] }) {
-  const [ads, setAds] = useState<any[]>(
-    initialAds && initialAds.length > 0 ? initialAds : [DEFAULT_AD]
-  );
-  const [isLoading, setIsLoading] = useState<boolean>(!initialAds || initialAds.length === 0);
+  // Only keep active ads
+  const filterActive = (list: any[]) => {
+    if (!Array.isArray(list)) return [];
+    return list.filter((ad: any) => ad && ad.status === 'ACTIVE' && (ad.position === 'HOMEPAGE' || !ad.position));
+  };
+
+  const initialActive = filterActive(initialAds || []);
+  const [ads, setAds] = useState<any[]>(initialActive);
+  const [hasLoaded, setHasLoaded] = useState<boolean>(Boolean(initialAds));
   const [currentIndex, setCurrentIndex] = useState(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // 1. If server passed ads with items, use them immediately
-    if (initialAds && initialAds.length > 0) {
-      setAds(initialAds);
-      setIsLoading(false);
+    // 1. If server passed ads, update state
+    if (initialAds !== undefined) {
+      const active = filterActive(initialAds);
+      setAds(active);
+      setHasLoaded(true);
       try {
-        localStorage.setItem('mv_cache_ads', JSON.stringify(initialAds));
+        localStorage.setItem('mv_cache_ads', JSON.stringify(active));
+        localStorage.setItem('mv_cache_advertisements', JSON.stringify(active));
       } catch {}
       return;
     }
 
-    // 2. Instant cache from localStorage (zero flash / zero wait)
+    // 2. Load from localStorage if present
     try {
       const cached = localStorage.getItem('mv_cache_advertisements') || localStorage.getItem('mv_cache_ads');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const homeAds = parsed.filter((ad: any) => ad.status === 'ACTIVE' && (ad.position === 'HOMEPAGE' || !ad.position));
-          if (homeAds.length > 0) {
-            setAds(homeAds);
-            setIsLoading(false);
-          }
-        }
+        const active = filterActive(parsed);
+        setAds(active);
       }
     } catch {}
 
-    // 3. Background fresh fetch
+    // 3. Background fresh fetch from API
     const fetchFreshAds = async () => {
       try {
-        let data = await fastFetch<any[]>('/commercial/advertisements', { ttlMs: 15000 });
+        let data = await fastFetch<any[]>('/commercial/advertisements', { ttlMs: 5000 });
         if (!Array.isArray(data) || data.length === 0) {
-          data = await fastFetch<any[]>('/content/advertisements', { ttlMs: 15000 });
+          data = await fastFetch<any[]>('/content/advertisements', { ttlMs: 5000 });
         }
         if (Array.isArray(data)) {
-          const homeAds = data.filter((ad: any) => ad.status === 'ACTIVE' && (ad.position === 'HOMEPAGE' || !ad.position));
-          if (homeAds.length > 0) {
-            setAds(homeAds);
-            try {
-              localStorage.setItem('mv_cache_ads', JSON.stringify(homeAds));
-              localStorage.setItem('mv_cache_advertisements', JSON.stringify(homeAds));
-            } catch {}
-          }
+          const active = filterActive(data);
+          setAds(active);
+          try {
+            localStorage.setItem('mv_cache_ads', JSON.stringify(active));
+            localStorage.setItem('mv_cache_advertisements', JSON.stringify(active));
+          } catch {}
         }
       } catch {} finally {
-        setIsLoading(false);
+        setHasLoaded(true);
       }
     };
     fetchFreshAds();
@@ -95,23 +95,29 @@ export default function AdSlideshow({ ads: initialAds }: { ads: any[] }) {
     setCurrentIndex((prevIndex) => (prevIndex === ads.length - 1 ? 0 : prevIndex + 1));
   };
 
-  if (isLoading && (!ads || ads.length === 0)) {
+  const [failedAdIds, setFailedAdIds] = useState<Record<string, boolean>>({});
+
+  // If no active ads exist or they are stopped/INACTIVE, DO NOT render empty blue/dark box
+  if (!ads || ads.length === 0) {
     return null;
   }
 
-  const displayAds = ads && ads.length > 0 ? ads : [DEFAULT_AD];
+  const validAds = ads.filter((ad, idx) => !failedAdIds[ad.id || idx]);
+  if (validAds.length === 0) {
+    return null;
+  }
 
   return (
     <div className="w-full relative rounded-2xl overflow-hidden shadow-sm group">
       <div 
         className="flex transition-transform duration-700 ease-in-out h-[90px] sm:h-[120px] md:h-[160px]"
-        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+        style={{ transform: `translateX(-${(currentIndex % validAds.length) * 100}%)` }}
       >
-        {displayAds.map((ad: any) => {
+        {validAds.map((ad: any, idx: number) => {
           const fullImgUrl = resolveMediaUrl(ad.mediaUrl || ad.imageUrl);
 
           return (
-            <div key={ad.id || ad._id} className="min-w-full relative flex items-center h-full">
+            <div key={ad.id || ad._id || idx} className="min-w-full relative flex items-center h-full">
               <a href={ad.linkUrl || '#'} className="block w-full h-full bg-slate-900 text-white relative overflow-hidden group/ad flex items-center p-3 sm:p-5 md:p-8">
                 {/* Background Image or Gradient */}
                 {fullImgUrl ? (
@@ -120,6 +126,9 @@ export default function AdSlideshow({ ads: initialAds }: { ads: any[] }) {
                       src={fullImgUrl} 
                       alt={ad.title || 'Advertisement'} 
                       loading="eager"
+                      onError={() => {
+                        setFailedAdIds(prev => ({ ...prev, [ad.id || idx]: true }));
+                      }}
                       className="w-full h-full object-cover opacity-80 group-hover/ad:scale-105 transition-transform duration-700" 
                     />
                     <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-transparent" />

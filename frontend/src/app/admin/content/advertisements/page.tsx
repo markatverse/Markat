@@ -108,18 +108,8 @@ export default function ContentgtAdvertisementsPage() {
           const data = await res.json();
           if (Array.isArray(data)) {
             const realItems = data.filter((item: any) => !item.id?.startsWith('ad-default-'));
-            setItems(prev => {
-              const map = new Map<string, any>();
-              // Keep items from local storage first
-              getStoredAds().forEach(it => { if (it?.id && !it.id.startsWith('ad-default-')) map.set(it.id, it); });
-              // Keep current state items
-              prev.forEach(it => { if (it?.id && !it.id.startsWith('ad-default-')) map.set(it.id, it); });
-              // Merge in backend verified items
-              realItems.forEach(it => { if (it?.id && !it.id.startsWith('ad-default-')) map.set(it.id, it); });
-              const merged = Array.from(map.values());
-              saveStoredAds(merged);
-              return merged;
-            });
+            setItems(realItems);
+            saveStoredAds(realItems);
           }
         }
       } catch {

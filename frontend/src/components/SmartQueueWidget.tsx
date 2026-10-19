@@ -641,20 +641,6 @@ export default function SmartQueueWidget({ service }: { service: any }) {
       ) : (
         <div className="w-full py-4 bg-slate-100 text-slate-400 font-bold text-base rounded-2xl text-center">Queue is Closed</div>
       )}
-
-      <div className="grid grid-cols-2 gap-2">
-        <Link href="/service-queue/queue" className="flex items-center justify-center gap-1.5 py-2.5 lg:py-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold rounded-xl text-sm transition-all">
-          <Users className="w-3.5 h-3.5" /> Live Board
-        </Link>
-        {isSeller && (
-          <Link href="/service-queue/manage" className="flex items-center justify-center gap-1.5 py-2.5 lg:py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-violet-200">
-            <ChevronRight className="w-3.5 h-3.5" /> Manage Shop
-          </Link>
-        )}
-      </div>
-      {!isSeller && (
-        <p className="text-center text-slate-400 text-xs">Shop management is only available to the service owner.</p>
-      )}
     </div>
   );
 }

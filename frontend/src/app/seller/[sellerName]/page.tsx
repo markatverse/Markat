@@ -84,8 +84,12 @@ export default function SellerStorefront() {
       {/* Storefront Hero Header */}
       <div className="bg-slate-900 text-white pt-20 pb-12 px-4 sm:px-8 shadow-xl">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-6 md:gap-8">
-          <div className="w-24 h-24 sm:w-32 sm:h-32 bg-slate-800 rounded-full flex items-center justify-center text-4xl sm:text-5xl border-4 border-slate-700 shadow-lg shrink-0">
-            {isService ? (isDoctor ? '🏥' : isSpa ? '💆' : '✂️') : '🏬'}
+          <div className="w-24 h-24 sm:w-32 sm:h-32 bg-slate-800 rounded-2xl md:rounded-full overflow-hidden flex items-center justify-center text-4xl sm:text-5xl border-4 border-slate-700 shadow-lg shrink-0">
+            {firstProduct?.image ? (
+              <img src={firstProduct.image} alt={displaySellerName} className="w-full h-full object-cover" />
+            ) : (
+              isService ? (isDoctor ? '🏥' : isSpa ? '💆' : '✂️') : '🏬'
+            )}
           </div>
           <div className="flex-1 text-center md:text-left w-full">
             <h1 className="text-3xl sm:text-4xl font-extrabold flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3 sm:gap-4 mb-3">
@@ -128,7 +132,19 @@ export default function SellerStorefront() {
               <div className="flex flex-col md:flex-row gap-6 md:gap-10 relative z-10">
                 {/* Left Image */}
                 <div className="w-full md:w-[320px] shrink-0 relative rounded-2xl overflow-hidden shadow-2xl h-64 md:h-[400px]">
-                  <img src={isDoctor ? "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80" : "/hero-left-logo.png"} alt="Service Image" className="w-full h-full object-cover" />
+                  <img 
+                    src={
+                      firstProduct?.image 
+                        ? firstProduct.image 
+                        : (isDoctor 
+                            ? "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80" 
+                            : isSpa 
+                            ? "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80" 
+                            : "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80")
+                    } 
+                    alt={displaySellerName} 
+                    className="w-full h-full object-cover" 
+                  />
                   <div className="absolute top-4 left-4 bg-black/60 backdrop-blur px-3 py-1 rounded-full text-[10px] md:text-xs font-bold tracking-wider">SERVICES</div>
                   <div className="absolute bottom-4 left-4 right-4 bg-emerald-500 text-white font-bold text-xs md:text-sm py-2 md:py-3 px-3 md:px-4 rounded-xl text-center shadow-lg flex items-center justify-center gap-2">
                     <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>

@@ -38,6 +38,7 @@ export default function ProductDetails() {
   const [bundleMultiplier, setBundleMultiplier] = useState(1);
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [rfqMessage, setRfqMessage] = useState('');
+  const [isEliteExpanded, setIsEliteExpanded] = useState(false);
   
   const product = products.find(p => p.id === id);
 
@@ -71,6 +72,34 @@ export default function ProductDetails() {
     }
   }, [product?.id, product?.category]);
 
+// Helper to parse parameter options whether array or comma/space separated strings
+const parseParamOptions = (val: any, paramName?: string): string[] => {
+  if (!val && val !== 0) return [];
+  if (Array.isArray(val)) {
+    return val.map(String).map(s => s.trim()).filter(Boolean);
+  }
+  const str = String(val).trim();
+  if (!str) return [];
+  
+  // If comma separated, split by comma
+  if (str.includes(',')) {
+    return str.split(',').map(s => s.trim()).filter(Boolean);
+  }
+
+  // If color parameter contains space-separated color names (e.g. "Black White Blue Green")
+  if (paramName && paramName.toLowerCase() === 'color' && str.includes(' ')) {
+    const knownColors = ['white', 'black', 'red', 'blue', 'green', 'grey', 'gray', 'navy', 'yellow', 'purple', 'pink', 'orange', 'silver', 'gold', 'brown'];
+    const tokens = str.split(/\s+/).filter(Boolean);
+    // If multiple known colors are present separated by space
+    const matchingColors = tokens.filter(t => knownColors.includes(t.toLowerCase()));
+    if (matchingColors.length > 1) {
+      return tokens;
+    }
+  }
+
+  return [str];
+};
+
   // Initialize RFQ quantity and variants
   useEffect(() => {
     if (product?.category === 'B2B' || product?.category === 'Construction Materials') {
@@ -80,8 +109,12 @@ export default function ProductDetails() {
     if (product?.parameters) {
       const initialVariants: Record<string, string> = {};
       Object.keys(product.parameters).forEach(key => {
-        if (product.parameters![key].length > 0) {
-          initialVariants[key] = product.parameters![key][0];
+        const cleaned = key.toLowerCase().replace(/[\s_-]/g, '');
+        if (cleaned.includes('warranty')) return;
+        const val = product.parameters![key];
+        const parsed = parseParamOptions(val, key);
+        if (parsed.length > 0) {
+          initialVariants[key] = parsed[0];
         }
       });
       setSelectedVariants(initialVariants);
@@ -590,44 +623,64 @@ export default function ProductDetails() {
             )}
 
             {(noRulesDefined ? !['Services', 'Home Services', 'Organizers', 'Transport', 'Rentals', 'Subscriptions', 'B2B', 'Construction Materials'].includes(product.category) : hasProductStock) && (
-              <div className="mt-6 p-5 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 border border-amber-400 shadow-lg shadow-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
-                <div className="flex flex-col relative z-10">
-                  <span className="font-extrabold text-white text-lg flex items-center gap-2 tracking-wide">
-                    <Star className="w-5 h-5 fill-white text-white drop-shadow-md" /> MarkatVerse Elite
-                  </span>
-                  <span className="text-sm text-white/90 mt-1 font-medium">
-                    {isElite ? '✓ Elite Active: You unlocked wholesale bulk pricing!' : 'Unlock wholesale tiered pricing & direct seller contact.'}
-                  </span>
+              <div className="mt-4 p-3 sm:p-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 border border-amber-400 shadow-sm shadow-amber-500/10 transition-all">
+                <div className="flex items-center justify-between gap-3">
+                  <button 
+                    type="button"
+                    onClick={() => setIsEliteExpanded(!isEliteExpanded)}
+                    className="flex items-center gap-2 text-left group cursor-pointer focus:outline-none"
+                    title="Click to view details"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                      <Star className="w-4 h-4 fill-white text-white drop-shadow-sm" />
+                    </div>
+                    <div>
+                      <span className="font-extrabold text-white text-sm flex items-center gap-1.5 tracking-wide">
+                        MarkatVerse Elite
+                        <ChevronDown className={`w-3.5 h-3.5 text-white/80 transition-transform duration-200 ${isEliteExpanded ? 'rotate-180' : ''}`} />
+                      </span>
+                      {!isEliteExpanded && (
+                        <span className="text-[11px] text-white/85 font-medium hover:underline">
+                          {isElite ? 'Elite Active • Click for info' : 'Tiered pricing benefits • Click to view'}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => {
+                      if (user && user.id) {
+                        updateUserRole(user.id, isElite ? 'buyer' : 'elite');
+                      } else {
+                        login({ id: 'u4', name: 'Elite Buyer', phone: '8888888888', email: 'elite@example.com', role: 'elite', status: 'active' });
+                      }
+                    }}
+                    className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all shadow-sm shrink-0 ${isElite ? 'bg-white text-amber-700 hover:bg-slate-50' : 'bg-slate-900 text-white hover:bg-slate-800 hover:scale-105 border border-slate-700'}`}
+                  >
+                    {isElite ? 'Active' : 'Join Elite'}
+                  </button>
                 </div>
-                <button 
-                  onClick={() => {
-                    if (user && user.id) {
-                      updateUserRole(user.id, isElite ? 'buyer' : 'elite');
-                    } else {
-                      login({ id: 'u4', name: 'Elite Buyer', phone: '8888888888', email: 'elite@example.com', role: 'elite', status: 'active' });
-                    }
-                  }}
-                  className={`relative z-10 px-6 py-3 text-sm font-bold rounded-xl transition-all shadow-md shrink-0 ${isElite ? 'bg-white text-amber-700 hover:bg-slate-50' : 'bg-slate-900 text-white hover:bg-slate-800 hover:scale-105 border border-slate-700'}`}
-                >
-                  {isElite ? 'Elite Subscribed' : 'Join Elite Now'}
-                </button>
+
+                {/* Collapsible description */}
+                {isEliteExpanded && (
+                  <div className="mt-2.5 pt-2.5 border-t border-white/20 text-xs text-white/95 font-medium animate-in fade-in slide-in-from-top-1 duration-200">
+                    <p className="leading-relaxed">
+                      {isElite 
+                        ? '✓ Elite Membership Active: You enjoy wholesale tiered discounts, verified direct seller contact, and priority support.'
+                        : 'Unlock exclusive wholesale tiered discounts, direct seller contact numbers, and priority dispatch on this order.'}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
             
-            {/* Dynamic Variant Selectors (For non-dining products; dining handles seating inside the unified reservation slider) */}
-            {product.options && product.options.length > 0 && !isFoodDining && (
+            {/* Dynamic Variant Selectors (For physical/regular retail items with options; service booking widgets like SmartQueueWidget and dining reservation handle options directly) */}
+            {product.options && product.options.length > 0 && !isFoodDining && !hasToken && (
               <div className="mt-8 space-y-6 pt-6 border-t border-slate-200">
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <span className="font-bold text-slate-800 text-sm uppercase tracking-wider">
-                      {isFoodDining ? (
-                        <>Seating / Table Type: <span className="text-rose-600 font-extrabold">{activeOption?.name || 'Standard Table'}</span></>
-                      ) : isServiceQueue ? (
-                        'Service Options'
-                      ) : (
-                        <>Booking Option: <span className="text-blue-600 font-extrabold">{activeOption?.name || 'Standard'}</span></>
-                      )}
+                      Booking Option: <span className="text-blue-600 font-extrabold">{activeOption?.name || 'Standard'}</span>
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-3">
@@ -639,13 +692,13 @@ export default function ProductDetails() {
                           onClick={() => setSelectedOptionId(option.id)}
                           className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all border-2 flex flex-col items-start gap-1 cursor-pointer ${
                             isSelected 
-                              ? (isFoodDining ? 'bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-600/20' : 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20')
-                              : (isFoodDining ? 'bg-white text-slate-700 border-rose-100 hover:border-rose-300' : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300')
+                              ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20'
+                              : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300'
                           }`}
                         >
                           <span>{option.name}</span>
                           {option.discountPercentage && option.discountPercentage > 0 && (
-                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${(!isServiceQueue && isSelected) ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700'}`}>
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
                               {option.discountPercentage}% OFF
                             </span>
                           )}
@@ -657,100 +710,90 @@ export default function ProductDetails() {
               </div>
             )}
             
-            {product.parameters && Object.keys(product.parameters).length > 0 && !isFoodDining && (() => {
-              // Hide internal backend/flow configuration keys from customer UI
-              const internalKeys = ['bookingmodel', 'bookingoptions', 'bookingoption', 'servicetype', 'flow', 'allowedfeatures', 'queueenabled'];
+            {product.parameters && Object.keys(product.parameters).length > 0 && !isFoodDining && !hasToken && (() => {
+              // Hide internal backend/flow configuration keys and static specification fields (like warranty) from customer variant selection UI
+              const excludedKeys = ['bookingmodel', 'bookingoptions', 'bookingoption', 'servicetype', 'flow', 'allowedfeatures', 'queueenabled', 'warranty'];
               const publicEntries = Object.entries(product.parameters).filter(([paramName]) => {
                 const cleaned = paramName.toLowerCase().replace(/[\s_-]/g, '');
-                return !internalKeys.some(k => cleaned.includes(k) || k.includes(cleaned));
+                return !excludedKeys.some(k => cleaned.includes(k) || k.includes(cleaned));
               });
 
               if (publicEntries.length === 0) return null;
 
               return (
                 <div className={`space-y-6 pt-6 border-t border-slate-200 ${product.options && product.options.length > 0 ? 'mt-6' : 'mt-8'}`}>
-                  {publicEntries.map(([paramName, options]) => (
-                    <div key={paramName}>
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="font-bold text-slate-800 text-sm uppercase tracking-wider">
-                          {paramName}: <span className="text-blue-600 font-extrabold">{selectedVariants[paramName]}</span>
-                        </span>
-                        {paramName.toLowerCase().includes('size') && (
-                          <button className="text-xs font-bold text-blue-600 hover:underline">Size Guide</button>
-                        )}
-                      </div>
-                      
-                      <div className={paramName.toLowerCase() === 'color' ? "flex gap-3" : "flex flex-wrap gap-3"}>
-                        {(Array.isArray(options) ? options : [options]).map(option => {
-                        const isSelected = selectedVariants[paramName] === option;
+                  {publicEntries.map(([paramName, rawOptions]) => {
+                    const parsedOptions = parseParamOptions(rawOptions, paramName);
+                    if (parsedOptions.length === 0) return null;
+                    const currentValue = selectedVariants[paramName] || parsedOptions[0];
+
+                    return (
+                      <div key={paramName}>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="font-bold text-slate-800 text-sm uppercase tracking-wider">
+                            {paramName}: <span className="text-blue-600 font-extrabold">{currentValue}</span>
+                          </span>
+                          {paramName.toLowerCase().includes('size') && (
+                            <button className="text-xs font-bold text-blue-600 hover:underline">Size Guide</button>
+                          )}
+                        </div>
                         
-                        // Special rendering for 'Color' variants
-                        if (paramName.toLowerCase() === 'color') {
-                          const hexMap: Record<string, string> = {
-                            'white': '#f8fafc',
-                            'black': '#0f172a',
-                            'red': '#ef4444',
-                            'blue': '#3b82f6',
-                            'green': '#22c55e',
-                            'grey': '#94a3b8',
-                            'navy': '#1e3a8a',
-                            'natural titanium': '#a3a3a3',
-                            'blue titanium': '#334155',
-                            'white titanium': '#f1f5f9',
-                            'black titanium': '#1e293b',
-                            'active black': '#09090b',
-                            'cyan cider': '#06b6d4',
-                            'navy blue': '#172554',
-                            'olive green': '#3f6212',
-                            'maroon': '#831843',
-                            'silver': '#e2e8f0'
-                          };
-                          const colorHex = hexMap[option.toLowerCase()] || '#cbd5e1';
+                        <div className={paramName.toLowerCase() === 'color' ? "flex flex-wrap gap-3" : "flex flex-wrap gap-3"}>
+                          {parsedOptions.map(option => {
+                          const isSelected = currentValue === option;
                           
+                          // Special rendering for 'Color' variants
+                          if (paramName.toLowerCase() === 'color') {
+                            const hexMap: Record<string, string> = {
+                              'white': '#f8fafc',
+                              'black': '#0f172a',
+                              'red': '#ef4444',
+                              'blue': '#3b82f6',
+                              'green': '#22c55e',
+                              'grey': '#94a3b8',
+                              'navy': '#1e3a8a',
+                              'natural titanium': '#a3a3a3',
+                              'blue titanium': '#334155',
+                              'white titanium': '#f1f5f9',
+                              'black titanium': '#1e293b',
+                              'active black': '#09090b',
+                              'cyan cider': '#06b6d4',
+                              'navy blue': '#172554',
+                              'olive green': '#3f6212',
+                              'maroon': '#831843',
+                              'silver': '#e2e8f0'
+                            };
+                            const colorHex = hexMap[option.toLowerCase()] || '#cbd5e1';
+                            
+                            return (
+                              <button 
+                                key={option} 
+                                onClick={() => setSelectedVariants(prev => ({...prev, [paramName]: option}))}
+                                className={`w-10 h-10 rounded-full border-2 transition-all shadow-sm ${isSelected ? 'border-blue-600 ring-2 ring-blue-100 scale-110' : 'border-slate-300 hover:scale-105'}`}
+                                style={{ backgroundColor: colorHex }}
+                                title={option}
+                              />
+                            );
+                          }
+                          
+                          // Default pill rendering for other variants
                           return (
                             <button 
-                              key={option} 
+                              key={option}
                               onClick={() => setSelectedVariants(prev => ({...prev, [paramName]: option}))}
-                              className={`w-10 h-10 rounded-full border-2 transition-all shadow-sm ${isSelected ? 'border-blue-600 ring-2 ring-blue-100 scale-110' : 'border-slate-300 hover:scale-105'}`}
-                              style={{ backgroundColor: colorHex }}
-                              title={option}
-                            />
+                              className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all border-2 ${isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20' : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300'}`}
+                            >
+                              {option}
+                            </button>
                           );
-                        }
-                        
-                        // Default pill rendering for other variants
-                        return (
-                          <button 
-                            key={option}
-                            onClick={() => setSelectedVariants(prev => ({...prev, [paramName]: option}))}
-                            className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all border-2 ${isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20' : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300'}`}
-                          >
-                            {option}
-                          </button>
-                        );
-                      })}
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                    );
+                  })}
+                </div>
             );
           })()}
-            
-            {/* ── Workflow Badge (Only for admin/debugging, hide from food dining customer UI) ── */}
-            {!noRulesDefined && rules.workflow && !isFoodDining && (
-              <div className="mt-6 flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Workflow</span>
-                <span className="text-xs bg-violet-50 text-violet-700 border border-violet-200 px-2.5 py-1 rounded-full font-semibold">{rules.workflow}</span>
-                {rules.optionalFeatures.length > 0 && (
-                  <>
-                    <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest ml-3">Optional:</span>
-                    {rules.optionalFeatures.map(f => (
-                      <span key={f} className="text-xs bg-amber-50 text-amber-600 border border-amber-200 px-2.5 py-1 rounded-full font-semibold">{f}</span>
-                    ))}
-                  </>
-                )}
-              </div>
-            )}
 
             <div className="mt-4 flex flex-col gap-4">
 
@@ -854,20 +897,20 @@ export default function ProductDetails() {
                       );
                     })()}
 
-                    {/* 2x2 Responsive Input Grid (Two-Two Horizontal on Mobile) */}
-                    <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+                    {/* Compact 2-column or 3-column input grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       {/* 1. Number of Guests (Custom Scrollable Menu) */}
                       <div className="relative" ref={guestDropdownRef}>
-                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center gap-1 truncate">
-                          <Users className="w-3.5 h-3.5 text-rose-600 shrink-0" /> Guests
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                          <Users className="w-3.5 h-3.5 text-rose-600" /> Guests
                         </label>
                         <button
                           type="button"
                           onClick={() => setIsGuestDropdownOpen(!isGuestDropdownOpen)}
-                          className="w-full px-2.5 sm:px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-xs sm:text-sm cursor-pointer flex items-center justify-between transition-colors"
+                          className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-sm cursor-pointer flex items-center justify-between transition-colors"
                         >
-                          <span className="truncate">{partySize} {partySize === 1 ? 'Guest' : 'Guests'}</span>
-                          <ChevronDown className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0 transition-transform duration-200 ${isGuestDropdownOpen ? 'rotate-180 text-rose-600' : ''}`} />
+                          <span>{partySize} {partySize === 1 ? 'Guest' : 'Guests'}</span>
+                          <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isGuestDropdownOpen ? 'rotate-180 text-rose-600' : ''}`} />
                         </button>
 
                         {/* Scrollable Guest Options Dropdown */}
@@ -881,7 +924,7 @@ export default function ProductDetails() {
                                   setPartySize(num);
                                   setIsGuestDropdownOpen(false);
                                 }}
-                                className={`w-full px-3 py-2 text-left text-xs sm:text-sm font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                                className={`w-full px-3.5 py-2 text-left text-sm font-medium flex items-center justify-between transition-colors cursor-pointer ${
                                   partySize === num
                                     ? 'bg-rose-50 text-rose-600 font-bold'
                                     : 'text-slate-700 hover:bg-slate-50'
@@ -899,35 +942,35 @@ export default function ProductDetails() {
 
                       {/* 2. Date */}
                       <div>
-                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center gap-1 truncate">
-                          <Calendar className="w-3.5 h-3.5 text-rose-600 shrink-0" /> Date
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-rose-600" /> Date
                         </label>
                         <input 
                           type="date" 
                           value={reservationDate}
                           onChange={e => setReservationDate(e.target.value)}
-                          className="w-full px-2 sm:px-3 py-2 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-xs sm:text-sm transition-colors" 
+                          className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-sm transition-colors" 
                         />
                       </div>
 
-                      {/* 3. Time Slot (Span 2 on mobile if odd, or side-by-side with cabin) */}
-                      <div className={diningMode === 'book' ? 'col-span-2 sm:col-span-1' : 'col-span-2'}>
-                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center gap-1 truncate">
-                          <Clock className="w-3.5 h-3.5 text-rose-600 shrink-0" /> Time Slot
+                      {/* 3. Time Slot */}
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-rose-600" /> Time Slot
                         </label>
                         <div className="relative">
                           <select
                             value={reservationTime}
                             onChange={e => setReservationTime(e.target.value)}
-                            className="w-full px-2.5 sm:px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-xs sm:text-sm cursor-pointer appearance-none pr-8 transition-colors"
+                            className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-sm cursor-pointer appearance-none pr-9 transition-colors"
                           >
-                            <option value="">Select Time Slot</option>
+                            <option value="">Select Time</option>
                             {['12:30 PM (Lunch)', '01:30 PM (Lunch)', '07:00 PM (Dinner)', '07:45 PM (Dinner)', '08:30 PM (Prime Dinner)', '09:15 PM (Late Dining)'].map(slot => (
                               <option key={slot} value={slot}>{slot}</option>
                             ))}
                           </select>
-                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-400">
-                            <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                            <ChevronDown className="w-4 h-4" />
                           </div>
                         </div>
                       </div>
