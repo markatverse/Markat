@@ -1268,18 +1268,74 @@ function DashboardContent() {
 
         {(activeTab === 'listings' || activeTab === 'services') && (
           <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
               <div>
-                <h1 className="text-3xl font-bold text-slate-900">{activeTab === 'services' ? 'My Services' : 'My Shop Catalog'}</h1>
-                <p className="text-slate-500 mt-2">{activeTab === 'services' ? 'Manage your active services.' : 'Manage your active products.'}</p>
+                <h1 className="text-3xl font-bold text-slate-900">
+                  {activeVertical === 'FOOD' ? 'Restaurant Venue & Dining Service' : (activeTab === 'services' ? 'My Services' : 'My Shop Catalog')}
+                </h1>
+                <p className="text-slate-500 mt-2">
+                  {activeVertical === 'FOOD' 
+                    ? 'Your restaurant storefront, table booking service, and dining experience.'
+                    : (activeTab === 'services' ? 'Manage your active services.' : 'Manage your active products.')}
+                </p>
               </div>
-              <button 
-                onClick={() => setActiveTab(activeTab === 'services' ? 'add_service' : 'add_product')}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-md shadow-blue-600/20 transition-colors flex items-center gap-2"
-              >
-                <PlusCircle className="w-5 h-5" /> Add New
-              </button>
+
+              {/* For Food & Dining, a restaurant is a single establishment venue. If 1 exists, don't show "+ Add New" duplicate button; show direct Customer Storefront and Manage Menu links */}
+              {activeVertical === 'FOOD' && myListings.length > 0 ? (
+                <div className="flex items-center gap-2.5">
+                  <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Single Establishment Active
+                  </span>
+                  <Link
+                    href={`/product/${myListings[0].id}`}
+                    target="_blank"
+                    className="bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md shadow-orange-600/20 transition-colors flex items-center gap-2 text-sm"
+                  >
+                    🍽️ View Customer Storefront
+                  </Link>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => setActiveTab(activeTab === 'services' ? 'add_service' : 'add_product')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-md shadow-blue-600/20 transition-colors flex items-center gap-2 self-start sm:self-auto"
+                >
+                  <PlusCircle className="w-5 h-5" /> {activeVertical === 'FOOD' ? 'Setup Restaurant Venue' : 'Add New'}
+                </button>
+              )}
             </div>
+
+            {/* Food & Dining Single-Establishment Guidance Banner */}
+            {activeVertical === 'FOOD' && myListings.length > 0 && (
+              <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50 border border-orange-200/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                    🍴
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900">Your Complete Dining & Food Shop Profile</h4>
+                    <p className="text-xs text-slate-600 mt-0.5">
+                      Customers visit your live page to reserve dining tables, browse your food menu, and order. You manage dishes and tables directly from the workspace.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => setActiveTab('sector_station')}
+                    className="px-3.5 py-2 rounded-xl bg-white text-orange-700 border border-orange-200 text-xs font-bold hover:bg-orange-50 transition-colors shadow-xs"
+                  >
+                    Manage Food Menu & Tables
+                  </button>
+                  <Link
+                    href={`/shop/${encodeURIComponent((myListings[0].sellerName || myListings[0].seller || user.business?.name || user.name || '').toLowerCase().replace(/ /g, '-'))}`}
+                    target="_blank"
+                    className="px-3.5 py-2 rounded-xl bg-orange-500 text-white text-xs font-bold hover:bg-orange-600 transition-colors shadow-xs flex items-center gap-1.5"
+                  >
+                    Customer Menu Page ↗
+                  </Link>
+                </div>
+              </div>
+            )}
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {myListings.map(product => (
@@ -1291,13 +1347,16 @@ function DashboardContent() {
                       <img src="/hero-left-logo.png" alt={product.name} className="w-full h-full object-contain opacity-50 p-4 group-hover:scale-105 transition-transform duration-500" />
                     )}
                     <div className="absolute top-3 left-3 bg-white/90 backdrop-blur text-blue-700 text-xs font-bold px-2.5 py-1 rounded-md shadow-sm">
-                      {product.category || 'Uncategorized'}
+                      {product.category || 'Food & Dining'}
                     </div>
                   </div>
                   <div className="p-5 flex-1 flex flex-col">
                     <div className="font-bold text-base text-slate-900 mb-2 line-clamp-2 leading-snug">{product.name}</div>
                     <div className="flex justify-between items-end mb-5 mt-auto">
-                      <span className="text-xl font-bold text-slate-900">₹{(product.price ?? 0).toLocaleString('en-IN')}</span>
+                      <div>
+                        <span className="text-xl font-bold text-slate-900">₹{(product.price ?? 0).toLocaleString('en-IN')}</span>
+                        {activeVertical === 'FOOD' && <span className="text-xs text-slate-400 block font-normal">dining cover charge</span>}
+                      </div>
                       <span className="text-xs text-emerald-600 font-medium flex items-center gap-1.5 bg-emerald-50 px-2 py-1 rounded-md">
                         <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Active
                       </span>
@@ -1311,7 +1370,7 @@ function DashboardContent() {
                             setPrice(product.price.toString());
                             setOriginalPrice(product.originalPrice ? product.originalPrice.toString() : product.price.toString());
                             setDescription(product.description || '');
-                            setCategory(product.category || 'Electronics');
+                            setCategory(product.category || 'Food & Dining');
                             setLocation(product.location || '');
                             setImageUrl(product.image || '');
                             setUploadedImages(product.images || []);
@@ -1325,7 +1384,7 @@ function DashboardContent() {
                               });
                               setParameters(newParams);
                             }
-                            if (product.primaryType === 'SERVICE') {
+                            if (product.primaryType === 'SERVICE' || activeVertical === 'FOOD') {
                               setActiveTab('add_service');
                             } else {
                               setActiveTab('add_product');
@@ -1333,7 +1392,7 @@ function DashboardContent() {
                           }}
                           className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg font-medium text-sm transition-colors"
                         >
-                          <Edit2 className="w-4 h-4" /> Edit
+                          <Edit2 className="w-4 h-4" /> Edit Details
                         </button>
                         <button 
                           className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 rounded-lg font-medium text-sm transition-colors"
@@ -1347,9 +1406,11 @@ function DashboardContent() {
                         </button>
                       </div>
                       {/* Link to live public page */}
-                      <Link href={`/service/${product.id}`}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-100 rounded-lg font-medium text-sm transition-colors">
-                        🌐 View Live Page
+                      <Link 
+                        href={`/product/${product.id}`}
+                        target="_blank"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 rounded-lg font-medium text-sm transition-colors">
+                        🌐 View Customer Page
                       </Link>
                     </div>
                   </div>
