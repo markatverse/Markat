@@ -70,10 +70,10 @@ function SearchContent() {
 
     // Category Filter
     if (selectedCategory) {
-      result = result.filter(p => p.category.toLowerCase() === selectedCategory.toLowerCase());
+      result = result.filter(p => (p.category || '').toLowerCase() === selectedCategory.toLowerCase());
       // Subcategory Filter
       if (selectedSubcategory) {
-        result = result.filter(p => p.subcategory && p.subcategory.toLowerCase() === selectedSubcategory.toLowerCase());
+        result = result.filter(p => p.subcategory && (p.subcategory || '').toLowerCase() === selectedSubcategory.toLowerCase());
       }
       
       // Dynamic Filters
@@ -130,12 +130,12 @@ function SearchContent() {
   }, [q, locationFilter, productType, selectedCategory, selectedSubcategory, dynamicFilters, priceRange, minRating, verifiedOnly, b2bOnly, premiumOnly, sortBy, products]);
 
   // Get unique categories from products
-  const availableCategories = Array.from(new Set(products.map(p => p.category)));
+  const availableCategories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
   
   // Get unique subcategories for the selected category
   const availableSubcategories = useMemo(() => {
     if (!selectedCategory) return [];
-    const catProducts = products.filter(p => p.category.toLowerCase() === selectedCategory.toLowerCase());
+    const catProducts = products.filter(p => (p.category || '').toLowerCase() === selectedCategory.toLowerCase());
     return Array.from(new Set(catProducts.map(p => p.subcategory).filter(Boolean))) as string[];
   }, [selectedCategory, products]);
   
@@ -146,7 +146,7 @@ function SearchContent() {
     
     // Fallback logic to extract keys from products directly if no global category config exists
     if (!categoryConfig || !categoryConfig.parameters) {
-       const catProducts = products.filter(p => p.category.toLowerCase() === selectedCategory.toLowerCase());
+       const catProducts = products.filter(p => (p.category || '').toLowerCase() === selectedCategory.toLowerCase());
        const filterKeys = new Set<string>();
        catProducts.forEach(p => {
          if (p.parameters) {

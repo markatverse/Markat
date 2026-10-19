@@ -18,7 +18,7 @@ export default function CategoryPage() {
   
   const filteredProducts = targetCategory === "All" || slug === 'all' 
     ? products 
-    : products.filter(p => p.category.toLowerCase() === targetCategory.toLowerCase());
+    : products.filter(p => (p.category || '').toLowerCase() === targetCategory.toLowerCase());
 
   const displayTitle = slug === 'all' ? "All Categories" : slug.charAt(0).toUpperCase() + slug.slice(1).replace('-', ' ');
 
