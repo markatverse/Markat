@@ -16,9 +16,14 @@ import {
   ChevronDown,
   HelpCircle,
   X,
-  Send
+  Send,
+  Sparkles,
+  ThumbsUp,
+  ThumbsDown,
+  CheckCircle2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAuth } from '@/context/AuthContext';
 
 const faqs = [
   {
@@ -52,12 +57,73 @@ const categories = [
 ];
 
 export default function HelpCenterPage() {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [chatMessages, setChatMessages] = useState<{sender: 'user'|'admin', text: string, time?: string, isBotCallOffer?: boolean, botOptions?: string[]}[]>([]);
+  const [chatMessages, setChatMessages] = useState<{
+    sender: 'user'|'admin', 
+    text: string, 
+    time?: string, 
+    isBotCallOffer?: boolean, 
+    botOptions?: string[],
+    pattern?: string,
+    category?: string,
+    userQuery?: string,
+    trainedFeedback?: 'helpful' | 'unhelpful'
+  }[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');
+
+  // Handle User Training Feedback
+  const handleTrainBotFeedback = (messageIndex: number, isHelpful: boolean) => {
+    setChatMessages(prev => {
+      const updated = [...prev];
+      const target = updated[messageIndex];
+      if (target) {
+        target.trainedFeedback = isHelpful ? 'helpful' : 'unhelpful';
+
+        // Save learning sample to trained knowledge base
+        try {
+          const stored = localStorage.getItem('MV_BOT_TRAINED_KNOWLEDGE') || '[]';
+          let knowledge = JSON.parse(stored);
+          if (!Array.isArray(knowledge)) knowledge = [];
+
+          // Find preceding user question
+          let userQuery = '';
+          for (let i = messageIndex - 1; i >= 0; i--) {
+            if (updated[i].sender === 'user') {
+              userQuery = updated[i].text;
+              break;
+            }
+          }
+
+          if (userQuery) {
+            const keywords = userQuery.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+            knowledge.unshift({
+              id: `TRN-${Date.now()}`,
+              keywords: keywords.slice(0, 5),
+              userQuery,
+              category: target.category || 'General Assistance',
+              pattern: target.pattern || 'USER_FEEDBACK_TRAINED',
+              solution: isHelpful ? target.text : 'Understood. A live customer operations supervisor has reviewed your feedback and is intervening on your session directly.',
+              isHelpful,
+              trainedAt: new Date().toISOString()
+            });
+            localStorage.setItem('MV_BOT_TRAINED_KNOWLEDGE', JSON.stringify(knowledge.slice(0, 50)));
+          }
+        } catch {}
+
+        toast.success(
+          isHelpful 
+            ? '✓ Thank you! The Assistant learned from your feedback.' 
+            : '✓ Feedback saved. Escalated to our human support team.',
+          { icon: isHelpful ? '🤖' : '📝' }
+        );
+      }
+      return updated;
+    });
+  };
 
   // Email Ticket Modal State
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
@@ -181,70 +247,164 @@ export default function HelpCenterPage() {
       localStorage.setItem('MV_LIVE_CHATS', JSON.stringify(chats));
       window.dispatchEvent(new Event('MV_CHAT_SYNC'));
 
-      // AI Pattern Recognition Engine
+      // Dynamic User-Trained Knowledge Engine
+      const getUserTrainedKnowledge = () => {
+        try {
+          const stored = localStorage.getItem('MV_BOT_TRAINED_KNOWLEDGE');
+          return stored ? JSON.parse(stored) : [];
+        } catch {
+          return [];
+        }
+      };
+
+      // AI Pattern & Complaint Recognition Engine with Adaptive Learning
       const analyzeProblemPattern = (text: string) => {
         const lower = text.toLowerCase();
+        
+        // 1. Check user-trained knowledge patterns first (learned from user corrections)
+        const trainedKnowledge = getUserTrainedKnowledge();
+        for (const item of trainedKnowledge) {
+          if (item.keywords && item.keywords.some((k: string) => lower.includes(k.toLowerCase()))) {
+            return {
+              category: item.category || 'User-Trained Resolution',
+              pattern: item.pattern || 'USER_TRAINED_MATCH',
+              urgency: item.urgency || 'HIGH',
+              confidence: 0.99,
+              isComplaint: item.isComplaint || false,
+              summary: item.summary || 'Matched user-trained knowledge base',
+              solution: item.solution
+            };
+          }
+        }
+
+        // 2. High-Severity Complaints & Disputes
+        if (
+          lower.includes('complain') || lower.includes('fraud') || lower.includes('cheat') || 
+          lower.includes('scam') || lower.includes('bad service') || lower.includes('rude') || 
+          lower.includes('overcharged') || lower.includes('worst') || lower.includes('fake product') ||
+          lower.includes('dispute') || lower.includes('unacceptable')
+        ) {
+          return {
+            category: 'Formal Complaint & Escalation',
+            pattern: 'FORMAL_COMPLAINT',
+            urgency: 'CRITICAL',
+            confidence: 0.99,
+            isComplaint: true,
+            summary: 'Customer filed an official grievance regarding service or platform integrity',
+            solution: 'I have officially registered this as Priority Grievance Ticket #CMP-' + Math.floor(1000 + Math.random() * 9000) + '. It is logged directly into the Admin & Support Disputes desk. A senior resolution officer will contact you within 15 minutes.'
+          };
+        }
+
+        // 3. Shipping & Delivery issues
         if (lower.includes('late') || lower.includes('delay') || lower.includes('where is my order') || lower.includes('not delivered') || lower.includes('track')) {
           return {
             category: 'Order Delivery & Shipping',
             pattern: 'DELIVERY_DELAY',
             urgency: 'HIGH',
             confidence: 0.94,
+            isComplaint: false,
             summary: 'Customer reports shipping / delivery delay',
             solution: 'I checked your delivery route. Our local dispatch partner is currently en route. You can check live GPS tracking under Profile > Orders.'
           };
         }
-        if (lower.includes('refund') || lower.includes('money back') || lower.includes('deducted') || lower.includes('return')) {
+
+        // 4. Billing, Refunds & Unauthorized charges
+        if (lower.includes('refund') || lower.includes('money back') || lower.includes('deducted') || lower.includes('return') || lower.includes('double charge')) {
           return {
             category: 'Billing & Refunds',
             pattern: 'REFUND_SETTLEMENT',
             urgency: 'HIGH',
             confidence: 0.96,
+            isComplaint: lower.includes('double charge') || lower.includes('deducted'),
             summary: 'Customer inquiring about refund / return settlement',
             solution: 'Refunds are automatically processed to the original payment method within 3–5 banking days after return inspection.'
           };
         }
+
+        // 5. Dining Table Reservation & Venue Complaints
+        if (lower.includes('table') || lower.includes('restaurant') || lower.includes('dining') || lower.includes('reservation') || lower.includes('cabin') || lower.includes('vip setup')) {
+          return {
+            category: 'Dining & Table Reservation',
+            pattern: 'DINING_RESERVATION_ISSUE',
+            urgency: 'HIGH',
+            confidence: 0.95,
+            isComplaint: lower.includes('cancel') || lower.includes('declined') || lower.includes('waiting'),
+            summary: 'Customer inquiring about dining reservation or cabin booking',
+            solution: 'Your table reservation is held for 90 minutes with instant confirmation. You can view your active booking reference under Profile > Reservations or call the venue manager directly.'
+          };
+        }
+
+        // 6. Live Token & Appointments
         if (lower.includes('token') || lower.includes('queue') || lower.includes('doctor') || lower.includes('salon') || lower.includes('appointment')) {
           return {
             category: 'Live Queue & Services',
             pattern: 'QUEUE_APPOINTMENT_ISSUE',
             urgency: 'NORMAL',
             confidence: 0.91,
+            isComplaint: false,
             summary: 'Live token or service appointment timing concern',
             solution: 'Your live token is synchronized with the seller\'s queue. Check the active status badge in your top navbar to view the current serving number.'
           };
         }
-        if (lower.includes('broken') || lower.includes('damage') || lower.includes('wrong item') || lower.includes('missing')) {
+
+        // 7. Damaged, defective or missing item
+        if (lower.includes('broken') || lower.includes('damage') || lower.includes('wrong item') || lower.includes('missing') || lower.includes('expired')) {
           return {
             category: 'Product Quality & Fulfillment',
             pattern: 'DAMAGED_OR_MISSING_ITEM',
             urgency: 'URGENT',
             confidence: 0.98,
+            isComplaint: true,
             summary: 'Damaged, missing, or incorrect item reported',
             solution: 'We apologize for this experience. A complimentary return or replacement has been pre-authorized for your order in Profile > Orders.'
           };
         }
+
+        // 8. Payment & Gateway interruptions
         if (lower.includes('payment') || lower.includes('failed') || lower.includes('otp') || lower.includes('upi')) {
           return {
             category: 'Payment Gateway',
             pattern: 'PAYMENT_FAILURE',
             urgency: 'URGENT',
             confidence: 0.95,
+            isComplaint: false,
             summary: 'Transaction interrupted or payment failure',
             solution: 'If money was debited during checkout, it will be automatically reversed by your bank within 24-48 hours. No second charge will occur.'
           };
         }
+
         return {
           category: 'General Support Inquiry',
           pattern: 'GENERAL_INQUIRY',
           urgency: 'NORMAL',
           confidence: 0.85,
+          isComplaint: false,
           summary: 'General customer assistance requested',
           solution: 'I have logged your request with our dedicated concierge support team.'
         };
       };
 
       const detected = analyzeProblemPattern(textToSend);
+
+      // Auto-file in Admin Complaints system if this is a registered complaint
+      if (detected.isComplaint) {
+        try {
+          const complaintEntry = {
+            id: `CMP-${Date.now().toString().slice(-4)}`,
+            customer: user?.name || 'Customer',
+            email: user?.email || 'customer@markatverse.com',
+            category: detected.category,
+            issue: textToSend,
+            severity: detected.urgency,
+            status: 'OPEN',
+            date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            createdAt: new Date().toISOString()
+          };
+          const existingComplaints = JSON.parse(localStorage.getItem('MV_SUPPORT_COMPLAINTS') || '[]');
+          localStorage.setItem('MV_SUPPORT_COMPLAINTS', JSON.stringify([complaintEntry, ...existingComplaints]));
+          window.dispatchEvent(new Event('MV_COMPLAINT_CREATED'));
+        } catch {}
+      }
 
       // Save Pattern to Admin Intelligence Log
       try {
@@ -258,6 +418,7 @@ export default function HelpCenterPage() {
           category: detected.category,
           pattern: detected.pattern,
           urgency: detected.urgency,
+          isComplaint: detected.isComplaint,
           confidence: `${Math.round(detected.confidence * 100)}%`,
           summary: detected.summary
         }, ...patterns.slice(0, 49)];
@@ -297,19 +458,38 @@ export default function HelpCenterPage() {
               sender: 'admin' as const, 
               text: `🤖 AI Assistant: I detected your query regarding "${detected.category}".\n\n${detected.solution}\n\nWould you like further assistance or a direct callback?`,
               time: 'Just now',
+              category: detected.category,
+              pattern: detected.pattern,
+              userQuery: textToSend,
               botOptions: ["My issue is resolved", "Speak to a Human Agent", "Request Instant Callback"]
             };
           } else {
             if (textToSend === "My issue is resolved") {
-              botReply = { sender: 'admin' as const, text: "Glad I could assist! Have a wonderful day shopping on MarkatVerse.", time: 'Just now' };
+              botReply = { 
+                sender: 'admin' as const, 
+                text: "Glad I could assist! Have a wonderful day shopping on MarkatVerse.", 
+                time: 'Just now',
+                category: detected.category,
+                pattern: detected.pattern
+              };
             } else if (textToSend === "Request Instant Callback") {
               handleRequestCall();
-              botReply = { sender: 'admin' as const, text: "Your phone number has been prioritized in our executive dispatch queue. We will call you within 5 minutes.", time: 'Just now', isBotCallOffer: true };
+              botReply = { 
+                sender: 'admin' as const, 
+                text: "Your phone number has been prioritized in our executive dispatch queue. We will call you within 5 minutes.", 
+                time: 'Just now', 
+                category: detected.category,
+                pattern: detected.pattern,
+                isBotCallOffer: true 
+              };
             } else {
               botReply = { 
                 sender: 'admin' as const, 
                 text: `I've updated the support ticket with pattern [${detected.pattern}] and escalated this directly to an available desk specialist.`,
                 time: 'Just now',
+                category: detected.category,
+                pattern: detected.pattern,
+                userQuery: textToSend,
                 isBotCallOffer: true 
               };
             }
@@ -559,14 +739,19 @@ export default function HelpCenterPage() {
       {isChatOpen && (
         <div className="fixed bottom-4 right-4 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 z-[100] flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 duration-300">
           {/* Chat Header */}
-          <div className="bg-blue-600 p-4 flex justify-between items-center text-white">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 flex justify-between items-center text-white">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                 <MessageCircle className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-sm">Customer Support</h3>
-                <p className="text-xs text-blue-200">Online</p>
+                <h3 className="font-bold text-sm flex items-center gap-1.5">
+                  AI Support Concierge
+                  <span className="text-[9px] bg-emerald-400 text-slate-900 font-extrabold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                    <Sparkles className="w-2.5 h-2.5" /> Self-Learning
+                  </span>
+                </h3>
+                <p className="text-[11px] text-blue-200">Trains on user feedback & auto-files complaints</p>
               </div>
             </div>
             <button onClick={() => setIsChatOpen(false)} className="text-blue-200 hover:text-white transition-colors p-1 bg-blue-700/50 rounded-lg">
@@ -606,6 +791,36 @@ export default function HelpCenterPage() {
                           {opt}
                         </button>
                       ))}
+                    </div>
+                  )}
+
+                  {/* Adaptive User Training & Feedback Controls */}
+                  {msg.sender === 'admin' && (
+                    <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+                      <span className="flex items-center gap-1 font-medium text-slate-500">
+                        <Sparkles className="w-3 h-3 text-amber-500" />
+                        {msg.pattern === 'FORMAL_COMPLAINT' ? 'Priority Complaint Logged' : 'Trained AI Response'}
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleTrainBotFeedback(idx, true)}
+                          title="This answer was helpful (trains bot)"
+                          className={`p-1 rounded hover:bg-slate-100 transition-colors flex items-center gap-1 ${msg.trainedFeedback === 'helpful' ? 'text-emerald-600 font-bold bg-emerald-50' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                          <ThumbsUp className="w-3 h-3" />
+                          {msg.trainedFeedback === 'helpful' && <span className="text-[10px]">Trained ✓</span>}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleTrainBotFeedback(idx, false)}
+                          title="Incorrect or unhelpful (teaches bot to improve & escalates)"
+                          className={`p-1 rounded hover:bg-slate-100 transition-colors flex items-center gap-1 ${msg.trainedFeedback === 'unhelpful' ? 'text-rose-600 font-bold bg-rose-50' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                          <ThumbsDown className="w-3 h-3" />
+                          {msg.trainedFeedback === 'unhelpful' && <span className="text-[10px]">Escalated ✓</span>}
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
