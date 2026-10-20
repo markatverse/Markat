@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { Star, MapPin, Clock, Calendar, Users, UtensilsCrossed, CheckCircle2, ChevronRight, Phone, Info } from 'lucide-react';
 
@@ -166,13 +166,29 @@ export default function RestaurantProfilePage() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-400 mb-2 uppercase">Date</label>
-                  <input 
-                    type="date"
-                    min={todayStr}
+                  <select
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-rose-500"
-                  />
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-rose-500 appearance-none"
+                  >
+                    {Array.from({ length: 7 }).map((_, i) => {
+                      const d = new Date();
+                      d.setDate(d.getDate() + i);
+                      const year = d.getFullYear();
+                      const month = String(d.getMonth() + 1).padStart(2, '0');
+                      const day = String(d.getDate()).padStart(2, '0');
+                      const val = `${year}-${month}-${day}`;
+                      const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                      const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                      let label = '';
+                      if (i === 0) label = `Today, ${d.getDate()} ${monthsShort[d.getMonth()]}`;
+                      else if (i === 1) label = `Tomorrow, ${d.getDate()} ${monthsShort[d.getMonth()]}`;
+                      else label = `${daysShort[d.getDay()]}, ${d.getDate()} ${monthsShort[d.getMonth()]}`;
+                      return (
+                        <option key={val} value={val}>{label}</option>
+                      );
+                    })}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-400 mb-2 uppercase">Time</label>

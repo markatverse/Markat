@@ -124,7 +124,14 @@ export default function Sidebar({ currentAdminRole, setCurrentAdminRole, isMobil
       `}>
         <div className="p-6 border-b border-white/5 flex flex-col gap-4 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10">
           <Link href="/" className="flex items-center no-underline hover:opacity-90 transition-opacity">
-            <img src="/logo.png" alt="MarkatVerse" className="h-10 object-contain scale-[2.5] origin-left brightness-0 invert" />
+            <img 
+              src="/logo-optimized.webp" 
+              alt="MarkatVerse" 
+              loading="eager"
+              fetchPriority="high"
+              decoding="sync"
+              className="h-10 object-contain scale-[2.5] origin-left brightness-0 invert" 
+            />
           </Link>
           <div className="text-amber-400 text-xs font-bold tracking-widest mt-1">ADMIN PORTAL</div>
           <Link href="/" className="text-emerald-500 flex items-center gap-2 hover:opacity-80 transition-opacity font-bold text-sm mt-2 mb-2">

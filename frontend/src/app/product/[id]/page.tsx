@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useProducts, useCategoryRules } from '@/context/ProductContext';
 import { useAuth } from '@/context/AuthContext';
@@ -200,21 +200,59 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
   }, [availableTimeSlots, reservationTime]);
   const [diningMode, setDiningMode] = useState<'reserve' | 'book'>('reserve');
   const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false);
+  const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
   const guestDropdownRef = useRef<HTMLDivElement>(null);
+  const dateDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Generate 7 upcoming days for reservation (1 week)
+  const reservationDateOptions = useMemo(() => {
+    const list = [];
+    const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const val = `${year}-${month}-${day}`;
+
+      let label = '';
+      if (i === 0) {
+        label = `Today, ${d.getDate()} ${monthsShort[d.getMonth()]}`;
+      } else if (i === 1) {
+        label = `Tomorrow, ${d.getDate()} ${monthsShort[d.getMonth()]}`;
+      } else {
+        label = `${daysShort[d.getDay()]}, ${d.getDate()} ${monthsShort[d.getMonth()]}`;
+      }
+
+      list.push({ val, label });
+    }
+    return list;
+  }, []);
+
+  const selectedDateLabel = useMemo(() => {
+    const found = reservationDateOptions.find(o => o.val === reservationDate);
+    return found ? found.label : (reservationDate || 'Select Date');
+  }, [reservationDateOptions, reservationDate]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (guestDropdownRef.current && !guestDropdownRef.current.contains(e.target as Node)) {
         setIsGuestDropdownOpen(false);
       }
+      if (dateDropdownRef.current && !dateDropdownRef.current.contains(e.target as Node)) {
+        setIsDateDropdownOpen(false);
+      }
     };
-    if (isGuestDropdownOpen) {
+    if (isGuestDropdownOpen || isDateDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isGuestDropdownOpen]);
+  }, [isGuestDropdownOpen, isDateDropdownOpen]);
 
   const isRetail = (product?.primaryType === 'SERVICE' || isFoodDining) ? false : (noRulesDefined
     ? !['Services', 'Home Services', 'Organizers', 'Transport', 'Rentals', 'Subscriptions', 'B2B', 'Construction Materials'].includes(product?.category || '')
@@ -333,17 +371,17 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto p-6 lg:p-10 bg-white relative z-0">
+    <div className="max-w-[1400px] mx-auto p-3.5 sm:p-6 lg:p-10 bg-white relative z-0">
       
-      <AdvertisementWidget position="PRODUCT_PAGE" className="mb-8" />
+      <AdvertisementWidget position="PRODUCT_PAGE" className="mb-4 sm:mb-8" />
       
       {/* Top Section: Images and Details */}
-      <div className="flex flex-col lg:flex-row gap-10">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
         
         {/* Left: Product Image Gallery */}
-        <div className="flex-1">
+        <div className="flex-1 lg:max-w-[50%]">
           {/* Main Image */}
-          <div className="w-full h-[380px] sm:h-[480px] bg-slate-100 rounded-2xl flex flex-col items-center justify-center text-slate-500 border border-slate-200 overflow-hidden shadow-sm relative">
+          <div className="w-full h-[260px] sm:h-[400px] lg:h-[480px] bg-slate-100 rounded-2xl flex flex-col items-center justify-center text-slate-500 border border-slate-200 overflow-hidden shadow-sm relative">
             {productImages[activeImage]?.url ? (
               <img 
                 src={productImages[activeImage].url} 
@@ -357,20 +395,20 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
               </>
             )}
             {isFoodDining && (
-              <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md border border-white/20 text-white px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide flex items-center gap-1.5">
-                <UtensilsCrossed className="w-3.5 h-3.5 text-rose-400" /> Dining Venue
+              <div className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-black/60 backdrop-blur-md border border-white/20 text-white px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold tracking-wide flex items-center gap-1.5">
+                <UtensilsCrossed className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-400" /> Dining Venue
               </div>
             )}
           </div>
           
           {/* Thumbnails */}
           {productImages.length > 1 && (
-            <div className="flex gap-4 mt-4 overflow-x-auto pb-2">
+            <div className="flex gap-2.5 sm:gap-4 mt-3 sm:mt-4 overflow-x-auto pb-1.5">
               {productImages.map((img, index) => (
                 <div 
                   key={index} 
                   onClick={() => setActiveImage(index)}
-                  className={`w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-slate-50 rounded-xl cursor-pointer flex flex-col items-center justify-center border-2 transition-all overflow-hidden shadow-sm
+                  className={`w-14 h-14 sm:w-20 sm:h-20 shrink-0 bg-slate-50 rounded-xl cursor-pointer flex flex-col items-center justify-center border-2 transition-all overflow-hidden shadow-xs
                     ${activeImage === index ? 'border-blue-600 ring-2 ring-blue-100' : 'border-slate-200 hover:border-blue-300 opacity-70 hover:opacity-100'}
                   `}
                 >
@@ -384,9 +422,9 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
             </div>
           )}
           
-          {/* Sold By / Restaurant Venue Details Card */}
-          <div className="mt-6 sm:mt-8 p-4 sm:p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <div className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3 sm:mb-4">
+          {/* Sold By / Restaurant Venue Details Card (Desktop Left Column) */}
+          <div className="hidden lg:block mt-8 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">
               {isFoodDining ? 'Restaurant / Dining Venue' : (isServiceProduct(product) ? 'Service Provider' : 'Sold by')}
             </div>
             <div className="flex flex-row items-center justify-between gap-2">
@@ -505,48 +543,50 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
             </Link>
           </div>
 
-          <h1 className="text-3xl lg:text-4xl font-extrabold text-slate-900 mb-2 leading-tight">{product.name}</h1>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 mb-2 leading-tight">{product.name}</h1>
           
-          <div className="text-slate-600 font-medium mb-4 flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-slate-400" />
-            {product._distance != null && product._distance !== Infinity ? `${product._distance.toFixed(1)} km away • ` : ''}
-            {product.location || 'Location not provided'}
+          <div className="text-slate-600 font-medium text-xs sm:text-sm mb-3 sm:mb-4 flex items-center gap-1.5 sm:gap-2">
+            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" />
+            <span className="truncate">
+              {product._distance != null && product._distance !== Infinity ? `${product._distance.toFixed(1)} km away • ` : ''}
+              {product.location || 'Location not provided'}
+            </span>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4 sm:mb-6">
             <div className="flex flex-wrap items-center gap-4">
               <StarRating rating={Number(product.rating || 0)} totalReviews={Number(product.reviews || 0)} compact={true} />
             </div>
             <button 
               onClick={() => requireAuth(() => toggleWishlist(product.id))}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-colors shadow-sm ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border transition-colors shadow-2xs text-xs sm:text-sm ${
                 isInWishlist(product.id) 
                   ? 'border-red-200 bg-red-50 text-red-600' 
                   : 'border-slate-200 bg-white text-slate-600 hover:border-red-200 hover:bg-red-50 hover:text-red-500'
               }`}
             >
-              <Heart className="w-5 h-5" fill={isInWishlist(product.id) ? "currentColor" : "none"} />
-              <span className="text-sm font-bold">{isInWishlist(product.id) ? 'Saved' : 'Save'}</span>
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5" fill={isInWishlist(product.id) ? "currentColor" : "none"} />
+              <span className="font-bold">{isInWishlist(product.id) ? 'Saved' : 'Save'}</span>
             </button>
           </div>
 
-          <div className="p-6 bg-slate-50 rounded-2xl mb-8 border border-slate-200 shadow-sm">
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+          <div className="p-4 sm:p-6 bg-slate-50 rounded-2xl mb-6 sm:mb-8 border border-slate-200 shadow-2xs">
+            <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
               {isFoodDining 
                 ? 'Reservation / Dining Rate' 
                 : (isServiceProduct(product) ? 'Service Rate' : 'Price')}
             </div>
-            <div className="text-4xl font-bold text-slate-900 flex items-center gap-3">
+            <div className="text-3xl sm:text-4xl font-extrabold text-slate-900 flex items-center gap-2 sm:gap-3 flex-wrap">
               {product.category === 'Organizers' ? (
                 'Project Based'
               ) : (
                 <>
                   ₹{currentActivePrice.toLocaleString('en-IN')}
-                  {isFoodDining && <span className="text-base text-slate-500 font-semibold ml-1">/ table reservation</span>}
-                  {product.category === 'Transport' && <span className="text-lg text-slate-500 font-medium ml-1">/ km</span>}
-                  {isWholesaleConfig && <span className="text-lg text-slate-500 font-medium ml-1">/ unit</span>}
+                  {isFoodDining && <span className="text-xs sm:text-base text-slate-500 font-semibold ml-1">/ table reservation</span>}
+                  {product.category === 'Transport' && <span className="text-sm sm:text-lg text-slate-500 font-medium ml-1">/ km</span>}
+                  {isWholesaleConfig && <span className="text-sm sm:text-lg text-slate-500 font-medium ml-1">/ unit</span>}
                   {isElite && isRetail && (
-                    <span className="text-sm text-amber-700 bg-amber-100 border border-amber-200 px-2 py-1 rounded-md font-bold tracking-tight">Elite Rate</span>
+                    <span className="text-xs sm:text-sm text-amber-700 bg-amber-100 border border-amber-200 px-2 py-0.5 sm:py-1 rounded-md font-bold tracking-tight">Elite Rate</span>
                   )}
                 </>
               )}
@@ -849,25 +889,25 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
 
               {/* ── FOOD & DINING / RESTAURANT TABLE RESERVATION ── */}
               {isFoodDining && !hasToken && (
-                <div className="w-full bg-white rounded-2xl border border-slate-200/90 shadow-md p-5 sm:p-6 transition-all">
+                <div className="w-full bg-white rounded-2xl border border-slate-200/90 shadow-md p-3.5 sm:p-6 transition-all">
                   {/* Compact Header with Segmented Switcher */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0">
-                        {diningMode === 'reserve' ? <UtensilsCrossed className="w-5 h-5" /> : <Sparkles className="w-5 h-5 text-amber-500" />}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 sm:pb-4 border-b border-slate-100">
+                    <div className="flex items-center gap-2.5 sm:gap-3">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                        {diningMode === 'reserve' ? <UtensilsCrossed className="w-4 h-4 sm:w-5 sm:h-5" /> : <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />}
                       </div>
                       <div>
-                        <h3 className="text-slate-900 font-extrabold text-base leading-tight">
+                        <h3 className="text-slate-900 font-extrabold text-sm sm:text-base leading-tight">
                           {diningMode === 'reserve' ? 'Book a Table' : 'Exclusive VIP Dining'}
                         </h3>
-                        <p className="text-xs text-slate-500 font-medium">
+                        <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
                           {diningMode === 'reserve' ? `Instant confirmed seating at ${product.seller}` : `Private cabin & special arrangement at ${product.seller}`}
                         </p>
                       </div>
                     </div>
 
-                    {/* Segmented Switcher */}
-                    <div className="inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200/80 self-start sm:self-auto shrink-0">
+                    {/* Segmented Switcher: 2-column full width on mobile, inline flex on desktop */}
+                    <div className="grid grid-cols-2 sm:inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200/80 w-full sm:w-auto shrink-0">
                       <button
                         type="button"
                         onClick={() => {
@@ -985,18 +1025,45 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                         )}
                       </div>
 
-                      {/* 2. Date */}
-                      <div>
+                      {/* 2. Date (Custom 1-Week Dropdown) */}
+                      <div className="relative" ref={dateDropdownRef}>
                         <label className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5 truncate">
                           <Calendar className="w-3.5 h-3.5 text-rose-600 shrink-0" /> Date
                         </label>
-                        <input 
-                          type="date" 
-                          min={todayStr}
-                          value={reservationDate}
-                          onChange={e => setReservationDate(e.target.value)}
-                          className="w-full px-2.5 sm:px-3 py-2 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-xs sm:text-sm transition-colors" 
-                        />
+                        <button
+                          type="button"
+                          onClick={() => setIsDateDropdownOpen(!isDateDropdownOpen)}
+                          className="w-full px-3 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-rose-500 text-slate-800 bg-white shadow-2xs font-medium text-xs sm:text-sm cursor-pointer flex items-center justify-between transition-colors"
+                        >
+                          <span className="truncate">{selectedDateLabel}</span>
+                          <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${isDateDropdownOpen ? 'rotate-180 text-rose-600' : ''}`} />
+                        </button>
+
+                        {/* 1-Week Date Options Dropdown Menu */}
+                        {isDateDropdownOpen && (
+                          <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1.5 max-h-56 overflow-y-auto animate-in fade-in-50 zoom-in-95 duration-100">
+                            {reservationDateOptions.map(opt => (
+                              <button
+                                key={opt.val}
+                                type="button"
+                                onClick={() => {
+                                  setReservationDate(opt.val);
+                                  setIsDateDropdownOpen(false);
+                                }}
+                                className={`w-full px-3.5 py-2 text-left text-xs sm:text-sm font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                                  reservationDate === opt.val
+                                    ? 'bg-rose-50 text-rose-600 font-bold'
+                                    : 'text-slate-700 hover:bg-slate-50'
+                                }`}
+                              >
+                                <span>{opt.label}</span>
+                                {reservationDate === opt.val && (
+                                  <span className="text-rose-600 text-xs font-black">✓</span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
 
                       {/* 3. Time Slot (full width on mobile col-span-2, single column on desktop) */}
@@ -1033,10 +1100,10 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                       </span>
                     </div>
 
-                    {/* Actions */}
-                    <div className="pt-1 flex flex-col sm:flex-row gap-2.5">
+                    {/* Actions (Horizontal both on mobile & desktop) */}
+                    <div className="pt-1 flex flex-row items-center gap-2 sm:gap-2.5">
                       <button
-                        className="flex-1 py-3 px-5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-rose-600/20 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
+                        className="flex-1 py-3 px-3 sm:px-5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md shadow-rose-600/20 active:scale-[0.99] flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer truncate"
                         onClick={() => requireAuth(() => {
                           if (!reservationDate) {
                             alert('Please select your preferred reservation date.');
@@ -1108,8 +1175,8 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                           alert(`🎉 Reservation Confirmed!\n\nBooking ID: ${newBooking.id}\nRestaurant: ${product.seller}\nParty Size: ${partySize} Guests\nDate: ${reservationDate}\nSlot: ${reservationTime}\nSetup: ${selectedPlan}\n\n✓ Instant SMS & WhatsApp notification sent to customer.\n✓ Live reservation alert dispatched to seller operations desk.`);
                         })}
                       >
-                        <UtensilsCrossed className="w-4 h-4" /> 
-                        <span>
+                        <UtensilsCrossed className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /> 
+                        <span className="truncate">
                           {diningMode === 'reserve' 
                             ? `Confirm Table (${partySize} ${partySize === 1 ? 'Guest' : 'Guests'})` 
                             : `Book Private Dining — ₹${currentActivePrice.toLocaleString('en-IN')}`}
@@ -1118,9 +1185,9 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
 
                       <a
                         href="tel:+919876543210"
-                        className="py-3 px-4 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-700 hover:text-slate-900 font-semibold text-xs sm:text-sm transition-colors flex items-center justify-center gap-1.5 border border-slate-200 shrink-0"
+                        className="py-3 px-3 sm:px-4 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-700 hover:text-slate-900 font-semibold text-xs sm:text-sm transition-colors flex items-center justify-center gap-1.5 border border-slate-200 shrink-0 whitespace-nowrap"
                       >
-                        <PhoneCall className="w-3.5 h-3.5 text-rose-600" />
+                        <PhoneCall className="w-3.5 h-3.5 text-rose-600 shrink-0" />
                         <span>Call Venue</span>
                       </a>
                     </div>
@@ -1276,15 +1343,15 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
               {hasMeeting && !hasToken && !hasAppointment && !hasVehicleTestDrive && !isWholesaleConfig && !hasRFQ && (
                 <div className="flex flex-col gap-3 w-full p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
                   <div className="text-indigo-800 font-bold text-sm mb-1">Request a Meeting / Proposal</div>
-                  <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex flex-row items-center gap-2.5 sm:gap-3">
                     <button
-                      className="flex-1 px-6 py-4 bg-white border-2 border-indigo-300 hover:border-indigo-500 hover:bg-indigo-50 text-indigo-800 rounded-xl font-bold text-base transition-colors"
+                      className="flex-1 py-3 px-3 sm:px-6 sm:py-4 bg-white border-2 border-indigo-300 hover:border-indigo-500 hover:bg-indigo-50 text-indigo-800 rounded-xl font-bold text-xs sm:text-base transition-colors truncate"
                       onClick={() => requireAuth(() => alert(`Requesting portfolio and quote from ${product.seller}...`))}
                     >
                       Request a Quote
                     </button>
                     <button
-                      className="flex-1 px-6 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-base transition-colors shadow-md shadow-indigo-600/20"
+                      className="flex-1 py-3 px-3 sm:px-6 sm:py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs sm:text-base transition-colors shadow-md shadow-indigo-600/20 truncate"
                       onClick={() => requireAuth(() => alert(`Connecting you with ${product.seller} to discuss your project.`))}
                     >
                       Schedule Meeting
@@ -1293,11 +1360,11 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                 </div>
               )}
 
-              {/* ── PRODUCT STOCK / RETAIL (Buy Now + Add to Cart) ── */}
+              {/* ── PRODUCT STOCK / RETAIL (Buy Now + Add to Cart - Horizontal both on mobile & desktop) ── */}
               {(hasProductStock || noRulesDefined) && !isFoodDining && !hasToken && !hasAppointment && !hasVehicleTestDrive && !isWholesaleConfig && (
-                <div className="flex flex-col sm:flex-row gap-4 w-full">
+                <div className="flex flex-row items-center gap-2.5 sm:gap-4 w-full">
                   <button
-                    className="flex-1 px-6 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-base transition-colors shadow-md shadow-amber-500/20"
+                    className="flex-1 py-3 px-3 sm:px-6 sm:py-4 bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-white rounded-xl font-bold text-sm sm:text-base transition-all shadow-md shadow-amber-500/20 text-center cursor-pointer"
                     onClick={() => requireAuth(() => {
                       addToCart(product);
                       router.push('/checkout');
@@ -1306,7 +1373,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                     Buy Now
                   </button>
                   <button
-                    className="flex-1 px-6 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-base transition-colors shadow-md"
+                    className="flex-1 py-3 px-3 sm:px-6 sm:py-4 bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white rounded-xl font-bold text-sm sm:text-base transition-all shadow-md text-center cursor-pointer"
                     onClick={() => requireAuth(() => { addToCart(product); alert(`Added ${product.name} to cart!`); })}
                   >
                     Add to Cart
@@ -1329,11 +1396,11 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
             </div>
           </div>
 
-          <div className="mb-10">
-            <h3 className="text-lg font-bold text-slate-900 mb-4">
+          <div className="mb-8">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-3 sm:mb-4">
               {isFoodDining ? 'Dining & Table Guidelines' : 'Important Details'}
             </h3>
-            <ul className="pl-5 text-slate-600 leading-loose list-disc">
+            <ul className="pl-5 text-xs sm:text-sm text-slate-600 leading-relaxed sm:leading-loose list-disc space-y-1.5 sm:space-y-0">
               {isFoodDining ? (
                 <>
                   <li>Please arrive within 15 minutes of your reserved dining slot.</li>
@@ -1359,6 +1426,72 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                 </>
               )}
             </ul>
+          </div>
+
+          {/* Sold By / Restaurant Venue Details Card (Mobile Flow) */}
+          <div className="block lg:hidden mb-8 p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs">
+            <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-3">
+              {isFoodDining ? 'Restaurant / Dining Venue' : (isServiceProduct(product) ? 'Service Provider' : 'Sold by')}
+            </div>
+            <div className="flex flex-row items-center justify-between gap-2">
+              <div className="flex items-center gap-3">
+                <div className={`w-11 h-11 ${isFoodDining ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-blue-50 text-blue-600 border-blue-100'} rounded-xl flex items-center justify-center shrink-0 border`}>
+                  {isFoodDining ? <UtensilsCrossed className="w-5 h-5" /> : <Building2 className="w-5 h-5" />}
+                </div>
+                <div>
+                  <Link href={`/seller/${encodeURIComponent(product.seller)}`} className="no-underline">
+                    <div className="font-bold text-sm text-slate-900 hover:text-blue-600 transition-colors flex items-center gap-1.5 flex-wrap">
+                      {product.seller}
+                      <span className="bg-emerald-100 text-emerald-700 border border-emerald-200 text-[9px] px-1.5 py-0.5 rounded-full flex items-center gap-1 font-bold tracking-tight">
+                        <ShieldCheck className="w-2.5 h-2.5" /> Verified
+                      </span>
+                    </div>
+                  </Link>
+                  <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                    <MapPin className="w-3 h-3 text-slate-400 shrink-0" /> <span className="truncate">{product.location}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Communication & Resource Links */}
+            <div className="mt-3.5 pt-3 border-t border-slate-100 flex flex-wrap items-center gap-2">
+              <a 
+                href={`https://wa.me/919876543210?text=${encodeURIComponent(`Hello! I am inquiring about "${product.name}" on MarkatVerse. Could you share more details and availability?`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 min-w-[120px] flex items-center justify-center gap-1.5 py-2 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-all shadow-xs"
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>WhatsApp</span>
+              </a>
+              <a 
+                href="tel:+919876543210"
+                className="flex items-center justify-center gap-1.5 py-2 px-3 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition-all shadow-xs"
+              >
+                <Phone className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <span>Call Store</span>
+              </a>
+              <Link 
+                href={`/shop/${encodeURIComponent((product.seller || 'unknown').toLowerCase().replace(/ /g, '-'))}`}
+                className="flex items-center justify-center gap-1 py-2 px-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition-all shadow-xs"
+              >
+                <span>Store Catalog & Hours →</span>
+              </Link>
+            </div>
+            
+            <div className="flex gap-6 mt-3.5 pt-3 border-t border-slate-100">
+              <div>
+                <div className="text-[10px] text-slate-500 font-medium mb-0.5">Seller Rating</div>
+                <div className="font-bold text-amber-500 flex items-center gap-1 text-xs">
+                  {product.rating || 'New'} <span className="text-slate-400 font-normal text-[10px] ml-0.5">({product.reviews || '0'} Reviews)</span>
+                </div>
+              </div>
+              <div>
+                <div className="text-[10px] text-slate-500 font-medium mb-0.5">Active Since</div>
+                <div className="font-bold text-slate-900 text-xs">{new Date().getFullYear()}</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

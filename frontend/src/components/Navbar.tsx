@@ -8,6 +8,7 @@ import { useProducts } from "@/context/ProductContext";
 import { Search, MapPin, Headphones, Store, ShoppingCart, User, ChevronDown, Package } from "lucide-react";
 import LiveTokenToggle from "@/components/LiveTokenToggle";
 import { isServiceProduct, matchesProductSearch } from '@/utils/productSearch';
+import { LOGO_DATA_URI } from '@/utils/logoDataUri';
 
 export default function Navbar() {
   const { items } = useCart();
@@ -105,14 +106,19 @@ export default function Navbar() {
       {/* 1. Logo (Top Left on Mobile, Left on Desktop) */}
       <div className="flex items-center shrink-0 order-1">
         <Link href="/" className="flex items-center no-underline hover:opacity-90 transition-opacity ml-1 sm:ml-0 mr-4 sm:mr-8 md:mr-12 lg:mr-24 shrink-0">
-          <img 
-            src="/logo.png" 
-            alt="MarkatVerse" 
-            loading="eager" 
-            fetchPriority="high" 
-            decoding="sync"
-            className="h-12 sm:h-14 lg:h-14 object-contain scale-[2] sm:scale-[2.2] lg:scale-[2] origin-left" 
-          />
+          <picture>
+            <source srcSet="/logo-optimized.webp" type="image/webp" />
+            <img 
+              src={LOGO_DATA_URI} 
+              alt="MarkatVerse" 
+              loading="eager" 
+              fetchPriority="high" 
+              decoding="sync"
+              width={160}
+              height={56}
+              className="h-12 sm:h-14 lg:h-14 w-auto object-contain scale-[2] sm:scale-[2.2] lg:scale-[2] origin-left" 
+            />
+          </picture>
         </Link>
       </div>
 

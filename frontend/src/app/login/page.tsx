@@ -308,8 +308,11 @@ function LoginContent() {
           <div className="flex items-center gap-3 mb-5">
             <div className="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 shadow-md">
               <img 
-                src="/logo.png" 
+                src="/logo-optimized.webp" 
                 alt="MarkatVerse" 
+                loading="eager"
+                fetchPriority="high"
+                decoding="sync"
                 className="h-12 w-auto brightness-0 invert object-contain" 
               />
             </div>
@@ -382,7 +385,14 @@ function LoginContent() {
             <Link href="/" className="text-slate-400 hover:text-slate-800 p-2 -ml-2">
               <ArrowLeft className="w-6 h-6" />
             </Link>
-            <img src="/logo.png" alt="MarkatVerse" className="h-12 object-contain" />
+            <img 
+              src="/logo-optimized.webp" 
+              alt="MarkatVerse" 
+              loading="eager"
+              fetchPriority="high"
+              decoding="sync"
+              className="h-12 object-contain" 
+            />
             <div className="w-10"></div> {/* Spacer to balance flex-between */}
           </div>
 

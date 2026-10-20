@@ -68,7 +68,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <head>
-        {/* Instant Logo Preload - eliminates any delay, blank frame or latency */}
+        {/* Instant High-Performance Logo Preload - eliminates latency & layout shifts */}
+        <link rel="preload" href="/logo-optimized.webp" as="image" type="image/webp" fetchPriority="high" />
         <link rel="preload" href="/logo.png" as="image" type="image/png" fetchPriority="high" />
       </head>
       <body className="antialiased">

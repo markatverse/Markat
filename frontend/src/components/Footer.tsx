@@ -12,7 +12,13 @@ export default function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-2">
             <Link href="/" className="inline-block mb-4 hover:opacity-90 transition-opacity">
-              <img src="/logo.png" alt="MarkatVerse" className="h-20 object-contain brightness-0 invert" />
+              <img 
+                src="/logo-optimized.webp" 
+                alt="MarkatVerse" 
+                loading="lazy"
+                decoding="async"
+                className="h-20 object-contain brightness-0 invert" 
+              />
             </Link>
             <p className="text-sm text-slate-400 mb-6 max-w-sm leading-relaxed">
               Your premium global marketplace connecting buyers, sellers, and services instantly and securely.

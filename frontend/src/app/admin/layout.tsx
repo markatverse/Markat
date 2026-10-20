@@ -44,7 +44,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Mobile Header */}
       <div className="lg:hidden flex items-center justify-between p-4 bg-slate-950/80 backdrop-blur-md border-b border-white/5 shrink-0 sticky top-0 z-40">
         <Link href="/" className="flex items-center no-underline">
-          <img src="/logo.png" alt="MarkatVerse" className="h-8 object-contain scale-[2] origin-left brightness-0 invert" />
+          <img 
+            src="/logo-optimized.webp" 
+            alt="MarkatVerse" 
+            loading="eager"
+            fetchPriority="high"
+            decoding="sync"
+            className="h-8 object-contain scale-[2] origin-left brightness-0 invert" 
+          />
         </Link>
         <div className="flex items-center gap-4">
           <select
