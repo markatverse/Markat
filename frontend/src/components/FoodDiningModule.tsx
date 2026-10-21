@@ -272,148 +272,9 @@ export default function FoodDiningModule({
 
   return (
     <div className="space-y-6">
-      {/* Top Banner / Metrics */}
-      <div className="bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 text-orange-200 text-xs font-black tracking-widest uppercase mb-1.5">
-              <ChefHat className="w-4 h-4" /> Food & Dining Station Operations
-            </div>
-            <h2 className="text-2xl md:text-3xl font-black tracking-tight">{user?.business?.name || 'Restaurant & Dining'}</h2>
-            <p className="text-orange-100 text-xs md:text-sm mt-1 max-w-xl leading-relaxed">
-              Live table floor status, digital Kitchen Order Tickets (KOT), floor occupancy and table turnover.
-            </p>
-          </div>
 
-          {/* Quick Station Navigation Buttons */}
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 shrink-0">
-            <button
-              onClick={() => changeSubTab('tables')}
-              className={`h-12 px-4 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-2 border shadow-xs ${
-                activeSubTab === 'tables' 
-                  ? 'bg-white text-orange-700 border-white shadow-md' 
-                  : 'bg-black/20 hover:bg-black/30 text-white border-white/15'
-              }`}
-            >
-              <Utensils className={`w-4 h-4 ${activeSubTab === 'tables' ? 'text-orange-600' : 'text-amber-300'}`} />
-              <span>Table Floor</span>
-            </button>
-            <button
-              onClick={() => changeSubTab('reservations')}
-              className={`h-12 px-4 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-2 border shadow-xs ${
-                activeSubTab === 'reservations' 
-                  ? 'bg-white text-rose-700 border-white shadow-md' 
-                  : 'bg-black/20 hover:bg-black/30 text-white border-white/15'
-              }`}
-            >
-              <CalendarClock className={`w-4 h-4 ${activeSubTab === 'reservations' ? 'text-rose-600' : 'text-rose-300'}`} />
-              <span>Reservations</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[11px] font-black ${
-                activeSubTab === 'reservations' ? 'bg-rose-100 text-rose-700' : 'bg-white/20 text-white'
-              }`}>
-                {reservations.filter(r => r.status === 'Pending').length}
-              </span>
-            </button>
-            <button
-              onClick={() => changeSubTab('kot')}
-              className={`h-12 px-4 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-2 border shadow-xs ${
-                activeSubTab === 'kot' 
-                  ? 'bg-white text-amber-700 border-white shadow-md' 
-                  : 'bg-black/20 hover:bg-black/30 text-white border-white/15'
-              }`}
-            >
-              <Flame className={`w-4 h-4 ${activeSubTab === 'kot' ? 'text-amber-600' : 'text-orange-300'}`} />
-              <span>Kitchen KOT</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[11px] font-black ${
-                activeSubTab === 'kot' ? 'bg-amber-100 text-amber-700' : 'bg-white/20 text-white'
-              }`}>
-                {orders.filter(o => o.status !== 'Done').length}
-              </span>
-            </button>
-          </div>
-        </div>
-      </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div 
-          onClick={() => changeSubTab('tables')}
-          className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-orange-300 transition-all cursor-pointer flex flex-col justify-between"
-        >
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Active Tables</span>
-            <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center">
-              <Utensils className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="text-3xl font-black text-slate-900 mb-1">
-              {customTables.filter(t => t.status === 'Occupied' || t.status === 'Food Served').length} / {customTables.length}
-            </div>
-            <span className="text-xs font-semibold text-emerald-600">
-              {customTables.filter(t => t.status === 'Available').length} tables ready for guests
-            </span>
-          </div>
-        </div>
 
-        <div 
-          onClick={() => changeSubTab('kot')}
-          className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-amber-300 transition-all cursor-pointer flex flex-col justify-between"
-        >
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Live KOT Orders</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-              <Flame className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="text-3xl font-black text-slate-900 mb-1">
-              {orders.filter(o => o.status === 'Preparing' || o.status === 'New').length}
-            </div>
-            <span className="text-xs font-semibold text-amber-600">
-              Avg prep time: 14 mins
-            </span>
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-emerald-300 transition-all flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Dine-in Revenue</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <DollarSign className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="text-3xl font-black text-emerald-600 mb-1">
-              ₹{(customTables.reduce((sum, t) => sum + (Number(t.orderTotal) || 0), 0) + orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0)).toLocaleString('en-IN')}
-            </div>
-            <span className="text-xs font-semibold text-slate-400">
-              Includes active table orders
-            </span>
-          </div>
-        </div>
-
-        <div 
-          onClick={() => changeSubTab('reservations')}
-          className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-rose-300 transition-all cursor-pointer flex flex-col justify-between"
-        >
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Booked Tables</span>
-            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
-              <CalendarClock className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="text-3xl font-black text-slate-900 mb-1">
-              {reservations.filter(r => r.status === 'Confirmed' || r.status === 'Pending').length}
-            </div>
-            <span className="text-xs font-semibold text-rose-600">
-              {reservations.filter(r => r.status === 'Pending').length} pending requests
-            </span>
-          </div>
-        </div>
-      </div>
 
       {/* Real-time Customer Booking Alert Toast for Seller */}
       {latestAlert && (
@@ -462,46 +323,46 @@ export default function FoodDiningModule({
       )}
 
       {/* Sub Tabs Navigation Bar */}
-      <div className="bg-slate-100/80 p-1.5 rounded-2xl flex items-center gap-1.5 overflow-x-auto border border-slate-200/80">
+      <div className="bg-slate-100/90 p-1 rounded-xl sm:rounded-2xl flex items-center gap-1 sm:gap-1.5 overflow-x-auto border border-slate-200/80">
         <button
           onClick={() => changeSubTab('tables')}
-          className={`px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center gap-2 shrink-0 ${
+          className={`px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-xs md:text-sm transition-all flex items-center gap-1.5 shrink-0 ${
             activeSubTab === 'tables' 
-              ? 'bg-white text-orange-600 shadow-sm border border-slate-200/60' 
+              ? 'bg-white text-orange-600 shadow-xs border border-slate-200/60' 
               : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
           }`}
         >
-          <Utensils className="w-4 h-4 text-orange-500" /> Table Floor ({customTables.length})
+          <Utensils className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-500" /> Tables ({customTables.length})
         </button>
         <button
           onClick={() => changeSubTab('reservations')}
-          className={`px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center gap-2 shrink-0 ${
+          className={`px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-xs md:text-sm transition-all flex items-center gap-1.5 shrink-0 ${
             activeSubTab === 'reservations' 
-              ? 'bg-white text-rose-600 shadow-sm border border-slate-200/60' 
+              ? 'bg-white text-rose-600 shadow-xs border border-slate-200/60' 
               : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
           }`}
         >
-          <CalendarClock className="w-4 h-4 text-rose-500" /> Bookings & Reservations ({reservations.filter(r => r.status === 'Pending').length} Pending)
+          <CalendarClock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-500" /> Bookings ({reservations.filter(r => r.status === 'Pending').length})
         </button>
         <button
           onClick={() => changeSubTab('kot')}
-          className={`px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center gap-2 shrink-0 ${
+          className={`px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-xs md:text-sm transition-all flex items-center gap-1.5 shrink-0 ${
             activeSubTab === 'kot' 
-              ? 'bg-white text-amber-600 shadow-sm border border-slate-200/60' 
+              ? 'bg-white text-amber-600 shadow-xs border border-slate-200/60' 
               : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
           }`}
         >
-          <ChefHat className="w-4 h-4 text-amber-500" /> Kitchen KOT ({orders.filter(o => o.status !== 'Done').length})
+          <ChefHat className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" /> KOT ({orders.filter(o => o.status !== 'Done').length})
         </button>
         <button
           onClick={() => changeSubTab('menu')}
-          className={`px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center gap-2 shrink-0 ${
+          className={`px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-xs md:text-sm transition-all flex items-center gap-1.5 shrink-0 ${
             activeSubTab === 'menu' 
-              ? 'bg-white text-purple-600 shadow-sm border border-slate-200/60' 
+              ? 'bg-white text-purple-600 shadow-xs border border-slate-200/60' 
               : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
           }`}
         >
-          <UtensilsCrossed className="w-4 h-4 text-purple-500" /> Food Menu Items ({diningMenuItems.length})
+          <UtensilsCrossed className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-500" /> Menu ({diningMenuItems.length})
         </button>
       </div>
 
@@ -703,21 +564,22 @@ export default function FoodDiningModule({
 
       {/* TABLES VIEW */}
       {activeSubTab === 'tables' && (
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="flex justify-between items-center gap-2">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Floor Layout & Table Occupancy</h3>
-              <p className="text-xs text-slate-500">Click a table to see its open orders, bill, or seat a walk-in party.</p>
+              <h3 className="text-base sm:text-lg font-bold text-slate-900">Floor Layout & Table Occupancy</h3>
+              <p className="text-[11px] sm:text-xs text-slate-500">Tap table to view orders, bill, or seat guests.</p>
             </div>
             <button
               onClick={() => setShowNewTableModal(true)}
-              className="bg-orange-50 hover:bg-orange-100 text-orange-700 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors border border-orange-200"
+              className="bg-orange-50 hover:bg-orange-100 text-orange-700 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors border border-orange-200 shrink-0"
             >
-              <PlusCircle className="w-4 h-4" /> Add Table / Station
+              <PlusCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden xs:inline">Add Table</span><span className="xs:hidden">Add</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Compact 2-column grid on mobile, 3 on lg */}
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
             {customTables.map((t: any) => {
               const isOccupied = t.status === 'Occupied' || t.status === 'Food Served';
               const isReserved = t.status === 'Reserved';
@@ -725,61 +587,63 @@ export default function FoodDiningModule({
                 <div
                   key={t.id}
                   onClick={() => setSelectedTable(t)}
-                  className={`p-5 rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden group ${
+                  className={`p-3 sm:p-5 rounded-xl sm:rounded-2xl border transition-all cursor-pointer relative overflow-hidden group flex flex-col justify-between ${
                     isOccupied 
-                      ? 'bg-amber-50/50 border-amber-300 hover:border-amber-400 hover:shadow-md'
+                      ? 'bg-amber-50/50 border-amber-300 hover:border-amber-400 hover:shadow-xs'
                       : isReserved
                       ? 'bg-purple-50/50 border-purple-200 hover:border-purple-300'
-                      : 'bg-white border-slate-200 hover:border-emerald-400 hover:shadow-md'
+                      : 'bg-white border-slate-200 hover:border-emerald-400 hover:shadow-xs'
                   }`}
                 >
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <div className="font-black text-slate-900 text-base">{t.name}</div>
-                      <div className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
-                        <User className="w-3.5 h-3.5" /> Capacity: {t.capacity} Guests
+                  <div>
+                    <div className="flex justify-between items-start gap-1 mb-1.5 sm:mb-3">
+                      <div className="min-w-0">
+                        <div className="font-extrabold text-slate-900 text-xs sm:text-base truncate">{t.name}</div>
+                        <div className="text-[10px] sm:text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+                          <User className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> {t.capacity} Guests
+                        </div>
                       </div>
+                      <span className={`px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[8px] sm:text-[10px] font-black uppercase tracking-wider shrink-0 ${
+                        isOccupied 
+                          ? 'bg-amber-500 text-white' 
+                          : isReserved 
+                          ? 'bg-purple-500 text-white' 
+                          : 'bg-emerald-100 text-emerald-800'
+                      }`}>
+                        {t.status}
+                      </span>
                     </div>
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                      isOccupied 
-                        ? 'bg-amber-500 text-white' 
-                        : isReserved 
-                        ? 'bg-purple-500 text-white' 
-                        : 'bg-emerald-100 text-emerald-800'
-                    }`}>
-                      {t.status}
-                    </span>
+
+                    {t.currentGuest ? (
+                      <div className="bg-white/80 backdrop-blur rounded-lg sm:rounded-xl p-2 sm:p-3 border border-slate-200/60 my-1.5 sm:my-3">
+                        <div className="text-[10px] sm:text-xs text-slate-400 font-bold uppercase">Guest</div>
+                        <div className="font-bold text-slate-800 text-xs sm:text-sm flex items-center justify-between">
+                          <span className="truncate">{t.currentGuest}</span>
+                          {t.timeElapsed && <span className="text-[10px] sm:text-xs font-semibold text-amber-600 shrink-0">⏱ {t.timeElapsed}</span>}
+                        </div>
+                        {t.orderTotal > 0 && (
+                          <div className="text-[10px] sm:text-xs font-black text-emerald-700 mt-1">
+                            Bill: ₹{t.orderTotal}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="py-2.5 sm:py-5 text-center text-[10px] sm:text-xs font-medium text-slate-400 italic">
+                        Free & sanitized
+                      </div>
+                    )}
                   </div>
 
-                  {t.currentGuest ? (
-                    <div className="bg-white/80 backdrop-blur rounded-xl p-3 border border-slate-200/60 mb-3">
-                      <div className="text-xs text-slate-400 font-bold uppercase">Guest</div>
-                      <div className="font-bold text-slate-800 text-sm flex items-center justify-between">
-                        <span>{t.currentGuest}</span>
-                        {t.timeElapsed && <span className="text-xs font-semibold text-amber-600">⏱ {t.timeElapsed}</span>}
-                      </div>
-                      {t.orderTotal > 0 && (
-                        <div className="text-xs font-black text-emerald-700 mt-1">
-                          Current Bill: ₹{t.orderTotal}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="py-5 text-center text-xs font-medium text-slate-400 italic">
-                      Table is free and sanitized
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs">
+                  <div className="flex items-center justify-between pt-2 sm:pt-3 border-t border-slate-100 text-[11px] sm:text-xs">
                     {isOccupied ? (
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
                           setCustomTables(prev => prev.map(tbl => tbl.id === t.id ? { ...tbl, status: 'Available', currentGuest: null, orderTotal: 0 } : tbl));
                         }}
-                        className="text-orange-600 font-bold hover:underline flex items-center gap-1"
+                        className="text-orange-600 font-bold hover:underline flex items-center gap-1 text-[10px] sm:text-xs"
                       >
-                        <Printer className="w-3.5 h-3.5" /> Settle & Clean
+                        <Printer className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Settle
                       </button>
                     ) : (
                       <button 
@@ -790,12 +654,12 @@ export default function FoodDiningModule({
                             setCustomTables(prev => prev.map(tbl => tbl.id === t.id ? { ...tbl, status: 'Occupied', currentGuest: guest } : tbl));
                           }
                         }}
-                        className="text-emerald-600 font-bold hover:underline flex items-center gap-1"
+                        className="text-emerald-600 font-bold hover:underline flex items-center gap-1 text-[10px] sm:text-xs"
                       >
-                        <Check className="w-3.5 h-3.5" /> Seat Customer
+                        <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Seat
                       </button>
                     )}
-                    <span className="text-slate-400 font-bold group-hover:text-slate-600 transition-colors">Details →</span>
+                    <span className="text-slate-400 font-bold group-hover:text-slate-600 transition-colors text-[10px] sm:text-xs">Details →</span>
                   </div>
                 </div>
               );

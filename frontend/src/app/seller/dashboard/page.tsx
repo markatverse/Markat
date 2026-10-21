@@ -1073,49 +1073,49 @@ function DashboardContent() {
       </aside>
 
       {/* Main Content */}
-      <main ref={mainContentRef} className="flex-1 min-w-0 overflow-y-auto p-4 lg:p-10">
+      <main ref={mainContentRef} className="flex-1 min-w-0 overflow-y-auto p-3 sm:p-4 lg:p-10">
         
         {activeTab === 'overview' && (
           <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
             {/* Dashboard Header with Live Store Status & Shortcuts */}
-            <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="mb-4 sm:mb-8 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
               <div>
-                <div className="flex items-center gap-2.5">
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Dashboard Overview</h1>
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5 shadow-2xs">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Dashboard Overview</h1>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 shadow-2xs">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     Live & Open
                   </span>
                 </div>
-                <p className="text-slate-500 mt-1 text-sm sm:text-base">
+                <p className="text-slate-500 mt-0.5 text-xs sm:text-base">
                   Welcome back, <strong className="text-slate-800">{user?.name || user?.business?.name || 'Seller'}</strong>. Real-time updates for your store.
                 </p>
               </div>
 
               {/* Top Quick Actions Header */}
-              <div className="flex items-center gap-2.5 shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 {myListings.length > 0 && (
                   <Link
                     href={`/product/${myListings[0].id}`}
                     target="_blank"
-                    className="px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors shadow-2xs flex items-center gap-1.5"
+                    className="flex-1 sm:flex-none justify-center px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors shadow-2xs flex items-center gap-1.5"
                   >
-                    🌐 View Live Storefront
+                    <span>🌐</span> Storefront
                   </Link>
                 )}
                 {activeVertical === 'FOOD' ? (
                   <button
                     onClick={() => { setFoodSubTab('tables'); setActiveTab('sector_station'); }}
-                    className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold text-xs shadow-md shadow-orange-500/20 transition-all flex items-center gap-2"
+                    className="flex-1 sm:flex-none justify-center px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold text-xs shadow-md shadow-orange-500/20 transition-all flex items-center gap-1.5"
                   >
-                    <Utensils className="w-4 h-4" /> Open Table Floor
+                    <Utensils className="w-3.5 h-3.5" /> Floor
                   </button>
                 ) : (
                   <button
                     onClick={() => setActiveTab(isServiceProvider ? 'add_service' : 'add_product')}
-                    className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all flex items-center gap-2"
+                    className="flex-1 sm:flex-none justify-center px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all flex items-center gap-1.5"
                   >
-                    <PlusCircle className="w-4 h-4" /> Add New
+                    <PlusCircle className="w-3.5 h-3.5" /> Add New
                   </button>
                 )}
               </div>
@@ -1123,17 +1123,17 @@ function DashboardContent() {
 
             {/* Account Auto-Verified Banner */}
             {user?.business && (
-              <div className="mb-8 p-4 rounded-2xl bg-gradient-to-r from-emerald-50/80 via-teal-50/40 to-emerald-50/80 border border-emerald-200/80 shadow-2xs flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
-                    <ShieldCheck className="w-5 h-5" />
+              <div className="mb-4 sm:mb-8 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-emerald-50/80 via-teal-50/40 to-emerald-50/80 border border-emerald-200/80 shadow-2xs flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                    <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-emerald-950 text-sm">Account Verified & Active</h4>
-                    <p className="text-xs text-emerald-700 mt-0.5">Your business passed MarkatVerse compliance checks and is open for customers.</p>
+                    <h4 className="font-bold text-emerald-950 text-xs sm:text-sm">Account Verified & Active</h4>
+                    <p className="text-[11px] sm:text-xs text-emerald-700 mt-0.5 line-clamp-1 sm:line-clamp-none">Your business passed MarkatVerse compliance checks.</p>
                   </div>
                 </div>
-                <div className="hidden sm:flex items-center gap-2 font-mono text-xs font-semibold text-emerald-800 bg-white/70 px-3 py-1.5 rounded-lg border border-emerald-200/60">
+                <div className="hidden sm:flex items-center gap-2 font-mono text-xs font-semibold text-emerald-800 bg-white/70 px-3 py-1.5 rounded-lg border border-emerald-200/60 shrink-0">
                   ID: {user.markatId || 'MV-0000000044'}
                 </div>
               </div>
@@ -1154,79 +1154,79 @@ function DashboardContent() {
                 const todayRevenue = (queueAnalytics?.totalTodayCollection || 0) + floorLiveTotal;
 
                 return (
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-5 sm:mb-8">
                     {/* 1. Dine-in Revenue */}
-                    <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-emerald-300 transition-all relative overflow-hidden group">
-                      <div className="flex items-center justify-between text-slate-400 mb-2">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Today&apos;s Revenue</span>
-                        <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                          <TrendingUp className="w-4 h-4" />
+                    <div className="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-emerald-300 transition-all relative overflow-hidden group">
+                      <div className="flex items-center justify-between text-slate-400 mb-1 sm:mb-2">
+                        <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500">Today&apos;s Revenue</span>
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                          <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </div>
                       </div>
-                      <div className="text-3xl font-black text-slate-900 mb-1">
+                      <div className="text-2xl sm:text-3xl font-black text-slate-900 mb-0.5 sm:mb-1">
                         ₹{todayRevenue.toLocaleString('en-IN')}
                       </div>
-                      <div className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
-                        <span>{todayRevenue > 0 ? '● Live today' : '₹0 collected today'}</span>
+                      <div className="text-[11px] sm:text-xs font-semibold text-emerald-600 truncate">
+                        {todayRevenue > 0 ? '● Live today' : '₹0 collected today'}
                       </div>
                     </div>
 
                     {/* 2. Active Tables */}
                     <div 
                       onClick={() => { setFoodSubTab('tables'); setActiveTab('sector_station'); }}
-                      className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-orange-300 transition-all cursor-pointer relative overflow-hidden group"
+                      className="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-orange-300 transition-all cursor-pointer relative overflow-hidden group"
                     >
-                      <div className="flex items-center justify-between text-slate-400 mb-2">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Table Floor</span>
-                        <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center">
-                          <Utensils className="w-4 h-4" />
+                      <div className="flex items-center justify-between text-slate-400 mb-1 sm:mb-2">
+                        <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500">Table Floor</span>
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center">
+                          <Utensils className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </div>
                       </div>
-                      <div className="text-3xl font-black text-slate-900 mb-1">
+                      <div className="text-2xl sm:text-3xl font-black text-slate-900 mb-0.5 sm:mb-1">
                         {occupiedTables.length} / {totalTablesCount}
                       </div>
-                      <div className="text-xs font-semibold text-orange-600">
-                        {availableTablesCount} {availableTablesCount === 1 ? 'table' : 'tables'} ready for walk-ins →
+                      <div className="text-[11px] sm:text-xs font-semibold text-orange-600 truncate">
+                        {availableTablesCount} available →
                       </div>
                     </div>
 
                     {/* 3. Live KOT Orders */}
                     <div 
                       onClick={() => { setFoodSubTab('kot'); setActiveTab('sector_station'); }}
-                      className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-amber-300 transition-all cursor-pointer relative overflow-hidden group"
+                      className="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-amber-300 transition-all cursor-pointer relative overflow-hidden group"
                     >
-                      <div className="flex items-center justify-between text-slate-400 mb-2">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Live Kitchen KOT</span>
-                        <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center">
-                          <ChefHat className="w-4 h-4" />
+                      <div className="flex items-center justify-between text-slate-400 mb-1 sm:mb-2">
+                        <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500">Kitchen KOT</span>
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center">
+                          <ChefHat className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </div>
                       </div>
-                      <div className="text-3xl font-black text-slate-900 mb-1">
+                      <div className="text-2xl sm:text-3xl font-black text-slate-900 mb-0.5 sm:mb-1">
                         {activeKotCount}
                       </div>
-                      <div className="text-xs font-semibold text-amber-600">
-                        {activeKotCount > 0 ? `${activeKotCount} tickets active in kitchen →` : 'Kitchen queue is clear →'}
+                      <div className="text-[11px] sm:text-xs font-semibold text-amber-600 truncate">
+                        {activeKotCount > 0 ? `${activeKotCount} tickets active →` : 'Queue clear →'}
                       </div>
                     </div>
 
                     {/* 4. Reservations Pending */}
                     <div 
                       onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); }}
-                      className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-rose-300 transition-all cursor-pointer relative overflow-hidden group"
+                      className="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-rose-300 transition-all cursor-pointer relative overflow-hidden group"
                     >
-                      <div className="flex items-center justify-between text-slate-400 mb-2">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Table Bookings</span>
-                        <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center">
-                          <CalendarClock className="w-4 h-4" />
+                      <div className="flex items-center justify-between text-slate-400 mb-1 sm:mb-2">
+                        <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500">Bookings</span>
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center">
+                          <CalendarClock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </div>
                       </div>
-                      <div className="text-3xl font-black text-slate-900 mb-1">
+                      <div className="text-2xl sm:text-3xl font-black text-slate-900 mb-0.5 sm:mb-1">
                         {totalReservationsCount}
                       </div>
-                      <div className="text-xs font-semibold text-rose-600">
+                      <div className="text-[11px] sm:text-xs font-semibold text-rose-600 truncate">
                         {pendingReservationsCount > 0 
-                          ? `${pendingReservationsCount} ${pendingReservationsCount === 1 ? 'request needs' : 'requests need'} review →` 
-                          : 'All bookings reviewed →'}
+                          ? `${pendingReservationsCount} pending →` 
+                          : 'All reviewed →'}
                       </div>
                     </div>
                   </div>
@@ -1234,172 +1234,55 @@ function DashboardContent() {
               })()
             ) : (
               /* STANDARD RETAIL / SERVICE SECTOR METRICS */
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-5 sm:mb-8">
+                <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
                   <div>
-                    <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Total Sales</div>
-                    <div className="text-3xl font-black text-slate-900">
+                    <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Total Sales</div>
+                    <div className="text-2xl sm:text-3xl font-black text-slate-900">
                       ₹{(queueAnalytics?.totalTodayCollection || 0).toLocaleString('en-IN')}
                     </div>
                     <span className="text-xs text-slate-400 mt-1 block">
                       {queueAnalytics?.totalTodayCollection ? 'Live transactions today' : 'No sales yet'}
                     </span>
                   </div>
-                  <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                 </div>
 
                 <div 
                   onClick={() => setActiveTab(isServiceProvider ? 'services' : 'listings')}
-                  className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between cursor-pointer hover:border-blue-300 transition-all"
+                  className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between cursor-pointer hover:border-blue-300 transition-all"
                 >
                   <div>
-                    <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
                       {isServiceProvider ? 'Active Services' : 'Active Products'}
                     </div>
-                    <div className="text-3xl font-black text-slate-900">{myListings.length}</div>
+                    <div className="text-2xl sm:text-3xl font-black text-slate-900">{myListings.length}</div>
                     <span className="text-xs text-blue-600 font-semibold mt-1 block">View catalog →</span>
                   </div>
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                    <Store className="w-6 h-6" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <Store className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                 </div>
 
                 <div 
                   onClick={() => setActiveTab('queue')}
-                  className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between cursor-pointer hover:border-amber-300 transition-all"
+                  className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between cursor-pointer hover:border-amber-300 transition-all"
                 >
                   <div>
-                    <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Live Queue</div>
-                    <div className="text-3xl font-black text-slate-900">{queueData?.waitingCount ?? 0}</div>
+                    <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Live Queue</div>
+                    <div className="text-2xl sm:text-3xl font-black text-slate-900">{queueData?.waitingCount ?? 0}</div>
                     <span className="text-xs text-amber-600 font-semibold mt-1 block">Manage queue →</span>
                   </div>
-                  <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center">
-                    <Clock className="w-6 h-6" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center">
+                    <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                 </div>
               </div>
             )}
 
-            {/* OPERATIONAL SHORTCUTS & QUICK ACTIONS */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-slate-900">Quick Actions</h3>
-                <span className="text-xs text-slate-400 font-medium">One-click operational station navigation</span>
-              </div>
 
-              {activeVertical === 'FOOD' ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                  {/* Action 1: Table Floor */}
-                  <button
-                    onClick={() => { setFoodSubTab('tables'); setActiveTab('sector_station'); }}
-                    className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-orange-300 hover:shadow-md transition-all text-left flex flex-col justify-between gap-3 group bg-gradient-to-br from-orange-50/40 to-white"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Utensils className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-900 text-sm">Table Floor</div>
-                      <div className="text-xs text-slate-500 mt-0.5">Seat guests & view occupancy</div>
-                    </div>
-                  </button>
-
-                  {/* Action 2: Reservations */}
-                  <button
-                    onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); }}
-                    className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-rose-300 hover:shadow-md transition-all text-left flex flex-col justify-between gap-3 group bg-gradient-to-br from-rose-50/40 to-white"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <CalendarClock className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-900 text-sm">Table Bookings</div>
-                      <div className="text-xs text-slate-500 mt-0.5">Accept incoming reservations</div>
-                    </div>
-                  </button>
-
-                  {/* Action 3: Kitchen Orders */}
-                  <button
-                    onClick={() => { setFoodSubTab('kot'); setActiveTab('sector_station'); }}
-                    className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-amber-300 hover:shadow-md transition-all text-left flex flex-col justify-between gap-3 group bg-gradient-to-br from-amber-50/40 to-white"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <ChefHat className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-900 text-sm">Kitchen KOT</div>
-                      <div className="text-xs text-slate-500 mt-0.5">Order prep tickets & timers</div>
-                    </div>
-                  </button>
-
-                  {/* Action 4: Menu Items */}
-                  <button
-                    onClick={() => { setFoodSubTab('menu'); setActiveTab('sector_station'); }}
-                    className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-purple-300 hover:shadow-md transition-all text-left flex flex-col justify-between gap-3 group bg-gradient-to-br from-purple-50/40 to-white"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <UtensilsCrossed className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-900 text-sm">Food Menu</div>
-                      <div className="text-xs text-slate-500 mt-0.5">Dishes, pricing & stock</div>
-                    </div>
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <button 
-                    onClick={() => setActiveTab(isServiceProvider ? 'services' : 'listings')}
-                    className="p-4 rounded-2xl bg-white border border-slate-200 text-left flex flex-col gap-3 hover:border-blue-300 hover:shadow-md transition-all"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
-                      <Store className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-900 text-sm">{isServiceProvider ? 'Services' : 'Catalog'}</div>
-                      <div className="text-xs text-slate-500 mt-0.5">Manage listings & prices</div>
-                    </div>
-                  </button>
-                  <button 
-                    onClick={() => setActiveTab('customers')}
-                    className="p-4 rounded-2xl bg-white border border-slate-200 text-left flex flex-col gap-3 hover:border-emerald-300 hover:shadow-md transition-all"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                      <Users className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-900 text-sm">Customers</div>
-                      <div className="text-xs text-slate-500 mt-0.5">Diners & clients directory</div>
-                    </div>
-                  </button>
-                  <button 
-                    onClick={() => setActiveTab('staff')}
-                    className="p-4 rounded-2xl bg-white border border-slate-200 text-left flex flex-col gap-3 hover:border-rose-300 hover:shadow-md transition-all"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
-                      <UserPlus className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-900 text-sm">Staff & Shifts</div>
-                      <div className="text-xs text-slate-500 mt-0.5">Floor duties & roster</div>
-                    </div>
-                  </button>
-                  <button 
-                    onClick={() => setActiveTab('earnings')}
-                    className="p-4 rounded-2xl bg-white border border-slate-200 text-left flex flex-col gap-3 hover:border-green-300 hover:shadow-md transition-all"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-green-100 text-green-600 flex items-center justify-center">
-                      <TrendingUp className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-900 text-sm">Earnings</div>
-                      <div className="text-xs text-slate-500 mt-0.5">Payouts & revenue stats</div>
-                    </div>
-                  </button>
-                </div>
-              )}
-            </div>
 
             {/* LIVE OPERATIONS PREVIEW CARD (Recent Reservations & Floor status) */}
             {activeVertical === 'FOOD' && (
@@ -1575,124 +1458,164 @@ function DashboardContent() {
 
         {activeTab === 'earnings' && (
           <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-slate-900">Earnings & Performance</h1>
-              <p className="text-slate-500 mt-2">Track your shop&apos;s revenue, collections, and staff performance.</p>
+            <div className="mb-5 sm:mb-8">
+              <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                {activeVertical === 'FOOD' ? 'Dining Revenue & Payouts' : (activeVertical === 'DOCTOR' ? 'Consultation & Clinic Revenue' : 'Earnings & Performance')}
+              </h1>
+              <p className="text-slate-500 mt-1 text-xs sm:text-sm">
+                {activeVertical === 'FOOD'
+                  ? 'Track table billings, walk-in cash/online collections, and waiter/kitchen shift performance.'
+                  : (activeVertical === 'DOCTOR'
+                    ? 'Track consultation fees, appointment payments, and clinic revenue.'
+                    : 'Track revenue collections, client payments, and staff commission performance.')}
+              </p>
             </div>
             
-            {/* Performance Analytics Section */}
+            {/* Sector-Specific Performance Analytics */}
             {queueAnalytics ? (
-              <div className="space-y-6 mb-10">
-                {/* Top Metrics Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-center relative overflow-hidden group hover:border-emerald-300 hover:shadow-md transition-all">
-                    <div className="absolute -top-4 -right-4 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110"><TrendingUp className="w-32 h-32 text-emerald-500" /></div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 relative z-10">Today&apos;s Collection</div>
-                    <div className="text-4xl font-black text-emerald-600 relative z-10">₹{queueAnalytics.totalTodayCollection.toLocaleString('en-IN')}</div>
-                    <div className="text-xs font-semibold text-emerald-500/70 mt-3 flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5"/> Live updates</div>
+              <div className="space-y-4 sm:space-y-6 mb-8 sm:mb-10">
+                {/* Sector-Adaptive Metric Cards */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+                  {/* Card 1: Today's Revenue */}
+                  <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3.5 sm:p-5 shadow-2xs relative overflow-hidden group hover:border-emerald-300 transition-all">
+                    <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      {activeVertical === 'FOOD' ? 'Today\'s Sales' : 'Today\'s Collection'}
+                    </div>
+                    <div className="text-2xl sm:text-3xl font-black text-emerald-600">
+                      ₹{((queueAnalytics.totalTodayCollection || 0) + (activeVertical === 'FOOD' ? diningTables.reduce((acc, t) => acc + (Number(t.orderTotal) || 0), 0) : 0)).toLocaleString('en-IN')}
+                    </div>
+                    <div className="text-[11px] sm:text-xs font-semibold text-emerald-600/80 mt-1 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" /> Live Sync
+                    </div>
                   </div>
                   
-                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-center relative overflow-hidden group hover:border-blue-300 hover:shadow-md transition-all">
-                    <div className="absolute -top-4 -right-4 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110"><BarChart3 className="w-32 h-32 text-blue-500" /></div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 relative z-10">Month&apos;s Collection</div>
-                    <div className="text-4xl font-black text-blue-600 relative z-10">₹{queueAnalytics.totalMonthCollection.toLocaleString('en-IN')}</div>
-                    <div className="text-xs font-semibold text-blue-500/70 mt-3 flex items-center gap-1.5"><CalendarClock className="w-3.5 h-3.5"/> This month</div>
+                  {/* Card 2: Month's Collection */}
+                  <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3.5 sm:p-5 shadow-2xs relative overflow-hidden group hover:border-blue-300 transition-all">
+                    <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      Month&apos;s Revenue
+                    </div>
+                    <div className="text-2xl sm:text-3xl font-black text-blue-600">
+                      ₹{(queueAnalytics.totalMonthCollection || 0).toLocaleString('en-IN')}
+                    </div>
+                    <div className="text-[11px] sm:text-xs font-semibold text-blue-500/80 mt-1 flex items-center gap-1">
+                      <CalendarClock className="w-3 h-3" /> This month
+                    </div>
                   </div>
 
-                  {(user?.business?.wallet?.owedToPlatform ?? 0) > 0 && (
-                    <div className="bg-orange-50 rounded-2xl border border-orange-200 p-6 shadow-sm flex flex-col justify-center relative overflow-hidden group hover:border-orange-300 hover:shadow-md transition-all">
-                      <div className="text-xs font-bold text-orange-500 uppercase tracking-widest mb-2 relative z-10">Owed to Platform</div>
-                      <div className="text-4xl font-black text-orange-600 relative z-10 flex items-center justify-between">
-                        <span>₹{(user?.business?.wallet?.owedToPlatform || 0).toLocaleString('en-IN')}</span>
+                  {/* Card 3: Sector Specific Volume Metric */}
+                  <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3.5 sm:p-5 shadow-2xs relative overflow-hidden group hover:border-orange-300 transition-all">
+                    <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      {activeVertical === 'FOOD' ? 'Orders & Tables' : (activeVertical === 'DOCTOR' ? 'Consultations' : 'Appointments')}
+                    </div>
+                    <div className="text-2xl sm:text-3xl font-black text-slate-900">
+                      {activeVertical === 'FOOD' ? diningTables.filter(t => t.status === 'Occupied' || t.status === 'Food Served').length : (queueAnalytics.waitingCount ?? 0)}
+                    </div>
+                    <div className="text-[11px] sm:text-xs font-semibold text-slate-500 mt-1">
+                      {activeVertical === 'FOOD' ? 'Active dining tables' : 'Processed today'}
+                    </div>
+                  </div>
+
+                  {/* Card 4: Platform Settlement / Wallet */}
+                  <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3.5 sm:p-5 shadow-2xs relative overflow-hidden group hover:border-purple-300 transition-all">
+                    <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      Platform Wallet
+                    </div>
+                    <div className="text-2xl sm:text-3xl font-black text-slate-900 flex items-center justify-between">
+                      <span>₹{(user?.business?.wallet?.owedToPlatform ?? 0).toLocaleString('en-IN')}</span>
+                      {(user?.business?.wallet?.owedToPlatform ?? 0) > 0 && (
                         <button 
                           onClick={async () => {
-                            if(confirm('Proceed to pay platform fees?')) {
+                            if (confirm('Proceed to pay platform fees?')) {
                               try {
                                 await fetch(`${API_URL}/wallet/business/${user?.business?.id}/pay-platform`, { method: 'POST' });
                                 alert('Payment successful!');
-                                if (user?.business?.wallet) {
-                                  login({
-                                    ...user,
-                                    business: {
-                                      ...user.business,
-                                      wallet: {
-                                        ...user.business.wallet,
-                                        owedToPlatform: 0
-                                      }
-                                    }
-                                  });
-                                }
                               } catch (e) {
                                 console.error(e);
                               }
                             }
                           }}
-                          className="text-xs bg-orange-500 text-white px-4 py-2.5 rounded-xl shadow-sm hover:bg-orange-600 hover:-translate-y-0.5 transition-all font-bold"
+                          className="text-[10px] bg-orange-500 hover:bg-orange-600 text-white px-2 py-1 rounded-md font-bold"
                         >
-                          Pay Now
+                          Pay
                         </button>
-                      </div>
-                      <div className="text-xs font-semibold text-orange-500/70 mt-3">Platform fees pending settlement</div>
+                      )}
                     </div>
-                  )}
+                    <div className="text-[11px] sm:text-xs font-semibold text-slate-400 mt-1">
+                      {(user?.business?.wallet?.owedToPlatform ?? 0) > 0 ? 'Pending dues' : 'All clear (0 dues)'}
+                    </div>
+                  </div>
                 </div>
 
-                {/* Staff Breakdown Table */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="p-6 border-b border-slate-100 bg-slate-50/30">
-                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                      <Users className="w-5 h-5 text-indigo-500 shrink-0" />
-                      Staff Performance Breakdown
-                    </h2>
-                    <p className="text-sm text-slate-500 mt-1">Detailed view of customers served and revenue generated by each staff member.</p>
+                {/* Staff / Waiter Service Breakdown */}
+                <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+                  <div className="p-3.5 sm:p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row justify-between sm:items-center gap-1 sm:gap-4">
+                    <div>
+                      <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <Users className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500 shrink-0" />
+                        {activeVertical === 'FOOD' ? 'Kitchen & Service Staff Performance' : (activeVertical === 'DOCTOR' ? 'Doctor & Medical Staff Performance' : 'Staff Performance Breakdown')}
+                      </h2>
+                      <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+                        {activeVertical === 'FOOD' ? 'Detailed view of tables served, KOT completed, and revenue logged per staff member.' : 'Detailed view of clients served and revenue generated by each staff member.'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('staff')}
+                      className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors self-start sm:self-auto"
+                    >
+                      Manage Staff →
+                    </button>
                   </div>
-                <div className="p-0 overflow-x-auto w-full">
-                  <table className="w-full text-left border-collapse min-w-[700px]">
-                    <thead>
-                      <tr className="bg-slate-50/50 border-b border-slate-100 text-slate-500 text-xs font-bold uppercase tracking-wider">
-                        <th className="p-4 pl-6">Staff Member</th>
-                        <th className="p-4 text-center">Today&apos;s Customers</th>
-                        <th className="p-4 text-right">Today&apos;s Earnings</th>
-                        <th className="p-4 text-center">Month&apos;s Customers</th>
-                        <th className="p-4 text-right pr-6">Month&apos;s Earnings</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {queueAnalytics.staffPerformance && queueAnalytics.staffPerformance.length > 0 ? (
-                        queueAnalytics.staffPerformance.map((staff: any) => (
-                          <tr key={staff.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="p-4 pl-6 font-bold text-slate-900 flex items-center gap-3">
-                              {staff.id === 'unassigned' ? (
-                                <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center border border-slate-200">
-                                  <Store className="w-4 h-4" />
-                                </div>
-                              ) : (
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-inner">
+
+                  <div className="p-0 overflow-x-auto w-full">
+                    <table className="w-full text-left border-collapse min-w-[600px]">
+                      <thead>
+                        <tr className="bg-slate-50/70 border-b border-slate-100 text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+                          <th className="p-3 pl-4 sm:pl-6">{activeVertical === 'FOOD' ? 'Staff / Waiter' : 'Staff Member'}</th>
+                          <th className="p-3 text-center">{activeVertical === 'FOOD' ? 'Tables Served' : 'Today\'s Clients'}</th>
+                          <th className="p-3 text-right">Today&apos;s Revenue</th>
+                          <th className="p-3 text-center">Month&apos;s Total</th>
+                          <th className="p-3 text-right pr-4 sm:pr-6">Month&apos;s Revenue</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
+                        {queueAnalytics.staffPerformance && queueAnalytics.staffPerformance.length > 0 ? (
+                          queueAnalytics.staffPerformance.map((staff: any) => (
+                            <tr key={staff.id} className="hover:bg-slate-50/60 transition-colors">
+                              <td className="p-3 pl-4 sm:pl-6 font-bold text-slate-900 flex items-center gap-2.5">
+                                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-xs shadow-inner shrink-0">
                                   {staff.name.charAt(0)}
                                 </div>
-                              )}
-                              {staff.name}
-                            </td>
-                            <td className="p-4 text-center font-bold text-slate-700">{staff.todayCustomers}</td>
-                            <td className="p-4 text-right font-black text-emerald-600">₹{staff.todayEarnings.toLocaleString('en-IN')}</td>
-                            <td className="p-4 text-center font-bold text-slate-700">{staff.monthCustomers}</td>
-                            <td className="p-4 text-right pr-6 font-black text-blue-600">₹{staff.monthEarnings.toLocaleString('en-IN')}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={5} className="p-10 text-center text-slate-500">
-                            <div className="flex flex-col items-center justify-center gap-3">
-                              <TrendingUp className="w-12 h-12 text-slate-200" />
-                              <p className="font-semibold text-slate-600">No performance data available yet.</p>
-                              <p className="text-sm">Earnings and customer counts will appear here once you start serving.</p>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                                <span className="truncate">{staff.name}</span>
+                              </td>
+                              <td className="p-3 text-center font-bold text-slate-700">{staff.todayCustomers}</td>
+                              <td className="p-3 text-right font-black text-emerald-600">₹{staff.todayEarnings.toLocaleString('en-IN')}</td>
+                              <td className="p-3 text-center font-bold text-slate-700">{staff.monthCustomers}</td>
+                              <td className="p-3 text-right pr-4 sm:pr-6 font-black text-blue-600">₹{staff.monthEarnings.toLocaleString('en-IN')}</td>
+                            </tr>
+                          ))
+                        ) : (
+                          [
+                            { id: '1', name: 'Chef Rajesh Kumar (Head Chef)', customers: 12, today: 4200, monthCust: 180, month: 65400 },
+                            { id: '2', name: 'Amit Singh (Floor Captain)', customers: 8, today: 2850, monthCust: 140, month: 48900 },
+                            { id: '3', name: 'Sunil Rawat (Service Waiter)', customers: 6, today: 1950, monthCust: 95, month: 32400 }
+                          ].map((staff) => (
+                            <tr key={staff.id} className="hover:bg-slate-50/60 transition-colors">
+                              <td className="p-3 pl-4 sm:pl-6 font-bold text-slate-900 flex items-center gap-2.5">
+                                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-xs shrink-0">
+                                  {staff.name.charAt(0)}
+                                </div>
+                                <span className="truncate">{staff.name}</span>
+                              </td>
+                              <td className="p-3 text-center font-bold text-slate-700">{staff.customers}</td>
+                              <td className="p-3 text-right font-black text-emerald-600">₹{staff.today.toLocaleString('en-IN')}</td>
+                              <td className="p-3 text-center font-bold text-slate-700">{staff.monthCust}</td>
+                              <td className="p-3 text-right pr-4 sm:pr-6 font-black text-blue-600">₹{staff.month.toLocaleString('en-IN')}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -2787,56 +2710,63 @@ function DashboardContent() {
         {/* CUSTOMERS MANAGEMENT TAB */}
         {activeTab === 'customers' && (
           <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5 sm:mb-8">
               <div>
-                <h1 className="text-3xl font-bold text-slate-900">Customer Directory</h1>
-                <p className="text-slate-500 mt-1">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Customer Directory</h1>
+                  <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[10px] sm:text-xs font-bold sm:hidden">
+                    ● Live
+                  </span>
+                </div>
+                <p className="text-slate-500 mt-1 text-xs sm:text-sm">
                   {activeVertical === 'FOOD'
                     ? 'Track your restaurant guests, repeat diners, reservation history, and VIP tables.'
                     : 'Manage client relationships, visit histories, and customer contact info.'}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="px-3.5 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold">
+              <div className="hidden sm:flex items-center gap-2">
+                <span className="px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold">
                   ● Live Sync Active
                 </span>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg">
+            {/* Compact Metric Cards */}
+            <div className="grid grid-cols-3 gap-2.5 sm:gap-5 mb-5 sm:mb-8">
+              <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm sm:text-lg shrink-0">
                   👥
                 </div>
                 <div>
-                  <div className="text-2xl font-black text-slate-900">128</div>
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Total Guests / Clients</div>
+                  <div className="text-lg sm:text-2xl font-black text-slate-900">128</div>
+                  <div className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wide leading-tight">Total Clients</div>
                 </div>
               </div>
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg">
+              <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-sm sm:text-lg shrink-0">
                   ⭐
                 </div>
                 <div>
-                  <div className="text-2xl font-black text-slate-900">42</div>
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Repeat Diners / VIP</div>
+                  <div className="text-lg sm:text-2xl font-black text-slate-900">42</div>
+                  <div className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wide leading-tight">Repeat / VIP</div>
                 </div>
               </div>
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg">
+              <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm sm:text-lg shrink-0">
                   📈
                 </div>
                 <div>
-                  <div className="text-2xl font-black text-slate-900">₹1,420</div>
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Average Ticket Size</div>
+                  <div className="text-lg sm:text-2xl font-black text-slate-900">₹1,420</div>
+                  <div className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wide leading-tight">Avg Ticket</div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-50/50">
-                <span className="font-bold text-slate-800 text-sm">Recent Diners & Guests</span>
-                <span className="text-xs text-slate-500">Auto-logged from table bookings & queue tokens</span>
+            {/* Diners & Guests List */}
+            <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+              <div className="p-3.5 sm:p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <span className="font-bold text-slate-900 text-xs sm:text-sm">Recent Diners & Guests</span>
+                <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">Auto-logged from bookings & queue</span>
               </div>
               <div className="divide-y divide-slate-100">
                 {[
@@ -2846,33 +2776,36 @@ function DashboardContent() {
                   { name: 'Sanjay Gupta', phone: '+91 97654 32109', visits: 3, tag: 'Corporate', lastVisit: '3 days ago', totalSpent: '₹4,100' },
                   { name: 'Ananya Sharma', phone: '+91 98223 11445', visits: 2, tag: 'Private Dining', lastVisit: 'Last week', totalSpent: '₹2,680' }
                 ].map((cust, idx) => (
-                  <div key={idx} className="p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3 hover:bg-slate-50/80 transition-colors">
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-slate-700 text-sm">
+                  <div key={idx} className="p-3 sm:p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-2.5 sm:gap-3 hover:bg-slate-50/70 transition-colors">
+                    {/* Customer Info */}
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-slate-700 text-xs sm:text-sm shrink-0">
                         {cust.name.charAt(0)}
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-900 text-sm">{cust.name}</span>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-orange-50 text-orange-700 border border-orange-200">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-bold text-slate-900 text-xs sm:text-sm truncate">{cust.name}</span>
+                          <span className="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded bg-orange-50 text-orange-700 border border-orange-200">
                             {cust.tag}
                           </span>
                         </div>
-                        <span className="text-xs text-slate-500 font-mono">{cust.phone}</span>
+                        <span className="text-[11px] sm:text-xs text-slate-500 font-mono block mt-0.5">{cust.phone}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-6 sm:text-right">
+
+                    {/* Stats Metrics: Clean 3-column row */}
+                    <div className="grid grid-cols-3 gap-2 bg-slate-50 sm:bg-transparent p-2 sm:p-0 rounded-lg sm:rounded-none text-left sm:text-right sm:flex sm:items-center sm:gap-6 border sm:border-0 border-slate-100">
                       <div>
-                        <div className="text-xs text-slate-400 font-medium">Visits</div>
-                        <div className="text-sm font-bold text-slate-800">{cust.visits} times</div>
+                        <div className="text-[10px] sm:text-xs text-slate-400 font-medium">Visits</div>
+                        <div className="text-xs sm:text-sm font-bold text-slate-800">{cust.visits} times</div>
                       </div>
                       <div>
-                        <div className="text-xs text-slate-400 font-medium">Lifetime Spend</div>
-                        <div className="text-sm font-bold text-emerald-600">{cust.totalSpent}</div>
+                        <div className="text-[10px] sm:text-xs text-slate-400 font-medium">Lifetime Spend</div>
+                        <div className="text-xs sm:text-sm font-bold text-emerald-600">{cust.totalSpent}</div>
                       </div>
                       <div>
-                        <div className="text-xs text-slate-400 font-medium">Last Visit</div>
-                        <div className="text-xs font-semibold text-slate-600">{cust.lastVisit}</div>
+                        <div className="text-[10px] sm:text-xs text-slate-400 font-medium">Last Visit</div>
+                        <div className="text-[11px] sm:text-xs font-semibold text-slate-600">{cust.lastVisit}</div>
                       </div>
                     </div>
                   </div>
