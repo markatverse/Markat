@@ -451,7 +451,7 @@ export const defaultProducts: Product[] = [
   }
 ];
 
-const defaultCategories: Category[] = [
+export const defaultCategories: Category[] = [
   // ── PRODUCT ──
   {
     id: 'c1',
@@ -1082,7 +1082,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const { isSectorActive } = useSettings();
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<Category[]>(defaultCategories);
   const [isLoading, setIsLoading] = useState(true);
   const [userLocation, setUserLocation] = useState<string>('');
   const [userLat, setUserLat] = useState<number | null>(null);

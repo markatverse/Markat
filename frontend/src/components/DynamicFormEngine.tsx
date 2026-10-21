@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { PlusCircle, Trash2, ChevronUp, ChevronDown, Layers, FileText, IndianRupee, Image, Sparkles, Check, CheckCircle2 } from 'lucide-react';
-import { useProducts, FormField, useCategoryRules, BusinessModel } from '@/context/ProductContext';
+import { useProducts, FormField, useCategoryRules, BusinessModel, defaultCategories } from '@/context/ProductContext';
 import { useAuth } from '@/context/AuthContext';
 
 interface DynamicFormEngineProps {
@@ -228,7 +228,10 @@ export default function DynamicFormEngine({
     return cName === sName || sName.includes(cName) || cName.includes(sName);
   };
 
-  const availableCategories = categories.filter(c => {
+  // Ensure we always have categories available even if API hasn't resolved yet
+  const allCategories = categories && categories.length > 0 ? categories : defaultCategories;
+
+  const availableCategories = allCategories.filter(c => {
     if (c.primaryType !== primaryType) return false;
     return isCategoryAllowedForSeller(c.name);
   });
