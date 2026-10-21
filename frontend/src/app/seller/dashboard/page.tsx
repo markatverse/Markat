@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useProducts } from '@/context/ProductContext';
-import { Store, BarChart3, Package, PlusCircle, ArrowLeft, Trash2, Edit2, CheckCircle2, CalendarClock, Settings, Menu, X, Users, TrendingUp, Ticket, Clock, Ban, Search, Phone, Mail, FileText, MapPin, ChevronDown, Activity, Scissors, User, UserPlus, Sparkles, Palette, Droplet, Briefcase, Eye, ShieldCheck, Utensils, UtensilsCrossed, Stethoscope, HeartPulse, ChefHat, MessageSquare, Lock, Check, Info, Bell, Key, PartyPopper } from 'lucide-react';
+import { Store, BarChart3, Package, PlusCircle, ArrowLeft, Trash2, Edit2, CheckCircle2, CalendarClock, Settings, Menu, X, Users, TrendingUp, Ticket, Clock, Ban, Search, Phone, Mail, FileText, MapPin, ChevronDown, Activity, Scissors, User, UserPlus, Sparkles, Palette, Droplet, Briefcase, Eye, ShieldCheck, Utensils, UtensilsCrossed, Stethoscope, HeartPulse, ChefHat, MessageSquare, Lock, Check, Info, Bell, Key } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Suspense } from 'react';
 import StaffResourceManagementModal from '@/components/StaffResourceManagementModal';
@@ -12,7 +12,6 @@ import LocationPicker from '@/components/LocationPicker';
 import FoodDiningModule from '@/components/FoodDiningModule';
 import ClinicDoctorModule from '@/components/ClinicDoctorModule';
 import SalonSpaModule from '@/components/SalonSpaModule';
-import EventOrganizerModule from '@/components/EventOrganizerModule';
 
 const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
 
@@ -131,21 +130,16 @@ function DashboardContent() {
     cat === 'salon & parlor' || cat === 'salon' || cat === 'saloon' || cat === 'parlor' || cat === 'parlour' || cat === 'spa' || cat === 'beauty'
   );
 
-  const isEventListed = distinctSellerCategories.some(cat => 
-    cat === 'event planner' || cat === 'organizers' || cat === 'organizer' || cat === 'event & party' || cat.includes('event') || cat.includes('wedding')
-  );
-
-  const availableVerticals: { id: 'FOOD' | 'SALON' | 'DOCTOR' | 'EVENT'; label: string; icon: any }[] = [];
+  const availableVerticals: { id: 'FOOD' | 'SALON' | 'DOCTOR'; label: string; icon: any }[] = [];
   if (isFoodListed) availableVerticals.push({ id: 'FOOD', label: 'Dining', icon: Utensils });
   if (isSalonListed) availableVerticals.push({ id: 'SALON', label: 'Salon', icon: Scissors });
   if (isDoctorListed) availableVerticals.push({ id: 'DOCTOR', label: 'Doctor', icon: Stethoscope });
-  if (isEventListed) availableVerticals.push({ id: 'EVENT', label: 'Events & Weddings', icon: PartyPopper });
 
-  const defaultDetectedVertical: 'FOOD' | 'SALON' | 'DOCTOR' | 'EVENT' | 'NONE' = 
+  const defaultDetectedVertical: 'FOOD' | 'SALON' | 'DOCTOR' | 'NONE' = 
     availableVerticals.length > 0 ? availableVerticals[0].id : 'NONE';
 
-  const [currentVertical, setCurrentVertical] = useState<'AUTO' | 'FOOD' | 'SALON' | 'DOCTOR' | 'EVENT'>('AUTO');
-  const activeVertical: 'FOOD' | 'SALON' | 'DOCTOR' | 'EVENT' | 'NONE' = 
+  const [currentVertical, setCurrentVertical] = useState<'AUTO' | 'FOOD' | 'SALON' | 'DOCTOR'>('AUTO');
+  const activeVertical: 'FOOD' | 'SALON' | 'DOCTOR' | 'NONE' = 
     currentVertical === 'AUTO' 
       ? defaultDetectedVertical 
       : (availableVerticals.some(v => v.id === currentVertical) ? currentVertical : defaultDetectedVertical);
@@ -153,13 +147,13 @@ function DashboardContent() {
   // Dynamic Flow Resolution (Reads from Category Engine FIRST, falls back to hardcoded strings)
   const isCartFlow = allowedFeatures.includes('Product Stock') || allowedFeatures.includes('B2C') || hasCartProducts || CART_ORDER_FLOW.includes(sellerSector) || isB2C;
   const isRfqFlow = allowedFeatures.includes('RFQ') || allowedFeatures.includes('Quote') || allowedFeatures.includes('B2B') || hasRfqProducts || RFQ_QUOTE_FLOW.includes(sellerSector) || isB2B;
-  const isQueueFlow = allowedFeatures.includes('Token') || hasQueueServices || QUEUE_TOKEN_FLOW.includes(sellerSector) || isService || ['FOOD', 'SALON', 'DOCTOR', 'EVENT'].includes(activeVertical);
+  const isQueueFlow = allowedFeatures.includes('Token') || hasQueueServices || QUEUE_TOKEN_FLOW.includes(sellerSector) || isService || ['FOOD', 'SALON', 'DOCTOR'].includes(activeVertical);
   const isProjectFlow = hasProjectServices || PROJECT_MILESTONE_FLOW.includes(sellerSector);
   const isMeetingFlow = allowedFeatures.includes('Appointment') || allowedFeatures.includes('Meeting') || hasMeetingServices || MEETING_PROPOSAL_FLOW.includes(sellerSector);
   const isAssetFlow = allowedFeatures.includes('Vehicle Test Drive') || hasAssetListings || ENQUIRY_ASSET_FLOW.includes(sellerSector);
 
   // For backward compatibility in some places
-  const isServiceProvider = isQueueFlow || isProjectFlow || isMeetingFlow || isService || sellerCategory?.primaryType === 'SERVICE' || ['FOOD', 'SALON', 'DOCTOR', 'EVENT'].includes(activeVertical);
+  const isServiceProvider = isQueueFlow || isProjectFlow || isMeetingFlow || isService || sellerCategory?.primaryType === 'SERVICE' || ['FOOD', 'SALON', 'DOCTOR'].includes(activeVertical);
   const [queueData, setQueueData] = useState<any>(null);
   const [isQueueLoading, setIsQueueLoading] = useState(false);
   const [queueAnalytics, setQueueAnalytics] = useState<any>(null);
@@ -875,15 +869,11 @@ function DashboardContent() {
                 <span>Listed Verticals</span>
                 <span className="text-indigo-600 font-bold">{activeVertical}</span>
               </div>
-              <div className={`grid gap-1 ${availableVerticals.length === 2 ? 'grid-cols-2' : (availableVerticals.length >= 4 ? 'grid-cols-2' : 'grid-cols-3')}`}>
+              <div className={`grid gap-1 ${availableVerticals.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                 {availableVerticals.map(v => {
                   const Icon = v.icon;
                   const isAct = activeVertical === v.id;
-                  const activeColor = v.id === 'FOOD' 
-                    ? 'bg-orange-500 text-white' 
-                    : (v.id === 'SALON' 
-                      ? 'bg-indigo-600 text-white' 
-                      : (v.id === 'DOCTOR' ? 'bg-emerald-600 text-white' : 'bg-fuchsia-600 text-white'));
+                  const activeColor = v.id === 'FOOD' ? 'bg-orange-500 text-white' : (v.id === 'SALON' ? 'bg-indigo-600 text-white' : 'bg-emerald-600 text-white');
                   return (
                     <button
                       key={v.id}
@@ -909,8 +899,7 @@ function DashboardContent() {
                 {activeVertical === 'FOOD' && <Utensils className="w-3.5 h-3.5 text-orange-500" />}
                 {activeVertical === 'SALON' && <Scissors className="w-3.5 h-3.5 text-indigo-600" />}
                 {activeVertical === 'DOCTOR' && <Stethoscope className="w-3.5 h-3.5 text-emerald-600" />}
-                {activeVertical === 'EVENT' && <PartyPopper className="w-3.5 h-3.5 text-fuchsia-600" />}
-                {activeVertical === 'FOOD' ? 'Dining & Food' : (activeVertical === 'DOCTOR' ? 'Clinic & Doctor' : (activeVertical === 'EVENT' ? 'Events & Weddings' : 'Salon & Spa'))}
+                {activeVertical === 'FOOD' ? 'Dining & Food' : (activeVertical === 'DOCTOR' ? 'Clinic & Doctor' : 'Salon & Spa')}
               </span>
             </div>
           )}
@@ -970,43 +959,27 @@ function DashboardContent() {
                     </button>
                   )}
 
-                  {activeVertical === 'EVENT' && (
-                    <button 
-                      onClick={() => { setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
-                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' ? 'bg-fuchsia-50 text-fuchsia-700 font-bold border border-fuchsia-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <PartyPopper className="w-5 h-5 text-fuchsia-600" /> Events & Productions
-                      </div>
-                      <span className="px-2 py-0.5 bg-fuchsia-100 text-fuchsia-800 rounded text-[10px] font-bold">Planner</span>
-                    </button>
-                  )}
+                  <button 
+                    onClick={() => { setActiveTab('bookings'); setIsMobileMenuOpen(false); }} 
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'bookings' ? 'bg-amber-50 text-amber-700 font-bold border border-amber-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <CalendarClock className="w-5 h-5" /> Bookings & Tokens
+                    </div>
+                  </button>
 
-                  {activeVertical !== 'EVENT' && (
-                    <>
-                      <button 
-                        onClick={() => { setActiveTab('bookings'); setIsMobileMenuOpen(false); }} 
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'bookings' ? 'bg-amber-50 text-amber-700 font-bold border border-amber-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <CalendarClock className="w-5 h-5" /> Bookings & Tokens
-                        </div>
-                      </button>
-
-                      <button 
-                        onClick={() => { setActiveTab('queue'); setIsMobileMenuOpen(false); }} 
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'queue' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-                      >
-                        <span className="w-5 h-5 flex items-center justify-center text-lg">🎟️</span> Live Queue
-                      </button>
-                    </>
-                  )}
+                  <button 
+                    onClick={() => { setActiveTab('queue'); setIsMobileMenuOpen(false); }} 
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'queue' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                  >
+                    <span className="w-5 h-5 flex items-center justify-center text-lg">🎟️</span> Live Queue
+                  </button>
 
                   <button 
                     onClick={() => { setActiveTab('services'); setIsMobileMenuOpen(false); }} 
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'services' ? 'bg-purple-50 text-purple-700 font-bold border border-purple-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                   >
-                    <Briefcase className="w-5 h-5" /> {activeVertical === 'EVENT' ? 'Packages & Services' : 'Services & Catalog'}
+                    <Briefcase className="w-5 h-5" /> Services & Catalog
                   </button>
                 </>
               )}
@@ -1015,14 +988,14 @@ function DashboardContent() {
                 onClick={() => { setActiveTab('customers'); setIsMobileMenuOpen(false); }} 
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'customers' ? 'bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
               >
-                <Users className="w-5 h-5" /> {activeVertical === 'EVENT' ? 'Clients' : 'Customers'}
+                <Users className="w-5 h-5" /> Customers
               </button>
 
               <button 
                 onClick={() => { setActiveTab('staff'); setIsMobileMenuOpen(false); }} 
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'staff' ? 'bg-rose-50 text-rose-700 font-bold border border-rose-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
               >
-                <UserPlus className="w-5 h-5" /> {activeVertical === 'DOCTOR' ? 'Doctors & Staff' : (activeVertical === 'FOOD' ? 'Kitchen & Waiters' : (activeVertical === 'EVENT' ? 'Event Crew & Staff' : 'Stylists & Staff'))}
+                <UserPlus className="w-5 h-5" /> {activeVertical === 'DOCTOR' ? 'Doctors & Staff' : (activeVertical === 'FOOD' ? 'Kitchen & Waiters' : 'Stylists & Staff')}
               </button>
 
               <button 
@@ -1105,39 +1078,17 @@ function DashboardContent() {
         {activeTab === 'overview' && (
           <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
             {/* Dashboard Header with Live Store Status & Shortcuts */}
-            <div className="mb-4 sm:mb-6 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+            <div className="mb-4 sm:mb-8 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
               <div>
-                <div className="flex flex-wrap items-center gap-2.5">
+                <div className="flex items-center gap-2">
                   <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Dashboard Overview</h1>
-                  
-                  {/* Crystal-Clear Sector Identity Badge */}
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 shadow-2xs ${
-                    activeVertical === 'EVENT' 
-                      ? 'bg-fuchsia-50 text-fuchsia-800 border-fuchsia-200' 
-                      : (activeVertical === 'FOOD'
-                        ? 'bg-orange-50 text-orange-800 border-orange-200'
-                        : (activeVertical === 'DOCTOR'
-                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                          : (activeVertical === 'SALON'
-                            ? 'bg-indigo-50 text-indigo-800 border-indigo-200'
-                            : 'bg-blue-50 text-blue-800 border-blue-200')))}`}>
-                    {activeVertical === 'EVENT' && <PartyPopper className="w-3.5 h-3.5 text-fuchsia-600" />}
-                    {activeVertical === 'FOOD' && <Utensils className="w-3.5 h-3.5 text-orange-500" />}
-                    {activeVertical === 'DOCTOR' && <Stethoscope className="w-3.5 h-3.5 text-emerald-600" />}
-                    {activeVertical === 'SALON' && <Scissors className="w-3.5 h-3.5 text-indigo-600" />}
-                    <span>Sector: <strong>{activeVertical === 'EVENT' ? 'Event & Wedding Production' : (activeVertical === 'FOOD' ? 'Dining & Restaurant' : (activeVertical === 'DOCTOR' ? 'Healthcare & Clinic' : (activeVertical === 'SALON' ? 'Salon & Spa' : (sellerSector || 'Retail'))))}</strong></span>
-                  </span>
-
-                  <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5 shadow-2xs">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 shadow-2xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     Live & Open
                   </span>
                 </div>
-
-                <p className="text-slate-500 mt-1.5 text-xs sm:text-sm flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span>Welcome, <strong className="text-slate-900 font-semibold">{user?.business?.name || user?.name || 'Seller'}</strong></span>
-                  <span className="text-slate-300 hidden sm:inline">•</span>
-                  <span>Operating as: <strong className="text-indigo-600 font-medium">{activeVertical === 'EVENT' ? 'Full Turnkey Event Organizer' : (isServiceProvider ? 'Direct Service Provider' : 'Product Seller')}</strong></span>
+                <p className="text-slate-500 mt-0.5 text-xs sm:text-base">
+                  Welcome back, <strong className="text-slate-800">{user?.name || user?.business?.name || 'Seller'}</strong>. Real-time updates for your store.
                 </p>
               </div>
 
@@ -1159,13 +1110,6 @@ function DashboardContent() {
                   >
                     <Utensils className="w-3.5 h-3.5" /> Floor
                   </button>
-                ) : activeVertical === 'EVENT' ? (
-                  <button
-                    onClick={() => setActiveTab('sector_station')}
-                    className="flex-1 sm:flex-none justify-center px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-700 hover:to-pink-700 text-white font-bold text-xs shadow-md shadow-fuchsia-600/20 transition-all flex items-center gap-1.5"
-                  >
-                    <PartyPopper className="w-3.5 h-3.5" /> Production Console
-                  </button>
                 ) : (
                   <button
                     onClick={() => setActiveTab(isServiceProvider ? 'add_service' : 'add_product')}
@@ -1177,47 +1121,23 @@ function DashboardContent() {
               </div>
             </div>
 
-            {/* Comprehensive Seller Identity & Verified Profile Banner */}
-            <div className="mb-5 sm:mb-8 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-md relative overflow-hidden border border-slate-800">
-              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-start sm:items-center gap-3 sm:gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white flex items-center justify-center font-black text-lg shadow-inner shrink-0">
-                    {user?.business?.name?.slice(0, 2).toUpperCase() || user?.name?.slice(0, 2).toUpperCase() || 'SE'}
+            {/* Account Auto-Verified Banner */}
+            {user?.business && (
+              <div className="mb-4 sm:mb-8 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-emerald-50/80 via-teal-50/40 to-emerald-50/80 border border-emerald-200/80 shadow-2xs flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                    <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                   <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-extrabold text-base sm:text-lg text-white">
-                        {user?.business?.name || user?.name || 'Seller Business'}
-                      </h3>
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                        <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                        Verified Business
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-300 mt-1">
-                      <span className="flex items-center gap-1">
-                        <Briefcase className="w-3.5 h-3.5 text-fuchsia-400" />
-                        Industry Sector: <strong className="text-white font-semibold">{activeVertical === 'EVENT' ? 'Event & Wedding Planner' : (activeVertical === 'FOOD' ? 'Dining & Restaurant' : (sellerSector || 'Retail'))}</strong>
-                      </span>
-                      <span className="text-slate-600">•</span>
-                      <span>Owner: <strong className="text-slate-200">{user?.name || 'Administrator'}</strong></span>
-                    </div>
+                    <h4 className="font-bold text-emerald-950 text-xs sm:text-sm">Account Verified & Active</h4>
+                    <p className="text-[11px] sm:text-xs text-emerald-700 mt-0.5 line-clamp-1 sm:line-clamp-none">Your business passed MarkatVerse compliance checks.</p>
                   </div>
                 </div>
-
-                {/* Seller Quick IDs & Configuration Badges */}
-                <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
-                  <div className="px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10 text-xs">
-                    <span className="text-slate-400 text-[10px] block font-mono uppercase tracking-wider">Business ID</span>
-                    <span className="font-mono font-bold text-white text-xs">{user?.business?.businessCode || 'MV-SPR-000017'}</span>
-                  </div>
-                  <div className="px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10 text-xs">
-                    <span className="text-slate-400 text-[10px] block font-mono uppercase tracking-wider">Account ID</span>
-                    <span className="font-mono font-bold text-emerald-400 text-xs">{user?.markatId || 'MV-0000000051'}</span>
-                  </div>
+                <div className="hidden sm:flex items-center gap-2 font-mono text-xs font-semibold text-emerald-800 bg-white/70 px-3 py-1.5 rounded-lg border border-emerald-200/60 shrink-0">
+                  ID: {user.markatId || 'MV-0000000044'}
                 </div>
               </div>
-            </div>
+            )}
 
             {/* SECTOR-ADAPTIVE KPI METRIC CARDS */}
             {activeVertical === 'FOOD' ? (
@@ -1312,69 +1232,6 @@ function DashboardContent() {
                   </div>
                 );
               })()
-            ) : activeVertical === 'EVENT' ? (
-              /* EVENT ORGANIZER & WEDDING PLANNER METRICS */
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5 sm:mb-8">
-                {/* 1. Active Productions */}
-                <div 
-                  onClick={() => setActiveTab('sector_station')}
-                  className="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between cursor-pointer hover:border-fuchsia-300 hover:shadow-sm transition-all"
-                >
-                  <div>
-                    <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Active Productions</div>
-                    <div className="text-2xl sm:text-3xl font-black text-slate-900">2</div>
-                    <span className="text-xs text-fuchsia-600 font-semibold mt-1 block">Live weddings & galas →</span>
-                  </div>
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-fuchsia-50 text-fuchsia-600 flex items-center justify-center">
-                    <PartyPopper className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </div>
-                </div>
-
-                {/* 2. Pipeline Revenue */}
-                <div 
-                  onClick={() => setActiveTab('earnings')}
-                  className="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between cursor-pointer hover:border-emerald-300 hover:shadow-sm transition-all"
-                >
-                  <div>
-                    <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Pipeline Revenue</div>
-                    <div className="text-2xl sm:text-3xl font-black text-slate-900">₹42.8 L</div>
-                    <span className="text-xs text-emerald-600 font-semibold mt-1 block">Across 4 client projects →</span>
-                  </div>
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </div>
-                </div>
-
-                {/* 3. Advance Collected */}
-                <div 
-                  onClick={() => setActiveTab('earnings')}
-                  className="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between cursor-pointer hover:border-indigo-300 hover:shadow-sm transition-all"
-                >
-                  <div>
-                    <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Advance Collected</div>
-                    <div className="text-2xl sm:text-3xl font-black text-slate-900">₹18.4 L</div>
-                    <span className="text-xs text-indigo-600 font-semibold mt-1 block">43% payment realized →</span>
-                  </div>
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                    <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </div>
-                </div>
-
-                {/* 4. Packages & Catalog */}
-                <div 
-                  onClick={() => setActiveTab('services')}
-                  className="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between cursor-pointer hover:border-purple-300 hover:shadow-sm transition-all"
-                >
-                  <div>
-                    <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Packages & Catalog</div>
-                    <div className="text-2xl sm:text-3xl font-black text-slate-900">{myListings.length || 3}</div>
-                    <span className="text-xs text-purple-600 font-semibold mt-1 block">Manage event packages →</span>
-                  </div>
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-                    <Briefcase className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </div>
-                </div>
-              </div>
             ) : (
               /* STANDARD RETAIL / SERVICE SECTOR METRICS */
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-5 sm:mb-8">
@@ -1559,89 +1416,6 @@ function DashboardContent() {
                 </div>
               </div>
             )}
-
-            {/* LIVE EVENT PRODUCTION PREVIEW CARD */}
-            {activeVertical === 'EVENT' && (
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
-                <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-gradient-to-r from-fuchsia-50/50 via-purple-50/30 to-white">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-fuchsia-100 text-fuchsia-600 flex items-center justify-center font-bold text-sm shadow-2xs">
-                      🎉
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-slate-900 text-sm">Upcoming Event Productions & Milestones</h4>
-                      <p className="text-xs text-slate-500">Live tracker for weddings, summits, and client productions</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setActiveTab('sector_station')}
-                    className="text-xs font-bold text-fuchsia-600 hover:text-fuchsia-700 transition-colors flex items-center gap-1 self-start sm:self-auto"
-                  >
-                    Open Production Console →
-                  </button>
-                </div>
-
-                <div className="divide-y divide-slate-100">
-                  <div className="p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3 hover:bg-slate-50/60 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-pink-50 text-pink-700 border border-pink-100 font-bold flex items-center justify-center text-xs">
-                        WED
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                          <span>Rohan & Ananya Grand Wedding</span>
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-50 text-pink-700 border border-pink-200">In Execution</span>
-                        </div>
-                        <div className="text-xs text-slate-500 mt-0.5">
-                          📍 The Leela Palace • 650 Guests • Date: 2026-11-15
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 self-end sm:self-auto">
-                      <div className="text-right">
-                        <div className="text-xs font-bold text-slate-900">₹18.50 L</div>
-                        <div className="text-[10px] text-emerald-600 font-semibold">₹9.00 L advance received</div>
-                      </div>
-                      <button
-                        onClick={() => setActiveTab('sector_station')}
-                        className="px-3 py-1.5 bg-fuchsia-50 hover:bg-fuchsia-100 text-fuchsia-700 rounded-lg text-xs font-bold transition-colors border border-fuchsia-200"
-                      >
-                        Milestones (70%) →
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3 hover:bg-slate-50/60 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 border border-blue-100 font-bold flex items-center justify-center text-xs">
-                        CORP
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                          <span>TechVanguard APAC Leadership Summit</span>
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">Confirmed</span>
-                        </div>
-                        <div className="text-xs text-slate-500 mt-0.5">
-                          📍 ITC Gardenia • 400 Guests • Date: 2026-10-30
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 self-end sm:self-auto">
-                      <div className="text-right">
-                        <div className="text-xs font-bold text-slate-900">₹12.00 L</div>
-                        <div className="text-[10px] text-emerald-600 font-semibold">₹6.00 L advance received</div>
-                      </div>
-                      <button
-                        onClick={() => setActiveTab('sector_station')}
-                        className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold transition-colors border border-blue-200"
-                      >
-                        Milestones (55%) →
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         )}
 
@@ -1679,16 +1453,6 @@ function DashboardContent() {
                 onOpenWalkInModal={() => setShowWalkInForm(true)}
               />
             )}
-            {activeVertical === 'EVENT' && (
-              <EventOrganizerModule 
-                queueData={queueData}
-                user={user}
-                onRefresh={() => fetchQueue()}
-                onAction={handleQueueAction}
-                actionLoading={actionLoading}
-                onOpenStaffModal={() => setShowStaffModal(true)}
-              />
-            )}
           </div>
         )}
 
@@ -1696,16 +1460,14 @@ function DashboardContent() {
           <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
             <div className="mb-5 sm:mb-8">
               <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                {activeVertical === 'FOOD' ? 'Dining Revenue & Payouts' : (activeVertical === 'DOCTOR' ? 'Consultation & Clinic Revenue' : (activeVertical === 'EVENT' ? 'Event & Wedding Production Revenue' : 'Earnings & Performance'))}
+                {activeVertical === 'FOOD' ? 'Dining Revenue & Payouts' : (activeVertical === 'DOCTOR' ? 'Consultation & Clinic Revenue' : 'Earnings & Performance')}
               </h1>
               <p className="text-slate-500 mt-1 text-xs sm:text-sm">
                 {activeVertical === 'FOOD'
                   ? 'Track table billings, walk-in cash/online collections, and waiter/kitchen shift performance.'
                   : (activeVertical === 'DOCTOR'
                     ? 'Track consultation fees, appointment payments, and clinic revenue.'
-                    : (activeVertical === 'EVENT'
-                      ? 'Track event contract values, advance collections, sub-vendor disbursements, and project margins.'
-                      : 'Track revenue collections, client payments, and staff commission performance.'))}
+                    : 'Track revenue collections, client payments, and staff commission performance.')}
               </p>
             </div>
             
@@ -1871,18 +1633,12 @@ function DashboardContent() {
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
               <div>
                 <h1 className="text-3xl font-bold text-slate-900">
-                  {activeVertical === 'FOOD' 
-                    ? 'Restaurant Venue & Dining Service' 
-                    : (activeVertical === 'EVENT' 
-                      ? 'Event Packages & Production Catalog' 
-                      : (activeTab === 'services' ? 'My Services' : 'My Shop Catalog'))}
+                  {activeVertical === 'FOOD' ? 'Restaurant Venue & Dining Service' : (activeTab === 'services' ? 'My Services' : 'My Shop Catalog')}
                 </h1>
                 <p className="text-slate-500 mt-2">
                   {activeVertical === 'FOOD' 
                     ? 'Your restaurant storefront, table booking service, and dining experience.'
-                    : (activeVertical === 'EVENT'
-                      ? 'Publish turnkey wedding, corporate summit, and themed celebration packages for client inquiries.'
-                      : (activeTab === 'services' ? 'Manage your active services.' : 'Manage your active products.'))}
+                    : (activeTab === 'services' ? 'Manage your active services.' : 'Manage your active products.')}
                 </p>
               </div>
 
@@ -1901,21 +1657,6 @@ function DashboardContent() {
                     🍽️ View Customer Storefront
                   </Link>
                 </div>
-              ) : activeVertical === 'EVENT' ? (
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={() => setActiveTab('add_service')}
-                    className="bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-700 hover:to-pink-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md shadow-fuchsia-600/20 transition-colors flex items-center gap-2 text-sm"
-                  >
-                    <PlusCircle className="w-4 h-4" /> Add Event Package
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('sector_station')}
-                    className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-sm transition-colors border border-slate-200 flex items-center gap-1.5"
-                  >
-                    <PartyPopper className="w-4 h-4 text-fuchsia-600" /> Console
-                  </button>
-                </div>
               ) : (
                 <button 
                   onClick={() => setActiveTab(activeTab === 'services' ? 'add_service' : 'add_product')}
@@ -1925,31 +1666,6 @@ function DashboardContent() {
                 </button>
               )}
             </div>
-
-            {/* Event Organizer Guidance & Turnkey Packages Banner */}
-            {activeVertical === 'EVENT' && (
-              <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-fuchsia-50 via-purple-50 to-pink-50 border border-fuchsia-200/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-500 text-white flex items-center justify-center font-bold text-xl shadow-xs shrink-0">
-                    🎪
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900">Event Organizer & Wedding Production Service Offerings</h4>
-                    <p className="text-xs text-slate-600 mt-0.5">
-                      Add your specialized services: <strong>Full Destination Weddings</strong>, <strong>Stage Lighting & Sound Rigging</strong>, <strong>Catering & Banquets</strong>, or <strong>Corporate Conferences</strong>. Clients can request direct quotes or book consultations.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => setActiveTab('add_service')}
-                    className="px-4 py-2 rounded-xl bg-fuchsia-600 text-white text-xs font-bold hover:bg-fuchsia-700 transition-colors shadow-xs flex items-center gap-1.5"
-                  >
-                    <PlusCircle className="w-3.5 h-3.5" /> New Service Package
-                  </button>
-                </div>
-              </div>
-            )}
 
             {/* Food & Dining Single-Establishment Guidance Banner */}
             {activeVertical === 'FOOD' && myListings.length > 0 && (
@@ -2064,44 +1780,27 @@ function DashboardContent() {
               ))}
               {myListings.length === 0 && (
                 <div className="col-span-full py-16 text-center bg-white rounded-2xl border border-slate-200 shadow-sm">
-                  <div className={`w-16 h-16 ${activeVertical === 'EVENT' ? 'bg-fuchsia-50 text-fuchsia-600' : 'bg-blue-50 text-blue-500'} rounded-full flex items-center justify-center mx-auto mb-4`}>
-                    {activeVertical === 'EVENT' ? <PartyPopper className="w-8 h-8" /> : <Package className="w-8 h-8" />}
+                  <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Package className="w-8 h-8" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">
-                    {activeVertical === 'EVENT' ? 'No Event Packages Published Yet' : (isServiceProvider ? 'No services yet' : 'No listings yet')}
-                  </h3>
-                  <p className="text-slate-500 mb-6 max-w-md mx-auto text-sm">
-                    {activeVertical === 'EVENT' 
-                      ? 'Showcase your destination wedding packages, corporate event setups, and staging productions so clients can book consultations and request proposals.'
-                      : `Start growing your business by adding your first ${isServiceProvider ? 'service' : 'product'}.`}
-                  </p>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">{isServiceProvider ? 'No services yet' : 'No listings yet'}</h3>
+                  <p className="text-slate-500 mb-6">Start growing your business by adding your first {isServiceProvider ? 'service' : 'product'}.</p>
                   <div className="flex gap-3 justify-center">
-                    {activeVertical === 'EVENT' ? (
+                    {(isB2C || isB2B || isCartFlow || isRfqFlow || (!isService && !isServiceProvider)) && (
+                      <button 
+                        onClick={() => setActiveTab('add_product')}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-bold transition-colors"
+                      >
+                        Add Product
+                      </button>
+                    )}
+                    {(isService || isServiceProvider || isQueueFlow || isMeetingFlow || isProjectFlow) && (
                       <button 
                         onClick={() => setActiveTab('add_service')}
-                        className="bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-700 hover:to-pink-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-md shadow-fuchsia-600/20 flex items-center gap-2 text-sm"
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg font-bold transition-colors"
                       >
-                        <PlusCircle className="w-4 h-4" /> Add Event Service Package
+                        Add Service
                       </button>
-                    ) : (
-                      <>
-                        {(isB2C || isB2B || isCartFlow || isRfqFlow || (!isService && !isServiceProvider)) && (
-                          <button 
-                            onClick={() => setActiveTab('add_product')}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-bold transition-colors"
-                          >
-                            Add Product
-                          </button>
-                        )}
-                        {(isService || isServiceProvider || isQueueFlow || isMeetingFlow || isProjectFlow) && (
-                          <button 
-                            onClick={() => setActiveTab('add_service')}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg font-bold transition-colors"
-                          >
-                            Add Service
-                          </button>
-                        )}
-                      </>
                     )}
                   </div>
                 </div>

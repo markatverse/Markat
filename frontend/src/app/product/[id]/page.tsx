@@ -7,7 +7,7 @@ import { useWishlist } from '@/context/WishlistContext';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useUserTrends } from '@/hooks/useUserTrends';
-import { ShieldCheck, Camera, Ruler, ZoomIn, Package, Star, Building2, MapPin, PhoneCall, Calendar, CalendarClock, Heart, UtensilsCrossed, Users, Clock, Utensils, Sparkles, MessageCircle, Phone, Share2, ChevronDown } from 'lucide-react';
+import { ShieldCheck, Camera, Ruler, ZoomIn, Package, Star, Building2, MapPin, PhoneCall, Calendar, CalendarClock, Heart, UtensilsCrossed, Users, Clock, Utensils, Sparkles, MessageCircle, Phone, Share2, ChevronDown, PartyPopper, CheckCircle2, FileText, Send, ArrowRight } from 'lucide-react';
 import SmartQueueWidget from '@/components/SmartQueueWidget';
 import ReviewsSection from '@/components/ReviewsSection';
 import StarRating from '@/components/StarRating';
@@ -150,15 +150,23 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
     product.subcategory?.toLowerCase().includes('cafe')
   ) : false;
 
-  const isEventOrganizer = product ? (
-    product.category?.toLowerCase().includes('event') ||
+  const isOrganizer = product ? (
     product.category?.toLowerCase().includes('organizer') ||
+    product.category?.toLowerCase().includes('event') ||
     product.category?.toLowerCase().includes('wedding') ||
     product.subcategory?.toLowerCase().includes('event') ||
     product.subcategory?.toLowerCase().includes('wedding') ||
-    product.subcategory?.toLowerCase().includes('celebration') ||
-    product.subcategory?.toLowerCase().includes('production')
+    product.subcategory?.toLowerCase().includes('party') ||
+    product.subcategory?.toLowerCase().includes('stage')
   ) : false;
+
+  // Event & Organizer Customer Booking States
+  const [eventDate, setEventDate] = useState('');
+  const [eventType, setEventType] = useState('Wedding & Reception');
+  const [guestCount, setGuestCount] = useState('100 - 300 Guests');
+  const [eventBudget, setEventBudget] = useState('₹2,00,000 - ₹5,00,000');
+  const [eventCity, setEventCity] = useState('');
+  const [organizerSubmitted, setOrganizerSubmitted] = useState(false);
 
   const [partySize, setPartySize] = useState(2);
   const todayStr = useMemo(() => {
@@ -264,10 +272,10 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
     };
   }, [isGuestDropdownOpen, isDateDropdownOpen]);
 
-  const isRetail = (product?.primaryType === 'SERVICE' || isFoodDining || isEventOrganizer) ? false : (noRulesDefined
-    ? !['Services', 'Home Services', 'Organizers', 'Event Planner', 'Transport', 'Rentals', 'Subscriptions', 'B2B', 'Construction Materials'].includes(product?.category || '')
+  const isRetail = (product?.primaryType === 'SERVICE' || isFoodDining || isOrganizer) ? false : (noRulesDefined
+    ? !['Services', 'Home Services', 'Organizers', 'Transport', 'Rentals', 'Subscriptions', 'B2B', 'Construction Materials'].includes(product?.category || '')
     : hasProductStock);
-  const isWholesaleConfig = (product?.primaryType === 'SERVICE' || isFoodDining || isEventOrganizer) ? false : (noRulesDefined
+  const isWholesaleConfig = (product?.primaryType === 'SERVICE' || isFoodDining || isOrganizer) ? false : (noRulesDefined
     ? (product?.category === 'B2B' || product?.category === 'Construction Materials' || (isRetail && isElite))
     : ((hasB2B && hasBulkPricing) || (isRetail && isElite)));
   
@@ -409,11 +417,6 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                 <UtensilsCrossed className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-400" /> Dining Venue
               </div>
             )}
-            {isEventOrganizer && (
-              <div className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-gradient-to-r from-fuchsia-950/80 to-purple-950/80 backdrop-blur-md border border-fuchsia-400/30 text-fuchsia-200 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold tracking-wide flex items-center gap-1.5 shadow-sm">
-                <PartyPopper className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-fuchsia-400" /> Event & Wedding Production
-              </div>
-            )}
           </div>
           
           {/* Thumbnails */}
@@ -440,12 +443,12 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
           {/* Sold By / Restaurant Venue Details Card (Desktop Left Column) */}
           <div className="hidden lg:block mt-8 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">
-              {isFoodDining ? 'Restaurant / Dining Venue' : (isEventOrganizer ? 'Event Director & Wedding Planner' : (isServiceProduct(product) ? 'Service Provider' : 'Sold by'))}
+              {isFoodDining ? 'Restaurant / Dining Venue' : (isServiceProduct(product) ? 'Service Provider' : 'Sold by')}
             </div>
             <div className="flex flex-row items-center justify-between gap-2">
               <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 sm:w-14 sm:h-14 ${isFoodDining ? 'bg-rose-50 text-rose-600 border-rose-100' : (isEventOrganizer ? 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-100' : 'bg-blue-50 text-blue-600 border-blue-100')} rounded-xl flex items-center justify-center shrink-0 border`}>
-                  {isFoodDining ? <UtensilsCrossed className="w-5 h-5 sm:w-6 sm:h-6" /> : (isEventOrganizer ? <PartyPopper className="w-5 h-5 sm:w-6 sm:h-6" /> : <Building2 className="w-5 h-5 sm:w-6 sm:h-6" />)}
+                <div className={`w-12 h-12 sm:w-14 sm:h-14 ${isFoodDining ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-blue-50 text-blue-600 border-blue-100'} rounded-xl flex items-center justify-center shrink-0 border`}>
+                  {isFoodDining ? <UtensilsCrossed className="w-5 h-5 sm:w-6 sm:h-6" /> : <Building2 className="w-5 h-5 sm:w-6 sm:h-6" />}
                 </div>
                 <div>
                   <Link href={`/seller/${encodeURIComponent(product.seller)}`} className="no-underline">
@@ -587,13 +590,24 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
 
           <div className="p-4 sm:p-6 bg-slate-50 rounded-2xl mb-6 sm:mb-8 border border-slate-200 shadow-2xs">
             <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-              {isFoodDining 
-                ? 'Reservation / Dining Rate' 
-                : (isServiceProduct(product) ? 'Service Rate' : 'Price')}
+              {isOrganizer
+                ? 'Package / Estimation Rate'
+                : isFoodDining 
+                  ? 'Reservation / Dining Rate' 
+                  : (isServiceProduct(product) ? 'Service Rate' : 'Price')}
             </div>
             <div className="text-3xl sm:text-4xl font-extrabold text-slate-900 flex items-center gap-2 sm:gap-3 flex-wrap">
-              {product.category === 'Organizers' ? (
-                'Project Based'
+              {isOrganizer ? (
+                currentActivePrice > 0 ? (
+                  <>
+                    ₹{currentActivePrice.toLocaleString('en-IN')}
+                    <span className="text-xs sm:text-sm text-slate-500 font-medium">/ starting package</span>
+                  </>
+                ) : (
+                  <span className="text-2xl sm:text-3xl font-black text-fuchsia-700 bg-fuchsia-50 border border-fuchsia-200 px-3 py-1 rounded-xl">
+                    Custom Quote & Proposal
+                  </span>
+                )
               ) : (
                 <>
                   ₹{currentActivePrice.toLocaleString('en-IN')}
@@ -722,7 +736,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
               )
             )}
 
-            {(noRulesDefined ? !['Services', 'Home Services', 'Organizers', 'Event Planner', 'Transport', 'Rentals', 'Subscriptions', 'B2B', 'Construction Materials'].includes(product.category) : hasProductStock) && !isEventOrganizer && (
+            {(noRulesDefined ? !['Services', 'Home Services', 'Organizers', 'Transport', 'Rentals', 'Subscriptions', 'B2B', 'Construction Materials'].includes(product.category) : hasProductStock) && (
               <div className="mt-4 p-3 sm:p-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 border border-amber-400 shadow-sm shadow-amber-500/10 transition-all">
                 <div className="flex items-center justify-between gap-3">
                   <button 
@@ -1354,87 +1368,209 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                 </div>
               )}
 
-              {/* ── EVENT ORGANIZER & WEDDING PRODUCTION CONSULTATION / QUOTE ── */}
-              {isEventOrganizer && (
-                <div className="w-full bg-gradient-to-br from-fuchsia-50 via-purple-50 to-pink-50 rounded-2xl border border-fuchsia-200/90 shadow-md p-4 sm:p-6 space-y-4">
-                  <div className="flex items-center gap-3 pb-3 border-b border-fuchsia-200/60">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-fuchsia-600 to-pink-600 text-white flex items-center justify-center font-bold text-lg shadow-xs shrink-0">
-                      🎉
+              {/* ── SERVICE ORGANIZER / EVENT PLANNER CUSTOMER WORKFLOW ── */}
+              {isOrganizer && (
+                <div className="flex flex-col gap-4 w-full p-5 bg-gradient-to-br from-fuchsia-50 via-purple-50 to-indigo-50 rounded-2xl border border-fuchsia-200/80 shadow-sm">
+                  <div className="flex items-center justify-between border-b border-fuchsia-200/60 pb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-fuchsia-600 text-white flex items-center justify-center shadow-xs">
+                        <PartyPopper className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-slate-900 font-extrabold text-sm block">Event Planning & Organization</span>
+                        <span className="text-[11px] text-fuchsia-700 font-semibold">Custom proposals • Venue & stage design • Zero booking fee</span>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-extrabold text-slate-900 text-sm sm:text-base leading-tight">
-                        Book Event Consultation & Request Proposal
-                      </h3>
-                      <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
-                        Direct consultation with {product.seller} for weddings, galas, summits & stage production.
+                    {activeOption && (
+                      <span className="text-xs bg-fuchsia-600 text-white font-bold px-2.5 py-1 rounded-full shadow-2xs">
+                        {activeOption.name}
+                      </span>
+                    )}
+                  </div>
+
+                  {organizerSubmitted ? (
+                    <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-center space-y-2 animate-in fade-in">
+                      <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center font-bold">
+                        <CheckCircle2 className="w-6 h-6" />
+                      </div>
+                      <h4 className="font-bold text-emerald-900 text-sm">Inquiry Dispatched Successfully!</h4>
+                      <p className="text-xs text-emerald-700">
+                        {product.seller} will review your event requirements and connect with you on WhatsApp/Phone with a customized proposal.
                       </p>
-                    </div>
-                  </div>
-
-                  {/* Event Details Quick Inputs */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Expected Event Date</label>
-                      <input 
-                        type="date" 
-                        defaultValue="2026-11-20"
-                        className="w-full p-2.5 bg-white border border-fuchsia-200 rounded-xl font-medium text-slate-800 outline-none focus:border-fuchsia-500 shadow-2xs" 
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Estimated Guest Count</label>
-                      <select 
-                        defaultValue="150 - 500 Guests"
-                        className="w-full p-2.5 bg-white border border-fuchsia-200 rounded-xl font-medium text-slate-800 outline-none focus:border-fuchsia-500 shadow-2xs"
+                      <button
+                        type="button"
+                        onClick={() => setOrganizerSubmitted(false)}
+                        className="text-xs text-emerald-800 font-bold underline mt-2 inline-block cursor-pointer"
                       >
-                        <option>Intimate (50 - 150 Guests)</option>
-                        <option>Medium (150 - 500 Guests)</option>
-                        <option>Grand (500 - 1200 Guests)</option>
-                        <option>Mega (1200+ Guests)</option>
-                      </select>
+                        Submit another requirement
+                      </button>
                     </div>
-                  </div>
+                  ) : (
+                    <>
+                      {/* Grid 1: Occasion & Event Date */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center gap-1">
+                            <Sparkles className="w-3.5 h-3.5 text-fuchsia-600" /> Event / Occasion
+                          </label>
+                          <select
+                            value={eventType}
+                            onChange={e => setEventType(e.target.value)}
+                            className="w-full px-3 py-2.5 border border-purple-200 rounded-xl outline-none focus:border-fuchsia-500 text-slate-800 bg-white font-medium text-xs sm:text-sm shadow-2xs"
+                          >
+                            <option value="Wedding & Reception">Wedding & Reception</option>
+                            <option value="Engagement / Sangeet / Haldi">Engagement / Sangeet / Haldi</option>
+                            <option value="Corporate Conference / Gala">Corporate Conference / Gala</option>
+                            <option value="Birthday & Anniversary Party">Birthday & Anniversary Party</option>
+                            <option value="Concert & Stage Show">Concert & Stage Show</option>
+                            <option value="Exhibition & Brand Launch">Exhibition & Brand Launch</option>
+                          </select>
+                        </div>
 
-                  <div className="p-3 bg-white/80 backdrop-blur-xs rounded-xl border border-fuchsia-100 text-xs text-slate-600 space-y-1">
-                    <div className="font-bold text-fuchsia-900 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-fuchsia-600" />
-                      What happens after booking?
-                    </div>
-                    <p className="text-[11px] text-slate-500 leading-relaxed">
-                      A dedicated event director connects with you within 2 business hours to share tailored 3D moodboards, venue layouts, catering tasting schedules, and transparent vendor budgets.
-                    </p>
-                  </div>
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center gap-1">
+                            <Calendar className="w-3.5 h-3.5 text-fuchsia-600" /> Expected Date
+                          </label>
+                          <input
+                            type="date"
+                            value={eventDate}
+                            min={todayStr}
+                            onChange={e => setEventDate(e.target.value)}
+                            className="w-full px-3 py-2.5 border border-purple-200 rounded-xl outline-none focus:border-fuchsia-500 text-slate-800 bg-white font-medium text-xs sm:text-sm shadow-2xs"
+                          />
+                        </div>
+                      </div>
 
-                  {/* Actions */}
-                  <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
-                    <button
-                      className="w-full sm:flex-1 py-3.5 px-4 bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-700 hover:to-pink-700 active:scale-[0.99] text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-fuchsia-600/20 flex items-center justify-center gap-2 cursor-pointer"
-                      onClick={() => requireAuth(() => {
-                        alert(`🎉 Consultation Booked!\n\nEvent Planner: ${product.seller}\nService: ${product.name}\n\n✓ Direct inquiry dispatched to seller's Event Production Console.\n✓ An Event Director will call you to finalize venue layout & custom quote.`);
-                      })}
-                    >
-                      <Calendar className="w-4 h-4" /> Book Free Consultation
-                    </button>
-                    <button
-                      className="w-full sm:flex-1 py-3.5 px-4 bg-white hover:bg-fuchsia-50 border-2 border-fuchsia-300 text-fuchsia-700 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
-                      onClick={() => requireAuth(() => {
-                        alert(`📋 Proposal Requested!\n\nQuotation request for "${product.name}" has been logged in ${product.seller}'s pipeline deck.`);
-                      })}
-                    >
-                      <FileText className="w-4 h-4" /> Request Custom Quote
-                    </button>
-                    <a
-                      href="tel:+919876543210"
-                      className="w-full sm:w-auto py-3.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold text-xs sm:text-sm transition-colors flex items-center justify-center gap-1.5 shrink-0"
-                    >
-                      <Phone className="w-3.5 h-3.5 text-fuchsia-300" /> Call Planner
-                    </a>
-                  </div>
+                      {/* Grid 2: Guest Count & Estimated Budget */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center gap-1">
+                            <Users className="w-3.5 h-3.5 text-fuchsia-600" /> Expected Guests
+                          </label>
+                          <select
+                            value={guestCount}
+                            onChange={e => setGuestCount(e.target.value)}
+                            className="w-full px-3 py-2.5 border border-purple-200 rounded-xl outline-none focus:border-fuchsia-500 text-slate-800 bg-white font-medium text-xs sm:text-sm shadow-2xs"
+                          >
+                            <option value="Under 50 Guests (Intimate)">Under 50 Guests (Intimate)</option>
+                            <option value="50 - 150 Guests">50 - 150 Guests</option>
+                            <option value="150 - 400 Guests">150 - 400 Guests</option>
+                            <option value="400 - 1,000 Guests">400 - 1,000 Guests</option>
+                            <option value="1,000+ Mega Gathering">1,000+ Mega Gathering</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center gap-1">
+                            <Building2 className="w-3.5 h-3.5 text-fuchsia-600" /> Event City / Venue
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Pune / Mumbai / Goa"
+                            value={eventCity}
+                            onChange={e => setEventCity(e.target.value)}
+                            className="w-full px-3 py-2.5 border border-purple-200 rounded-xl outline-none focus:border-fuchsia-500 text-slate-800 bg-white font-medium text-xs sm:text-sm shadow-2xs"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Requirement Notes */}
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center gap-1">
+                          <FileText className="w-3.5 h-3.5 text-fuchsia-600" /> Specific Requirements & Vision
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={rfqMessage}
+                          onChange={e => setRfqMessage(e.target.value)}
+                          placeholder="e.g. Need royal floral stage, sound setup, live catering arrangement for 2 days..."
+                          className="w-full px-3 py-2 border border-purple-200 rounded-xl outline-none focus:border-fuchsia-500 text-slate-800 bg-white text-xs sm:text-sm resize-none shadow-2xs"
+                        />
+                      </div>
+
+                      {/* Organizer CTAs */}
+                      <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
+                        <button
+                          type="button"
+                          className="flex-1 w-full py-3 px-4 bg-fuchsia-600 hover:bg-fuchsia-700 active:scale-[0.99] text-white rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md shadow-fuchsia-600/25 flex items-center justify-center gap-2 cursor-pointer"
+                          onClick={() => requireAuth(() => {
+                            if (!eventDate) {
+                              alert('Please provide the anticipated date for your event.');
+                              return;
+                            }
+
+                            const inquiry = {
+                              id: `EVT-${Math.floor(1000 + Math.random() * 9000)}`,
+                              seller: product.seller,
+                              organizerItem: product.name,
+                              servicePackage: activeOption ? activeOption.name : 'Standard Full Production',
+                              eventType,
+                              eventDate,
+                              guestCount,
+                              eventCity: eventCity || product.location || 'Local Area',
+                              notes: rfqMessage || 'Comprehensive event organizing and management proposal requested.',
+                              customerName: user?.name || 'Customer',
+                              customerPhone: user?.phone || '+91 98765 43210',
+                              timestamp: new Date().toISOString()
+                            };
+
+                            try {
+                              const existing = JSON.parse(localStorage.getItem('markat_event_proposals') || '[]');
+                              localStorage.setItem('markat_event_proposals', JSON.stringify([inquiry, ...existing]));
+
+                              // Customer notification
+                              const customerNotifs = JSON.parse(localStorage.getItem(`markat_notifs_${user?.id || 'guest'}`) || '[]');
+                              customerNotifs.unshift({
+                                id: `NOTIF-${Date.now()}`,
+                                type: 'EVENT_INQUIRY_SENT',
+                                title: `Proposal Request Sent to ${product.seller}`,
+                                message: `Your ${eventType} inquiry on ${eventDate} has been dispatched. Ref: ${inquiry.id}`,
+                                timestamp: new Date().toISOString(),
+                                read: false
+                              });
+                              localStorage.setItem(`markat_notifs_${user?.id || 'guest'}`, JSON.stringify(customerNotifs));
+
+                              // Seller notification
+                              const sellerNotifs = JSON.parse(localStorage.getItem('markat_seller_notifications') || '[]');
+                              sellerNotifs.unshift({
+                                id: `NOTIF-S-${Date.now()}`,
+                                type: 'NEW_EVENT_PROPOSAL_LEAD',
+                                title: `New Event Organizer Lead (${eventType})`,
+                                message: `${user?.name || 'Customer'} requested a quote for ${guestCount} on ${eventDate} in ${inquiry.eventCity}. Ref: ${inquiry.id}`,
+                                timestamp: new Date().toISOString(),
+                                read: false
+                              });
+                              localStorage.setItem('markat_seller_notifications', JSON.stringify(sellerNotifs));
+                            } catch {}
+
+                            setOrganizerSubmitted(true);
+                            alert(`🎉 Event Planning Request Sent!\n\nInquiry ID: ${inquiry.id}\nOrganizer: ${product.seller}\nOccasion: ${eventType}\nDate: ${eventDate}\nEstimated Guests: ${guestCount}\nCity: ${inquiry.eventCity}\n\n✓ The organizer's event director will review your vision and send over photos, previous stage portfolios, and quotation.`);
+                          })}
+                        >
+                          <Send className="w-3.5 h-3.5" /> Request Custom Proposal & Quote
+                        </button>
+
+                        <button
+                          type="button"
+                          className="w-full sm:w-auto py-3 px-4 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-xl font-bold text-xs sm:text-sm transition-colors flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+                          onClick={() => requireAuth(() => {
+                            if (!eventDate) {
+                              alert('Please choose your preferred consultation date first.');
+                              return;
+                            }
+                            alert(`Consultation booked! An event coordinator from ${product.seller} will connect with you on ${eventDate} to review theme designs and logistics.`);
+                          })}
+                        >
+                          <CalendarClock className="w-3.5 h-3.5 text-fuchsia-600" /> Book Consultation
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
-              {/* ── MEETING / PROPOSAL ── */}
-              {hasMeeting && !hasToken && !hasAppointment && !hasVehicleTestDrive && !isWholesaleConfig && !hasRFQ && !isEventOrganizer && (
+              {/* ── MEETING / PROPOSAL (Other non-organizer service verticals) ── */}
+              {hasMeeting && !isOrganizer && !hasToken && !hasAppointment && !hasVehicleTestDrive && !isWholesaleConfig && !hasRFQ && (
                 <div className="flex flex-col gap-3 w-full p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
                   <div className="text-indigo-800 font-bold text-sm mb-1">Request a Meeting / Proposal</div>
                   <div className="flex flex-row items-center gap-2.5 sm:gap-3">
@@ -1455,7 +1591,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
               )}
 
               {/* ── PRODUCT STOCK / RETAIL (Buy Now + Add to Cart - Horizontal both on mobile & desktop) ── */}
-              {(hasProductStock || noRulesDefined) && !isFoodDining && !isEventOrganizer && !hasToken && !hasAppointment && !hasVehicleTestDrive && !isWholesaleConfig && (
+              {(hasProductStock || noRulesDefined) && !isFoodDining && !hasToken && !hasAppointment && !hasVehicleTestDrive && !isWholesaleConfig && (
                 <div className="flex flex-row items-center gap-2.5 sm:gap-4 w-full">
                   <button
                     className="flex-1 py-3 px-3 sm:px-6 sm:py-4 bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-white rounded-xl font-bold text-sm sm:text-base transition-all shadow-md shadow-amber-500/20 text-center cursor-pointer"
@@ -1495,7 +1631,15 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
               {isFoodDining ? 'Dining & Table Guidelines' : 'Important Details'}
             </h3>
             <ul className="pl-5 text-xs sm:text-sm text-slate-600 leading-relaxed sm:leading-loose list-disc space-y-1.5 sm:space-y-0">
-              {isFoodDining ? (
+              {isOrganizer ? (
+                <>
+                  <li>Custom package estimate tailored to your venue, theme, and guest scale.</li>
+                  <li>Portfolio catalog, previous stage designs & reference videos shared upon inquiry.</li>
+                  <li>In-person or virtual consultation with senior event director included.</li>
+                  <li>Transparent milestone-based contracts with no hidden surcharges.</li>
+                  <li>Dedicated on-ground operations crew & sound/decor management on event day.</li>
+                </>
+              ) : isFoodDining ? (
                 <>
                   <li>Please arrive within 15 minutes of your reserved dining slot.</li>
                   <li>Special dietary requests or seating preferences can be communicated at arrival.</li>

@@ -962,40 +962,10 @@ export const defaultCategories: Category[] = [
     optionalFeatures: ['Meeting'],
     subcategories: [
       { 
-        name: 'Wedding & Reception Planning', 
+        name: 'Event & Wedding Decor', 
         parameters: [
-          { name: 'Ceremony Scope', type: 'checkbox', options: ['Pre-Wedding (Roka, Haldi, Sangeet)', 'Main Wedding & Mandap Ceremony', 'Grand Reception & After-Party', 'Full Destination Wedding Management'] },
-          { name: 'Guest Capacity Handled', type: 'radio', options: ['Intimate (50 - 150 Guests)', 'Medium (150 - 500 Guests)', 'Grand (500 - 1500 Guests)', 'Mega (1500+ Guests)'] },
-          { name: 'Included Services', type: 'checkbox', options: ['Theme Decor & Stage Design', 'Celebrity Artist & DJ Setup', 'Gourmet Catering & Live Food Counters', 'Guest Hospitality & Hotel Stays', 'Photography & Cinematic Video', 'Bridal & Groom Entry Setup'] },
-          { name: 'Pricing Model', type: 'radio', options: ['All-Inclusive Custom Package', 'Fixed Planning & Management Fee', 'Per Plate / Per Guest Quote'] }
-        ] 
-      },
-      { 
-        name: 'Corporate Conferences & Summits', 
-        parameters: [
-          { name: 'Event Format', type: 'radio', options: ['Annual Corporate Meet & Gala', 'Product Launch & Press Conference', 'Technical Expo & Trade Booths', 'Executive Leadership Retreat', 'Award Ceremony & Gala Dinner'] },
-          { name: 'AV & Technical Infrastructure', type: 'checkbox', options: ['Seamless LED Video Walls', 'Professional Sound & Microphones', 'Live Webcast / Hybrid Streaming', 'Simultaneous Translation & Headsets'] },
-          { name: 'Corporate Logistics', type: 'checkbox', options: ['Delegate Registration Desks', 'Branded Badges & Welcome Kits', 'VIP Transportation & Airport Transfers', 'Executive Catering & Refreshments'] }
-        ] 
-      },
-      { 
-        name: 'Birthdays & Private Celebrations', 
-        parameters: [
-          { name: 'Celebration Type', type: 'radio', options: ['Kids 1st / Milestone Birthday', 'Theme Teen / Adult Birthday Party', 'Silver / Golden Jubilee Anniversary', 'Baby Shower & Gender Reveal', 'Housewarming & Cocktail Party'] },
-          { name: 'Theme & Entertainment', type: 'checkbox', options: ['Custom 3D Theme Backdrop & Balloons', 'Live Magician & Puppet Show', 'DJ Music & Dance Floor', 'Custom Cake & Candy Buffet', 'Game Host & Emcee'] }
-        ] 
-      },
-      { 
-        name: 'Catering & Banquet Hospitality', 
-        parameters: [
-          { name: 'Cuisine Specialties', type: 'checkbox', options: ['Pure Vegetarian Jain/Marwari', 'North & South Indian Regional', 'Live Pan-Asian & Wok Counters', 'Italian & Continental Live Pasta', 'Chaat & Street Food Stalls', 'Gourmet Desserts & Mocktail Bar'] },
-          { name: 'Service Style', type: 'radio', options: ['Luxury Buffet with Live Counters', 'Royal Sit-Down Silver Service', 'Finger Foods & Cocktail Passes'] }
-        ] 
-      },
-      { 
-        name: 'Stage, Light & Sound Production', 
-        parameters: [
-          { name: 'Rigging & Setup', type: 'checkbox', options: ['Truss & Line-Array Audio Setup', 'Moving Head Beam & Laser Lights', 'Cold Pyro / Dry Ice Special Effects', 'Hydraulic Moving Stage / Turntable'] }
+          { name: 'Occasion', type: 'radio', options: ['Wedding & Reception', 'Engagement / Roka', 'Haldi & Mehndi Setup', 'Corporate Conference / Gala', 'Kids Theme Birthday'] },
+          { name: 'Included Services', type: 'checkbox', options: ['Stage & Floral Decoration', 'Sound & DJ Lighting Setup', 'Catering Management', 'Guest Welcome & Hospitality', 'Venue Booking Assistance'] }
         ] 
       }
     ]
