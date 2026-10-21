@@ -7,7 +7,9 @@ import LocationPicker from '@/components/LocationPicker';
 import toast from 'react-hot-toast';
 import { User, Phone, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, ArrowLeft } from 'lucide-react';
 
-const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
+import { getApiUrl } from '@/utils/api';
+
+const API_URL = getApiUrl();
 
 export default function SellerOnboarding() {
   const router = useRouter();

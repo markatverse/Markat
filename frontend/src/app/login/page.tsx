@@ -6,7 +6,9 @@ import Link from 'next/link';
 import { Eye, EyeOff, Mail, Phone, Lock, User, ArrowRight, ArrowLeft, CheckCircle, ShieldCheck } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
-const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
+import { getApiUrl } from '@/utils/api';
+
+const API_URL = getApiUrl();
 
 type View = 'signin' | 'register' | 'register-email-otp' | 'forgot' | 'otp' | 'reset-password' | 'success';
 
