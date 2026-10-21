@@ -1137,6 +1137,13 @@ function DashboardContent() {
                   >
                     <Utensils className="w-3.5 h-3.5" /> Floor
                   </button>
+                ) : activeVertical === 'EVENT' ? (
+                  <button
+                    onClick={() => setActiveTab('sector_station')}
+                    className="flex-1 sm:flex-none justify-center px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-700 hover:to-pink-700 text-white font-bold text-xs shadow-md shadow-fuchsia-600/20 transition-all flex items-center gap-1.5"
+                  >
+                    <PartyPopper className="w-3.5 h-3.5" /> Production Console
+                  </button>
                 ) : (
                   <button
                     onClick={() => setActiveTab(isServiceProvider ? 'add_service' : 'add_product')}
@@ -1259,6 +1266,69 @@ function DashboardContent() {
                   </div>
                 );
               })()
+            ) : activeVertical === 'EVENT' ? (
+              /* EVENT ORGANIZER & WEDDING PLANNER METRICS */
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5 sm:mb-8">
+                {/* 1. Active Productions */}
+                <div 
+                  onClick={() => setActiveTab('sector_station')}
+                  className="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between cursor-pointer hover:border-fuchsia-300 hover:shadow-sm transition-all"
+                >
+                  <div>
+                    <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Active Productions</div>
+                    <div className="text-2xl sm:text-3xl font-black text-slate-900">2</div>
+                    <span className="text-xs text-fuchsia-600 font-semibold mt-1 block">Live weddings & galas →</span>
+                  </div>
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-fuchsia-50 text-fuchsia-600 flex items-center justify-center">
+                    <PartyPopper className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </div>
+                </div>
+
+                {/* 2. Pipeline Revenue */}
+                <div 
+                  onClick={() => setActiveTab('earnings')}
+                  className="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between cursor-pointer hover:border-emerald-300 hover:shadow-sm transition-all"
+                >
+                  <div>
+                    <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Pipeline Revenue</div>
+                    <div className="text-2xl sm:text-3xl font-black text-slate-900">₹42.8 L</div>
+                    <span className="text-xs text-emerald-600 font-semibold mt-1 block">Across 4 client projects →</span>
+                  </div>
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </div>
+                </div>
+
+                {/* 3. Advance Collected */}
+                <div 
+                  onClick={() => setActiveTab('earnings')}
+                  className="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between cursor-pointer hover:border-indigo-300 hover:shadow-sm transition-all"
+                >
+                  <div>
+                    <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Advance Collected</div>
+                    <div className="text-2xl sm:text-3xl font-black text-slate-900">₹18.4 L</div>
+                    <span className="text-xs text-indigo-600 font-semibold mt-1 block">43% payment realized →</span>
+                  </div>
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                    <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </div>
+                </div>
+
+                {/* 4. Packages & Catalog */}
+                <div 
+                  onClick={() => setActiveTab('services')}
+                  className="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between cursor-pointer hover:border-purple-300 hover:shadow-sm transition-all"
+                >
+                  <div>
+                    <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Packages & Catalog</div>
+                    <div className="text-2xl sm:text-3xl font-black text-slate-900">{myListings.length || 3}</div>
+                    <span className="text-xs text-purple-600 font-semibold mt-1 block">Manage event packages →</span>
+                  </div>
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                    <Briefcase className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </div>
+                </div>
+              </div>
             ) : (
               /* STANDARD RETAIL / SERVICE SECTOR METRICS */
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-5 sm:mb-8">
@@ -1440,6 +1510,89 @@ function DashboardContent() {
                       </button>
                     </div>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* LIVE EVENT PRODUCTION PREVIEW CARD */}
+            {activeVertical === 'EVENT' && (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+                <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-gradient-to-r from-fuchsia-50/50 via-purple-50/30 to-white">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-fuchsia-100 text-fuchsia-600 flex items-center justify-center font-bold text-sm shadow-2xs">
+                      🎉
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm">Upcoming Event Productions & Milestones</h4>
+                      <p className="text-xs text-slate-500">Live tracker for weddings, summits, and client productions</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setActiveTab('sector_station')}
+                    className="text-xs font-bold text-fuchsia-600 hover:text-fuchsia-700 transition-colors flex items-center gap-1 self-start sm:self-auto"
+                  >
+                    Open Production Console →
+                  </button>
+                </div>
+
+                <div className="divide-y divide-slate-100">
+                  <div className="p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3 hover:bg-slate-50/60 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-pink-50 text-pink-700 border border-pink-100 font-bold flex items-center justify-center text-xs">
+                        WED
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                          <span>Rohan & Ananya Grand Wedding</span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-50 text-pink-700 border border-pink-200">In Execution</span>
+                        </div>
+                        <div className="text-xs text-slate-500 mt-0.5">
+                          📍 The Leela Palace • 650 Guests • Date: 2026-11-15
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 self-end sm:self-auto">
+                      <div className="text-right">
+                        <div className="text-xs font-bold text-slate-900">₹18.50 L</div>
+                        <div className="text-[10px] text-emerald-600 font-semibold">₹9.00 L advance received</div>
+                      </div>
+                      <button
+                        onClick={() => setActiveTab('sector_station')}
+                        className="px-3 py-1.5 bg-fuchsia-50 hover:bg-fuchsia-100 text-fuchsia-700 rounded-lg text-xs font-bold transition-colors border border-fuchsia-200"
+                      >
+                        Milestones (70%) →
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3 hover:bg-slate-50/60 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 border border-blue-100 font-bold flex items-center justify-center text-xs">
+                        CORP
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                          <span>TechVanguard APAC Leadership Summit</span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">Confirmed</span>
+                        </div>
+                        <div className="text-xs text-slate-500 mt-0.5">
+                          📍 ITC Gardenia • 400 Guests • Date: 2026-10-30
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 self-end sm:self-auto">
+                      <div className="text-right">
+                        <div className="text-xs font-bold text-slate-900">₹12.00 L</div>
+                        <div className="text-[10px] text-emerald-600 font-semibold">₹6.00 L advance received</div>
+                      </div>
+                      <button
+                        onClick={() => setActiveTab('sector_station')}
+                        className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold transition-colors border border-blue-200"
+                      >
+                        Milestones (55%) →
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
