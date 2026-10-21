@@ -1871,12 +1871,18 @@ function DashboardContent() {
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
               <div>
                 <h1 className="text-3xl font-bold text-slate-900">
-                  {activeVertical === 'FOOD' ? 'Restaurant Venue & Dining Service' : (activeTab === 'services' ? 'My Services' : 'My Shop Catalog')}
+                  {activeVertical === 'FOOD' 
+                    ? 'Restaurant Venue & Dining Service' 
+                    : (activeVertical === 'EVENT' 
+                      ? 'Event Packages & Production Catalog' 
+                      : (activeTab === 'services' ? 'My Services' : 'My Shop Catalog'))}
                 </h1>
                 <p className="text-slate-500 mt-2">
                   {activeVertical === 'FOOD' 
                     ? 'Your restaurant storefront, table booking service, and dining experience.'
-                    : (activeTab === 'services' ? 'Manage your active services.' : 'Manage your active products.')}
+                    : (activeVertical === 'EVENT'
+                      ? 'Publish turnkey wedding, corporate summit, and themed celebration packages for client inquiries.'
+                      : (activeTab === 'services' ? 'Manage your active services.' : 'Manage your active products.'))}
                 </p>
               </div>
 
@@ -1895,6 +1901,21 @@ function DashboardContent() {
                     🍽️ View Customer Storefront
                   </Link>
                 </div>
+              ) : activeVertical === 'EVENT' ? (
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => setActiveTab('add_service')}
+                    className="bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-700 hover:to-pink-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md shadow-fuchsia-600/20 transition-colors flex items-center gap-2 text-sm"
+                  >
+                    <PlusCircle className="w-4 h-4" /> Add Event Package
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('sector_station')}
+                    className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-sm transition-colors border border-slate-200 flex items-center gap-1.5"
+                  >
+                    <PartyPopper className="w-4 h-4 text-fuchsia-600" /> Console
+                  </button>
+                </div>
               ) : (
                 <button 
                   onClick={() => setActiveTab(activeTab === 'services' ? 'add_service' : 'add_product')}
@@ -1904,6 +1925,31 @@ function DashboardContent() {
                 </button>
               )}
             </div>
+
+            {/* Event Organizer Guidance & Turnkey Packages Banner */}
+            {activeVertical === 'EVENT' && (
+              <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-fuchsia-50 via-purple-50 to-pink-50 border border-fuchsia-200/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-500 text-white flex items-center justify-center font-bold text-xl shadow-xs shrink-0">
+                    🎪
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900">Event Organizer & Wedding Production Service Offerings</h4>
+                    <p className="text-xs text-slate-600 mt-0.5">
+                      Add your specialized services: <strong>Full Destination Weddings</strong>, <strong>Stage Lighting & Sound Rigging</strong>, <strong>Catering & Banquets</strong>, or <strong>Corporate Conferences</strong>. Clients can request direct quotes or book consultations.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => setActiveTab('add_service')}
+                    className="px-4 py-2 rounded-xl bg-fuchsia-600 text-white text-xs font-bold hover:bg-fuchsia-700 transition-colors shadow-xs flex items-center gap-1.5"
+                  >
+                    <PlusCircle className="w-3.5 h-3.5" /> New Service Package
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Food & Dining Single-Establishment Guidance Banner */}
             {activeVertical === 'FOOD' && myListings.length > 0 && (
@@ -2018,27 +2064,44 @@ function DashboardContent() {
               ))}
               {myListings.length === 0 && (
                 <div className="col-span-full py-16 text-center bg-white rounded-2xl border border-slate-200 shadow-sm">
-                  <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Package className="w-8 h-8" />
+                  <div className={`w-16 h-16 ${activeVertical === 'EVENT' ? 'bg-fuchsia-50 text-fuchsia-600' : 'bg-blue-50 text-blue-500'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                    {activeVertical === 'EVENT' ? <PartyPopper className="w-8 h-8" /> : <Package className="w-8 h-8" />}
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">{isServiceProvider ? 'No services yet' : 'No listings yet'}</h3>
-                  <p className="text-slate-500 mb-6">Start growing your business by adding your first {isServiceProvider ? 'service' : 'product'}.</p>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">
+                    {activeVertical === 'EVENT' ? 'No Event Packages Published Yet' : (isServiceProvider ? 'No services yet' : 'No listings yet')}
+                  </h3>
+                  <p className="text-slate-500 mb-6 max-w-md mx-auto text-sm">
+                    {activeVertical === 'EVENT' 
+                      ? 'Showcase your destination wedding packages, corporate event setups, and staging productions so clients can book consultations and request proposals.'
+                      : `Start growing your business by adding your first ${isServiceProvider ? 'service' : 'product'}.`}
+                  </p>
                   <div className="flex gap-3 justify-center">
-                    {(isB2C || isB2B || isCartFlow || isRfqFlow || (!isService && !isServiceProvider)) && (
-                      <button 
-                        onClick={() => setActiveTab('add_product')}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-bold transition-colors"
-                      >
-                        Add Product
-                      </button>
-                    )}
-                    {(isService || isServiceProvider || isQueueFlow || isMeetingFlow || isProjectFlow) && (
+                    {activeVertical === 'EVENT' ? (
                       <button 
                         onClick={() => setActiveTab('add_service')}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg font-bold transition-colors"
+                        className="bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-700 hover:to-pink-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-md shadow-fuchsia-600/20 flex items-center gap-2 text-sm"
                       >
-                        Add Service
+                        <PlusCircle className="w-4 h-4" /> Add Event Service Package
                       </button>
+                    ) : (
+                      <>
+                        {(isB2C || isB2B || isCartFlow || isRfqFlow || (!isService && !isServiceProvider)) && (
+                          <button 
+                            onClick={() => setActiveTab('add_product')}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-bold transition-colors"
+                          >
+                            Add Product
+                          </button>
+                        )}
+                        {(isService || isServiceProvider || isQueueFlow || isMeetingFlow || isProjectFlow) && (
+                          <button 
+                            onClick={() => setActiveTab('add_service')}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg font-bold transition-colors"
+                          >
+                            Add Service
+                          </button>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
