@@ -73,7 +73,6 @@ export default function EventOrganizerModule({
   const [activeSubTab, setActiveSubTab] = useState<'events' | 'calendar' | 'proposals' | 'packages'>('events');
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedEvent, setSelectedEvent] = useState<EventProject | null>(null);
   const [showNewEventModal, setShowNewEventModal] = useState(false);
 
   // Initial Sample Events State
@@ -187,6 +186,8 @@ export default function EventOrganizerModule({
       notes: 'Client loves vintage live Ghazal/Sufi music and candlelit floral walk.'
     }
   ]);
+
+  const [selectedEvent, setSelectedEvent] = useState<EventProject | null>(events[0] || null);
 
   // Packages & Service Offerings
   const eventPackages = [
