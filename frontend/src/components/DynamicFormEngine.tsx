@@ -179,6 +179,9 @@ export default function DynamicFormEngine({
     if (activeVertical === 'SALON') {
       return ['beauty', 'salon', 'spa', 'beauty parlour', 'salon & parlor', 'saloon'].includes(cName);
     }
+    if ((activeVertical as string) === 'EVENT') {
+      return ['event planner', 'organizers', 'organizer', 'events & wedding decor', 'event & party'].includes(cName);
+    }
 
     // 2. If no sector registered, allow all categories of primary type
     if (!sName) return true;
@@ -201,6 +204,9 @@ export default function DynamicFormEngine({
     }
     if (sName.includes('professional')) {
       return ['professional', 'consultant', 'lawyer', 'accountant', 'freelancer', 'tutor'].includes(cName);
+    }
+    if (sName.includes('event') || sName.includes('wedding') || sName.includes('organizer') || sName.includes('party')) {
+      return ['event planner', 'organizers', 'organizer'].includes(cName);
     }
     if (sName.includes('car wash') || sName.includes('automobile')) {
       return ['car wash', 'mechanic', 'sales & rentals'].includes(cName);

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useProducts } from '@/context/ProductContext';
-import { Store, BarChart3, Package, PlusCircle, ArrowLeft, Trash2, Edit2, CheckCircle2, CalendarClock, Settings, Menu, X, Users, TrendingUp, Ticket, Clock, Ban, Search, Phone, Mail, FileText, MapPin, ChevronDown, Activity, Scissors, User, UserPlus, Sparkles, Palette, Droplet, Briefcase, Eye, ShieldCheck, Utensils, UtensilsCrossed, Stethoscope, HeartPulse, ChefHat, MessageSquare, Lock, Check, Info, Bell, Key } from 'lucide-react';
+import { Store, BarChart3, Package, PlusCircle, ArrowLeft, Trash2, Edit2, CheckCircle2, CalendarClock, Settings, Menu, X, Users, TrendingUp, Ticket, Clock, Ban, Search, Phone, Mail, FileText, MapPin, ChevronDown, Activity, Scissors, User, UserPlus, Sparkles, Palette, Droplet, Briefcase, Eye, ShieldCheck, Utensils, UtensilsCrossed, Stethoscope, HeartPulse, ChefHat, MessageSquare, Lock, Check, Info, Bell, Key, PartyPopper } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Suspense } from 'react';
 import StaffResourceManagementModal from '@/components/StaffResourceManagementModal';
@@ -12,6 +12,7 @@ import LocationPicker from '@/components/LocationPicker';
 import FoodDiningModule from '@/components/FoodDiningModule';
 import ClinicDoctorModule from '@/components/ClinicDoctorModule';
 import SalonSpaModule from '@/components/SalonSpaModule';
+import EventOrganizerModule from '@/components/EventOrganizerModule';
 
 const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
 
@@ -130,16 +131,21 @@ function DashboardContent() {
     cat === 'salon & parlor' || cat === 'salon' || cat === 'saloon' || cat === 'parlor' || cat === 'parlour' || cat === 'spa' || cat === 'beauty'
   );
 
-  const availableVerticals: { id: 'FOOD' | 'SALON' | 'DOCTOR'; label: string; icon: any }[] = [];
+  const isEventListed = distinctSellerCategories.some(cat => 
+    cat === 'event planner' || cat === 'organizers' || cat === 'organizer' || cat === 'event & party' || cat.includes('event') || cat.includes('wedding')
+  );
+
+  const availableVerticals: { id: 'FOOD' | 'SALON' | 'DOCTOR' | 'EVENT'; label: string; icon: any }[] = [];
   if (isFoodListed) availableVerticals.push({ id: 'FOOD', label: 'Dining', icon: Utensils });
   if (isSalonListed) availableVerticals.push({ id: 'SALON', label: 'Salon', icon: Scissors });
   if (isDoctorListed) availableVerticals.push({ id: 'DOCTOR', label: 'Doctor', icon: Stethoscope });
+  if (isEventListed) availableVerticals.push({ id: 'EVENT', label: 'Events & Weddings', icon: PartyPopper });
 
-  const defaultDetectedVertical: 'FOOD' | 'SALON' | 'DOCTOR' | 'NONE' = 
+  const defaultDetectedVertical: 'FOOD' | 'SALON' | 'DOCTOR' | 'EVENT' | 'NONE' = 
     availableVerticals.length > 0 ? availableVerticals[0].id : 'NONE';
 
-  const [currentVertical, setCurrentVertical] = useState<'AUTO' | 'FOOD' | 'SALON' | 'DOCTOR'>('AUTO');
-  const activeVertical: 'FOOD' | 'SALON' | 'DOCTOR' | 'NONE' = 
+  const [currentVertical, setCurrentVertical] = useState<'AUTO' | 'FOOD' | 'SALON' | 'DOCTOR' | 'EVENT'>('AUTO');
+  const activeVertical: 'FOOD' | 'SALON' | 'DOCTOR' | 'EVENT' | 'NONE' = 
     currentVertical === 'AUTO' 
       ? defaultDetectedVertical 
       : (availableVerticals.some(v => v.id === currentVertical) ? currentVertical : defaultDetectedVertical);
@@ -147,13 +153,13 @@ function DashboardContent() {
   // Dynamic Flow Resolution (Reads from Category Engine FIRST, falls back to hardcoded strings)
   const isCartFlow = allowedFeatures.includes('Product Stock') || allowedFeatures.includes('B2C') || hasCartProducts || CART_ORDER_FLOW.includes(sellerSector) || isB2C;
   const isRfqFlow = allowedFeatures.includes('RFQ') || allowedFeatures.includes('Quote') || allowedFeatures.includes('B2B') || hasRfqProducts || RFQ_QUOTE_FLOW.includes(sellerSector) || isB2B;
-  const isQueueFlow = allowedFeatures.includes('Token') || hasQueueServices || QUEUE_TOKEN_FLOW.includes(sellerSector) || isService || ['FOOD', 'SALON', 'DOCTOR'].includes(activeVertical);
+  const isQueueFlow = allowedFeatures.includes('Token') || hasQueueServices || QUEUE_TOKEN_FLOW.includes(sellerSector) || isService || ['FOOD', 'SALON', 'DOCTOR', 'EVENT'].includes(activeVertical);
   const isProjectFlow = hasProjectServices || PROJECT_MILESTONE_FLOW.includes(sellerSector);
   const isMeetingFlow = allowedFeatures.includes('Appointment') || allowedFeatures.includes('Meeting') || hasMeetingServices || MEETING_PROPOSAL_FLOW.includes(sellerSector);
   const isAssetFlow = allowedFeatures.includes('Vehicle Test Drive') || hasAssetListings || ENQUIRY_ASSET_FLOW.includes(sellerSector);
 
   // For backward compatibility in some places
-  const isServiceProvider = isQueueFlow || isProjectFlow || isMeetingFlow || isService || sellerCategory?.primaryType === 'SERVICE' || ['FOOD', 'SALON', 'DOCTOR'].includes(activeVertical);
+  const isServiceProvider = isQueueFlow || isProjectFlow || isMeetingFlow || isService || sellerCategory?.primaryType === 'SERVICE' || ['FOOD', 'SALON', 'DOCTOR', 'EVENT'].includes(activeVertical);
   const [queueData, setQueueData] = useState<any>(null);
   const [isQueueLoading, setIsQueueLoading] = useState(false);
   const [queueAnalytics, setQueueAnalytics] = useState<any>(null);
@@ -869,11 +875,15 @@ function DashboardContent() {
                 <span>Listed Verticals</span>
                 <span className="text-indigo-600 font-bold">{activeVertical}</span>
               </div>
-              <div className={`grid gap-1 ${availableVerticals.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+              <div className={`grid gap-1 ${availableVerticals.length === 2 ? 'grid-cols-2' : (availableVerticals.length >= 4 ? 'grid-cols-2' : 'grid-cols-3')}`}>
                 {availableVerticals.map(v => {
                   const Icon = v.icon;
                   const isAct = activeVertical === v.id;
-                  const activeColor = v.id === 'FOOD' ? 'bg-orange-500 text-white' : (v.id === 'SALON' ? 'bg-indigo-600 text-white' : 'bg-emerald-600 text-white');
+                  const activeColor = v.id === 'FOOD' 
+                    ? 'bg-orange-500 text-white' 
+                    : (v.id === 'SALON' 
+                      ? 'bg-indigo-600 text-white' 
+                      : (v.id === 'DOCTOR' ? 'bg-emerald-600 text-white' : 'bg-fuchsia-600 text-white'));
                   return (
                     <button
                       key={v.id}
@@ -899,7 +909,8 @@ function DashboardContent() {
                 {activeVertical === 'FOOD' && <Utensils className="w-3.5 h-3.5 text-orange-500" />}
                 {activeVertical === 'SALON' && <Scissors className="w-3.5 h-3.5 text-indigo-600" />}
                 {activeVertical === 'DOCTOR' && <Stethoscope className="w-3.5 h-3.5 text-emerald-600" />}
-                {activeVertical === 'FOOD' ? 'Dining & Food' : (activeVertical === 'DOCTOR' ? 'Clinic & Doctor' : 'Salon & Spa')}
+                {activeVertical === 'EVENT' && <PartyPopper className="w-3.5 h-3.5 text-fuchsia-600" />}
+                {activeVertical === 'FOOD' ? 'Dining & Food' : (activeVertical === 'DOCTOR' ? 'Clinic & Doctor' : (activeVertical === 'EVENT' ? 'Events & Weddings' : 'Salon & Spa'))}
               </span>
             </div>
           )}
@@ -956,6 +967,18 @@ function DashboardContent() {
                         <Scissors className="w-5 h-5 text-indigo-600" /> Chairs & Stylists
                       </div>
                       <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded text-[10px] font-bold">Salon</span>
+                    </button>
+                  )}
+
+                  {activeVertical === 'EVENT' && (
+                    <button 
+                      onClick={() => { setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' ? 'bg-fuchsia-50 text-fuchsia-700 font-bold border border-fuchsia-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <PartyPopper className="w-5 h-5 text-fuchsia-600" /> Events & Productions
+                      </div>
+                      <span className="px-2 py-0.5 bg-fuchsia-100 text-fuchsia-800 rounded text-[10px] font-bold">Planner</span>
                     </button>
                   )}
 
@@ -1453,6 +1476,16 @@ function DashboardContent() {
                 onOpenWalkInModal={() => setShowWalkInForm(true)}
               />
             )}
+            {activeVertical === 'EVENT' && (
+              <EventOrganizerModule 
+                queueData={queueData}
+                user={user}
+                onRefresh={() => fetchQueue()}
+                onAction={handleQueueAction}
+                actionLoading={actionLoading}
+                onOpenStaffModal={() => setShowStaffModal(true)}
+              />
+            )}
           </div>
         )}
 
@@ -1460,14 +1493,16 @@ function DashboardContent() {
           <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
             <div className="mb-5 sm:mb-8">
               <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                {activeVertical === 'FOOD' ? 'Dining Revenue & Payouts' : (activeVertical === 'DOCTOR' ? 'Consultation & Clinic Revenue' : 'Earnings & Performance')}
+                {activeVertical === 'FOOD' ? 'Dining Revenue & Payouts' : (activeVertical === 'DOCTOR' ? 'Consultation & Clinic Revenue' : (activeVertical === 'EVENT' ? 'Event & Wedding Production Revenue' : 'Earnings & Performance'))}
               </h1>
               <p className="text-slate-500 mt-1 text-xs sm:text-sm">
                 {activeVertical === 'FOOD'
                   ? 'Track table billings, walk-in cash/online collections, and waiter/kitchen shift performance.'
                   : (activeVertical === 'DOCTOR'
                     ? 'Track consultation fees, appointment payments, and clinic revenue.'
-                    : 'Track revenue collections, client payments, and staff commission performance.')}
+                    : (activeVertical === 'EVENT'
+                      ? 'Track event contract values, advance collections, sub-vendor disbursements, and project margins.'
+                      : 'Track revenue collections, client payments, and staff commission performance.'))}
               </p>
             </div>
             
