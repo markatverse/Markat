@@ -982,27 +982,31 @@ function DashboardContent() {
                     </button>
                   )}
 
-                  <button 
-                    onClick={() => { setActiveTab('bookings'); setIsMobileMenuOpen(false); }} 
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'bookings' ? 'bg-amber-50 text-amber-700 font-bold border border-amber-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <CalendarClock className="w-5 h-5" /> Bookings & Tokens
-                    </div>
-                  </button>
+                  {activeVertical !== 'EVENT' && (
+                    <>
+                      <button 
+                        onClick={() => { setActiveTab('bookings'); setIsMobileMenuOpen(false); }} 
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'bookings' ? 'bg-amber-50 text-amber-700 font-bold border border-amber-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <CalendarClock className="w-5 h-5" /> Bookings & Tokens
+                        </div>
+                      </button>
 
-                  <button 
-                    onClick={() => { setActiveTab('queue'); setIsMobileMenuOpen(false); }} 
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'queue' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-                  >
-                    <span className="w-5 h-5 flex items-center justify-center text-lg">🎟️</span> Live Queue
-                  </button>
+                      <button 
+                        onClick={() => { setActiveTab('queue'); setIsMobileMenuOpen(false); }} 
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'queue' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                      >
+                        <span className="w-5 h-5 flex items-center justify-center text-lg">🎟️</span> Live Queue
+                      </button>
+                    </>
+                  )}
 
                   <button 
                     onClick={() => { setActiveTab('services'); setIsMobileMenuOpen(false); }} 
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'services' ? 'bg-purple-50 text-purple-700 font-bold border border-purple-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                   >
-                    <Briefcase className="w-5 h-5" /> Services & Catalog
+                    <Briefcase className="w-5 h-5" /> {activeVertical === 'EVENT' ? 'Packages & Services' : 'Services & Catalog'}
                   </button>
                 </>
               )}
@@ -1011,14 +1015,14 @@ function DashboardContent() {
                 onClick={() => { setActiveTab('customers'); setIsMobileMenuOpen(false); }} 
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'customers' ? 'bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
               >
-                <Users className="w-5 h-5" /> Customers
+                <Users className="w-5 h-5" /> {activeVertical === 'EVENT' ? 'Clients' : 'Customers'}
               </button>
 
               <button 
                 onClick={() => { setActiveTab('staff'); setIsMobileMenuOpen(false); }} 
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'staff' ? 'bg-rose-50 text-rose-700 font-bold border border-rose-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
               >
-                <UserPlus className="w-5 h-5" /> {activeVertical === 'DOCTOR' ? 'Doctors & Staff' : (activeVertical === 'FOOD' ? 'Kitchen & Waiters' : 'Stylists & Staff')}
+                <UserPlus className="w-5 h-5" /> {activeVertical === 'DOCTOR' ? 'Doctors & Staff' : (activeVertical === 'FOOD' ? 'Kitchen & Waiters' : (activeVertical === 'EVENT' ? 'Event Crew & Staff' : 'Stylists & Staff'))}
               </button>
 
               <button 
