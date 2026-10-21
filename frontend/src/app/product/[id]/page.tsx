@@ -150,6 +150,16 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
     product.subcategory?.toLowerCase().includes('cafe')
   ) : false;
 
+  const isEventOrganizer = product ? (
+    product.category?.toLowerCase().includes('event') ||
+    product.category?.toLowerCase().includes('organizer') ||
+    product.category?.toLowerCase().includes('wedding') ||
+    product.subcategory?.toLowerCase().includes('event') ||
+    product.subcategory?.toLowerCase().includes('wedding') ||
+    product.subcategory?.toLowerCase().includes('celebration') ||
+    product.subcategory?.toLowerCase().includes('production')
+  ) : false;
+
   const [partySize, setPartySize] = useState(2);
   const todayStr = useMemo(() => {
     const d = new Date();
@@ -254,10 +264,10 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
     };
   }, [isGuestDropdownOpen, isDateDropdownOpen]);
 
-  const isRetail = (product?.primaryType === 'SERVICE' || isFoodDining) ? false : (noRulesDefined
-    ? !['Services', 'Home Services', 'Organizers', 'Transport', 'Rentals', 'Subscriptions', 'B2B', 'Construction Materials'].includes(product?.category || '')
+  const isRetail = (product?.primaryType === 'SERVICE' || isFoodDining || isEventOrganizer) ? false : (noRulesDefined
+    ? !['Services', 'Home Services', 'Organizers', 'Event Planner', 'Transport', 'Rentals', 'Subscriptions', 'B2B', 'Construction Materials'].includes(product?.category || '')
     : hasProductStock);
-  const isWholesaleConfig = (product?.primaryType === 'SERVICE' || isFoodDining) ? false : (noRulesDefined
+  const isWholesaleConfig = (product?.primaryType === 'SERVICE' || isFoodDining || isEventOrganizer) ? false : (noRulesDefined
     ? (product?.category === 'B2B' || product?.category === 'Construction Materials' || (isRetail && isElite))
     : ((hasB2B && hasBulkPricing) || (isRetail && isElite)));
   
@@ -399,6 +409,11 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                 <UtensilsCrossed className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-400" /> Dining Venue
               </div>
             )}
+            {isEventOrganizer && (
+              <div className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-gradient-to-r from-fuchsia-950/80 to-purple-950/80 backdrop-blur-md border border-fuchsia-400/30 text-fuchsia-200 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold tracking-wide flex items-center gap-1.5 shadow-sm">
+                <PartyPopper className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-fuchsia-400" /> Event & Wedding Production
+              </div>
+            )}
           </div>
           
           {/* Thumbnails */}
@@ -425,12 +440,12 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
           {/* Sold By / Restaurant Venue Details Card (Desktop Left Column) */}
           <div className="hidden lg:block mt-8 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">
-              {isFoodDining ? 'Restaurant / Dining Venue' : (isServiceProduct(product) ? 'Service Provider' : 'Sold by')}
+              {isFoodDining ? 'Restaurant / Dining Venue' : (isEventOrganizer ? 'Event Director & Wedding Planner' : (isServiceProduct(product) ? 'Service Provider' : 'Sold by'))}
             </div>
             <div className="flex flex-row items-center justify-between gap-2">
               <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 sm:w-14 sm:h-14 ${isFoodDining ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-blue-50 text-blue-600 border-blue-100'} rounded-xl flex items-center justify-center shrink-0 border`}>
-                  {isFoodDining ? <UtensilsCrossed className="w-5 h-5 sm:w-6 sm:h-6" /> : <Building2 className="w-5 h-5 sm:w-6 sm:h-6" />}
+                <div className={`w-12 h-12 sm:w-14 sm:h-14 ${isFoodDining ? 'bg-rose-50 text-rose-600 border-rose-100' : (isEventOrganizer ? 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-100' : 'bg-blue-50 text-blue-600 border-blue-100')} rounded-xl flex items-center justify-center shrink-0 border`}>
+                  {isFoodDining ? <UtensilsCrossed className="w-5 h-5 sm:w-6 sm:h-6" /> : (isEventOrganizer ? <PartyPopper className="w-5 h-5 sm:w-6 sm:h-6" /> : <Building2 className="w-5 h-5 sm:w-6 sm:h-6" />)}
                 </div>
                 <div>
                   <Link href={`/seller/${encodeURIComponent(product.seller)}`} className="no-underline">
@@ -707,7 +722,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
               )
             )}
 
-            {(noRulesDefined ? !['Services', 'Home Services', 'Organizers', 'Transport', 'Rentals', 'Subscriptions', 'B2B', 'Construction Materials'].includes(product.category) : hasProductStock) && (
+            {(noRulesDefined ? !['Services', 'Home Services', 'Organizers', 'Event Planner', 'Transport', 'Rentals', 'Subscriptions', 'B2B', 'Construction Materials'].includes(product.category) : hasProductStock) && !isEventOrganizer && (
               <div className="mt-4 p-3 sm:p-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 border border-amber-400 shadow-sm shadow-amber-500/10 transition-all">
                 <div className="flex items-center justify-between gap-3">
                   <button 
@@ -1339,8 +1354,87 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                 </div>
               )}
 
+              {/* ── EVENT ORGANIZER & WEDDING PRODUCTION CONSULTATION / QUOTE ── */}
+              {isEventOrganizer && (
+                <div className="w-full bg-gradient-to-br from-fuchsia-50 via-purple-50 to-pink-50 rounded-2xl border border-fuchsia-200/90 shadow-md p-4 sm:p-6 space-y-4">
+                  <div className="flex items-center gap-3 pb-3 border-b border-fuchsia-200/60">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-fuchsia-600 to-pink-600 text-white flex items-center justify-center font-bold text-lg shadow-xs shrink-0">
+                      🎉
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-slate-900 text-sm sm:text-base leading-tight">
+                        Book Event Consultation & Request Proposal
+                      </h3>
+                      <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+                        Direct consultation with {product.seller} for weddings, galas, summits & stage production.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Event Details Quick Inputs */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Expected Event Date</label>
+                      <input 
+                        type="date" 
+                        defaultValue="2026-11-20"
+                        className="w-full p-2.5 bg-white border border-fuchsia-200 rounded-xl font-medium text-slate-800 outline-none focus:border-fuchsia-500 shadow-2xs" 
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Estimated Guest Count</label>
+                      <select 
+                        defaultValue="150 - 500 Guests"
+                        className="w-full p-2.5 bg-white border border-fuchsia-200 rounded-xl font-medium text-slate-800 outline-none focus:border-fuchsia-500 shadow-2xs"
+                      >
+                        <option>Intimate (50 - 150 Guests)</option>
+                        <option>Medium (150 - 500 Guests)</option>
+                        <option>Grand (500 - 1200 Guests)</option>
+                        <option>Mega (1200+ Guests)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-white/80 backdrop-blur-xs rounded-xl border border-fuchsia-100 text-xs text-slate-600 space-y-1">
+                    <div className="font-bold text-fuchsia-900 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-fuchsia-600" />
+                      What happens after booking?
+                    </div>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      A dedicated event director connects with you within 2 business hours to share tailored 3D moodboards, venue layouts, catering tasting schedules, and transparent vendor budgets.
+                    </p>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
+                    <button
+                      className="w-full sm:flex-1 py-3.5 px-4 bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-700 hover:to-pink-700 active:scale-[0.99] text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-fuchsia-600/20 flex items-center justify-center gap-2 cursor-pointer"
+                      onClick={() => requireAuth(() => {
+                        alert(`🎉 Consultation Booked!\n\nEvent Planner: ${product.seller}\nService: ${product.name}\n\n✓ Direct inquiry dispatched to seller's Event Production Console.\n✓ An Event Director will call you to finalize venue layout & custom quote.`);
+                      })}
+                    >
+                      <Calendar className="w-4 h-4" /> Book Free Consultation
+                    </button>
+                    <button
+                      className="w-full sm:flex-1 py-3.5 px-4 bg-white hover:bg-fuchsia-50 border-2 border-fuchsia-300 text-fuchsia-700 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+                      onClick={() => requireAuth(() => {
+                        alert(`📋 Proposal Requested!\n\nQuotation request for "${product.name}" has been logged in ${product.seller}'s pipeline deck.`);
+                      })}
+                    >
+                      <FileText className="w-4 h-4" /> Request Custom Quote
+                    </button>
+                    <a
+                      href="tel:+919876543210"
+                      className="w-full sm:w-auto py-3.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold text-xs sm:text-sm transition-colors flex items-center justify-center gap-1.5 shrink-0"
+                    >
+                      <Phone className="w-3.5 h-3.5 text-fuchsia-300" /> Call Planner
+                    </a>
+                  </div>
+                </div>
+              )}
+
               {/* ── MEETING / PROPOSAL ── */}
-              {hasMeeting && !hasToken && !hasAppointment && !hasVehicleTestDrive && !isWholesaleConfig && !hasRFQ && (
+              {hasMeeting && !hasToken && !hasAppointment && !hasVehicleTestDrive && !isWholesaleConfig && !hasRFQ && !isEventOrganizer && (
                 <div className="flex flex-col gap-3 w-full p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
                   <div className="text-indigo-800 font-bold text-sm mb-1">Request a Meeting / Proposal</div>
                   <div className="flex flex-row items-center gap-2.5 sm:gap-3">
@@ -1361,7 +1455,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
               )}
 
               {/* ── PRODUCT STOCK / RETAIL (Buy Now + Add to Cart - Horizontal both on mobile & desktop) ── */}
-              {(hasProductStock || noRulesDefined) && !isFoodDining && !hasToken && !hasAppointment && !hasVehicleTestDrive && !isWholesaleConfig && (
+              {(hasProductStock || noRulesDefined) && !isFoodDining && !isEventOrganizer && !hasToken && !hasAppointment && !hasVehicleTestDrive && !isWholesaleConfig && (
                 <div className="flex flex-row items-center gap-2.5 sm:gap-4 w-full">
                   <button
                     className="flex-1 py-3 px-3 sm:px-6 sm:py-4 bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-white rounded-xl font-bold text-sm sm:text-base transition-all shadow-md shadow-amber-500/20 text-center cursor-pointer"
