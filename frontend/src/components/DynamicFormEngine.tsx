@@ -159,7 +159,13 @@ export default function DynamicFormEngine({
   const userSector = propSellerSector || user?.business?.sector || '';
 
   // Systematic Sector-to-Category Mapping
+  // For Product Selling: No sector limitation or lock. Sellers can sell products across any product category.
+  // For Services: Retain sector specialization (Doctor, Salon, Food & Dining, etc.)
   const isCategoryAllowedForSeller = (catName: string): boolean => {
+    if (!isService) {
+      return true; // No sector limitation for product selling
+    }
+
     const cName = catName.toLowerCase().trim();
     const sName = userSector.toLowerCase().trim();
 
@@ -243,9 +249,9 @@ export default function DynamicFormEngine({
     }
   }, [availableCategories, category, userSector]);
 
-  const isCategoryLocked = availableCategories.length === 1 || (
-    !!userSector && availableCategories.length > 0 && availableCategories.every(c => isCategoryAllowedForSeller(c.name)) && availableCategories.length === 1
-  );
+  // For product selling: NEVER lock category to sector. Always allow full category selection dropdown.
+  // Locked category only applies to specialized Service flows (like Doctor clinic, Salon, etc.) where strict flow specialization is required.
+  const isCategoryLocked = isService && availableCategories.length === 1;
 
   const selectedCategory = availableCategories.find(c => c.name === category);
   const availableSubcategories = selectedCategory?.subcategories || [];
