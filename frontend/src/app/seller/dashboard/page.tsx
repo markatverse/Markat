@@ -1105,17 +1105,39 @@ function DashboardContent() {
         {activeTab === 'overview' && (
           <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
             {/* Dashboard Header with Live Store Status & Shortcuts */}
-            <div className="mb-4 sm:mb-8 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+            <div className="mb-4 sm:mb-6 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2.5">
                   <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Dashboard Overview</h1>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 shadow-2xs">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  
+                  {/* Crystal-Clear Sector Identity Badge */}
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 shadow-2xs ${
+                    activeVertical === 'EVENT' 
+                      ? 'bg-fuchsia-50 text-fuchsia-800 border-fuchsia-200' 
+                      : (activeVertical === 'FOOD'
+                        ? 'bg-orange-50 text-orange-800 border-orange-200'
+                        : (activeVertical === 'DOCTOR'
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                          : (activeVertical === 'SALON'
+                            ? 'bg-indigo-50 text-indigo-800 border-indigo-200'
+                            : 'bg-blue-50 text-blue-800 border-blue-200')))}`}>
+                    {activeVertical === 'EVENT' && <PartyPopper className="w-3.5 h-3.5 text-fuchsia-600" />}
+                    {activeVertical === 'FOOD' && <Utensils className="w-3.5 h-3.5 text-orange-500" />}
+                    {activeVertical === 'DOCTOR' && <Stethoscope className="w-3.5 h-3.5 text-emerald-600" />}
+                    {activeVertical === 'SALON' && <Scissors className="w-3.5 h-3.5 text-indigo-600" />}
+                    <span>Sector: <strong>{activeVertical === 'EVENT' ? 'Event & Wedding Production' : (activeVertical === 'FOOD' ? 'Dining & Restaurant' : (activeVertical === 'DOCTOR' ? 'Healthcare & Clinic' : (activeVertical === 'SALON' ? 'Salon & Spa' : (sellerSector || 'Retail'))))}</strong></span>
+                  </span>
+
+                  <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5 shadow-2xs">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     Live & Open
                   </span>
                 </div>
-                <p className="text-slate-500 mt-0.5 text-xs sm:text-base">
-                  Welcome back, <strong className="text-slate-800">{user?.name || user?.business?.name || 'Seller'}</strong>. Real-time updates for your store.
+
+                <p className="text-slate-500 mt-1.5 text-xs sm:text-sm flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span>Welcome, <strong className="text-slate-900 font-semibold">{user?.business?.name || user?.name || 'Seller'}</strong></span>
+                  <span className="text-slate-300 hidden sm:inline">•</span>
+                  <span>Operating as: <strong className="text-indigo-600 font-medium">{activeVertical === 'EVENT' ? 'Full Turnkey Event Organizer' : (isServiceProvider ? 'Direct Service Provider' : 'Product Seller')}</strong></span>
                 </p>
               </div>
 
@@ -1155,23 +1177,47 @@ function DashboardContent() {
               </div>
             </div>
 
-            {/* Account Auto-Verified Banner */}
-            {user?.business && (
-              <div className="mb-4 sm:mb-8 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-emerald-50/80 via-teal-50/40 to-emerald-50/80 border border-emerald-200/80 shadow-2xs flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5 sm:gap-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
-                    <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
+            {/* Comprehensive Seller Identity & Verified Profile Banner */}
+            <div className="mb-5 sm:mb-8 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-md relative overflow-hidden border border-slate-800">
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white flex items-center justify-center font-black text-lg shadow-inner shrink-0">
+                    {user?.business?.name?.slice(0, 2).toUpperCase() || user?.name?.slice(0, 2).toUpperCase() || 'SE'}
                   </div>
                   <div>
-                    <h4 className="font-bold text-emerald-950 text-xs sm:text-sm">Account Verified & Active</h4>
-                    <p className="text-[11px] sm:text-xs text-emerald-700 mt-0.5 line-clamp-1 sm:line-clamp-none">Your business passed MarkatVerse compliance checks.</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-extrabold text-base sm:text-lg text-white">
+                        {user?.business?.name || user?.name || 'Seller Business'}
+                      </h3>
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                        <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                        Verified Business
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-300 mt-1">
+                      <span className="flex items-center gap-1">
+                        <Briefcase className="w-3.5 h-3.5 text-fuchsia-400" />
+                        Industry Sector: <strong className="text-white font-semibold">{activeVertical === 'EVENT' ? 'Event & Wedding Planner' : (activeVertical === 'FOOD' ? 'Dining & Restaurant' : (sellerSector || 'Retail'))}</strong>
+                      </span>
+                      <span className="text-slate-600">•</span>
+                      <span>Owner: <strong className="text-slate-200">{user?.name || 'Administrator'}</strong></span>
+                    </div>
                   </div>
                 </div>
-                <div className="hidden sm:flex items-center gap-2 font-mono text-xs font-semibold text-emerald-800 bg-white/70 px-3 py-1.5 rounded-lg border border-emerald-200/60 shrink-0">
-                  ID: {user.markatId || 'MV-0000000044'}
+
+                {/* Seller Quick IDs & Configuration Badges */}
+                <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+                  <div className="px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10 text-xs">
+                    <span className="text-slate-400 text-[10px] block font-mono uppercase tracking-wider">Business ID</span>
+                    <span className="font-mono font-bold text-white text-xs">{user?.business?.businessCode || 'MV-SPR-000017'}</span>
+                  </div>
+                  <div className="px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10 text-xs">
+                    <span className="text-slate-400 text-[10px] block font-mono uppercase tracking-wider">Account ID</span>
+                    <span className="font-mono font-bold text-emerald-400 text-xs">{user?.markatId || 'MV-0000000051'}</span>
+                  </div>
                 </div>
               </div>
-            )}
+            </div>
 
             {/* SECTOR-ADAPTIVE KPI METRIC CARDS */}
             {activeVertical === 'FOOD' ? (
