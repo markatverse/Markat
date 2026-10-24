@@ -320,26 +320,26 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-600 via-cyan-700 to-teal-600" />
 
       {/* ── Compact Header Bar ── */}
-      <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 gap-2 flex-wrap">
-        <div className="flex items-center gap-2.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2.5">
+        <div className="flex items-center gap-2 sm:gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-cyan-700 text-white flex items-center justify-center shadow-xs shrink-0">
             <Car className="w-4 h-4" />
           </div>
-          <div>
-            <span className="text-sm font-extrabold text-slate-900 block leading-tight">Automobile & Wash Bay</span>
+          <div className="min-w-0">
+            <span className="text-xs sm:text-sm font-extrabold text-slate-900 block leading-tight truncate">Automobile & Wash Bay</span>
             <div className="text-[10px] sm:text-[11px] text-cyan-800 font-bold flex items-center gap-1.5 bg-cyan-50/90 px-2.5 py-0.5 rounded-full border border-cyan-200 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-600 animate-pulse" />
-              Live Queue: {servingToken ? `Serving #${servingToken}` : 'Ready'} · {waitingCount} Waiting · ~{estWaitMin}m
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-600 animate-pulse shrink-0" />
+              <span className="truncate">Live Queue: {servingToken ? `Serving #${servingToken}` : 'Ready'} · {waitingCount} Waiting · ~{estWaitMin}m</span>
             </div>
           </div>
         </div>
 
         {/* Mode Toggle */}
-        <div className="inline-flex p-1 bg-slate-100 rounded-xl text-xs font-bold border border-slate-200/80">
+        <div className="grid grid-cols-2 sm:inline-flex p-1 bg-slate-100 rounded-xl text-xs font-bold border border-slate-200/80 w-full sm:w-auto shrink-0">
           <button
             type="button"
             onClick={() => setBookingMode('TOKEN')}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
+            className={`py-1.5 px-3 rounded-lg transition-all text-center flex items-center justify-center gap-1 ${
               bookingMode === 'TOKEN'
                 ? 'bg-white text-cyan-700 shadow-xs font-black border border-cyan-300 ring-1 ring-cyan-700/20'
                 : 'text-slate-500 hover:text-cyan-700 font-semibold'
@@ -350,7 +350,7 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
           <button
             type="button"
             onClick={() => setBookingMode('APPOINTMENT')}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
+            className={`py-1.5 px-3 rounded-lg transition-all text-center flex items-center justify-center gap-1 ${
               bookingMode === 'APPOINTMENT'
                 ? 'bg-white text-cyan-700 shadow-xs font-black border border-cyan-300 ring-1 ring-cyan-700/20'
                 : 'text-slate-500 hover:text-cyan-700 font-semibold'
@@ -361,36 +361,36 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
         </div>
       </div>
 
-      <form onSubmit={handleBookWash} className="pt-3 space-y-3.5">
-        {/* VEHICLE SELECTOR: 5 SYMMETRICAL CARDS */}
+      <form onSubmit={handleBookWash} className="pt-3 space-y-3">
+        {/* VEHICLE SELECTOR: 5 SYMMETRICAL COLUMNS IN ONE ROW */}
         <div>
           <div className="flex items-center justify-between mb-1.5 text-xs font-bold">
             <span className="text-slate-600 uppercase tracking-wider text-[10px]">Select Vehicle Type</span>
-            <span className="text-cyan-700 font-extrabold flex items-center gap-1">
+            <span className="text-cyan-700 font-extrabold flex items-center gap-1 text-[11px] sm:text-xs">
               <span>{currentVehicle.icon}</span>
               <span>{currentVehicle.name} • ₹{activePrice}</span>
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
             {vehicleList.map(v => {
               const isSelected = selectedVehicle.id === v.id;
-              const displayLabel = v.id === 'heavy' ? 'Heavy (JCB)' : v.name;
+              const displayLabel = v.id === 'heavy' ? 'Heavy' : v.name;
 
               return (
                 <button
                   key={v.id}
                   type="button"
                   onClick={() => setSelectedVehicle(v)}
-                  className={`py-2 px-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center min-h-[68px] ${
+                  className={`py-2 px-1 sm:px-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center min-h-[58px] sm:min-h-[66px] ${
                     isSelected
                       ? 'border-2 border-cyan-700 bg-cyan-50/80 text-cyan-950 shadow-sm font-black ring-1 ring-cyan-700/20'
                       : 'border border-slate-200 bg-slate-50/70 hover:border-cyan-300 hover:bg-cyan-50/30 text-slate-700 font-bold shadow-2xs'
                   }`}
                 >
-                  <span className="text-xl leading-none">{v.icon}</span>
-                  <span className="text-xs mt-1 leading-tight truncate w-full text-center">{displayLabel}</span>
-                  <span className={`text-[11px] mt-0.5 ${isSelected ? 'text-cyan-700 font-black' : 'text-slate-500 font-bold'}`}>
+                  <span className="text-lg sm:text-xl leading-none">{v.icon}</span>
+                  <span className="text-[10px] sm:text-xs mt-1 leading-tight truncate w-full text-center font-bold">{displayLabel}</span>
+                  <span className={`text-[10px] sm:text-[11px] mt-0.5 ${isSelected ? 'text-cyan-700 font-black' : 'text-slate-500 font-bold'}`}>
                     ₹{v.price}
                   </span>
                 </button>
@@ -399,20 +399,20 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
           </div>
         </div>
 
-        {/* INPUTS: NUMBER PLATE & MOBILE NUMBER (MATCHING H-11 HEIGHT) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        {/* INPUTS: NUMBER PLATE & MOBILE NUMBER IN ONE LINE */}
+        <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
           {/* Authentic Indian HSRP Number Plate */}
-          <div>
-            <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1 tracking-wider">
+          <div className="min-w-0">
+            <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1 tracking-wider truncate">
               Vehicle Plate No. <span className="text-red-500">*</span>
             </label>
 
-            <div className="h-11 flex items-center rounded-xl border-2 border-slate-800 bg-white shadow-2xs overflow-hidden focus-within:border-cyan-700 focus-within:ring-2 focus-within:ring-cyan-100 transition-all">
+            <div className="h-10 sm:h-11 flex items-center rounded-xl border-2 border-slate-800 bg-white shadow-2xs overflow-hidden focus-within:border-cyan-700 focus-within:ring-2 focus-within:ring-cyan-100 transition-all">
               {/* Left HSRP Sovereign Blue Band */}
-              <div className="h-full bg-[#003893] text-white px-2.5 flex items-center gap-1.5 shrink-0 border-r border-slate-800 select-none">
+              <div className="h-full bg-[#003893] text-white px-1.5 sm:px-2.5 flex items-center gap-1 sm:gap-1.5 shrink-0 border-r border-slate-800 select-none">
                 {/* Ashoka Chakra Hologram */}
-                <div className="w-3.5 h-3.5 rounded-full bg-blue-950/60 border border-blue-300/70 flex items-center justify-center shadow-inner">
-                  <svg className="w-2.5 h-2.5 text-cyan-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-blue-950/60 border border-blue-300/70 flex items-center justify-center shadow-inner">
+                  <svg className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-cyan-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="10" />
                     <circle cx="12" cy="12" r="3.5" fill="currentColor" />
                     <line x1="12" y1="2" x2="12" y2="22" />
@@ -422,7 +422,7 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
                   </svg>
                 </div>
                 {/* IND Country Code */}
-                <span className="text-[10px] font-black tracking-widest text-white leading-none font-sans">
+                <span className="text-[9px] sm:text-[10px] font-black tracking-wider text-white leading-none font-sans">
                   IND
                 </span>
               </div>
@@ -435,11 +435,11 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
                 placeholder="DL 01 AB 1234"
                 value={plateNumber}
                 onChange={e => setPlateNumber(e.target.value.toUpperCase())}
-                className="h-full flex-1 px-3 text-xs sm:text-sm font-black font-mono tracking-widest text-slate-950 outline-none uppercase bg-transparent placeholder:font-mono placeholder:tracking-normal placeholder:font-normal placeholder:text-slate-400"
+                className="h-full flex-1 px-1.5 sm:px-3 text-[11px] sm:text-sm font-black font-mono tracking-wider sm:tracking-widest text-slate-950 outline-none uppercase bg-transparent placeholder:font-mono placeholder:tracking-normal placeholder:font-normal placeholder:text-slate-400 min-w-0"
               />
 
-              {/* Corner Security Rivet & HSRP Mark */}
-              <div className="pr-3 flex items-center gap-1.5 shrink-0 pointer-events-none select-none text-slate-400">
+              {/* Corner Security Rivet & HSRP Mark (Desktop/Tablet) */}
+              <div className="hidden md:flex pr-2.5 items-center gap-1 shrink-0 pointer-events-none select-none text-slate-400">
                 <span className="text-[8px] font-mono font-bold tracking-tighter uppercase">HSRP</span>
                 <div className="w-2 h-2 rounded-full bg-slate-300 border border-slate-500 shadow-2xs" />
               </div>
@@ -447,12 +447,12 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
           </div>
 
           {/* Mobile */}
-          <div>
-            <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1 tracking-wider">
+          <div className="min-w-0">
+            <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1 tracking-wider truncate">
               Mobile (Updates)
             </label>
-            <div className="h-11 flex items-center rounded-xl border border-slate-300 bg-white shadow-2xs overflow-hidden focus-within:border-cyan-700 focus-within:ring-2 focus-within:ring-cyan-100 transition-all">
-              <span className="h-full px-3 bg-slate-50 text-slate-600 text-xs font-bold border-r border-slate-200 flex items-center justify-center shrink-0">
+            <div className="h-10 sm:h-11 flex items-center rounded-xl border border-slate-300 bg-white shadow-2xs overflow-hidden focus-within:border-cyan-700 focus-within:ring-2 focus-within:ring-cyan-100 transition-all">
+              <span className="h-full px-2 sm:px-3 bg-slate-50 text-slate-600 text-[11px] sm:text-xs font-bold border-r border-slate-200 flex items-center justify-center shrink-0">
                 +91
               </span>
               <input
@@ -460,7 +460,7 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
                 placeholder="9876543210"
                 value={phone}
                 onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
-                className="h-full flex-1 px-3 text-xs sm:text-sm font-semibold text-slate-900 bg-transparent outline-none placeholder:text-slate-400"
+                className="h-full flex-1 px-2 sm:px-3 text-[11px] sm:text-sm font-semibold text-slate-900 bg-transparent outline-none placeholder:text-slate-400 min-w-0"
               />
             </div>
           </div>
