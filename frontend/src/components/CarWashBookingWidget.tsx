@@ -4,8 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  Car, Clock, Ticket, RefreshCw, CheckCircle2,
-  Calendar, ShieldCheck, AlertCircle
+  Car, Clock, Ticket, CheckCircle2, Calendar, ShieldCheck, AlertCircle
 } from 'lucide-react';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
@@ -20,11 +19,11 @@ export interface VehicleOption {
 
 export const VEHICLE_OPTIONS: VehicleOption[] = [
   { id: 'bike', name: 'Bike', icon: '🏍️', price: 150, estMinutes: 15 },
-  { id: 'car', name: 'Car', icon: '🚗', price: 350, estMinutes: 30 },
-  { id: 'truck', name: 'Truck', icon: '🚚', price: 800, estMinutes: 45 },
-  { id: 'bus', name: 'Bus', icon: '🚌', price: 1000, estMinutes: 50 },
-  { id: 'jcb', name: 'JCB', icon: '🚜', price: 1200, estMinutes: 60 },
-  { id: 'heavy', name: 'Heavy Automobile', icon: '🚛', price: 1500, estMinutes: 75 }
+  { id: 'car', name: 'Car', icon: '🚗', price: 350, estMinutes: 25 },
+  { id: 'truck', name: 'Truck', icon: '🚚', price: 800, estMinutes: 40 },
+  { id: 'bus', name: 'Bus', icon: '🚌', price: 1000, estMinutes: 45 },
+  { id: 'jcb', name: 'JCB', icon: '🚜', price: 1200, estMinutes: 50 },
+  { id: 'heavy', name: 'Heavy Auto', icon: '🚛', price: 1500, estMinutes: 60 }
 ];
 
 interface QueueStatus {
@@ -42,10 +41,10 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
   // Mode: Live Token vs Advance Slot
   const [bookingMode, setBookingMode] = useState<'TOKEN' | 'APPOINTMENT'>('TOKEN');
   
-  // 1. Vehicle Type (Bike, Car, Truck, Bus, JCB, Heavy Automobile)
+  // 1. Vehicle Selection
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleOption>(VEHICLE_OPTIONS[1]); // Default to Car
   
-  // 2. Number Plate & Contact
+  // 2. Plate Number & Contact
   const [plateNumber, setPlateNumber] = useState('');
   const [customerName, setCustomerName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.phone?.replace(/^\+\d+\s*/, '') || '');
@@ -58,7 +57,6 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
   // Queue state
   const [queueId, setQueueId] = useState<string | null>(null);
   const [status, setStatus] = useState<QueueStatus | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState('');
   
@@ -90,7 +88,6 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
     return VEHICLE_OPTIONS;
   }, [service]);
 
-  // Update selected vehicle reference if vehicleList updated
   const currentVehicle = useMemo(() => {
     return vehicleList.find(v => v.id === selectedVehicle.id) || vehicleList[1];
   }, [vehicleList, selectedVehicle.id]);
@@ -160,20 +157,6 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
     };
   }, [fetchQueueData, queueId]);
 
-  const handleRefreshStatus = async () => {
-    if (!queueId) return;
-    setRefreshing(true);
-    try {
-      const res = await fetch(`${API}/service-queue/${queueId}/status`);
-      if (res.ok) {
-        const st = await res.json();
-        setStatus(st);
-      }
-    } catch {} finally {
-      setRefreshing(false);
-    }
-  };
-
   const handleBookWash = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -181,7 +164,7 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
       return;
     }
     if (!plateNumber.trim()) {
-      setErr('Please enter vehicle registration number (e.g. DL 01 AB 1234)');
+      setErr('Please enter vehicle plate number (e.g. DL 01 AB 1234)');
       return;
     }
 
@@ -237,7 +220,6 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
 
       setBookingResult(data);
       
-      // Save in local storage
       if (data?.token?.id) {
         localStorage.setItem('markatverse_active_token_id', data.token.id);
         try {
@@ -263,73 +245,51 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
   };
 
   // ─────────────────────────────────────────────────────────────
-  // RENDER: DIGITAL PASS & TOKEN RECEIPT (AFTER BOOKING)
+  // RENDER: DIGITAL TOKEN PASS (COMPACT)
   // ─────────────────────────────────────────────────────────────
   if (bookingResult) {
     const token = bookingResult.token;
     const estWait = bookingResult.estimatedWaitMin ?? (currentVehicle.estMinutes * Math.max(1, bookingResult.ahead || 0));
 
     return (
-      <div className="w-full bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-800 relative overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-        <div className="absolute -top-24 -right-24 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
-
-        {/* Header Badge */}
-        <div className="flex items-center justify-between pb-5 border-b border-white/10 relative z-10">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-2xl shadow-lg shadow-cyan-500/30">
-              {currentVehicle.icon}
-            </div>
+      <div className="w-full bg-slate-900 text-white rounded-2xl p-4 sm:p-5 shadow-xl border border-slate-800 animate-in fade-in duration-200">
+        <div className="flex items-center justify-between pb-3 border-b border-white/10">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">{currentVehicle.icon}</span>
             <div>
-              <span className="text-xs font-black uppercase tracking-widest text-cyan-400 flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Wash Token Confirmed
+              <span className="text-[10px] font-black uppercase tracking-wider text-cyan-400 flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Token Confirmed
               </span>
-              <h3 className="text-xl font-extrabold text-white mt-0.5">{service.seller || service.name}</h3>
+              <div className="text-sm font-extrabold text-white leading-tight">{service.seller || service.name}</div>
             </div>
           </div>
-          <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-            {bookingMode === 'TOKEN' ? 'Live Queue Pass' : 'Reserved Slot'}
+          <span className="text-cyan-400 font-mono font-bold text-xs bg-cyan-950/80 px-2.5 py-1 rounded-md border border-cyan-800">
+            {plateNumber.toUpperCase()}
           </span>
         </div>
 
-        {/* Token Number Display */}
-        <div className="my-6 text-center relative z-10">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Your Live Token</span>
-          <div className="text-6xl sm:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-white mt-1 drop-shadow-md tracking-tight">
+        <div className="my-4 text-center">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Token Number</span>
+          <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-white leading-none mt-1">
             #{token.tokenNumber || 'Confirmed'}
           </div>
-          <p className="text-sm font-semibold text-cyan-200 mt-2">
+          <p className="text-xs font-semibold text-cyan-200 mt-1.5">
             {bookingResult.ahead === 0 
-              ? '🟢 Your turn! Drive directly into the wash bay.' 
-              : `🚗 ${bookingResult.ahead} vehicles ahead · ~${estWait} mins wait`}
+              ? '🟢 Ready! Drive directly into the wash bay lane.' 
+              : `🚗 ${bookingResult.ahead} vehicles ahead · ~${estWait}m wait`}
           </p>
         </div>
 
-        {/* Vehicle & Plate Info */}
-        <div className="grid grid-cols-2 gap-3 bg-white/5 border border-white/10 rounded-2xl p-4 relative z-10 text-xs">
-          <div>
-            <div className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Vehicle</div>
-            <div className="text-white font-extrabold text-sm mt-0.5">{currentVehicle.icon} {currentVehicle.name}</div>
-            <div className="text-cyan-400 font-mono font-bold tracking-wider mt-0.5">{plateNumber.toUpperCase()}</div>
-          </div>
-          <div className="text-right">
-            <div className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Wash Fee</div>
-            <div className="text-emerald-400 font-extrabold text-xl mt-0.5">₹{activePrice}</div>
-            <div className="text-slate-400 text-[10px]">Pay on completion</div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="mt-5 flex flex-col sm:flex-row gap-3 relative z-10">
+        <div className="flex gap-2">
           <Link
             href={`/salon/token/${token.id}`}
-            className="flex-1 py-3.5 px-5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-extrabold text-sm rounded-xl text-center shadow-lg shadow-cyan-500/25 transition-all flex items-center justify-center gap-2"
+            className="flex-1 py-2.5 px-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-extrabold text-xs rounded-xl text-center transition-all flex items-center justify-center gap-1.5"
           >
-            <Clock className="w-4 h-4" /> Track Live Token
+            <Clock className="w-3.5 h-3.5" /> Track Live Token
           </Link>
           <button
             onClick={() => setBookingResult(null)}
-            className="py-3.5 px-5 bg-white/10 hover:bg-white/20 text-white font-bold text-sm rounded-xl transition-all"
+            className="py-2.5 px-3 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition-all"
           >
             Book Another
           </button>
@@ -339,104 +299,67 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
   }
 
   // ─────────────────────────────────────────────────────────────
-  // RENDER: CLEAN, MINIMAL WASH BOOKING INTERFACE
+  // RENDER: ULTRA COMPACT, HIGH-DENSITY INTERFACE
   // ─────────────────────────────────────────────────────────────
   const servingToken = status?.serving?.tokenNumber;
   const waitingCount = status?.waitingCount ?? 0;
-  const estWaitMin = (waitingCount + 1) * (currentVehicle.estMinutes || 25);
+  const estWaitMin = (waitingCount + 1) * (currentVehicle.estMinutes || 20);
 
   return (
-    <div className="w-full bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden transition-all">
-      {/* ── Sleek Compact Header ── */}
-      <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 text-white p-5 sm:p-6 relative overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-cyan-400">
-              <Car className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded-md">
-                  Express Wash
-                </span>
-                <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  Live Queue Active
-                </span>
-              </div>
-              <h3 className="text-base sm:text-lg font-extrabold text-white mt-0.5">
-                Book Automobile Wash
-              </h3>
-            </div>
+    <div className="w-full bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-4 transition-all">
+      {/* ── Compact Header Bar ── */}
+      <div className="flex items-center justify-between pb-3 border-b border-slate-100 gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-cyan-50 border border-cyan-200 text-cyan-600 flex items-center justify-center">
+            <Car className="w-4 h-4" />
           </div>
-
-          {/* Mode Switcher */}
-          <div className="inline-flex p-1 bg-slate-800/90 border border-slate-700 rounded-xl self-start sm:self-center">
-            <button
-              type="button"
-              onClick={() => setBookingMode('TOKEN')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                bookingMode === 'TOKEN'
-                  ? 'bg-cyan-500 text-slate-950 font-extrabold shadow-sm'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              <Ticket className="w-3.5 h-3.5" />
-              <span>Drive-in (Live)</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setBookingMode('APPOINTMENT')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                bookingMode === 'APPOINTMENT'
-                  ? 'bg-cyan-500 text-slate-950 font-extrabold shadow-sm'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              <Calendar className="w-3.5 h-3.5" />
-              <span>Schedule Slot</span>
-            </button>
+          <div>
+            <span className="text-xs font-extrabold text-slate-900 block leading-tight">Automobile & Wash Bay</span>
+            <div className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Live Queue: {servingToken ? `Serving #${servingToken}` : 'Ready'} · {waitingCount} Waiting · ~{estWaitMin}m
+            </div>
           </div>
         </div>
 
-        {/* Live Queue Counter */}
-        <div className="mt-4 pt-3.5 border-t border-slate-800/80 grid grid-cols-3 gap-2 text-center">
-          <div className="bg-slate-800/60 rounded-xl py-2 px-2 border border-slate-700/50">
-            <div className="text-[10px] font-bold text-slate-400 uppercase">Now Serving</div>
-            <div className="text-base font-black text-cyan-400 mt-0.5">
-              {servingToken ? `#${servingToken}` : 'Ready'}
-            </div>
-          </div>
-          <div className="bg-slate-800/60 rounded-xl py-2 px-2 border border-slate-700/50">
-            <div className="text-[10px] font-bold text-slate-400 uppercase">Waiting</div>
-            <div className="text-base font-black text-white mt-0.5">
-              {waitingCount}
-            </div>
-          </div>
-          <div className="bg-slate-800/60 rounded-xl py-2 px-2 border border-slate-700/50">
-            <div className="text-[10px] font-bold text-slate-400 uppercase">Est. Wait</div>
-            <div className="text-base font-black text-emerald-400 mt-0.5">
-              ~{estWaitMin}m
-            </div>
-          </div>
+        {/* Compact Mode Toggle */}
+        <div className="inline-flex p-0.5 bg-slate-100 rounded-lg text-[11px] font-bold">
+          <button
+            type="button"
+            onClick={() => setBookingMode('TOKEN')}
+            className={`px-2.5 py-1 rounded-md transition-all ${
+              bookingMode === 'TOKEN'
+                ? 'bg-white text-cyan-700 shadow-xs font-black'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            Walk-in (Live)
+          </button>
+          <button
+            type="button"
+            onClick={() => setBookingMode('APPOINTMENT')}
+            className={`px-2.5 py-1 rounded-md transition-all ${
+              bookingMode === 'APPOINTMENT'
+                ? 'bg-white text-cyan-700 shadow-xs font-black'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            Schedule Slot
+          </button>
         </div>
       </div>
 
-      {/* ── Main Form: Clean & Focused on Vehicle + Plate ── */}
-      <form onSubmit={handleBookWash} className="p-5 sm:p-6 space-y-5">
-
-        {/* OPTION 1: SELECT VEHICLE (BIKE, CAR, TRUCK, BUS, JCB, HEAVY AUTOMOBILE) */}
+      <form onSubmit={handleBookWash} className="pt-3 space-y-3">
+        {/* COMPACT VEHICLE SELECTOR: 6 CHIPS IN A TIGHT ROW */}
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-              Select Vehicle
-            </label>
-            <span className="text-xs font-bold text-cyan-700">
-              Selected: {currentVehicle.icon} {currentVehicle.name} • ₹{activePrice}
+          <div className="flex items-center justify-between mb-1.5 text-[11px] font-bold">
+            <span className="text-slate-600 uppercase tracking-wider">Select Vehicle Type</span>
+            <span className="text-cyan-700 font-extrabold">
+              {currentVehicle.icon} {currentVehicle.name} • ₹{activePrice}
             </span>
           </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
             {vehicleList.map(v => {
               const isSelected = selectedVehicle.id === v.id;
               return (
@@ -444,69 +367,53 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
                   key={v.id}
                   type="button"
                   onClick={() => setSelectedVehicle(v)}
-                  className={`p-2.5 rounded-2xl border-2 flex flex-col items-center justify-center text-center transition-all cursor-pointer relative ${
+                  className={`py-1.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
                     isSelected
-                      ? 'border-cyan-600 bg-cyan-50/80 text-slate-900 shadow-md shadow-cyan-600/15 scale-[1.02]'
-                      : 'border-slate-200 bg-white hover:border-cyan-300 text-slate-600 hover:bg-slate-50'
+                      ? 'border-cyan-600 bg-cyan-50/90 text-cyan-900 shadow-xs font-black ring-1 ring-cyan-500'
+                      : 'border-slate-200 bg-slate-50/60 hover:bg-slate-100 text-slate-700 font-bold'
                   }`}
                 >
-                  <span className="text-2xl mb-0.5">{v.icon}</span>
-                  <span className="text-xs font-black leading-tight">{v.name}</span>
-                  <span className={`text-[11px] font-black mt-1 ${isSelected ? 'text-cyan-700' : 'text-slate-500'}`}>
+                  <span className="text-lg leading-none">{v.icon}</span>
+                  <span className="text-[11px] mt-0.5 leading-tight">{v.name}</span>
+                  <span className={`text-[10px] ${isSelected ? 'text-cyan-700 font-black' : 'text-slate-500'}`}>
                     ₹{v.price}
                   </span>
-                  {isSelected && (
-                    <span className="absolute top-1 right-1 w-3.5 h-3.5 bg-cyan-600 text-white rounded-full flex items-center justify-center text-[8px] font-black">
-                      ✓
-                    </span>
-                  )}
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* OPTION 2: VEHICLE NUMBER PLATE (IND EMBOSSED PLATE) */}
-        <div>
-          <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">
-            Vehicle Number Plate (Registration) <span className="text-red-500">*</span>
-          </label>
-          <div className="relative flex items-center rounded-2xl border-2 border-slate-300 bg-white shadow-inner focus-within:border-cyan-600 focus-within:ring-2 focus-within:ring-cyan-100 overflow-hidden">
-            <div className="bg-blue-800 text-white px-3 py-3 text-[10px] font-black uppercase tracking-widest flex flex-col items-center justify-center border-r border-blue-900 shrink-0">
-              <span>🇮🇳</span>
-              <span className="text-[8px] leading-tight mt-0.5">IND</span>
+        {/* COMPACT INPUTS: NUMBER PLATE & MOBILE NUMBER ON SINGLE ROW */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {/* Plate */}
+          <div>
+            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">
+              Plate No. <span className="text-red-500">*</span>
+            </label>
+            <div className="flex items-center rounded-xl border border-slate-300 bg-white focus-within:border-cyan-600 focus-within:ring-1 focus-within:ring-cyan-100 overflow-hidden shadow-xs">
+              <div className="bg-blue-800 text-white px-2 py-1.5 text-[8px] font-black uppercase tracking-wider shrink-0 flex items-center gap-0.5">
+                <span>🇮🇳</span>
+                <span>IND</span>
+              </div>
+              <input
+                type="text"
+                required
+                placeholder="DL 01 AB 1234"
+                value={plateNumber}
+                onChange={e => setPlateNumber(e.target.value.toUpperCase())}
+                className="w-full px-2.5 py-1.5 text-xs font-black font-mono tracking-wider text-slate-900 outline-none uppercase placeholder:font-sans placeholder:tracking-normal placeholder:font-normal placeholder:text-slate-400"
+              />
             </div>
-            <input
-              type="text"
-              required
-              placeholder="e.g. DL 01 AB 1234"
-              value={plateNumber}
-              onChange={e => setPlateNumber(e.target.value.toUpperCase())}
-              className="w-full px-4 py-3 text-base sm:text-lg font-black font-mono tracking-widest text-slate-900 outline-none uppercase placeholder:font-sans placeholder:tracking-normal placeholder:font-normal placeholder:text-slate-400"
-            />
           </div>
-        </div>
 
-        {/* OPTIONAL DRIVER / CONTACT INFO */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Mobile */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
-              Driver / Contact Name
+            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">
+              Mobile (Updates)
             </label>
-            <input
-              type="text"
-              placeholder="e.g. Rahul Sharma"
-              value={customerName}
-              onChange={e => setCustomerName(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-cyan-600 focus:ring-1 focus:ring-cyan-100 outline-none text-slate-900 text-sm font-medium"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
-              Mobile Number (SMS Updates)
-            </label>
-            <div className="flex">
-              <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-slate-300 bg-slate-50 text-slate-500 text-xs font-bold">
+            <div className="flex items-center rounded-xl border border-slate-300 bg-white focus-within:border-cyan-600 focus-within:ring-1 focus-within:ring-cyan-100 overflow-hidden shadow-xs">
+              <span className="px-2 py-1.5 bg-slate-50 text-slate-500 text-[11px] font-bold border-r border-slate-200">
                 +91
               </span>
               <input
@@ -514,85 +421,70 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
                 placeholder="9876543210"
                 value={phone}
                 onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
-                className="w-full px-3 py-2.5 rounded-r-xl border border-slate-300 focus:border-cyan-600 focus:ring-1 focus:ring-cyan-100 outline-none text-slate-900 text-sm font-medium"
+                className="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-900 outline-none placeholder:text-slate-400"
               />
             </div>
           </div>
         </div>
 
-        {/* APPOINTMENT PICKER (ONLY WHEN SCHEDULE SLOT IS CHOSEN) */}
+        {/* APPOINTMENT PICKER (ONLY WHEN SCHEDULE SLOT IS ACTIVE) */}
         {bookingMode === 'APPOINTMENT' && (
-          <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Wash Date</label>
-              <input
-                type="date"
-                min={todayStr}
-                value={appointmentDate}
-                onChange={e => setAppointmentDate(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-semibold text-sm outline-none focus:border-cyan-600"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Arrival Time</label>
-              <select
-                value={appointmentTime}
-                onChange={e => setAppointmentTime(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-semibold text-sm outline-none focus:border-cyan-600"
-              >
-                <option value="09:00">09:00 AM</option>
-                <option value="10:30">10:30 AM</option>
-                <option value="12:00">12:00 PM</option>
-                <option value="14:00">02:00 PM</option>
-                <option value="15:30">03:30 PM</option>
-                <option value="17:00">05:00 PM</option>
-                <option value="18:30">06:30 PM</option>
-              </select>
-            </div>
+          <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-2 gap-2 text-xs">
+            <input
+              type="date"
+              min={todayStr}
+              value={appointmentDate}
+              onChange={e => setAppointmentDate(e.target.value)}
+              className="w-full px-2.5 py-1 rounded-lg border border-slate-300 bg-white font-semibold outline-none focus:border-cyan-600"
+            />
+            <select
+              value={appointmentTime}
+              onChange={e => setAppointmentTime(e.target.value)}
+              className="w-full px-2.5 py-1 rounded-lg border border-slate-300 bg-white font-semibold outline-none focus:border-cyan-600"
+            >
+              <option value="09:00">09:00 AM</option>
+              <option value="11:00">11:00 AM</option>
+              <option value="13:00">01:00 PM</option>
+              <option value="15:00">03:00 PM</option>
+              <option value="17:00">05:00 PM</option>
+              <option value="19:00">07:00 PM</option>
+            </select>
           </div>
         )}
 
-        {/* Error notification */}
         {err && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-bold text-red-600 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
+          <div className="p-2 bg-red-50 border border-red-200 rounded-lg text-xs font-bold text-red-600 flex items-center gap-1.5">
+            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
             <span>{err}</span>
           </div>
         )}
 
-        {/* ── Summary & Single Instant Button ── */}
-        <div className="pt-2">
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <div className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Wash Rate</div>
-              <div className="flex items-baseline gap-2 mt-0.5">
-                <span className="text-3xl font-black text-slate-900">₹{activePrice}</span>
-                <span className="text-xs text-slate-600 font-bold">
-                  • {currentVehicle.name} Wash
-                </span>
-              </div>
-              <p className="text-[10px] text-emerald-600 font-bold mt-0.5 flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5" /> Pay directly after vehicle wash
-              </p>
+        {/* COMPACT BOTTOM ACTION BAR */}
+        <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-[10px] text-slate-400 font-bold uppercase leading-none">Total Rate</div>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-xl font-black text-slate-900 leading-none">₹{activePrice}</span>
+              <span className="text-[11px] text-slate-500 font-bold">({currentVehicle.name})</span>
             </div>
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="py-3.5 px-7 bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black text-sm sm:text-base rounded-2xl shadow-xl shadow-cyan-600/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60 cursor-pointer"
-            >
-              {submitting ? (
-                <span>Generating Token...</span>
-              ) : (
-                <>
-                  <Ticket className="w-4 h-4" />
-                  <span>
-                    {bookingMode === 'TOKEN' ? `Get Wash Token (₹${activePrice})` : `Confirm Slot (₹${activePrice})`}
-                  </span>
-                </>
-              )}
-            </button>
           </div>
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="py-2.5 px-5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-md shadow-cyan-600/20 transition-all flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-60 cursor-pointer"
+          >
+            {submitting ? (
+              <span>Generating...</span>
+            ) : (
+              <>
+                <Ticket className="w-3.5 h-3.5" />
+                <span>
+                  {bookingMode === 'TOKEN' ? `Get Wash Token (₹${activePrice})` : `Confirm Slot (₹${activePrice})`}
+                </span>
+              </>
+            )}
+          </button>
         </div>
 
       </form>

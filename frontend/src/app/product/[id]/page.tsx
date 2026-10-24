@@ -607,56 +607,42 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
             </button>
           </div>
 
-          <div className="p-4 sm:p-6 bg-slate-50 rounded-2xl mb-6 sm:mb-8 border border-slate-200 shadow-2xs">
-            <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-              {isOrganizer
-                ? 'Package / Estimation Rate'
-                : isFoodDining 
-                  ? 'Reservation / Dining Rate' 
-                  : isAutoWash
-                    ? 'Automobile & Wash Service Rate'
-                    : (isServiceProduct(product) ? 'Service Rate' : 'Price')}
-            </div>
-            <div className="text-3xl sm:text-4xl font-extrabold text-slate-900 flex items-center gap-2 sm:gap-3 flex-wrap">
-              {isOrganizer ? (
-                currentActivePrice > 0 ? (
-                  <>
-                    ₹{currentActivePrice.toLocaleString('en-IN')}
-                    <span className="text-xs sm:text-sm text-slate-500 font-medium">/ starting package</span>
-                  </>
-                ) : (
-                  <span className="text-2xl sm:text-3xl font-black text-fuchsia-700 bg-fuchsia-50 border border-fuchsia-200 px-3 py-1 rounded-xl">
-                    Custom Quote & Proposal
-                  </span>
-                )
-              ) : isAutoWash ? (
-                currentActivePrice > 0 ? (
-                  <>
-                    ₹{currentActivePrice.toLocaleString('en-IN')}
-                    <span className="text-xs sm:text-sm text-slate-500 font-medium">/ wash service</span>
-                  </>
-                ) : (
-                  <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2">
-                    <span className="text-2xl sm:text-3xl font-black text-cyan-700">
-                      Starting from ₹150
-                    </span>
-                    <span className="text-xs sm:text-sm text-slate-500 font-medium">
-                      (Priced by Vehicle: Bike, Car, Truck, Bus, JCB, Heavy Auto)
-                    </span>
-                  </div>
-                )
-              ) : (
-                <>
-                  ₹{currentActivePrice.toLocaleString('en-IN')}
-                  {isFoodDining && <span className="text-xs sm:text-base text-slate-500 font-semibold ml-1">/ table reservation</span>}
-                  {product.category === 'Transport' && <span className="text-sm sm:text-lg text-slate-500 font-medium ml-1">/ km</span>}
-                  {isWholesaleConfig && <span className="text-sm sm:text-lg text-slate-500 font-medium ml-1">/ unit</span>}
-                  {isElite && isRetail && (
-                    <span className="text-xs sm:text-sm text-amber-700 bg-amber-100 border border-amber-200 px-2 py-0.5 sm:py-1 rounded-md font-bold tracking-tight">Elite Rate</span>
+          <div className={isAutoWash ? "mb-4" : "p-4 sm:p-6 bg-slate-50 rounded-2xl mb-6 sm:mb-8 border border-slate-200 shadow-2xs"}>
+            {!isAutoWash && (
+              <>
+                <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                  {isOrganizer
+                    ? 'Package / Estimation Rate'
+                    : isFoodDining 
+                      ? 'Reservation / Dining Rate' 
+                      : (isServiceProduct(product) ? 'Service Rate' : 'Price')}
+                </div>
+                <div className="text-3xl sm:text-4xl font-extrabold text-slate-900 flex items-center gap-2 sm:gap-3 flex-wrap">
+                  {isOrganizer ? (
+                    currentActivePrice > 0 ? (
+                      <>
+                        ₹{currentActivePrice.toLocaleString('en-IN')}
+                        <span className="text-xs sm:text-sm text-slate-500 font-medium">/ starting package</span>
+                      </>
+                    ) : (
+                      <span className="text-2xl sm:text-3xl font-black text-fuchsia-700 bg-fuchsia-50 border border-fuchsia-200 px-3 py-1 rounded-xl">
+                        Custom Quote & Proposal
+                      </span>
+                    )
+                  ) : (
+                    <>
+                      ₹{currentActivePrice.toLocaleString('en-IN')}
+                      {isFoodDining && <span className="text-xs sm:text-base text-slate-500 font-semibold ml-1">/ table reservation</span>}
+                      {product.category === 'Transport' && <span className="text-sm sm:text-lg text-slate-500 font-medium ml-1">/ km</span>}
+                      {isWholesaleConfig && <span className="text-sm sm:text-lg text-slate-500 font-medium ml-1">/ unit</span>}
+                      {isElite && isRetail && (
+                        <span className="text-xs sm:text-sm text-amber-700 bg-amber-100 border border-amber-200 px-2 py-0.5 sm:py-1 rounded-md font-bold tracking-tight">Elite Rate</span>
+                      )}
+                    </>
                   )}
-                </>
-              )}
-            </div>
+                </div>
+              </>
+            )}
             
             {isWholesaleConfig && (() => {
               const basePrice = product.price;
