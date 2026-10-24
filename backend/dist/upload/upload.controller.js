@@ -21,6 +21,7 @@ const MIME_MAP = {
     '.webp': 'image/webp',
     '.gif': 'image/gif',
     '.svg': 'image/svg+xml',
+    '.pdf': 'application/pdf',
 };
 let UploadController = class UploadController {
     uploadFiles(files, req) {

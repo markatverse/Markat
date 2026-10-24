@@ -28,8 +28,21 @@ export class SellersController {
   }
 
   @Patch(':id/status')
-  updateStatus(@Param('id') id: string, @Body('status') status: string) {
-    return this.sellersService.updateStatus(id, status);
+  updateStatus(
+    @Param('id') id: string, 
+    @Body('status') status: string,
+    @Body('kycCallStatus') kycCallStatus?: string,
+    @Body('kycNotes') kycNotes?: string,
+  ) {
+    return this.sellersService.updateStatus(id, status, { kycCallStatus, kycNotes });
+  }
+
+  @Patch(':id/kyc')
+  updateKyc(
+    @Param('id') id: string,
+    @Body() body: { kycCallStatus?: string; kycNotes?: string },
+  ) {
+    return this.sellersService.updateKyc(id, body);
   }
 
   @Patch('user/:userId')

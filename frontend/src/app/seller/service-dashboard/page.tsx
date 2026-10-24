@@ -7,7 +7,8 @@ import {
   Settings, Bell, Plus, Search, ChevronRight, 
   CheckCircle2, XCircle, MoreVertical, MapPin, 
   Briefcase, Coffee, BarChart3, Star, Edit3,
-  HeartPulse, Activity, Utensils, Stethoscope
+  HeartPulse, Activity, Utensils, Stethoscope,
+  PartyPopper, Sparkles
 } from 'lucide-react';
 
 function DashboardContent() {
@@ -46,6 +47,16 @@ function DashboardContent() {
       color: "rose",
       service1: "Table for 2 (VIP)",
       service2: "Large Party Reservation"
+    },
+    events: {
+      name: "Grand Events & Celebrations",
+      icon: PartyPopper,
+      staffRole: "Event Director",
+      staffRole2: "Stage & Lighting Lead",
+      actionIcon: Sparkles,
+      color: "fuchsia",
+      service1: "Luxury Wedding & Stage Setup",
+      service2: "Birthday Bash & DJ Production"
     }
   };
 
@@ -294,12 +305,147 @@ function DashboardContent() {
             </div>
           )}
 
-          {/* Placeholder for other tabs */}
-          {['CALENDAR', 'SERVICES'].includes(activeTab) && (
-            <div className="h-full flex flex-col items-center justify-center text-slate-500">
-              <CalendarIcon className="w-16 h-16 mb-4 opacity-20" />
-              <h2 className="text-2xl font-bold text-slate-400 mb-2">{activeTab.charAt(0) + activeTab.slice(1).toLowerCase()} Interface</h2>
-              <p>This module adapts dynamically based on the specific sector's requirements.</p>
+          {/* CALENDAR & QUEUE SCHEDULER TAB */}
+          {activeTab === 'CALENDAR' && (
+            <div className="max-w-6xl mx-auto space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h2 className="text-2xl font-black text-white">Service Calendar & Time Slots</h2>
+                  <p className="text-slate-400 text-sm">Real-time schedule of appointments, walk-in tokens, and reserved slots.</p>
+                </div>
+                <div className="flex gap-2">
+                  <span className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 text-xs font-bold flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Live Schedule
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                  <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                    <CalendarIcon className="w-5 h-5 text-indigo-400" /> Today's Slot Timeline
+                  </h3>
+                  <div className="space-y-3">
+                    {[
+                      { time: "09:30 AM", customer: "Arjun Verma", service: currentConfig.service1, status: "Completed", staff: "Amit K." },
+                      { time: "10:30 AM", customer: "Rahul Sharma", service: currentConfig.service1, status: "Confirmed", staff: "Amit K." },
+                      { time: "11:45 AM", customer: "Priya Singh", service: currentConfig.service2, status: "In Progress", staff: "Neha V." },
+                      { time: "01:00 PM", customer: "Vikram R.", service: currentConfig.service1, status: "Pending", staff: "Amit K." },
+                      { time: "03:30 PM", customer: "Sneha Patel", service: currentConfig.service2, status: "Upcoming", staff: "Neha V." },
+                      { time: "05:00 PM", customer: "Karan Johar", service: "Special VIP Package", status: "Upcoming", staff: "Rajat M." }
+                    ].map((slot, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-3.5 bg-slate-950 border border-slate-800 rounded-xl hover:border-slate-700 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-mono font-bold text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20">{slot.time}</span>
+                          <div>
+                            <p className="text-sm font-bold text-white">{slot.customer}</p>
+                            <p className="text-xs text-slate-400">{slot.service} • Assigned: {slot.staff}</p>
+                          </div>
+                        </div>
+                        <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
+                          slot.status === 'Completed' ? 'bg-slate-800 text-slate-400' :
+                          slot.status === 'In Progress' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                          slot.status === 'Confirmed' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' :
+                          'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        }`}>
+                          {slot.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Slot Availability</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-slate-400">Total Day Slots:</span>
+                        <span className="font-bold text-white">16</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-slate-400">Booked Slots:</span>
+                        <span className="font-bold text-emerald-400">10 (62%)</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-slate-400">Open Walk-in Slots:</span>
+                        <span className="font-bold text-indigo-400">6 Remaining</span>
+                      </div>
+                      <div className="w-full bg-slate-800 rounded-full h-2 mt-2">
+                        <div className="bg-indigo-500 h-2 rounded-full" style={{ width: '62%' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* SERVICES & MENU CATALOG TAB */}
+          {activeTab === 'SERVICES' && (
+            <div className="max-w-6xl mx-auto space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h2 className="text-2xl font-black text-white">Services & Pricing Menu</h2>
+                  <p className="text-slate-400 text-sm">Configure your service offerings, prices, packages, and assigned specialists.</p>
+                </div>
+                <button 
+                  onClick={() => alert('New Service Creation modal ready. You can also manage listings directly from the Seller Center.')}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2 shadow-lg shadow-indigo-600/25"
+                >
+                  <Plus className="w-4 h-4" /> Add Service Offering
+                </button>
+              </div>
+
+              {/* Service Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[
+                  { id: '1', title: currentConfig.service1, price: '₹799', duration: '45 mins', category: 'Express Treatment', rating: '4.9', bookings: '240+', status: 'Active' },
+                  { id: '2', title: currentConfig.service2, price: '₹2,499', duration: '90 mins', category: 'Signature Care', rating: '4.8', bookings: '180+', status: 'Active' },
+                  { id: '3', title: "Complete Deluxe Package", price: '₹3,999', duration: '120 mins', category: 'Full Experience', rating: '5.0', bookings: '95+', status: 'Active' },
+                  { id: '4', title: "Consultation & Initial Checkup", price: '₹499', duration: '30 mins', category: 'Evaluation', rating: '4.7', bookings: '410+', status: 'Active' },
+                  { id: '5', title: "VIP Private Room Arrangement", price: '₹1,500', duration: 'Flexible', category: 'Premium Setup', rating: '4.9', bookings: '78+', status: 'Active' }
+                ].map(srv => (
+                  <div key={srv.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-indigo-500/40 transition-all flex flex-col justify-between group">
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                          {srv.category}
+                        </span>
+                        <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
+                          ● {srv.status}
+                        </span>
+                      </div>
+                      <h3 className="font-extrabold text-white text-lg mb-1 group-hover:text-indigo-300 transition-colors">{srv.title}</h3>
+                      <div className="flex items-baseline gap-2 mb-4">
+                        <span className="text-2xl font-black text-white">{srv.price}</span>
+                        <span className="text-xs text-slate-400 font-semibold">• {srv.duration}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-slate-400 py-3 border-t border-slate-800">
+                        <span className="flex items-center gap-1 text-amber-400 font-bold">
+                          <Star className="w-3.5 h-3.5 fill-amber-400" /> {srv.rating}
+                        </span>
+                        <span>•</span>
+                        <span>{srv.bookings} Bookings</span>
+                      </div>
+                    </div>
+                    <div className="pt-4 border-t border-slate-800 flex gap-2">
+                      <button 
+                        onClick={() => alert(`Editing service: ${srv.title}`)}
+                        className="flex-1 py-2 text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" /> Edit
+                      </button>
+                      <button 
+                        onClick={() => alert(`Service status toggled for: ${srv.title}`)}
+                        className="px-3 py-2 text-xs font-bold text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-800 rounded-xl transition-colors"
+                      >
+                        Pause
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

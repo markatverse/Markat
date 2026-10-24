@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, ChevronRight, ChevronDown } from 'lucide-react';
 import { Subcategory } from '@/context/ProductContext';
+import { getSubcategoryEmoji } from '@/utils/categoryEmoji';
 
 interface Props {
   subcategories: Subcategory[];
@@ -56,6 +57,9 @@ export default function HierarchyBuilder({ subcategories, onChange }: Props) {
             <button type="button" onClick={() => setExpandedSubcat(expandedSubcat === idx ? null : idx)} className="text-slate-400 hover:text-white">
               {expandedSubcat === idx ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
             </button>
+            <span className="text-base shrink-0 w-6 flex items-center justify-center">
+              {getSubcategoryEmoji(subcat.name)}
+            </span>
             <input 
               type="text" 
               placeholder="Subcategory Name (e.g. Smartphones, Plumber)"
@@ -76,6 +80,9 @@ export default function HierarchyBuilder({ subcategories, onChange }: Props) {
               {subcat.nestedSubcategories.map((spec, sIdx) => (
                 <div key={sIdx} className="flex items-center gap-2">
                   <div className="w-4 border-t border-slate-700"></div>
+                  <span className="text-sm shrink-0 w-5 flex items-center justify-center">
+                    {getSubcategoryEmoji(spec.name, subcat.name)}
+                  </span>
                   <input 
                     type="text" 
                     placeholder="Specialization (e.g. 5G Phones, Pipe Fitting)"

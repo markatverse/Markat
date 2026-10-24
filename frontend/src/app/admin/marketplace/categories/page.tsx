@@ -6,6 +6,7 @@ import { useSettings } from '@/context/SettingsContext';
 import { useAdminRole } from '@/context/AdminRoleContext';
 import { ShieldAlert, Search, Trash2, Edit2, Check, X, RefreshCw, Smartphone, Hammer, Tractor, Scissors, HeartPulse, Home, Shirt, Car, Pizza, Wrench, Box } from 'lucide-react';
 import HierarchyBuilder from './HierarchyBuilder';
+import { getCategoryEmoji, CATEGORY_EMOJI_PRESETS, isEmoji } from '@/utils/categoryEmoji';
 
 export default function AdminCategoriesPage() {
   const { allCategories, addCategory, updateCategory, deleteCategory } = useProducts();
@@ -80,7 +81,7 @@ export default function AdminCategoriesPage() {
 
   const handleStartEdit = (cat: Category) => {
     if (!hasEditPermission) return;
-    setDraft({ ...cat });
+    setDraft({ ...cat, icon: cat.icon || getCategoryEmoji(cat) });
     setParametersJson(JSON.stringify(cat.parameters || [], null, 2));
     setEditingId(cat.id);
     setIsAdding(false);
@@ -172,9 +173,39 @@ export default function AdminCategoriesPage() {
               <input 
                 type="text" 
                 value={draft.name || ''}
-                onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
+                onChange={e => {
+                  const val = e.target.value;
+                  setDraft(d => ({
+                    ...d,
+                    name: val,
+                    icon: d.icon || (isAdding ? getCategoryEmoji(val) : d.icon)
+                  }));
+                }}
                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500" 
               />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase flex justify-between items-center">
+                <span>Emoji / Icon</span>
+                <span className="text-base leading-none">{draft.icon ? getCategoryEmoji({ ...draft, icon: draft.icon }) : getCategoryEmoji(draft.name)}</span>
+              </label>
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  placeholder="e.g. 💻 or Smartphone"
+                  value={draft.icon || ''}
+                  onChange={e => setDraft(d => ({ ...d, icon: e.target.value }))}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500 text-sm" 
+                />
+                <button
+                  type="button"
+                  onClick={() => setDraft(d => ({ ...d, icon: getCategoryEmoji(d.name) }))}
+                  title="Auto-detect matching emoji from name"
+                  className="px-2.5 py-1.5 bg-slate-900 border border-slate-700 hover:border-indigo-500 text-indigo-400 hover:text-indigo-300 rounded-lg text-xs font-bold shrink-0 transition-colors"
+                >
+                  Auto ✨
+                </button>
+              </div>
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase">Primary Type</label>
@@ -235,6 +266,26 @@ export default function AdminCategoriesPage() {
                 onChange={e => setDraft(d => ({ ...d, defaultFlatRate: parseFloat(e.target.value) || 0 }))}
                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500" 
               />
+            </div>
+
+            {/* Quick Emoji Presets Bar */}
+            <div className="col-span-1 sm:col-span-2 lg:col-span-4 bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60 mt-1">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 text-base custom-scrollbar">
+                <span className="text-[11px] text-slate-400 font-bold uppercase whitespace-nowrap mr-1">Quick Emojis:</span>
+                {CATEGORY_EMOJI_PRESETS.map(p => (
+                  <button
+                    key={p.emoji}
+                    type="button"
+                    onClick={() => setDraft(d => ({ ...d, icon: p.emoji }))}
+                    title={p.label}
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg transition-all shrink-0 ${
+                      (draft.icon === p.emoji) ? 'bg-indigo-600 scale-110 shadow-lg shadow-indigo-600/30 border border-indigo-400' : 'bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:scale-105'
+                    }`}
+                  >
+                    {p.emoji}
+                  </button>
+                ))}
+              </div>
             </div>
             
             {/* Relationship Manager Fields */}
@@ -374,11 +425,18 @@ export default function AdminCategoriesPage() {
                 <tr key={cat.id} className="hover:bg-slate-700/30 transition-all group">
                   <td className="p-4 pl-6">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl bg-${cleanTheme(cat.theme)}-500/20 flex items-center justify-center border border-${cleanTheme(cat.theme)}-500/30 text-${cleanTheme(cat.theme)}-400 text-xl shadow-inner shadow-${cleanTheme(cat.theme)}-500/10`}>
-                        {getCategoryIcon(cat.name)}
+                      <div className={`w-10 h-10 rounded-xl bg-${cleanTheme(cat.theme)}-500/20 flex items-center justify-center border border-${cleanTheme(cat.theme)}-500/30 text-xl shadow-inner shadow-${cleanTheme(cat.theme)}-500/10 shrink-0`}>
+                        <span className="text-xl leading-none">{getCategoryEmoji(cat)}</span>
                       </div>
                       <div>
-                        <div className="font-bold text-white text-sm">{cat.name}</div>
+                        <div className="font-bold text-white text-sm flex items-center gap-2">
+                          <span>{cat.name}</span>
+                          {cat.icon && !isEmoji(cat.icon) && (
+                            <span className="text-[10px] text-slate-400 font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">
+                              {cat.icon}
+                            </span>
+                          )}
+                        </div>
                         <div className="text-xs text-slate-500 mt-0.5 font-mono">
                           #{cat.id.length > 20 ? `CAT-${cat.id.slice(-6).toUpperCase()}` : cat.id.toUpperCase()}
                         </div>

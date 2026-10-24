@@ -58,7 +58,27 @@ export class SellersService {
     });
 
     if (existingBusiness) {
-      return { ...existingBusiness, status: 'Pending' };
+      const updated = await this.prisma.business.update({
+        where: { id: existingBusiness.id },
+        data: {
+          name: seller.businessName || seller.name || existingBusiness.name,
+          businessType: seller.businessType || existingBusiness.businessType,
+          sector: seller.sector || existingBusiness.sector,
+          address: seller.address || existingBusiness.address,
+          pincode: seller.pincode || existingBusiness.pincode,
+          latitude: seller.latitude || existingBusiness.latitude,
+          longitude: seller.longitude || existingBusiness.longitude,
+          gstNumber: seller.gstNumber !== undefined ? seller.gstNumber : existingBusiness.gstNumber,
+          panNumber: seller.panNumber !== undefined ? seller.panNumber : existingBusiness.panNumber,
+          aadharNumber: seller.aadharNumber !== undefined ? seller.aadharNumber : existingBusiness.aadharNumber,
+          idProofType: seller.idProofType !== undefined ? seller.idProofType : existingBusiness.idProofType,
+          idProofUrl: seller.idProofUrl !== undefined ? seller.idProofUrl : existingBusiness.idProofUrl,
+          businessHours: seller.businessHours || existingBusiness.businessHours,
+          verificationStatus: 'PENDING',
+          kycCallStatus: 'PENDING',
+        }
+      });
+      return { ...updated, status: 'Pending' };
     }
 
     const businessCode = await this.idGenerator.generateBusinessId(seller.mainType);
@@ -75,8 +95,14 @@ export class SellersService {
         latitude: seller.latitude || null,
         longitude: seller.longitude || null,
         gstNumber: seller.gstNumber || null,
+        panNumber: seller.panNumber || null,
+        aadharNumber: seller.aadharNumber || null,
+        idProofType: seller.idProofType || null,
+        idProofUrl: seller.idProofUrl || null,
         businessHours: seller.businessHours || null,
         verified: false,
+        verificationStatus: 'PENDING',
+        kycCallStatus: 'PENDING',
         capabilities: seller.mainType === 'SERVICE' ? ['SERVICE'] : ['B2B', 'B2C'],
       },
     });
@@ -127,6 +153,7 @@ export class SellersService {
   async findAll() {
     const businesses = await this.prisma.business.findMany({
       include: { user: { select: { name: true, email: true, phone: true, role: true } } },
+      orderBy: { createdAt: 'desc' }
     });
 
     return businesses.map(b => ({
@@ -134,25 +161,70 @@ export class SellersService {
       businessCode: b.businessCode,
       userId: b.userId,
       businessName: b.name,
-      ownerName: b.user.name,
-      email: b.user.email,
-      phone: b.user.phone,
+      ownerName: b.user?.name,
+      email: b.user?.email,
+      phone: b.user?.phone,
       businessType: b.businessType,
+      businessModel: b.businessModel,
+      sector: b.sector,
       address: b.address,
-      status: b.verified ? 'Approved' : 'Pending',
+      pincode: b.pincode,
+      gstNumber: b.gstNumber,
+      panNumber: b.panNumber,
+      aadharNumber: b.aadharNumber,
+      idProofType: b.idProofType,
+      idProofUrl: b.idProofUrl,
+      verified: b.verified,
+      verificationStatus: b.verificationStatus || (b.verified ? 'APPROVED' : 'PENDING'),
+      kycCallStatus: b.kycCallStatus || 'PENDING',
+      kycNotes: b.kycNotes || '',
+      status: b.verified ? 'Approved' : (b.verificationStatus === 'REJECTED' ? 'Rejected' : 'Pending'),
       date: b.createdAt.toISOString().split('T')[0],
+      createdAt: b.createdAt,
       maxListings: b.maxListings,
       commissionType: b.commissionType,
       commissionRate: b.commissionRate,
+      subscriptionStatus: b.subscriptionStatus,
+      subscriptionStartDate: b.subscriptionStartDate,
+      subscriptionEndDate: b.subscriptionEndDate,
     }));
   }
 
-  async updateStatus(id: string, status: string) {
+  async updateStatus(id: string, status: string, kycData?: { kycCallStatus?: string; kycNotes?: string }) {
+    const isApproved = status === 'Approved' || status === 'APPROVED';
+    const isRejected = status === 'Rejected' || status === 'REJECTED';
+    
+    const updateData: any = {
+      verified: isApproved,
+      verificationStatus: isApproved ? 'APPROVED' : (isRejected ? 'REJECTED' : 'PENDING'),
+    };
+
+    if (kycData?.kycCallStatus) {
+      updateData.kycCallStatus = kycData.kycCallStatus;
+    } else if (isApproved) {
+      updateData.kycCallStatus = 'VERIFIED';
+    }
+
+    if (kycData?.kycNotes !== undefined) {
+      updateData.kycNotes = kycData.kycNotes;
+    }
+
     const business = await this.prisma.business.update({
       where: { id },
-      data: { verified: status === 'Approved' },
+      data: updateData,
     });
-    return { ...business, status };
+    return { ...business, status: isApproved ? 'Approved' : (isRejected ? 'Rejected' : status) };
+  }
+
+  async updateKyc(id: string, data: { kycCallStatus?: string; kycNotes?: string }) {
+    const business = await this.prisma.business.update({
+      where: { id },
+      data: {
+        kycCallStatus: data.kycCallStatus,
+        kycNotes: data.kycNotes,
+      },
+    });
+    return business;
   }
 
   async updateUser(userId: string, data: any) {
@@ -175,6 +247,8 @@ export class SellersService {
       where: { userId },
       data: {
         name: data.businessName !== undefined ? data.businessName : undefined,
+        sector: data.sector !== undefined ? data.sector : undefined,
+        businessType: data.businessType !== undefined ? data.businessType : undefined,
         address: data.address !== undefined ? data.address : undefined,
         pincode: data.pincode !== undefined ? data.pincode : undefined,
         latitude: data.latitude !== undefined ? data.latitude : undefined,

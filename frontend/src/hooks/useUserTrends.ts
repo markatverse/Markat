@@ -6,17 +6,16 @@ export interface UserTrends {
 }
 
 export function useUserTrends() {
-  const [trends, setTrends] = useState<UserTrends>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem('markatverse_trends');
-        return stored ? JSON.parse(stored) : { categories: {}, recentlyViewed: [] };
-      } catch {
-        return { categories: {}, recentlyViewed: [] };
+  const [trends, setTrends] = useState<UserTrends>({ categories: {}, recentlyViewed: [] });
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('markatverse_trends');
+      if (stored) {
+        setTrends(JSON.parse(stored));
       }
-    }
-    return { categories: {}, recentlyViewed: [] };
-  });
+    } catch {}
+  }, []);
 
   const trackCategory = (category: string) => {
     if (!category) return;

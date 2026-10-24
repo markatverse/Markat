@@ -29,11 +29,17 @@ export declare class AnalyticsService {
                     businessModel: import(".prisma/client").$Enums.MainType;
                     address: string | null;
                     gstNumber: string | null;
+                    panNumber: string | null;
+                    aadharNumber: string | null;
+                    idProofType: string | null;
+                    idProofUrl: string | null;
                     businessHours: import("@prisma/client/runtime/library").JsonValue | null;
                     verified: boolean;
                     verificationStatus: string;
                     verificationLevel: number;
                     verificationNotes: string | null;
+                    kycCallStatus: string | null;
+                    kycNotes: string | null;
                     capabilities: string[];
                     maxListings: number;
                     commissionType: string;

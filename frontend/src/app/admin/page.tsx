@@ -1,8 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { Activity, Users, Store, TrendingUp, DollarSign } from 'lucide-react';
+import { 
+  Activity, Users, Store, TrendingUp, DollarSign,
+  AlertTriangle, ArrowRight, PhoneCall, ShieldCheck, User,
+  Sparkles, ShoppingBag, Layers
+} from 'lucide-react';
 import { useAdminRole } from '@/context/AdminRoleContext';
 
 const defaultSettings = {
@@ -27,6 +32,7 @@ export default function AdminDashboardPage() {
     openExceptions: 0,
     recentTransactions: [] as any[]
   });
+  const [pendingSellers, setPendingSellers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
@@ -51,7 +57,25 @@ export default function AdminDashboardPage() {
       }
     };
 
+    const fetchPendingSellers = async () => {
+      try {
+        const res = await fetch(`${API_URL}/sellers`, { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            const pending = data.filter((s: any) => 
+              s.verificationStatus === 'PENDING' || !s.verified || s.kycCallStatus === 'PENDING'
+            );
+            setPendingSellers(pending);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch pending sellers", err);
+      }
+    };
+
     fetchGlobalData();
+    fetchPendingSellers();
   }, []);
 
   // Sector controls and dummy toggles removed
@@ -120,6 +144,163 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Pending KYC & Approvals Alert Queue */}
+      {pendingSellers.length > 0 && (
+        <section className="mb-10 relative z-10 animate-in fade-in duration-300">
+          <div className="bg-gradient-to-r from-amber-500/10 via-amber-600/5 to-slate-900 border border-amber-500/30 rounded-3xl p-5 md:p-6 shadow-xl relative overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-bold">
+                  <AlertTriangle className="w-5 h-5 text-amber-400" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-black text-white">KYC Verification & Onboarding Action Queue</h3>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500 text-slate-950 font-bold">
+                      {pendingSellers.length} Pending
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Sellers awaiting telephone verification call and store activation approval.
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/admin/businesses/sellers"
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-md shrink-0 self-start sm:self-auto"
+              >
+                Open Full Onboarding Queue <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {pendingSellers.slice(0, 6).map((seller) => (
+                <div
+                  key={seller.id}
+                  className="bg-slate-900/80 hover:bg-slate-800/80 border border-slate-700/70 hover:border-amber-500/40 rounded-2xl p-4 transition-all flex flex-col justify-between gap-3 shadow-sm group"
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                      <div className="font-bold text-white text-sm group-hover:text-amber-300 transition-colors line-clamp-1">
+                        {seller.name}
+                      </div>
+                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+                        {seller.kycCallStatus || 'Call Pending'}
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-slate-400 flex items-center gap-1 mb-2">
+                      <User className="w-3 h-3 text-slate-500" /> {seller.ownerName || 'Store Owner'}
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 text-[10px] font-mono">
+                      <span className="bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded border border-slate-700">
+                        GST: {seller.gstNumber ? `${seller.gstNumber.slice(0, 7)}...` : 'Exempt'}
+                      </span>
+                      <span className="bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded border border-slate-700">
+                        PAN: {seller.panNumber || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2.5 border-t border-slate-800 flex items-center justify-between gap-2">
+                    {seller.phone && !seller.phone.startsWith('missing-phone') ? (
+                      <a
+                        href={`tel:${seller.phone}`}
+                        className="px-2.5 py-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1"
+                      >
+                        <PhoneCall className="w-3 h-3" /> Call Seller
+                      </a>
+                    ) : (
+                      <span className="text-[10px] text-slate-500 italic">No phone</span>
+                    )}
+
+                    <Link
+                      href="/admin/businesses/sellers"
+                      className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-sm"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" /> Review & Approve
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Executive Platform Hub */}
+      <section className="mb-10 relative z-10">
+        <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+          <Layers className="w-4 h-4 text-indigo-400" /> Platform Management Hub
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <Link
+            href="/admin/users/sellers"
+            className="group bg-slate-900/60 hover:bg-indigo-950/30 border border-slate-800 hover:border-indigo-500/40 p-4 rounded-2xl transition-all shadow-md flex flex-col justify-between"
+          >
+            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition-transform">
+              <Store className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-bold text-white text-sm">Sellers & Stores</div>
+              <p className="text-[11px] text-slate-400 mt-0.5">Manage merchants, KYC profiles & store status</p>
+            </div>
+            <div className="mt-3 text-[11px] font-bold text-indigo-400 flex items-center gap-1">
+              View Sellers →
+            </div>
+          </Link>
+
+          <Link
+            href="/admin/users/customers"
+            className="group bg-slate-900/60 hover:bg-cyan-950/30 border border-slate-800 hover:border-cyan-500/40 p-4 rounded-2xl transition-all shadow-md flex flex-col justify-between"
+          >
+            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition-transform">
+              <Users className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-bold text-white text-sm">Customer Base</div>
+              <p className="text-[11px] text-slate-400 mt-0.5">View buyers, order history & account profiles</p>
+            </div>
+            <div className="mt-3 text-[11px] font-bold text-cyan-400 flex items-center gap-1">
+              View Customers →
+            </div>
+          </Link>
+
+          <Link
+            href="/admin/marketplace/categories"
+            className="group bg-slate-900/60 hover:bg-emerald-950/30 border border-slate-800 hover:border-emerald-500/40 p-4 rounded-2xl transition-all shadow-md flex flex-col justify-between"
+          >
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition-transform">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-bold text-white text-sm">Taxonomies & Relations</div>
+              <p className="text-[11px] text-slate-400 mt-0.5">Category hierarchy, emojis & business workflows</p>
+            </div>
+            <div className="mt-3 text-[11px] font-bold text-emerald-400 flex items-center gap-1">
+              Manage Categories →
+            </div>
+          </Link>
+
+          <Link
+            href="/admin/transactions/orders"
+            className="group bg-slate-900/60 hover:bg-amber-950/30 border border-slate-800 hover:border-amber-500/40 p-4 rounded-2xl transition-all shadow-md flex flex-col justify-between"
+          >
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition-transform">
+              <ShoppingBag className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-bold text-white text-sm">Orders & Escrow</div>
+              <p className="text-[11px] text-slate-400 mt-0.5">Track live settlements, commissions & receipts</p>
+            </div>
+            <div className="mt-3 text-[11px] font-bold text-amber-400 flex items-center gap-1">
+              View Orders →
+            </div>
+          </Link>
+        </div>
+      </section>
 
       <div className="relative z-10">
         

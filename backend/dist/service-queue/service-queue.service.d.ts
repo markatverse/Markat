@@ -453,6 +453,25 @@ export declare class ServiceQueueService {
         servedAt: Date | null;
         doneAt: Date | null;
     }>;
+    startServing(tokenId: string, resourceId?: string): Promise<{
+        id: string;
+        status: string;
+        queueId: string;
+        bookingNumber: string | null;
+        bookingMode: string;
+        tokenNumber: number | null;
+        appointmentTime: Date | null;
+        customerName: string;
+        phone: string | null;
+        service: string;
+        price: number;
+        staffName: string | null;
+        staffId: string | null;
+        resourceId: string | null;
+        joinedAt: Date;
+        servedAt: Date | null;
+        doneAt: Date | null;
+    }>;
     markDone(tokenId: string): Promise<{
         id: string;
         status: string;

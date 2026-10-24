@@ -6,7 +6,7 @@ import { useAdminRole } from '@/context/AdminRoleContext';
 import { ShieldAlert, Search, Trash2, Edit2, Box, Check } from 'lucide-react';
 
 export default function AdminProductsPage() {
-  const { allProducts, deleteProduct, updateProduct, addProduct, categories } = useProducts();
+  const { allProducts, deleteProduct, editProduct, addProduct, categories } = useProducts();
   const { canEdit } = useAdminRole();
   const hasEditPermission = canEdit('products');
 
@@ -29,8 +29,9 @@ export default function AdminProductsPage() {
       name: '', 
       description: '', 
       price: 0, 
-      categoryId: categories[0]?.id || '', 
+      category: categories[0]?.name || categories[0]?.id || '', 
       primaryType: 'PRODUCT',
+      seller: 'MarkatVerse Store',
       sellerId: 'current-user-seller' // Just a placeholder for admin addition
     });
     setIsEditing(false);
@@ -46,10 +47,10 @@ export default function AdminProductsPage() {
 
   const handleSaveModal = async () => {
     if (!hasEditPermission) return;
-    if (!draft.name || !draft.categoryId) return alert("Name and Category are required");
+    if (!draft.name || !draft.category) return alert("Name and Category are required");
 
     if (isEditing && draft.id) {
-      await updateProduct(draft.id, draft);
+      await editProduct(draft.id, draft);
     } else {
       await addProduct({ ...draft, id: Date.now().toString(), status: 'ACTIVE' } as Product);
     }
@@ -66,10 +67,8 @@ export default function AdminProductsPage() {
   const handleToggleStatus = async (product: Product) => {
     if (!hasEditPermission) return;
     const newStatus = product.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
-    // Optimistic update
-    setProducts(products.map(p => p.id === product.id ? { ...p, status: newStatus } : p));
-    
     try {
+      await editProduct(product.id, { status: newStatus } as any);
       const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
       const res = await fetch(`${API_URL}/products/${product.id}/admin-status`, {
         method: 'PATCH',
@@ -79,8 +78,6 @@ export default function AdminProductsPage() {
       if (!res.ok) throw new Error('Failed to update status');
     } catch (e) {
       console.error(e);
-      // Revert optimistic update on error
-      setProducts(products.map(p => p.id === product.id ? { ...p, status: product.status } : p));
       alert('Error updating status');
     }
   };
@@ -130,13 +127,13 @@ export default function AdminProductsPage() {
             <div>
               <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase">Category</label>
               <select 
-                value={draft.categoryId || ''}
-                onChange={e => setDraft(d => ({ ...d, categoryId: e.target.value }))}
+                value={draft.category || ''}
+                onChange={e => setDraft(d => ({ ...d, category: e.target.value }))}
                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
               >
                 <option value="">Select a Category</option>
                 {categories.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                  <option key={c.id} value={c.name}>{c.name}</option>
                 ))}
               </select>
             </div>
@@ -205,7 +202,7 @@ export default function AdminProductsPage() {
                   <td className="p-4">
                     <div className="text-[10px] font-mono flex items-center">
                       <span className="text-blue-400 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">
-                        {product.seller?.markatId || `USR-${product.sellerId.slice(0, 5).toUpperCase()}`}
+                        {product.seller || (product.sellerId ? `USR-${product.sellerId.slice(0, 5).toUpperCase()}` : 'MARKAT')}
                       </span>
                     </div>
                   </td>

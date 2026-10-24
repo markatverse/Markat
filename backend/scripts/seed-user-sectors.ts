@@ -29,6 +29,7 @@ async function main() {
     { name: 'Product Both B2B & B2C', businessTypeId: bothType.id, description: 'Controls dual-mode product sellers' },
     { name: 'Salon', businessTypeId: serviceType.id, description: 'Salon and Beauty Services' },
     { name: 'Transport', businessTypeId: serviceType.id, description: 'Transport and Travel Services' },
+    { name: 'Automobile & Car Wash', businessTypeId: serviceType.id, description: 'Car Wash, Auto Detailing, and Vehicle Repair Services' },
     { name: 'Home', businessTypeId: serviceType.id, description: 'Home Services (Plumbing, Electrician, etc.)' },
     { name: 'Events', businessTypeId: serviceType.id, description: 'Event Organizations' },
   ];

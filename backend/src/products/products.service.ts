@@ -99,10 +99,10 @@ export class ProductsService {
       const distanceWeight = data?.distanceWeight ?? 50; // 0-100
 
       // Helper to check if an item is a physical good vs a service
-      const serviceCategories = ['Services', 'Home Services', 'Transport', 'Rentals', 'Organizers', 'Beauty', 'Salon', 'Home', 'Professional'];
+      const serviceCategories = ['Services', 'Home Services', 'Transport', 'Rentals', 'Organizers', 'Beauty', 'Salon', 'Salon & Parlour', 'Salon & Parlor', 'Spa', 'Beauty Parlour', 'Home', 'Professional'];
       const isServiceItem = (p: any) => {
         if (p.primaryType) return p.primaryType === 'SERVICE';
-        return serviceCategories.includes(p.categoryName || '');
+        return serviceCategories.includes(p.categoryName || '') || (p.categoryName || '').toLowerCase().includes('salon') || (p.categoryName || '').toLowerCase().includes('parlour');
       };
 
       // Filter out products outside the radius (unless they have no coordinates)

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useProducts } from '@/context/ProductContext';
-import { Store, BarChart3, Package, PlusCircle, ArrowLeft, Trash2, Edit2, CheckCircle2, CalendarClock, Settings, Menu, X, Users, TrendingUp, Ticket, Clock, Ban, Search, Phone, Mail, FileText, MapPin, ChevronDown, Activity, Scissors, User, UserPlus, Sparkles, Palette, Droplet, Briefcase, Eye, ShieldCheck, Utensils, UtensilsCrossed, Stethoscope, HeartPulse, ChefHat, MessageSquare, Lock, Check, Info, Bell, Key } from 'lucide-react';
+import { Store, BarChart3, Package, PlusCircle, ArrowLeft, Trash2, Edit2, CheckCircle2, CalendarClock, Settings, Menu, X, Users, TrendingUp, Ticket, Clock, Ban, Search, Phone, Mail, FileText, MapPin, ChevronDown, Activity, Scissors, User, UserPlus, Sparkles, Palette, Droplet, Briefcase, Eye, ShieldCheck, Utensils, UtensilsCrossed, Stethoscope, HeartPulse, ChefHat, MessageSquare, Lock, Check, Info, Bell, Key, PartyPopper, Car, Wrench } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Suspense } from 'react';
 import StaffResourceManagementModal from '@/components/StaffResourceManagementModal';
@@ -12,6 +12,14 @@ import LocationPicker from '@/components/LocationPicker';
 import FoodDiningModule from '@/components/FoodDiningModule';
 import ClinicDoctorModule from '@/components/ClinicDoctorModule';
 import SalonSpaModule from '@/components/SalonSpaModule';
+import SellerProductsTab from '@/components/seller/SellerProductsTab';
+import SellerServicesTab from '@/components/seller/SellerServicesTab';
+import SellerEventsStationTab from '@/components/seller/SellerEventsStationTab';
+import SellerOrdersTab from '@/components/seller/SellerOrdersTab';
+import SellerLeadsTab from '@/components/seller/SellerLeadsTab';
+import SellerStaffTab from '@/components/seller/SellerStaffTab';
+import SellerCustomersTab from '@/components/seller/SellerCustomersTab';
+import SellerBookingsTab from '@/components/seller/SellerBookingsTab';
 
 const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
 
@@ -100,9 +108,9 @@ function DashboardContent() {
   // Fallback lists in case category is not found in context yet
   const CART_ORDER_FLOW = ['Retail Product', 'Electronics', 'Fashion', 'Home'];
   const RFQ_QUOTE_FLOW = ['B2B Product', 'Manufacturer', 'Transport', 'Construction'];
-  const QUEUE_TOKEN_FLOW = ['Doctor', 'Salon', 'Spa', 'Beauty Parlour', 'Repair', 'Services', 'Beauty', 'Car Wash', 'Healthcare', 'Food & Dining / Restaurant', 'Restaurant', 'Cafe', 'Dining'];
-  const PROJECT_MILESTONE_FLOW = ['Construction', 'Interior Designer'];
-  const MEETING_PROPOSAL_FLOW = ['Wedding Planner', 'Consultant', 'Photography', 'Professional', 'Lawyer'];
+  const QUEUE_TOKEN_FLOW = ['Doctor', 'Salon', 'Spa', 'Beauty Parlour', 'Repair', 'Services', 'Beauty', 'Car Wash', 'Healthcare', 'Food & Dining / Restaurant', 'Restaurant', 'Cafe', 'Dining', 'Automobile', 'Automobile / Car Wash', 'Automobile & Car Wash', 'Car Wash & Automobile'];
+  const PROJECT_MILESTONE_FLOW = ['Construction', 'Interior Designer', 'Event Planner', 'Event & Party', 'Wedding Planner'];
+  const MEETING_PROPOSAL_FLOW = ['Event Planner', 'Event & Party', 'Wedding Planner', 'Consultant', 'Photography', 'Photographer', 'Professional', 'Lawyer'];
   const ENQUIRY_ASSET_FLOW = ['Vehicle Sale', 'Vehicle Rental', 'Real Estate', 'Sales & Rentals'];
 
   const hasCartProducts = myListings.some(p => CART_ORDER_FLOW.includes(p.category));
@@ -113,12 +121,12 @@ function DashboardContent() {
   const hasAssetListings = myListings.some(p => ENQUIRY_ASSET_FLOW.includes(p.category));
 
   const sellerSector = user?.business?.sector || '';
-  // Collect categories from the seller's actual listed products/services
-  // If the seller has active listings, only those listing categories count.
+  // Collect categories from the seller's actual listed products/services + registered business sector
   const listingCategories = myListings.map(p => (p.category || '').toLowerCase());
-  const distinctSellerCategories = listingCategories.length > 0 
-    ? Array.from(new Set(listingCategories))
-    : (sellerSector ? [sellerSector.toLowerCase()] : []);
+  const distinctSellerCategories = Array.from(new Set([
+    ...listingCategories,
+    ...(sellerSector ? [sellerSector.toLowerCase()] : [])
+  ]));
 
   const isFoodListed = distinctSellerCategories.some(cat => 
     cat === 'food & dining / restaurant' || cat === 'food & dining' || cat === 'restaurant' || cat === 'cafe' || cat === 'dining' || cat === 'food'
@@ -129,17 +137,28 @@ function DashboardContent() {
   const isSalonListed = distinctSellerCategories.some(cat => 
     cat === 'salon & parlor' || cat === 'salon' || cat === 'saloon' || cat === 'parlor' || cat === 'parlour' || cat === 'spa' || cat === 'beauty'
   );
+  const isEventListed = distinctSellerCategories.some(cat => 
+    cat.includes('organizer') || cat.includes('event') || cat.includes('wedding') || cat.includes('party') || cat.includes('stage') || cat === 'events'
+  ) || sellerSector.toLowerCase().includes('organizer') || sellerSector.toLowerCase().includes('event') || sellerSector.toLowerCase().includes('wedding') || sellerSector.toLowerCase().includes('party');
 
-  const availableVerticals: { id: 'FOOD' | 'SALON' | 'DOCTOR'; label: string; icon: any }[] = [];
+  const isAutoWashListed = distinctSellerCategories.some(cat => 
+    cat.includes('car wash') || cat.includes('automobile') || cat.includes('mechanic') || cat === 'auto'
+  ) || sellerSector.toLowerCase().includes('car wash') || sellerSector.toLowerCase().includes('automobile') || sellerSector.toLowerCase().includes('auto');
+
+  const availableVerticals: { id: 'FOOD' | 'SALON' | 'DOCTOR' | 'EVENT' | 'AUTOWASH'; label: string; icon: any }[] = [];
+  if (isEventListed) availableVerticals.push({ id: 'EVENT', label: 'Events & Parties', icon: PartyPopper });
   if (isFoodListed) availableVerticals.push({ id: 'FOOD', label: 'Dining', icon: Utensils });
   if (isSalonListed) availableVerticals.push({ id: 'SALON', label: 'Salon', icon: Scissors });
   if (isDoctorListed) availableVerticals.push({ id: 'DOCTOR', label: 'Doctor', icon: Stethoscope });
+  if (isAutoWashListed) availableVerticals.push({ id: 'AUTOWASH', label: 'Car Wash & Auto', icon: Car });
 
-  const defaultDetectedVertical: 'FOOD' | 'SALON' | 'DOCTOR' | 'NONE' = 
-    availableVerticals.length > 0 ? availableVerticals[0].id : 'NONE';
+  const defaultDetectedVertical: 'FOOD' | 'SALON' | 'DOCTOR' | 'EVENT' | 'AUTOWASH' | 'NONE' = 
+    isEventListed 
+      ? 'EVENT' 
+      : (isAutoWashListed ? 'AUTOWASH' : (availableVerticals.length > 0 ? availableVerticals[0].id : 'NONE'));
 
-  const [currentVertical, setCurrentVertical] = useState<'AUTO' | 'FOOD' | 'SALON' | 'DOCTOR'>('AUTO');
-  const activeVertical: 'FOOD' | 'SALON' | 'DOCTOR' | 'NONE' = 
+  const [currentVertical, setCurrentVertical] = useState<'AUTO' | 'FOOD' | 'SALON' | 'DOCTOR' | 'EVENT' | 'AUTOWASH'>('AUTO');
+  const activeVertical: 'FOOD' | 'SALON' | 'DOCTOR' | 'EVENT' | 'AUTOWASH' | 'NONE' = 
     currentVertical === 'AUTO' 
       ? defaultDetectedVertical 
       : (availableVerticals.some(v => v.id === currentVertical) ? currentVertical : defaultDetectedVertical);
@@ -147,13 +166,13 @@ function DashboardContent() {
   // Dynamic Flow Resolution (Reads from Category Engine FIRST, falls back to hardcoded strings)
   const isCartFlow = allowedFeatures.includes('Product Stock') || allowedFeatures.includes('B2C') || hasCartProducts || CART_ORDER_FLOW.includes(sellerSector) || isB2C;
   const isRfqFlow = allowedFeatures.includes('RFQ') || allowedFeatures.includes('Quote') || allowedFeatures.includes('B2B') || hasRfqProducts || RFQ_QUOTE_FLOW.includes(sellerSector) || isB2B;
-  const isQueueFlow = allowedFeatures.includes('Token') || hasQueueServices || QUEUE_TOKEN_FLOW.includes(sellerSector) || isService || ['FOOD', 'SALON', 'DOCTOR'].includes(activeVertical);
-  const isProjectFlow = hasProjectServices || PROJECT_MILESTONE_FLOW.includes(sellerSector);
-  const isMeetingFlow = allowedFeatures.includes('Appointment') || allowedFeatures.includes('Meeting') || hasMeetingServices || MEETING_PROPOSAL_FLOW.includes(sellerSector);
+  const isQueueFlow = allowedFeatures.includes('Token') || hasQueueServices || QUEUE_TOKEN_FLOW.includes(sellerSector) || isService || ['FOOD', 'SALON', 'DOCTOR', 'AUTOWASH'].includes(activeVertical);
+  const isProjectFlow = hasProjectServices || PROJECT_MILESTONE_FLOW.includes(sellerSector) || isEventListed;
+  const isMeetingFlow = allowedFeatures.includes('Appointment') || allowedFeatures.includes('Meeting') || hasMeetingServices || MEETING_PROPOSAL_FLOW.includes(sellerSector) || isEventListed;
   const isAssetFlow = allowedFeatures.includes('Vehicle Test Drive') || hasAssetListings || ENQUIRY_ASSET_FLOW.includes(sellerSector);
 
   // For backward compatibility in some places
-  const isServiceProvider = isQueueFlow || isProjectFlow || isMeetingFlow || isService || sellerCategory?.primaryType === 'SERVICE' || ['FOOD', 'SALON', 'DOCTOR'].includes(activeVertical);
+  const isServiceProvider = isQueueFlow || isProjectFlow || isMeetingFlow || isService || isEventListed || isAutoWashListed || sellerCategory?.primaryType === 'SERVICE' || ['FOOD', 'SALON', 'DOCTOR', 'EVENT', 'AUTOWASH'].includes(activeVertical);
   const [queueData, setQueueData] = useState<any>(null);
   const [isQueueLoading, setIsQueueLoading] = useState(false);
   const [queueAnalytics, setQueueAnalytics] = useState<any>(null);
@@ -270,24 +289,55 @@ function DashboardContent() {
   const [walkInPhone, setWalkInPhone] = useState('');
   const [walkInService, setWalkInService] = useState('Haircut');
   const [walkInPrice, setWalkInPrice] = useState('');
+  const [walkInVehicleCategory, setWalkInVehicleCategory] = useState('Car');
+  const [walkInPlateNumber, setWalkInPlateNumber] = useState('');
 
   const handleAddWalkIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedQueueId) return;
     try {
+      let finalCustomer = walkInName;
+      let finalService = walkInService;
+      let finalPrice = parseFloat(walkInPrice) || 0;
+
+      if (activeVertical === 'AUTOWASH') {
+        const cleanPlate = walkInPlateNumber.trim().toUpperCase() || 'DL 01 AB 1234';
+        const vIcons: Record<string, string> = {
+          'Bike': '🏍️',
+          'Car': '🚗',
+          'Truck': '🚚',
+          'Bus': '🚌',
+          'Heavy Vehicle (JCB)': '🚜'
+        };
+        const icon = vIcons[walkInVehicleCategory] || '🚗';
+        finalCustomer = `${walkInName.trim() || 'Walk-in Driver'} (${cleanPlate})`;
+        finalService = `${icon} ${walkInVehicleCategory} Wash [Plate: ${cleanPlate}]`;
+        if (!walkInPrice) {
+          const defaultPrices: Record<string, number> = {
+            'Bike': 150,
+            'Car': 350,
+            'Truck': 800,
+            'Bus': 1000,
+            'Heavy Vehicle (JCB)': 1200
+          };
+          finalPrice = defaultPrices[walkInVehicleCategory] || 350;
+        }
+      }
+
       await fetch(`${API_URL}/service-queue/${selectedQueueId}/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          customerName: walkInName,
+          customerName: finalCustomer,
           phone: walkInPhone,
-          service: walkInService,
-          price: parseFloat(walkInPrice) || 0
+          service: finalService,
+          price: finalPrice
         })
       });
       setShowWalkInForm(false);
       setWalkInName('');
       setWalkInPhone('');
+      setWalkInPlateNumber('');
       fetchQueue();
     } catch (err) {
       console.error(err);
@@ -453,6 +503,88 @@ function DashboardContent() {
     });
   };
 
+  // Live Event & Party Proposal Leads for Organizers
+  const DEFAULT_EVENT_PROPOSALS = [
+    {
+      id: 'EVT-9281',
+      eventType: 'Wedding & Reception',
+      customerName: 'Aditya & Ritu Mehra',
+      customerPhone: '+91 98765 43210',
+      eventDate: '2026-11-28',
+      guestCount: '400 - 1,000 Guests',
+      eventCity: 'Delhi / NCR Palace',
+      servicePackage: 'Grand Royal Stage & Lighting',
+      notes: 'Require royal floral stage, cinematic lighting, 2-day wedding coordination & live catering setup.',
+      status: 'New Inquiry',
+      timestamp: new Date().toISOString()
+    },
+    {
+      id: 'EVT-7104',
+      eventType: 'Birthday & Anniversary Party',
+      customerName: 'Priya Narang',
+      customerPhone: '+91 99887 66554',
+      eventDate: '2026-11-15',
+      guestCount: '150 - 400 Guests',
+      eventCity: 'South Delhi Farmhouse',
+      servicePackage: 'Neon Glow & Acoustic Band Setup',
+      notes: 'Neon themed photobooth, DJ console setup, customized welcome entry gate.',
+      status: 'Proposal Sent',
+      timestamp: new Date().toISOString()
+    },
+    {
+      id: 'EVT-5541',
+      eventType: 'Corporate Gala & Awards',
+      customerName: 'TechVision Global Ltd',
+      customerPhone: '+91 98112 23344',
+      eventDate: '2026-12-05',
+      guestCount: '300 Guests',
+      eventCity: 'Gurugram Convention Hall',
+      servicePackage: 'Conference AV & Award Stage',
+      notes: 'Full LED backdrop wall, 4 wireless mics, podium branding, and event director crew on-site.',
+      status: 'Confirmed',
+      timestamp: new Date().toISOString()
+    }
+  ];
+
+  const [eventInquiries, setEventInquiries] = useState<any[]>(DEFAULT_EVENT_PROPOSALS);
+  const syncEventInquiries = () => {
+    try {
+      const stored = localStorage.getItem('markat_event_proposals');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const sellerName = (user?.business?.name || user?.name || '').toLowerCase();
+          const filtered = parsed.filter(item => {
+            if (!item.seller) return true;
+            const itemSeller = item.seller.toLowerCase();
+            return sellerName ? itemSeller.includes(sellerName) || sellerName.includes(itemSeller) : true;
+          });
+          setEventInquiries(filtered.length > 0 ? filtered : parsed);
+          return;
+        }
+      } else {
+        localStorage.setItem('markat_event_proposals', JSON.stringify(DEFAULT_EVENT_PROPOSALS));
+        setEventInquiries(DEFAULT_EVENT_PROPOSALS);
+      }
+    } catch {}
+  };
+
+  useEffect(() => {
+    syncEventInquiries();
+    const interval = setInterval(syncEventInquiries, 2500);
+    return () => clearInterval(interval);
+  }, [user?.id]);
+
+  const handleUpdateEventStatus = (inquiryId: string, newStatus: string) => {
+    setEventInquiries(prev => {
+      const updated = prev.map(e => e.id === inquiryId ? { ...e, status: newStatus } : e);
+      try {
+        localStorage.setItem('markat_event_proposals', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
   // Live Bookings State synced with Queue Tokens & Appointments
   const [bookings, setBookings] = useState<any[]>([]);
 
@@ -466,6 +598,8 @@ function DashboardContent() {
             id: s.bookingNumber || (s.bookingMode === 'APPOINTMENT' ? `BOOK-${s.id.slice(-4).toUpperCase()}` : `TOKEN-${s.tokenNumber || s.id.slice(-4).toUpperCase()}`),
             customer: s.customerName,
             service: s.service,
+            price: s.price,
+            phone: s.phone,
             date: 'Live Now',
             status: 'In Progress',
             bookingMode: s.bookingMode,
@@ -484,8 +618,10 @@ function DashboardContent() {
             id: t.bookingNumber || (t.bookingMode === 'APPOINTMENT' ? `BOOK-${t.id.slice(-4).toUpperCase()}` : `TOKEN-${t.tokenNumber || t.id.slice(-4).toUpperCase()}`),
             customer: t.customerName,
             service: t.service,
+            price: t.price,
+            phone: t.phone,
             date: t.bookingMode === 'APPOINTMENT' ? 'Scheduled Appointment' : 'Waiting in Queue',
-            status: t.status === 'PENDING' ? 'Pending' : t.status === 'CHECKED_IN' ? 'Checked In' : 'Upcoming',
+            status: t.status === 'PENDING' ? 'Pending' : t.status === 'CHECKED_IN' ? 'Checked In' : (t.status === 'ABSENT' ? 'Absent' : 'Upcoming'),
             bookingMode: t.bookingMode,
             tokenNumber: t.tokenNumber,
             appointmentTime: t.appointmentTime,
@@ -524,7 +660,7 @@ function DashboardContent() {
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({
-    ownerName: '', phone: '', email: '', businessName: '', gstNumber: '', address: '', pincode: '', latitude: null as number | null, longitude: null as number | null,
+    ownerName: '', phone: '', email: '', businessName: '', sector: '', businessType: '', gstNumber: '', address: '', pincode: '', latitude: null as number | null, longitude: null as number | null,
     businessHours: defaultSchedule as any,
   });
 
@@ -534,6 +670,8 @@ function DashboardContent() {
       phone: user?.phone || '',
       email: user?.email || '',
       businessName: user?.business?.name || '',
+      sector: user?.business?.sector || '',
+      businessType: user?.business?.businessType || '',
       gstNumber: user?.business?.gstNumber || '',
       address: user?.business?.address || '',
       pincode: user?.business?.pincode || '',
@@ -694,7 +832,7 @@ function DashboardContent() {
       setEditingProductId(null);
       setTimeout(() => {
         setShowSuccess(false);
-        setActiveTab('listings');
+        setActiveTab((productData.primaryType === 'SERVICE' || isServiceProvider) ? 'services' : 'listings');
       }, 2500);
     } catch (err) {
       console.error(err);
@@ -814,16 +952,21 @@ function DashboardContent() {
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 fill-emerald-50" />
               </div>
             </div>
-            
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
                 <h3 className="text-sm font-bold text-slate-900 truncate">
                   {user?.business?.name || user?.name || 'Seller'}
                 </h3>
               </div>
-              <span className="inline-block text-[10px] font-bold text-emerald-600">
-                Verified Seller
-              </span>
+              {user?.business?.verified || user?.business?.verificationStatus === 'APPROVED' ? (
+                <span className="inline-block text-[10px] font-bold text-emerald-600">
+                  ✓ Verified Store
+                </span>
+              ) : (
+                <span className="inline-block text-[10px] font-bold text-amber-600">
+                  ⏳ KYC Verification Pending
+                </span>
+              )}
             </div>
           </div>
 
@@ -873,7 +1016,11 @@ function DashboardContent() {
                 {availableVerticals.map(v => {
                   const Icon = v.icon;
                   const isAct = activeVertical === v.id;
-                  const activeColor = v.id === 'FOOD' ? 'bg-orange-500 text-white' : (v.id === 'SALON' ? 'bg-indigo-600 text-white' : 'bg-emerald-600 text-white');
+                  const activeColor = v.id === 'FOOD' 
+                    ? 'bg-orange-500 text-white' 
+                    : (v.id === 'SALON' 
+                      ? 'bg-indigo-600 text-white' 
+                      : (v.id === 'EVENT' ? 'bg-fuchsia-600 text-white' : 'bg-emerald-600 text-white'));
                   return (
                     <button
                       key={v.id}
@@ -892,17 +1039,25 @@ function DashboardContent() {
             </div>
           )}
 
-          {availableVerticals.length === 1 && (
-            <div className="mx-2 mb-3 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200/70 flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Sector</span>
-              <span className="text-xs font-bold text-indigo-700 flex items-center gap-1.5">
-                {activeVertical === 'FOOD' && <Utensils className="w-3.5 h-3.5 text-orange-500" />}
-                {activeVertical === 'SALON' && <Scissors className="w-3.5 h-3.5 text-indigo-600" />}
-                {activeVertical === 'DOCTOR' && <Stethoscope className="w-3.5 h-3.5 text-emerald-600" />}
-                {activeVertical === 'FOOD' ? 'Dining & Food' : (activeVertical === 'DOCTOR' ? 'Clinic & Doctor' : 'Salon & Spa')}
+          {/* Sector Badge Indicator */}
+          <div className="mx-2 mb-3 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200/70 flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Sector</span>
+            <span className="text-xs font-bold flex items-center gap-1.5 text-indigo-700">
+              {activeVertical === 'EVENT' && <PartyPopper className="w-3.5 h-3.5 text-fuchsia-600" />}
+              {activeVertical === 'FOOD' && <Utensils className="w-3.5 h-3.5 text-orange-500" />}
+              {activeVertical === 'SALON' && <Scissors className="w-3.5 h-3.5 text-indigo-600" />}
+              {activeVertical === 'DOCTOR' && <Stethoscope className="w-3.5 h-3.5 text-emerald-600" />}
+              <span className={activeVertical === 'EVENT' ? 'text-fuchsia-700' : ''}>
+                {activeVertical === 'EVENT' 
+                  ? 'Events & Parties' 
+                  : (activeVertical === 'FOOD' 
+                    ? 'Dining & Food' 
+                    : (activeVertical === 'DOCTOR' 
+                      ? 'Clinic & Doctor' 
+                      : (sellerSector || 'Events & Parties')))}
               </span>
-            </div>
-          )}
+            </span>
+          </div>
 
           {/* SERVICE PROVIDER FLOW (Phase 1 MVP) */}
           {(isService || isServiceProvider) && (
@@ -935,6 +1090,7 @@ function DashboardContent() {
               ) : (
                 /* CLINIC, SALON & OTHER SERVICE SECTORS */
                 <>
+                  {/* Primary Sector Workspace Station */}
                   {activeVertical === 'DOCTOR' && (
                     <button 
                       onClick={() => { setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
@@ -959,12 +1115,41 @@ function DashboardContent() {
                     </button>
                   )}
 
+                  {activeVertical === 'EVENT' && (
+                    <button 
+                      onClick={() => { setActiveTab('events_station'); setIsMobileMenuOpen(false); }} 
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'events_station' ? 'bg-fuchsia-50 text-fuchsia-700 font-bold border border-fuchsia-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <PartyPopper className="w-5 h-5 text-fuchsia-600" /> Event Inquiries & Quotes
+                      </div>
+                      {eventInquiries.length > 0 && (
+                        <span className="px-2 py-0.5 bg-fuchsia-600 text-white rounded-full text-[10px] font-bold">
+                          {eventInquiries.length}
+                        </span>
+                      )}
+                    </button>
+                  )}
+
+                  {activeVertical === 'AUTOWASH' && (
+                    <button 
+                      onClick={() => { setActiveTab('bookings'); setIsMobileMenuOpen(false); }} 
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'bookings' ? 'bg-cyan-50 text-cyan-800 font-bold border border-cyan-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Car className="w-5 h-5 text-cyan-600" /> Wash & Service Bays
+                      </div>
+                      <span className="px-2 py-0.5 bg-cyan-100 text-cyan-800 rounded text-[10px] font-bold">Auto</span>
+                    </button>
+                  )}
+
+                  {/* Appointments, Live Queue & Service Catalog */}
                   <button 
                     onClick={() => { setActiveTab('bookings'); setIsMobileMenuOpen(false); }} 
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'bookings' ? 'bg-amber-50 text-amber-700 font-bold border border-amber-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                   >
                     <div className="flex items-center gap-3">
-                      <CalendarClock className="w-5 h-5" /> Bookings & Tokens
+                      <CalendarClock className="w-5 h-5 text-amber-600" /> Bookings & Appointments
                     </div>
                   </button>
 
@@ -972,14 +1157,14 @@ function DashboardContent() {
                     onClick={() => { setActiveTab('queue'); setIsMobileMenuOpen(false); }} 
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'queue' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                   >
-                    <span className="w-5 h-5 flex items-center justify-center text-lg">🎟️</span> Live Queue
+                    <span className="w-5 h-5 flex items-center justify-center text-lg">🎟️</span> Live Tokens & Walk-ins
                   </button>
 
                   <button 
                     onClick={() => { setActiveTab('services'); setIsMobileMenuOpen(false); }} 
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'services' ? 'bg-purple-50 text-purple-700 font-bold border border-purple-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                   >
-                    <Briefcase className="w-5 h-5" /> Services & Catalog
+                    <Briefcase className="w-5 h-5 text-purple-600" /> Services & Packages
                   </button>
                 </>
               )}
@@ -995,7 +1180,7 @@ function DashboardContent() {
                 onClick={() => { setActiveTab('staff'); setIsMobileMenuOpen(false); }} 
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'staff' ? 'bg-rose-50 text-rose-700 font-bold border border-rose-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
               >
-                <UserPlus className="w-5 h-5" /> {activeVertical === 'DOCTOR' ? 'Doctors & Staff' : (activeVertical === 'FOOD' ? 'Kitchen & Waiters' : 'Stylists & Staff')}
+                <UserPlus className="w-5 h-5" /> {activeVertical === 'DOCTOR' ? 'Doctors & Staff' : (activeVertical === 'FOOD' ? 'Kitchen & Waiters' : (activeVertical === 'EVENT' ? 'Crew & Coordinators' : 'Stylists & Staff'))}
               </button>
 
               <button 
@@ -1121,22 +1306,57 @@ function DashboardContent() {
               </div>
             </div>
 
-            {/* Account Auto-Verified Banner */}
+            {/* KYC & Store Verification Banner */}
             {user?.business && (
-              <div className="mb-4 sm:mb-8 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-emerald-50/80 via-teal-50/40 to-emerald-50/80 border border-emerald-200/80 shadow-2xs flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5 sm:gap-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
-                    <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
+              user?.business?.verified || user?.business?.verificationStatus === 'APPROVED' ? (
+                <div className="mb-4 sm:mb-8 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50/50 to-emerald-50 border border-emerald-200 shadow-2xs flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                      <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-black text-emerald-950 text-xs sm:text-sm">Store Verified & Active — Ready to Start Your Journey! 🎉</h4>
+                        <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                          ✓ KYC APPROVED
+                        </span>
+                      </div>
+                      <p className="text-[11px] sm:text-xs text-emerald-700 mt-0.5">
+                        Your identity, PAN/GST, and Aadhaar have been verified by admin. Your catalog and services are live for all customers.
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-emerald-950 text-xs sm:text-sm">Account Verified & Active</h4>
-                    <p className="text-[11px] sm:text-xs text-emerald-700 mt-0.5 line-clamp-1 sm:line-clamp-none">Your business passed MarkatVerse compliance checks.</p>
+                  <div className="hidden sm:flex items-center gap-2 font-mono text-xs font-semibold text-emerald-800 bg-white/80 px-3 py-1.5 rounded-lg border border-emerald-200 shrink-0">
+                    ID: {user.markatId || 'MV-0000000044'}
                   </div>
                 </div>
-                <div className="hidden sm:flex items-center gap-2 font-mono text-xs font-semibold text-emerald-800 bg-white/70 px-3 py-1.5 rounded-lg border border-emerald-200/60 shrink-0">
-                  ID: {user.markatId || 'MV-0000000044'}
+              ) : (
+                <div className="mb-4 sm:mb-8 p-3.5 sm:p-5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-50 via-orange-50/50 to-amber-50 border border-amber-300/80 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+                  <div className="flex items-start sm:items-center gap-3">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-xs shrink-0 mt-0.5 sm:mt-0">
+                      <Clock className="w-5 h-5 animate-pulse" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-black text-amber-950 text-xs sm:text-sm">
+                          KYC Verification in Progress — Admin Phone Call Scheduled
+                        </h4>
+                        <span className="px-2 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[10px] font-bold">
+                          ⏳ PENDING CALL
+                        </span>
+                      </div>
+                      <p className="text-[11px] sm:text-xs text-amber-800 mt-1 leading-relaxed">
+                        Your real Aadhaar, PAN / GST, and document proofs have been received. An admin verification officer will call you at{' '}
+                        <strong className="text-amber-950">+91-{user.business.phone || user.phone || 'your phone'}</strong>{' '}
+                        for KYC verification. Once verified, your store will be activated to start your selling journey!
+                      </p>
+                    </div>
+                  </div>
+                  <div className="shrink-0 self-end sm:self-auto font-mono text-xs font-semibold text-amber-900 bg-white/90 px-3 py-1.5 rounded-lg border border-amber-300">
+                    Status: PENDING_KYC
+                  </div>
                 </div>
-              </div>
+              )
             )}
 
             {/* SECTOR-ADAPTIVE KPI METRIC CARDS */}
@@ -1628,185 +1848,78 @@ function DashboardContent() {
           </div>
         )}
 
-        {(activeTab === 'listings' || activeTab === 'services') && (
-          <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
-            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900">
-                  {activeVertical === 'FOOD' ? 'Restaurant Venue & Dining Service' : (activeTab === 'services' ? 'My Services' : 'My Shop Catalog')}
-                </h1>
-                <p className="text-slate-500 mt-2">
-                  {activeVertical === 'FOOD' 
-                    ? 'Your restaurant storefront, table booking service, and dining experience.'
-                    : (activeTab === 'services' ? 'Manage your active services.' : 'Manage your active products.')}
-                </p>
-              </div>
+        {activeTab === 'listings' && (
+          <SellerProductsTab 
+            products={myListings}
+            user={user}
+            activeVertical={activeVertical}
+            isServiceProvider={isServiceProvider}
+            isB2C={isB2C}
+            isB2B={isB2B}
+            isCartFlow={isCartFlow}
+            isRfqFlow={isRfqFlow}
+            isService={isService}
+            isQueueFlow={isQueueFlow}
+            isMeetingFlow={isMeetingFlow}
+            isProjectFlow={isProjectFlow}
+            onAddNew={() => setActiveTab('add_product')}
+            onEdit={(product) => {
+              setEditingProductId(product.id);
+              setName(product.name);
+              setPrice(product.price.toString());
+              setOriginalPrice(product.originalPrice ? product.originalPrice.toString() : product.price.toString());
+              setDescription(product.description || '');
+              setCategory(product.category || 'Food & Dining');
+              setLocation(product.location || '');
+              setImageUrl(product.image || '');
+              setUploadedImages(product.images || []);
+              setEnableWholesale(product.isB2B || false);
+              if (product.wholesaleTiers) setWholesaleTiers(product.wholesaleTiers);
+              if (product.parameters) {
+                const newParams: Record<string, string> = {};
+                Object.keys(product.parameters).forEach(k => {
+                  const pVal = product.parameters![k];
+                  newParams[k] = Array.isArray(pVal) ? pVal.join(', ') : pVal;
+                });
+                setParameters(newParams);
+              }
+              setActiveTab('add_product');
+            }}
+            onDelete={(id) => deleteProduct(id)}
+          />
+        )}
 
-              {/* For Food & Dining, a restaurant is a single establishment venue. If 1 exists, don't show "+ Add New" duplicate button; show direct Customer Storefront and Manage Menu links */}
-              {activeVertical === 'FOOD' && myListings.length > 0 ? (
-                <div className="flex items-center gap-2.5">
-                  <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Single Establishment Active
-                  </span>
-                  <Link
-                    href={`/product/${myListings[0].id}`}
-                    target="_blank"
-                    className="bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md shadow-orange-600/20 transition-colors flex items-center gap-2 text-sm"
-                  >
-                    🍽️ View Customer Storefront
-                  </Link>
-                </div>
-              ) : (
-                <button 
-                  onClick={() => setActiveTab(activeTab === 'services' ? 'add_service' : 'add_product')}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-md shadow-blue-600/20 transition-colors flex items-center gap-2 self-start sm:self-auto"
-                >
-                  <PlusCircle className="w-5 h-5" /> {activeVertical === 'FOOD' ? 'Setup Restaurant Venue' : 'Add New'}
-                </button>
-              )}
-            </div>
-
-            {/* Food & Dining Single-Establishment Guidance Banner */}
-            {activeVertical === 'FOOD' && myListings.length > 0 && (
-              <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50 border border-orange-200/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-                    🍴
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900">Your Complete Dining & Food Shop Profile</h4>
-                    <p className="text-xs text-slate-600 mt-0.5">
-                      Customers visit your live page to reserve dining tables, browse your food menu, and order. You manage dishes and tables directly from the workspace.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => setActiveTab('sector_station')}
-                    className="px-3.5 py-2 rounded-xl bg-white text-orange-700 border border-orange-200 text-xs font-bold hover:bg-orange-50 transition-colors shadow-xs"
-                  >
-                    Manage Food Menu & Tables
-                  </button>
-                  <Link
-                    href={`/shop/${encodeURIComponent((myListings[0].sellerName || myListings[0].seller || user.business?.name || user.name || '').toLowerCase().replace(/ /g, '-'))}`}
-                    target="_blank"
-                    className="px-3.5 py-2 rounded-xl bg-orange-500 text-white text-xs font-bold hover:bg-orange-600 transition-colors shadow-xs flex items-center gap-1.5"
-                  >
-                    Customer Menu Page ↗
-                  </Link>
-                </div>
-              </div>
-            )}
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {myListings.map(product => (
-                <div key={product.id} className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm flex flex-col group">
-                  <div className="h-48 bg-slate-100 flex items-center justify-center relative overflow-hidden">
-                    {product.image ? (
-                      <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    ) : (
-                      <img src="/hero-left-logo.png" alt={product.name} className="w-full h-full object-contain opacity-50 p-4 group-hover:scale-105 transition-transform duration-500" />
-                    )}
-                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur text-blue-700 text-xs font-bold px-2.5 py-1 rounded-md shadow-sm">
-                      {product.category || 'Food & Dining'}
-                    </div>
-                  </div>
-                  <div className="p-5 flex-1 flex flex-col">
-                    <div className="font-bold text-base text-slate-900 mb-2 line-clamp-2 leading-snug">{product.name}</div>
-                    <div className="flex justify-between items-end mb-5 mt-auto">
-                      <div>
-                        <span className="text-xl font-bold text-slate-900">₹{(product.price ?? 0).toLocaleString('en-IN')}</span>
-                        {activeVertical === 'FOOD' && <span className="text-xs text-slate-400 block font-normal">dining cover charge</span>}
-                      </div>
-                      <span className="text-xs text-emerald-600 font-medium flex items-center gap-1.5 bg-emerald-50 px-2 py-1 rounded-md">
-                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Active
-                      </span>
-                    </div>
-                    <div className="flex gap-2 flex-col">
-                      <div className="flex gap-3">
-                        <button 
-                          onClick={() => {
-                            setEditingProductId(product.id);
-                            setName(product.name);
-                            setPrice(product.price.toString());
-                            setOriginalPrice(product.originalPrice ? product.originalPrice.toString() : product.price.toString());
-                            setDescription(product.description || '');
-                            setCategory(product.category || 'Food & Dining');
-                            setLocation(product.location || '');
-                            setImageUrl(product.image || '');
-                            setUploadedImages(product.images || []);
-                            setEnableWholesale(product.isB2B || false);
-                            if (product.wholesaleTiers) setWholesaleTiers(product.wholesaleTiers);
-                            if (product.parameters) {
-                              const newParams: Record<string, string> = {};
-                              Object.keys(product.parameters).forEach(k => {
-                                const pVal = product.parameters![k];
-                                newParams[k] = Array.isArray(pVal) ? pVal.join(', ') : pVal;
-                              });
-                              setParameters(newParams);
-                            }
-                            if (product.primaryType === 'SERVICE' || activeVertical === 'FOOD') {
-                              setActiveTab('add_service');
-                            } else {
-                              setActiveTab('add_product');
-                            }
-                          }}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg font-medium text-sm transition-colors"
-                        >
-                          <Edit2 className="w-4 h-4" /> Edit Details
-                        </button>
-                        <button 
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 rounded-lg font-medium text-sm transition-colors"
-                          onClick={() => {
-                            if (confirm('Are you sure you want to delete this listing?')) {
-                              deleteProduct(product.id);
-                            }
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" /> Delete
-                        </button>
-                      </div>
-                      {/* Link to live public page */}
-                      <Link 
-                        href={`/product/${product.id}`}
-                        target="_blank"
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 rounded-lg font-medium text-sm transition-colors">
-                        🌐 View Customer Page
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {myListings.length === 0 && (
-                <div className="col-span-full py-16 text-center bg-white rounded-2xl border border-slate-200 shadow-sm">
-                  <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Package className="w-8 h-8" />
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">{isServiceProvider ? 'No services yet' : 'No listings yet'}</h3>
-                  <p className="text-slate-500 mb-6">Start growing your business by adding your first {isServiceProvider ? 'service' : 'product'}.</p>
-                  <div className="flex gap-3 justify-center">
-                    {(isB2C || isB2B || isCartFlow || isRfqFlow || (!isService && !isServiceProvider)) && (
-                      <button 
-                        onClick={() => setActiveTab('add_product')}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-bold transition-colors"
-                      >
-                        Add Product
-                      </button>
-                    )}
-                    {(isService || isServiceProvider || isQueueFlow || isMeetingFlow || isProjectFlow) && (
-                      <button 
-                        onClick={() => setActiveTab('add_service')}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg font-bold transition-colors"
-                      >
-                        Add Service
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+        {activeTab === 'services' && (
+          <SellerServicesTab 
+            services={myListings}
+            user={user}
+            activeVertical={activeVertical}
+            onAddNew={() => setActiveTab('add_service')}
+            onGoToSectorStation={() => setActiveTab('sector_station')}
+            onEdit={(service) => {
+              setEditingProductId(service.id);
+              setName(service.name);
+              setPrice(service.price.toString());
+              setOriginalPrice(service.originalPrice ? service.originalPrice.toString() : service.price.toString());
+              setDescription(service.description || '');
+              setCategory(service.category || 'Food & Dining');
+              setLocation(service.location || '');
+              setImageUrl(service.image || '');
+              setUploadedImages(service.images || []);
+              setEnableWholesale(service.isB2B || false);
+              if (service.wholesaleTiers) setWholesaleTiers(service.wholesaleTiers);
+              if (service.parameters) {
+                const newParams: Record<string, string> = {};
+                Object.keys(service.parameters).forEach(k => {
+                  const pVal = service.parameters![k];
+                  newParams[k] = Array.isArray(pVal) ? pVal.join(', ') : pVal;
+                });
+                setParameters(newParams);
+              }
+              setActiveTab('add_service');
+            }}
+            onDelete={(id) => deleteProduct(id)}
+          />
         )}
 
         {(activeTab === 'add_product' || activeTab === 'add_service' || activeTab === 'add') && (() => {
@@ -1888,41 +2001,181 @@ function DashboardContent() {
             {showWalkInForm && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
                 <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-                  <h3 className="text-xl font-bold text-slate-900 mb-4">
-                    {activeVertical === 'FOOD' ? 'Seat Walk-in Party (Dining)' : (activeVertical === 'DOCTOR' ? 'Add OPD Walk-in Patient' : 'Add Walk-in Client')}
-                  </h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-slate-900">
+                        {activeVertical === 'FOOD' ? 'Seat Walk-in Party (Dining)' : (activeVertical === 'DOCTOR' ? 'Add OPD Walk-in Patient' : (activeVertical === 'AUTOWASH' ? 'Check-in Vehicle (Wash Bay)' : 'Add Walk-in Client'))}
+                      </h3>
+                      {activeVertical === 'AUTOWASH' && (
+                        <p className="text-xs text-slate-500 mt-0.5">Quick vehicle bay check-in with Indian HSRP license plate.</p>
+                      )}
+                    </div>
+                    <button type="button" onClick={() => setShowWalkInForm(false)} className="text-slate-400 hover:text-slate-600 p-1">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
                   <form onSubmit={handleAddWalkIn} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">
-                        {activeVertical === 'DOCTOR' ? 'Patient Name' : (activeVertical === 'FOOD' ? 'Guest / Contact Name' : 'Customer Name')}
-                      </label>
-                      <input type="text" required value={walkInName} onChange={e => setWalkInName(e.target.value)} className="w-full border border-slate-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder={activeVertical === 'DOCTOR' ? 'e.g. Ramesh Patel' : 'e.g. Rahul Sharma'} />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Phone Number (Optional)</label>
-                      <input type="text" value={walkInPhone} onChange={e => setWalkInPhone(e.target.value)} className="w-full border border-slate-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. 9876543210" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">
-                        {activeVertical === 'DOCTOR' ? 'Consultation / Department' : (activeVertical === 'FOOD' ? 'Table / Order Type' : 'Service Requested')}
-                      </label>
-                      <input 
-                        type="text" 
-                        required 
-                        value={walkInService} 
-                        onChange={e => setWalkInService(e.target.value)} 
-                        className="w-full border border-slate-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                        placeholder={activeVertical === 'DOCTOR' ? 'e.g. General OPD Consult' : (activeVertical === 'FOOD' ? 'e.g. Dine-in Table for 4' : 'e.g. Haircut, Spa')} 
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Fee / Price (₹)</label>
-                      <input type="number" required value={walkInPrice} onChange={e => setWalkInPrice(e.target.value)} className="w-full border border-slate-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder={activeVertical === 'DOCTOR' ? '500' : '200'} />
-                    </div>
+                    {activeVertical === 'AUTOWASH' ? (
+                      <>
+                        {/* 1. Vehicle Selection Chips */}
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                            Select Vehicle Type
+                          </label>
+                          <div className="grid grid-cols-5 gap-1.5">
+                            {[
+                              { name: 'Bike', icon: '🏍️', price: 150 },
+                              { name: 'Car', icon: '🚗', price: 350 },
+                              { name: 'Truck', icon: '🚚', price: 800 },
+                              { name: 'Bus', icon: '🚌', price: 1000 },
+                              { name: 'Heavy (JCB)', key: 'Heavy Vehicle (JCB)', icon: '🚜', price: 1200 },
+                            ].map(v => {
+                              const keyName = v.key || v.name;
+                              const isSelected = walkInVehicleCategory === keyName;
+                              return (
+                                <button
+                                  type="button"
+                                  key={v.name}
+                                  onClick={() => {
+                                    setWalkInVehicleCategory(keyName);
+                                    setWalkInPrice(String(v.price));
+                                  }}
+                                  className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl border text-center transition-all ${
+                                    isSelected 
+                                      ? 'border-cyan-600 bg-cyan-50/80 text-cyan-900 font-bold shadow-xs ring-1 ring-cyan-500' 
+                                      : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700'
+                                  }`}
+                                >
+                                  <span className="text-xl mb-0.5">{v.icon}</span>
+                                  <span className="text-[10px] font-semibold leading-tight line-clamp-1">{v.name}</span>
+                                  <span className="text-[9px] text-cyan-700 font-bold mt-0.5">₹{v.price}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* 2. Authentic Indian HSRP Number Plate */}
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                              Vehicle Number Plate
+                            </label>
+                            <span className="text-[10px] font-bold text-cyan-700 bg-cyan-50 px-2 py-0.5 rounded border border-cyan-100">
+                              Indian HSRP
+                            </span>
+                          </div>
+                          <div className="relative flex items-center h-11 w-full bg-white rounded-lg border-2 border-slate-900 shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-cyan-500 focus-within:border-cyan-600">
+                            {/* Royal Blue IND Strip with Ashoka Chakra */}
+                            <div className="h-full bg-[#003893] px-2.5 flex flex-col items-center justify-center select-none shrink-0 border-r border-slate-900/20">
+                              <span className="text-[10px] text-white leading-none">☸</span>
+                              <span className="text-[8px] font-black tracking-widest text-white leading-none mt-0.5">IND</span>
+                            </div>
+                            {/* Security Rivet */}
+                            <div className="absolute left-11 w-1.5 h-1.5 rounded-full bg-slate-300 border border-slate-400 select-none pointer-events-none"></div>
+                            {/* Plate Monospace Input */}
+                            <input
+                              type="text"
+                              required
+                              value={walkInPlateNumber}
+                              onChange={e => setWalkInPlateNumber(e.target.value.toUpperCase())}
+                              placeholder="DL 01 AB 1234"
+                              maxLength={13}
+                              className="w-full h-full bg-transparent pl-4 pr-3 text-slate-900 font-mono font-black text-sm tracking-widest placeholder:text-slate-400 focus:outline-none uppercase"
+                            />
+                          </div>
+                        </div>
+
+                        {/* 3. Driver Name & Phone */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-600 mb-1">Owner / Driver</label>
+                            <input
+                              type="text"
+                              value={walkInName}
+                              onChange={e => setWalkInName(e.target.value)}
+                              placeholder="e.g. Vikram"
+                              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-600 mb-1">Mobile No.</label>
+                            <input
+                              type="text"
+                              value={walkInPhone}
+                              onChange={e => setWalkInPhone(e.target.value)}
+                              placeholder="9876543210"
+                              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                            />
+                          </div>
+                        </div>
+
+                        {/* 4. Wash Package & Price */}
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="col-span-2">
+                            <label className="block text-xs font-semibold text-slate-600 mb-1">Wash Service</label>
+                            <input
+                              type="text"
+                              value={walkInService}
+                              onChange={e => setWalkInService(e.target.value)}
+                              placeholder="Complete Foam Wash & Underbody"
+                              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-600 mb-1">Fee (₹)</label>
+                            <input
+                              type="number"
+                              value={walkInPrice}
+                              onChange={e => setWalkInPrice(e.target.value)}
+                              placeholder="350"
+                              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                            />
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-1">
+                            {activeVertical === 'DOCTOR' ? 'Patient Name' : (activeVertical === 'FOOD' ? 'Guest / Contact Name' : 'Customer Name')}
+                          </label>
+                          <input type="text" required value={walkInName} onChange={e => setWalkInName(e.target.value)} className="w-full border border-slate-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder={activeVertical === 'DOCTOR' ? 'e.g. Ramesh Patel' : 'e.g. Rahul Sharma'} />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-1">Phone Number (Optional)</label>
+                          <input type="text" value={walkInPhone} onChange={e => setWalkInPhone(e.target.value)} className="w-full border border-slate-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. 9876543210" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-1">
+                            {activeVertical === 'DOCTOR' ? 'Consultation / Department' : (activeVertical === 'FOOD' ? 'Table / Order Type' : 'Service Requested')}
+                          </label>
+                          <input 
+                            type="text" 
+                            required 
+                            value={walkInService} 
+                            onChange={e => setWalkInService(e.target.value)} 
+                            className="w-full border border-slate-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                            placeholder={activeVertical === 'DOCTOR' ? 'e.g. General OPD Consult' : (activeVertical === 'FOOD' ? 'e.g. Dine-in Table for 4' : 'e.g. Haircut, Spa')} 
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-1">Fee / Price (₹)</label>
+                          <input type="number" required value={walkInPrice} onChange={e => setWalkInPrice(e.target.value)} className="w-full border border-slate-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder={activeVertical === 'DOCTOR' ? '500' : '200'} />
+                        </div>
+                      </>
+                    )}
+
                     <div className="flex justify-end gap-3 pt-4 mt-6 border-t border-slate-100">
                       <button type="button" onClick={() => setShowWalkInForm(false)} className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-50 rounded-lg transition-colors">Cancel</button>
-                      <button type="submit" className="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors">
-                        {activeVertical === 'FOOD' ? 'Generate Table Token' : (activeVertical === 'DOCTOR' ? 'Issue OPD Token' : 'Add to Queue')}
+                      <button 
+                        type="submit" 
+                        className={`px-4 py-2 text-white font-bold rounded-lg transition-colors ${
+                          activeVertical === 'AUTOWASH' ? 'bg-cyan-700 hover:bg-cyan-800' : 'bg-blue-600 hover:bg-blue-700'
+                        }`}
+                      >
+                        {activeVertical === 'FOOD' ? 'Generate Table Token' : (activeVertical === 'DOCTOR' ? 'Issue OPD Token' : (activeVertical === 'AUTOWASH' ? 'Assign Bay Token' : 'Add to Queue'))}
                       </button>
                     </div>
                   </form>
@@ -1952,23 +2205,45 @@ function DashboardContent() {
                     {queueData.resources.map((resource: any) => {
                       const servingTokens = Array.isArray(queueData.serving) ? queueData.serving : [];
                       const servingToken = servingTokens.find((s: any) => s.resourceId === resource.id);
+                      const isAutoWash = activeVertical === 'AUTOWASH';
+                      const detectedPlate = servingToken ? (
+                        (servingToken.service || '').match(/\[Plate:\s*([^\]]+)\]/i)?.[1] ||
+                        (servingToken.customerName || '').match(/\(([^)]+)\)$/)?.[1] || ''
+                      ) : '';
+                      const cleanName = servingToken ? (
+                        detectedPlate ? servingToken.customerName.replace(/\s*\([^)]*\)\s*$/, '') : servingToken.customerName
+                      ) : '';
+
                       return (
-                        <div key={resource.id} className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-2xl p-4 text-white shadow-lg flex flex-col items-center justify-center relative overflow-hidden">
+                        <div key={resource.id} className={`${isAutoWash ? 'bg-gradient-to-br from-cyan-800 via-teal-900 to-slate-900 border border-cyan-500/30' : 'bg-gradient-to-br from-indigo-600 to-blue-700'} rounded-2xl p-4 text-white shadow-lg flex flex-col items-center justify-center relative overflow-hidden`}>
                           <div className="absolute top-0 left-0 w-full h-full bg-[url('/noise.png')] opacity-10 mix-blend-overlay pointer-events-none"></div>
                           <div className="relative z-10 text-center w-full">
-                            <div className="text-indigo-200 text-xs font-bold tracking-widest uppercase mb-1">{resource.name}</div>
+                            <div className={`${isAutoWash ? 'text-cyan-200' : 'text-indigo-200'} text-xs font-bold tracking-widest uppercase mb-1`}>
+                              {isAutoWash ? `🚿 ${resource.name}` : resource.name}
+                            </div>
                             {servingToken ? (
                               <>
                                 <div className="text-5xl font-black mb-1 text-white drop-shadow-md">
                                   {servingToken.bookingMode === 'APPOINTMENT' ? 'Apt' : `#${servingToken.tokenNumber}`}
                                 </div>
-                                <div className="text-lg font-bold text-blue-100">{servingToken.customerName}</div>
-                                <div className="text-indigo-200 text-xs mt-1 mb-3">{servingToken.service}</div>
+                                {detectedPlate && (
+                                  <div className="my-1.5 inline-flex items-center h-6 bg-white border border-slate-900 rounded-[3px] shadow-sm overflow-hidden px-1.5">
+                                    <div className="flex items-center gap-0.5 pr-1 border-r border-slate-300">
+                                      <span className="text-[7px] text-[#003893]">☸</span>
+                                      <span className="text-[7px] font-black tracking-tighter text-[#003893]">IND</span>
+                                    </div>
+                                    <span className="font-mono font-black text-[11px] text-slate-900 tracking-wider pl-1.5 uppercase">
+                                      {detectedPlate}
+                                    </span>
+                                  </div>
+                                )}
+                                <div className={`text-base font-bold ${isAutoWash ? 'text-cyan-100' : 'text-blue-100'}`}>{cleanName || servingToken.customerName}</div>
+                                <div className={`${isAutoWash ? 'text-cyan-200/80' : 'text-indigo-200'} text-xs mt-0.5 mb-3`}>{servingToken.service}</div>
                               </>
                             ) : (
                               <div className="py-4">
-                                <div className="text-3xl font-black text-indigo-300/50 mb-2">—</div>
-                                <div className="text-indigo-200 text-xs mb-3">No one currently serving</div>
+                                <div className={`text-3xl font-black ${isAutoWash ? 'text-cyan-400/40' : 'text-indigo-300/50'} mb-2`}>—</div>
+                                <div className={`${isAutoWash ? 'text-cyan-200' : 'text-indigo-200'} text-xs mb-3`}>Bay currently available</div>
                               </div>
                             )}
                             <button 
@@ -1976,7 +2251,7 @@ function DashboardContent() {
                               onClick={() => handleQueueAction(`next-${resource.id}`, `/service-queue/${queueData.queue.id}/next`, 'POST', { resourceId: resource.id })}
                               className="bg-white/20 hover:bg-white/30 text-white w-full py-1.5 rounded-lg font-bold text-sm shadow-sm transition-colors border border-white/20 disabled:opacity-50"
                             >
-                              {actionLoading === `next-${resource.id}` ? 'Calling...' : 'Call Next'}
+                              {actionLoading === `next-${resource.id}` ? 'Calling...' : (isAutoWash ? 'Call Next Vehicle' : 'Call Next')}
                             </button>
                           </div>
                         </div>
@@ -1984,32 +2259,54 @@ function DashboardContent() {
                     })}
                   </div>
                 ) : (
-                  <div className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-2xl p-4 sm:p-5 text-white shadow-lg flex flex-col items-center justify-center relative overflow-hidden">
+                  <div className={`${activeVertical === 'AUTOWASH' ? 'bg-gradient-to-br from-cyan-800 via-teal-900 to-slate-900 border border-cyan-500/30' : 'bg-gradient-to-br from-indigo-600 to-blue-700'} rounded-2xl p-4 sm:p-5 text-white shadow-lg flex flex-col items-center justify-center relative overflow-hidden`}>
                     <div className="absolute top-0 left-0 w-full h-full bg-[url('/noise.png')] opacity-10 mix-blend-overlay pointer-events-none"></div>
                     <div className="relative z-10 text-center w-full">
-                      <div className="text-indigo-200 text-xs font-bold tracking-widest uppercase mb-2">NOW SERVING</div>
+                      <div className={`${activeVertical === 'AUTOWASH' ? 'text-cyan-200' : 'text-indigo-200'} text-xs font-bold tracking-widest uppercase mb-2`}>
+                        {activeVertical === 'AUTOWASH' ? '🚿 NOW WASHING' : 'NOW SERVING'}
+                      </div>
                       {queueData.serving && queueData.serving.length > 0 ? (
                         <>
                           <div className="text-6xl sm:text-7xl font-black mb-2 text-white drop-shadow-md">
                             {queueData.serving[0].bookingMode === 'APPOINTMENT' ? 'Apt' : `#${queueData.serving[0].tokenNumber}`}
                           </div>
-                          <div className="text-lg font-bold text-blue-100">{queueData.serving[0].customerName}</div>
-                          <div className="text-indigo-200 text-xs mt-1">{queueData.serving[0].service}</div>
+                          {(() => {
+                            const serving0 = queueData.serving[0];
+                            const detectedPlate = (serving0.service || '').match(/\[Plate:\s*([^\]]+)\]/i)?.[1] || (serving0.customerName || '').match(/\(([^)]+)\)$/)?.[1] || '';
+                            const cleanName = detectedPlate ? serving0.customerName.replace(/\s*\([^)]*\)\s*$/, '') : serving0.customerName;
+                            return (
+                              <>
+                                {detectedPlate && (
+                                  <div className="mb-2 inline-flex items-center h-7 bg-white border border-slate-900 rounded-[3px] shadow-sm overflow-hidden px-2">
+                                    <div className="flex items-center gap-0.5 pr-1 border-r border-slate-300">
+                                      <span className="text-[8px] text-[#003893]">☸</span>
+                                      <span className="text-[8px] font-black tracking-tighter text-[#003893]">IND</span>
+                                    </div>
+                                    <span className="font-mono font-black text-xs text-slate-900 tracking-wider pl-1.5 uppercase">
+                                      {detectedPlate}
+                                    </span>
+                                  </div>
+                                )}
+                                <div className={`text-lg font-bold ${activeVertical === 'AUTOWASH' ? 'text-cyan-100' : 'text-blue-100'}`}>{cleanName || serving0.customerName}</div>
+                                <div className={`${activeVertical === 'AUTOWASH' ? 'text-cyan-200/80' : 'text-indigo-200'} text-xs mt-1`}>{serving0.service}</div>
+                              </>
+                            );
+                          })()}
                         </>
                       ) : (
                         <div className="py-2 sm:py-4">
-                          <div className="text-4xl sm:text-5xl font-black text-indigo-300/50 mb-2">—</div>
-                          <div className="text-indigo-200 text-sm">No one currently serving</div>
+                          <div className={`text-4xl sm:text-5xl font-black ${activeVertical === 'AUTOWASH' ? 'text-cyan-300/40' : 'text-indigo-300/50'} mb-2`}>—</div>
+                          <div className={`${activeVertical === 'AUTOWASH' ? 'text-cyan-200' : 'text-indigo-200'} text-sm`}>No vehicle currently in bay</div>
                         </div>
                       )}
-                      <div className="mt-4 pt-4 border-t border-indigo-500/30 w-full flex justify-between">
+                      <div className="mt-4 pt-4 border-t border-cyan-500/30 w-full flex justify-between">
                         <div className="text-center">
                           <div className="text-2xl font-black">{queueData.waitingCount}</div>
-                          <div className="text-[9px] uppercase font-bold text-indigo-200 tracking-wider">Waiting</div>
+                          <div className={`text-[9px] uppercase font-bold ${activeVertical === 'AUTOWASH' ? 'text-cyan-200' : 'text-indigo-200'} tracking-wider`}>Waiting</div>
                         </div>
                         <div className="text-center">
                           <div className="text-2xl font-black">{queueData.doneToday}</div>
-                          <div className="text-[9px] uppercase font-bold text-indigo-200 tracking-wider">Done Today</div>
+                          <div className={`text-[9px] uppercase font-bold ${activeVertical === 'AUTOWASH' ? 'text-cyan-200' : 'text-indigo-200'} tracking-wider`}>Done Today</div>
                         </div>
                       </div>
                     </div>
@@ -2019,14 +2316,18 @@ function DashboardContent() {
                 {/* Waiting List */}
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col">
                   <div className="p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <h2 className="text-lg font-bold text-slate-900">Up Next</h2>
+                    <h2 className="text-lg font-bold text-slate-900">
+                      {activeVertical === 'AUTOWASH' ? 'Up Next (Vehicles in Queue)' : 'Up Next'}
+                    </h2>
                     {(!queueData.resources || queueData.resources.length === 0) && (
                       <button 
                         disabled={actionLoading === 'next-global'}
                         onClick={() => handleQueueAction('next-global', `/service-queue/${queueData.queue.id}/next`)}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg font-bold text-sm shadow-sm transition-colors disabled:opacity-50"
+                        className={`text-white px-5 py-2 rounded-lg font-bold text-sm shadow-sm transition-colors disabled:opacity-50 ${
+                          activeVertical === 'AUTOWASH' ? 'bg-cyan-700 hover:bg-cyan-800' : 'bg-emerald-600 hover:bg-emerald-700'
+                        }`}
                       >
-                        {actionLoading === 'next-global' ? 'Calling...' : 'Call Next Customer'}
+                        {actionLoading === 'next-global' ? 'Calling...' : (activeVertical === 'AUTOWASH' ? 'Call Next Vehicle' : 'Call Next Customer')}
                       </button>
                     )}
                   </div>
@@ -2034,36 +2335,55 @@ function DashboardContent() {
                   <div className="flex-1 overflow-y-auto p-4 space-y-3">
                     {queueData.waiting?.length === 0 ? (
                       <div className="text-center py-10 text-slate-500">
-                        Queue is empty.
+                        {activeVertical === 'AUTOWASH' ? 'No vehicles waiting in line.' : 'Queue is empty.'}
                       </div>
                     ) : (
-                      queueData.waiting?.map((token: any, i: number) => (
-                        <div key={token.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 gap-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-white hover:shadow-sm transition-all">
-                          <div className="flex items-center gap-4 w-full">
-                            <div className={`w-14 h-12 rounded-xl flex flex-col items-center justify-center font-black text-sm ${i === 0 ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-600'}`}>
-                              {token.bookingMode === 'APPOINTMENT' ? (
-                                <><span>Apt</span><span className="text-[10px] font-bold">{new Date(token.appointmentTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></>
-                              ) : (
-                                <span className="text-lg">#{token.tokenNumber}</span>
-                              )}
-                            </div>
-                            <div>
-                              <div className="font-bold text-slate-900 flex items-center gap-2">
-                                {token.customerName}
-                                {token.bookingMode === 'APPOINTMENT' && token.status === 'PENDING' && (
-                                  <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Pending Arrival</span>
-                                )}
-                                {token.bookingMode === 'APPOINTMENT' && token.status === 'CHECKED_IN' && (
-                                  <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Checked In</span>
-                                )}
-                                {token.status === 'ABSENT' && (
-                                  <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Absent (Late)</span>
+                      queueData.waiting?.map((token: any, i: number) => {
+                        const detectedPlate = (token.service || '').match(/\[Plate:\s*([^\]]+)\]/i)?.[1] || (token.customerName || '').match(/\(([^)]+)\)$/)?.[1] || '';
+                        const cleanCustomerName = detectedPlate ? token.customerName.replace(/\s*\([^)]*\)\s*$/, '') : token.customerName;
+
+                        return (
+                          <div key={token.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 gap-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-white hover:shadow-sm transition-all">
+                            <div className="flex items-center gap-4 w-full">
+                              <div className={`w-14 h-12 rounded-xl flex flex-col items-center justify-center font-black text-sm ${
+                                i === 0 
+                                  ? (activeVertical === 'AUTOWASH' ? 'bg-cyan-100 text-cyan-800' : 'bg-indigo-100 text-indigo-700')
+                                  : 'bg-slate-200 text-slate-600'
+                              }`}>
+                                {token.bookingMode === 'APPOINTMENT' ? (
+                                  <><span>Apt</span><span className="text-[10px] font-bold">{new Date(token.appointmentTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></>
+                                ) : (
+                                  <span className="text-lg">#{token.tokenNumber}</span>
                                 )}
                               </div>
-                              <div className="text-xs text-slate-500 font-medium">{token.service}</div>
+                              <div>
+                                <div className="font-bold text-slate-900 flex items-center gap-2 flex-wrap">
+                                  <span>{cleanCustomerName}</span>
+                                  {detectedPlate && (
+                                    <span className="inline-flex items-center h-5.5 bg-white border border-slate-900 rounded-[3px] shadow-2xs overflow-hidden px-1">
+                                      <span className="flex items-center gap-0.5 pr-1 border-r border-slate-200">
+                                        <span className="text-[7px] text-[#003893]">☸</span>
+                                        <span className="text-[8px] font-black tracking-tighter text-[#003893]">IND</span>
+                                      </span>
+                                      <span className="font-mono font-black text-[10px] text-slate-900 tracking-wider pl-1 uppercase">
+                                        {detectedPlate}
+                                      </span>
+                                    </span>
+                                  )}
+                                  {token.bookingMode === 'APPOINTMENT' && token.status === 'PENDING' && (
+                                    <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Pending Arrival</span>
+                                  )}
+                                  {token.bookingMode === 'APPOINTMENT' && token.status === 'CHECKED_IN' && (
+                                    <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Checked In</span>
+                                  )}
+                                  {token.status === 'ABSENT' && (
+                                    <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Absent (Late)</span>
+                                  )}
+                                </div>
+                                <div className="text-xs text-slate-500 font-medium">{token.service}</div>
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-2 text-left sm:text-right w-full sm:w-auto mt-2 sm:mt-0">
+                            <div className="flex flex-wrap items-center gap-2 text-left sm:text-right w-full sm:w-auto mt-2 sm:mt-0">
                             <div className="text-sm font-medium text-slate-700 mr-2 flex-1 sm:flex-none whitespace-nowrap">
                               📞 {token.phone || 'No phone'}
                             </div>
@@ -2099,7 +2419,8 @@ function DashboardContent() {
                             </button>
                           </div>
                         </div>
-                      ))
+                      );
+                    })
                     )}
                   </div>
                 </div>
@@ -2111,783 +2432,61 @@ function DashboardContent() {
         )}
 
         {activeTab === 'bookings' && (
-          <div className="max-w-[1600px] mx-auto animate-in fade-in duration-300 h-full flex flex-col">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900">Tokens & Bookings</h1>
-                <p className="text-slate-500 mt-1">Manage all your service tokens, appointments and bookings in one place.</p>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <button onClick={() => setShowWalkInForm(true)} className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-4 py-2.5 rounded-xl font-bold transition-colors shadow-sm flex items-center gap-2">
-                  <UserPlus className="w-5 h-5" /> Walk In
-                </button>
-                <button onClick={() => setShowStaffModal(true)} className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-4 py-2.5 rounded-xl font-bold transition-colors shadow-sm flex items-center gap-2">
-                  <Users className="w-5 h-5" /> Manage Staff
-                </button>
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold transition-colors shadow-sm flex items-center gap-2">
-                  <PlusCircle className="w-5 h-5" /> Create Booking
-                </button>
-              </div>
-            </div>
-            
-            {/* Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                  <Ticket className="w-6 h-6" />
-                </div>
-                <div>
-                  <div className="text-2xl font-black text-slate-900">{bookings.length}</div>
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Total Bookings</div>
-                </div>
-              </div>
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center shrink-0">
-                  <Clock className="w-6 h-6" />
-                </div>
-                <div>
-                  <div className="text-2xl font-black text-slate-900">{bookings.filter(b => b.status === 'Waiting' || b.status === 'Pending').length}</div>
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Waiting</div>
-                </div>
-              </div>
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                  <TrendingUp className="w-6 h-6" />
-                </div>
-                <div>
-                  <div className="text-2xl font-black text-slate-900">{bookings.filter(b => b.status === 'In Progress').length}</div>
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">In Progress</div>
-                </div>
-              </div>
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-green-50 text-green-600 flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-6 h-6" />
-                </div>
-                <div>
-                  <div className="text-2xl font-black text-slate-900">{bookings.filter(b => b.status === 'Done').length}</div>
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Completed</div>
-                </div>
-              </div>
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center shrink-0">
-                  <Ban className="w-6 h-6" />
-                </div>
-                <div>
-                  <div className="text-2xl font-black text-slate-900">{bookings.filter(b => b.status === 'No Show' || b.status === 'Cancelled').length}</div>
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Cancelled</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Filter Pills Adapted to Active Vertical */}
-            <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
-              {(
-                activeVertical === 'FOOD' 
-                  ? ['All Services', 'Table Dine-in', 'Takeaway', 'Main Course', 'Beverages & Desserts']
-                  : activeVertical === 'DOCTOR'
-                  ? ['All Services', 'General OPD', 'Specialist Consult', 'Follow-up Review', 'Health Checkup']
-                  : ['All Services', 'Haircut', 'Beard Trim', 'Facial & Glow', 'Hair Color', 'Spa & Massage']
-              ).map((cat, i) => (
-                <button 
-                  key={cat}
-                  onClick={() => setSelectedServiceCategory(cat)}
-                  className={`px-4 py-2 rounded-xl font-semibold text-sm whitespace-nowrap transition-colors flex items-center gap-2 border ${selectedServiceCategory === cat || (cat === 'All Services' && selectedServiceCategory === 'All Services') ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
-                >
-                  {cat.includes('Hair') ? <span className="text-base leading-none">✂</span> : ''}
-                  {cat.includes('Beard') ? <span className="text-base leading-none">🧔</span> : ''}
-                  {cat.includes('Dine-in') ? <span className="text-base leading-none">🍽️</span> : ''}
-                  {cat.includes('Takeaway') ? <span className="text-base leading-none">🥡</span> : ''}
-                  {cat.includes('OPD') || cat.includes('Consult') ? <span className="text-base leading-none">🩺</span> : ''}
-                  {cat} {i === 0 ? `(${bookings.length})` : ''}
-                </button>
-              ))}
-              <button className="px-4 py-2 rounded-xl font-semibold text-sm whitespace-nowrap transition-colors bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 flex items-center gap-1 ml-auto">
-                More <ChevronDown className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Sub Filters Row */}
-            <div className="flex flex-col md:flex-row gap-3 mb-6 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
-              <div className="relative flex-1">
-                <Search className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input 
-                  type="text" 
-                  placeholder="Search by customer, token number, or service..." 
-                  value={searchBookingQuery}
-                  onChange={e => setSearchBookingQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-blue-100 text-sm font-medium"
-                />
-              </div>
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                <select className="bg-slate-50 border-none rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 outline-none cursor-pointer focus:ring-2 focus:ring-blue-100">
-                  <option>All Types</option>
-                  <option>Tokens</option>
-                  <option>Appointments</option>
-                </select>
-                <select className="bg-slate-50 border-none rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 outline-none cursor-pointer focus:ring-2 focus:ring-blue-100">
-                  <option>All Status</option>
-                  <option>Waiting</option>
-                  <option>In Progress</option>
-                  <option>Completed</option>
-                </select>
-                <select className="bg-slate-50 border-none rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 outline-none cursor-pointer focus:ring-2 focus:ring-blue-100">
-                  <option>All Staff</option>
-                </select>
-                <select className="bg-slate-50 border-none rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 outline-none cursor-pointer focus:ring-2 focus:ring-blue-100 flex items-center gap-2">
-                  <option>📅 Today</option>
-                  <option>📅 Tomorrow</option>
-                  <option>📅 This Week</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Main Content Grid */}
-            <div className="flex-1 grid grid-cols-1 xl:grid-cols-3 gap-6 relative">
-              {/* Left side: Table */}
-              <div className="xl:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[600px]">
-                <div className="flex justify-between items-center p-4 border-b border-slate-100 bg-slate-50/50">
-                  <div className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-                    Showing {bookings.length} bookings
-                  </div>
-                  <button className="text-xs font-bold text-slate-600 flex items-center gap-1 hover:text-slate-900">
-                    Sort: Time <ChevronDown className="w-3 h-3" />
-                  </button>
-                </div>
-                <div className="overflow-y-auto flex-1 custom-scrollbar">
-                  {/* Desktop Table */}
-                  <table className="w-full text-left border-collapse min-w-[700px]">
-                    <thead className="sticky top-0 bg-white shadow-sm z-10">
-                      <tr className="border-b border-slate-200 text-slate-500 text-xs font-semibold">
-                        <th className="p-4 pl-6 font-medium">Token / Booking</th>
-                        <th className="p-4 font-medium">Customer</th>
-                        <th className="p-4 font-medium">Service</th>
-                        <th className="p-4 font-medium">Time</th>
-                        <th className="p-4 font-medium">Staff / Resource</th>
-                        <th className="p-4 font-medium">Status</th>
-                        <th className="p-4 pr-6 text-right font-medium">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {bookings.length === 0 ? (
-                        <tr>
-                          <td colSpan={7} className="p-12 text-center text-slate-500">
-                            <div className="flex flex-col items-center justify-center gap-3">
-                              <Ticket className="w-12 h-12 text-slate-200" />
-                              <p className="font-semibold text-slate-600">No bookings found</p>
-                            </div>
-                          </td>
-                        </tr>
-                      ) : (
-                        bookings.map((booking, index) => {
-                          const isSelected = selectedBookingDetails?.rawId === booking.rawId;
-                          const isToken = booking.id.startsWith('TOKEN') || booking.id.startsWith('MV-TKN') || booking.bookingMode === 'TOKEN';
-                          const idLabel = isToken ? `Token #${booking.tokenNumber || '?'}` : booking.id;
-                          
-                          const badgeColor = isToken 
-                            ? (booking.status === 'In Progress' ? 'bg-purple-100 text-purple-700' : 'bg-emerald-100 text-emerald-700')
-                            : 'bg-fuchsia-100 text-fuchsia-700';
-
-                          return (
-                          <tr 
-                            key={index} 
-                            onClick={() => setSelectedBookingDetails(booking)}
-                            className={`cursor-pointer transition-colors ${isSelected ? 'bg-blue-50/50' : 'hover:bg-slate-50'}`}
-                          >
-                            <td className="p-4 pl-6">
-                              <div className={`inline-flex px-3 py-1.5 rounded-lg text-sm font-black tracking-wide ${badgeColor}`}>
-                                {isToken ? '' : <CalendarClock className="w-4 h-4 mr-1 inline" />}{idLabel}
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <div className="font-bold text-slate-900">{booking.customer}</div>
-                              <div className="text-xs font-medium text-slate-500">+91 98765 432{10 + (index % 90)}</div>
-                            </td>
-                            <td className="p-4">
-                              <div className="font-semibold text-slate-700 flex items-center gap-2 whitespace-nowrap">
-                                {booking.service.includes('Haircut') ? <Scissors className="w-5 h-5 text-indigo-500" /> :
-                                 booking.service.includes('Beard') ? <User className="w-5 h-5 text-indigo-500" /> :
-                                 booking.service.includes('Facial') ? <Sparkles className="w-5 h-5 text-pink-500" /> :
-                                 booking.service.includes('Color') ? <Palette className="w-5 h-5 text-purple-500" /> :
-                                 booking.service.includes('Massage') ? <Activity className="w-5 h-5 text-teal-500" /> :
-                                 booking.service.includes('Spa') ? <Droplet className="w-5 h-5 text-cyan-500" /> :
-                                 (booking.service.toLowerCase().includes('consult') || booking.service.toLowerCase().includes('opd') || booking.service.toLowerCase().includes('checkup')) ? <Stethoscope className="w-5 h-5 text-emerald-600" /> :
-                                 (booking.service.toLowerCase().includes('dine') || booking.service.toLowerCase().includes('table') || booking.service.toLowerCase().includes('food')) ? <Utensils className="w-5 h-5 text-orange-500" /> :
-                                 <Ticket className="w-5 h-5 text-slate-500" />}
-                                {booking.service}
-                              </div>
-                            </td>
-                            <td className="p-4 font-bold text-slate-700 whitespace-nowrap">
-                              {booking.appointmentTime ? new Date(booking.appointmentTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '10:40 AM'}
-                            </td>
-                            <td className="p-4">
-                              <div className="font-medium text-slate-900 whitespace-nowrap">{booking.staffName || (activeVertical === 'DOCTOR' ? 'Dr. Verma' : (activeVertical === 'FOOD' ? 'Waiter Suraj' : 'Amit'))}</div>
-                              <div className="text-xs font-medium text-slate-400 whitespace-nowrap">
-                                {activeVertical === 'FOOD' ? `Table ${1 + (index % 6)}` : (activeVertical === 'DOCTOR' ? `Chamber ${1 + (index % 2)}` : `Chair ${1 + (index % 4)}`)}
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <span className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${
-                                booking.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
-                                booking.status === 'Waiting' || booking.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
-                                booking.status === 'Checked In' || booking.status === 'Confirmed' ? 'bg-emerald-100 text-emerald-700' :
-                                'bg-slate-100 text-slate-700'
-                              }`}>
-                                {booking.status === 'Pending' ? 'Waiting' : booking.status}
-                              </span>
-                            </td>
-                            <td className="p-4 pr-6 text-right">
-                              <button className="px-4 py-1.5 rounded-lg border border-slate-200 text-blue-600 font-semibold text-sm hover:bg-blue-50 hover:border-blue-200 transition-colors bg-white">
-                                View
-                              </button>
-                            </td>
-                          </tr>
-                        )})
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-                {/* Pagination */}
-                <div className="p-4 border-t border-slate-100 bg-white flex items-center justify-between">
-                  <div className="text-sm font-medium text-slate-500">
-                    Showing 1-10 of {bookings.length} bookings
-                  </div>
-                  <div className="flex gap-1">
-                    <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-600 text-white font-bold shadow-sm">1</button>
-                    <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-white text-slate-600 font-medium hover:bg-slate-50">2</button>
-                    <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-white text-slate-600 font-medium hover:bg-slate-50">3</button>
-                    <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-white text-slate-600 font-medium hover:bg-slate-50">&gt;</button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Side: Details Pane (Desktop) */}
-              <div className="hidden xl:flex flex-col h-[600px] bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden sticky top-6">
-                {selectedBookingDetails ? (
-                  <div className="flex flex-col h-full">
-                    {/* Pane Header */}
-                    <div className="p-5 border-b border-slate-100 relative">
-                      <button onClick={() => setSelectedBookingDetails(null)} className="absolute right-4 top-4 p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 transition-colors">
-                        <X className="w-5 h-5" />
-                      </button>
-                      <div className="flex items-center justify-between mb-2 pr-8">
-                        <h2 className="text-xl font-black text-slate-900">
-                          {selectedBookingDetails.id}
-                        </h2>
-                        <span className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${
-                                selectedBookingDetails.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
-                                selectedBookingDetails.status === 'Waiting' || selectedBookingDetails.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
-                                'bg-emerald-100 text-emerald-700'
-                              }`}>
-                          {selectedBookingDetails.status === 'Pending' ? 'Waiting' : selectedBookingDetails.status}
-                        </span>
-                      </div>
-                      <div className="text-xs font-medium text-slate-500">Created on 18 Sep 2026 • 10:38 AM</div>
-                      
-                      {/* Tabs */}
-                      <div className="flex items-center gap-6 mt-6 border-b border-slate-100">
-                        <button className="pb-3 text-sm font-bold text-blue-600 border-b-2 border-blue-600">Details</button>
-                        <button className="pb-3 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors">Timeline</button>
-                        <button className="pb-3 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors">Payment</button>
-                      </div>
-                    </div>
-
-                    {/* Pane Content */}
-                    <div className="p-5 overflow-y-auto flex-1 custom-scrollbar space-y-6">
-                      
-                      {/* Customer Block */}
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2"><User className="w-4 h-4 text-slate-400" /> Customer</h3>
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center">
-                            <User className="w-5 h-5 text-slate-400" />
-                          </div>
-                          <div>
-                            <div className="font-bold text-slate-900">{selectedBookingDetails.customer}</div>
-                            <div className="flex flex-col gap-0.5 mt-1">
-                              <span className="text-xs font-medium text-slate-500 flex items-center gap-1.5"><Phone className="w-3 h-3" /> +91 98765 43210</span>
-                              <span className="text-xs font-medium text-slate-500 flex items-center gap-1.5"><Mail className="w-3 h-3" /> customer@gmail.com</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <hr className="border-slate-100" />
-
-                      {/* Service Block */}
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-slate-400" /> Service</h3>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-xl">{selectedBookingDetails.service.includes('Hair') ? '✂' : (selectedBookingDetails.service.includes('Beard') ? '🧔' : '💆')}</span>
-                          <span className="font-bold text-slate-800">{selectedBookingDetails.service}</span>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm font-medium text-slate-600">
-                          <span className="flex items-center gap-1"><Clock className="w-4 h-4 text-slate-400" /> 20 minutes</span>
-                          <span className="flex items-center gap-1 text-slate-900 font-bold">💸 ₹{selectedBookingDetails.price || 200}</span>
-                        </div>
-                        <div className="text-sm text-slate-500 mt-2 font-medium">
-                          Booking Type: <span className="text-slate-800">{selectedBookingDetails.bookingMode === 'APPOINTMENT' ? 'Appointment' : 'Token'}</span>
-                        </div>
-                      </div>
-
-                      <hr className="border-slate-100" />
-
-                      {/* Assignment */}
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2"><MapPin className="w-4 h-4 text-slate-400" /> Assignment</h3>
-                        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                          <div>
-                            <div className="text-sm font-medium text-slate-600 flex items-center gap-2 mb-1">
-                              <Users className="w-4 h-4 text-slate-400" /> Staff: <span className="font-bold text-slate-900">{selectedBookingDetails.staffName || 'Rahul'}</span>
-                            </div>
-                            <div className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                              <Store className="w-4 h-4 text-slate-400" /> Resource: <span className="font-bold text-slate-900">Chair 1</span>
-                            </div>
-                          </div>
-                          <button className="px-3 py-1.5 bg-white border border-slate-200 text-blue-600 text-xs font-bold rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
-                            Assign / Change
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Status / Time */}
-                      <div className="flex items-start gap-6">
-                        <div>
-                          <h3 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-2"><Activity className="w-4 h-4 text-slate-400" /> Status</h3>
-                          <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700">Waiting</span>
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-bold text-slate-900 mb-2 invisible">Time</h3>
-                          <div className="text-xs font-semibold text-slate-600 flex items-center gap-1.5 p-1.5 bg-slate-50 rounded-lg"><Clock className="w-4 h-4 text-slate-400" /> Est: 10:40 AM</div>
-                        </div>
-                      </div>
-
-                      {/* Notes */}
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-1.5"><FileText className="w-4 h-4 text-slate-400" /> Notes</h3>
-                        <div className="text-sm text-slate-600 bg-yellow-50 p-3 rounded-xl border border-yellow-100">
-                          Regular customer. Prefers Chair 1.
-                        </div>
-                      </div>
-
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex flex-col gap-2">
-                      <div className="flex gap-2">
-                        <button className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 text-sm">
-                          <CheckCircle2 className="w-4 h-4" /> Start Service
-                        </button>
-                        <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 text-sm">
-                          <Phone className="w-4 h-4" /> Call Customer
-                        </button>
-                      </div>
-                      <div className="flex gap-2">
-                        <button className="flex-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold py-2 rounded-xl transition-colors text-sm">Transfer</button>
-                        <button className="flex-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold py-2 rounded-xl transition-colors text-sm">Edit</button>
-                        <button className="flex-1 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-bold py-2 rounded-xl transition-colors text-sm">Cancel</button>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-full text-slate-400 p-8 text-center bg-slate-50/30">
-                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100 mb-4">
-                      <Ticket className="w-10 h-10 text-slate-300" />
-                    </div>
-                    <h3 className="text-lg font-bold text-slate-700 mb-2">No Booking Selected</h3>
-                    <p className="text-sm font-medium max-w-[200px] mx-auto">Select a booking from the list to view its complete details and manage actions.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Mobile Bottom Sheet for Details */}
-            <div className={`xl:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${selectedBookingDetails ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-              <div className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[90vh] flex flex-col transition-transform duration-300 transform ${selectedBookingDetails ? 'translate-y-0' : 'translate-y-full'}`}>
-                {/* Drag Handle */}
-                <div className="w-full flex justify-center pt-3 pb-2" onClick={() => setSelectedBookingDetails(null)}>
-                  <div className="w-12 h-1.5 bg-slate-200 rounded-full"></div>
-                </div>
-                
-                {selectedBookingDetails && (
-                  <div className="flex flex-col flex-1 overflow-hidden">
-                    <div className="px-5 pb-4 border-b border-slate-100 flex items-center justify-between">
-                      <h2 className="text-xl font-black text-slate-900">
-                        {selectedBookingDetails.id}
-                      </h2>
-                      <button onClick={() => setSelectedBookingDetails(null)} className="p-2 bg-slate-100 hover:bg-slate-200 transition-colors rounded-full text-slate-500">
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-                    
-                    <div className="p-5 overflow-y-auto custom-scrollbar flex-1 space-y-6 pb-32">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center border border-slate-200">
-                          <User className="w-6 h-6 text-slate-400" />
-                        </div>
-                        <div>
-                          <div className="font-bold text-slate-900 text-lg">{selectedBookingDetails.customer}</div>
-                          <div className="text-sm font-medium text-slate-500 flex items-center gap-1.5"><Phone className="w-3.5 h-3.5"/> +91 98765 43210</div>
-                        </div>
-                      </div>
-                      
-                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <h3 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-slate-400" /> Service</h3>
-                        <div className="font-bold text-slate-800 text-lg flex items-center gap-2">
-                           <span className="text-xl">{selectedBookingDetails.service.includes('Hair') ? '✂' : (selectedBookingDetails.service.includes('Beard') ? '🧔' : '💆')}</span>
-                           {selectedBookingDetails.service}
-                        </div>
-                        <div className="flex items-center gap-4 text-sm font-medium text-slate-600 mt-2">
-                          <span className="flex items-center gap-1"><Clock className="w-4 h-4 text-slate-400" /> 20 mins</span>
-                          <span className="flex items-center gap-1 font-bold text-slate-900">💸 ₹{selectedBookingDetails.price || 200}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
-                        <div>
-                          <div className="text-sm font-medium text-slate-600 mb-1 flex items-center gap-1.5"><Users className="w-3.5 h-3.5"/> Staff: <strong className="text-slate-900">{selectedBookingDetails.staffName || 'Rahul'}</strong></div>
-                          <div className="text-sm font-medium text-slate-600 flex items-center gap-1.5"><Store className="w-3.5 h-3.5"/> Resource: <strong className="text-slate-900">Chair 1</strong></div>
-                        </div>
-                        <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 shadow-sm border border-amber-200">Waiting</span>
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-1.5"><FileText className="w-4 h-4 text-slate-400" /> Notes</h3>
-                        <div className="text-sm text-slate-600 bg-yellow-50 p-4 rounded-xl border border-yellow-100 shadow-sm">
-                          Regular customer. Prefers Chair 1.
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Sticky Mobile Actions */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-100 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)]">
-                      <div className="flex gap-3">
-                        <button className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-sm transition-colors text-sm flex items-center justify-center gap-2">
-                          <CheckCircle2 className="w-5 h-5"/> Start
-                        </button>
-                        <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-sm transition-colors text-sm flex items-center justify-center gap-2">
-                          <Phone className="w-5 h-5"/> Call
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-          </div>
+          <SellerBookingsTab 
+            bookings={bookings}
+            activeVertical={activeVertical}
+            selectedServiceCategory={selectedServiceCategory}
+            setSelectedServiceCategory={setSelectedServiceCategory}
+            searchBookingQuery={searchBookingQuery}
+            setSearchBookingQuery={setSearchBookingQuery}
+            selectedBookingDetails={selectedBookingDetails}
+            setSelectedBookingDetails={setSelectedBookingDetails}
+            onOpenWalkIn={() => setShowWalkInForm(true)}
+            onOpenStaffModal={() => setShowStaffModal(true)}
+            onQueueAction={handleQueueAction}
+            queueId={selectedQueueId}
+          />
         )}
 
         {activeTab === 'orders' && (
-          <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-slate-900">Recent Orders</h1>
-              <p className="text-slate-500 mt-2">Track and manage your customer orders.</p>
-            </div>
-            
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider font-semibold">
-                    <th className="p-4 pl-6">Order ID</th>
-                    <th className="p-4">Buyer</th>
-                    <th className="p-4">Item</th>
-                    <th className="p-4">Date</th>
-                    <th className="p-4">Amount</th>
-                    <th className="p-4">Status</th>
-                    <th className="p-4 pr-6 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {orders.map((order) => (
-                    <tr key={order.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="p-4 pl-6 font-medium text-slate-900">{order.orderNumber || order.id}</td>
-                      <td className="p-4 text-slate-700">{order.buyer}</td>
-                      <td className="p-4 text-slate-600 truncate max-w-[200px]">{order.item}</td>
-                      <td className="p-4 text-slate-500 text-sm">{order.date}</td>
-                      <td className="p-4 font-bold text-slate-900">{order.amount}</td>
-                      <td className="p-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          order.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
-                          order.status === 'Shipped' ? 'bg-blue-100 text-blue-700' :
-                          'bg-emerald-100 text-emerald-700'
-                        }`}>
-                          {order.status}
-                        </span>
-                      </td>
-                      <td className="p-4 pr-6 text-right">
-                        {order.status === 'Pending' ? (
-                          <button 
-                            className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors"
-                            onClick={() => setOrders(orders.map(o => o.id === order.id ? {...o, status: 'Shipped'} : o))}
-                          >
-                            Mark Shipped
-                          </button>
-                        ) : (
-                          <button className="text-slate-400 hover:text-slate-600 font-medium text-sm">View</button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <SellerOrdersTab 
+            orders={orders}
+            onMarkShipped={(orderId) => setOrders(orders.map(o => o.id === orderId ? {...o, status: 'Shipped'} : o))}
+          />
         )}
 
         {activeTab === 'leads' && (
-          <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-slate-900">B2B Leads & Inquiries</h1>
-              <p className="text-slate-500 mt-2">Manage Requests for Quotation (RFQs) and business inquiries.</p>
-            </div>
-            
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider font-semibold">
-                    <th className="p-4 pl-6">Date</th>
-                    <th className="p-4">Product</th>
-                    <th className="p-4">Qty Req.</th>
-                    <th className="p-4">Message</th>
-                    <th className="p-4">Status</th>
-                    <th className="p-4 pr-6 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {leads.map((lead) => (
-                    <tr key={lead.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="p-4 pl-6 text-sm text-slate-500">{new Date(lead.createdAt).toLocaleDateString()}</td>
-                      <td className="p-4 text-slate-900 font-medium">{lead.product?.name || 'Unknown'}</td>
-                      <td className="p-4 font-bold text-blue-600">{lead.quantityRequested} Units</td>
-                      <td className="p-4 text-slate-600 text-sm truncate max-w-[200px]" title={lead.message}>{lead.message}</td>
-                      <td className="p-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          lead.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
-                          lead.status === 'REPLIED' ? 'bg-blue-100 text-blue-700' :
-                          'bg-slate-100 text-slate-700'
-                        }`}>
-                          {lead.status}
-                        </span>
-                      </td>
-                      <td className="p-4 pr-6 text-right">
-                        {lead.status === 'PENDING' ? (
-                          <button 
-                            className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors"
-                            onClick={() => {
-                              fetch(`${API_URL}/leads/${lead.id}/status`, {
-                                method: 'PATCH',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ status: 'REPLIED' })
-                              }).then(() => {
-                                setLeads(leads.map(l => l.id === lead.id ? {...l, status: 'REPLIED'} : l))
-                              });
-                            }}
-                          >
-                            Mark Replied
-                          </button>
-                        ) : (
-                          <button className="text-slate-400 hover:text-slate-600 font-medium text-sm">View</button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                  {leads.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="p-8 text-center text-slate-500">
-                        No leads found. When a buyer requests a quote, it will appear here.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <SellerLeadsTab 
+            leads={leads}
+            apiUrl={API_URL}
+            onUpdateStatus={(leadId, status) => setLeads(leads.map(l => l.id === leadId ? {...l, status} : l))}
+          />
         )}
-
-
 
         {/* CUSTOMERS MANAGEMENT TAB */}
         {activeTab === 'customers' && (
-          <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5 sm:mb-8">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Customer Directory</h1>
-                  <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[10px] sm:text-xs font-bold sm:hidden">
-                    ● Live
-                  </span>
-                </div>
-                <p className="text-slate-500 mt-1 text-xs sm:text-sm">
-                  {activeVertical === 'FOOD'
-                    ? 'Track your restaurant guests, repeat diners, reservation history, and VIP tables.'
-                    : 'Manage client relationships, visit histories, and customer contact info.'}
-                </p>
-              </div>
-              <div className="hidden sm:flex items-center gap-2">
-                <span className="px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold">
-                  ● Live Sync Active
-                </span>
-              </div>
-            </div>
-
-            {/* Compact Metric Cards */}
-            <div className="grid grid-cols-3 gap-2.5 sm:gap-5 mb-5 sm:mb-8">
-              <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-                <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm sm:text-lg shrink-0">
-                  👥
-                </div>
-                <div>
-                  <div className="text-lg sm:text-2xl font-black text-slate-900">128</div>
-                  <div className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wide leading-tight">Total Clients</div>
-                </div>
-              </div>
-              <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-                <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-sm sm:text-lg shrink-0">
-                  ⭐
-                </div>
-                <div>
-                  <div className="text-lg sm:text-2xl font-black text-slate-900">42</div>
-                  <div className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wide leading-tight">Repeat / VIP</div>
-                </div>
-              </div>
-              <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-                <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm sm:text-lg shrink-0">
-                  📈
-                </div>
-                <div>
-                  <div className="text-lg sm:text-2xl font-black text-slate-900">₹1,420</div>
-                  <div className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wide leading-tight">Avg Ticket</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Diners & Guests List */}
-            <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
-              <div className="p-3.5 sm:p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                <span className="font-bold text-slate-900 text-xs sm:text-sm">Recent Diners & Guests</span>
-                <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">Auto-logged from bookings & queue</span>
-              </div>
-              <div className="divide-y divide-slate-100">
-                {[
-                  { name: 'Rahul Sharma', phone: '+91 98765 43210', visits: 4, tag: 'VIP Diner', lastVisit: 'Today', totalSpent: '₹3,450' },
-                  { name: 'Pooja Verma', phone: '+91 98112 34567', visits: 1, tag: 'Family Party', lastVisit: 'Today', totalSpent: '₹1,820' },
-                  { name: 'Vikram Joshi', phone: '+91 99887 76655', visits: 7, tag: 'Regular Guest', lastVisit: 'Yesterday', totalSpent: '₹6,200' },
-                  { name: 'Sanjay Gupta', phone: '+91 97654 32109', visits: 3, tag: 'Corporate', lastVisit: '3 days ago', totalSpent: '₹4,100' },
-                  { name: 'Ananya Sharma', phone: '+91 98223 11445', visits: 2, tag: 'Private Dining', lastVisit: 'Last week', totalSpent: '₹2,680' }
-                ].map((cust, idx) => (
-                  <div key={idx} className="p-3 sm:p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-2.5 sm:gap-3 hover:bg-slate-50/70 transition-colors">
-                    {/* Customer Info */}
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-slate-700 text-xs sm:text-sm shrink-0">
-                        {cust.name.charAt(0)}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-bold text-slate-900 text-xs sm:text-sm truncate">{cust.name}</span>
-                          <span className="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded bg-orange-50 text-orange-700 border border-orange-200">
-                            {cust.tag}
-                          </span>
-                        </div>
-                        <span className="text-[11px] sm:text-xs text-slate-500 font-mono block mt-0.5">{cust.phone}</span>
-                      </div>
-                    </div>
-
-                    {/* Stats Metrics: Clean 3-column row */}
-                    <div className="grid grid-cols-3 gap-2 bg-slate-50 sm:bg-transparent p-2 sm:p-0 rounded-lg sm:rounded-none text-left sm:text-right sm:flex sm:items-center sm:gap-6 border sm:border-0 border-slate-100">
-                      <div>
-                        <div className="text-[10px] sm:text-xs text-slate-400 font-medium">Visits</div>
-                        <div className="text-xs sm:text-sm font-bold text-slate-800">{cust.visits} times</div>
-                      </div>
-                      <div>
-                        <div className="text-[10px] sm:text-xs text-slate-400 font-medium">Lifetime Spend</div>
-                        <div className="text-xs sm:text-sm font-bold text-emerald-600">{cust.totalSpent}</div>
-                      </div>
-                      <div>
-                        <div className="text-[10px] sm:text-xs text-slate-400 font-medium">Last Visit</div>
-                        <div className="text-[11px] sm:text-xs font-semibold text-slate-600">{cust.lastVisit}</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <SellerCustomersTab activeVertical={activeVertical} />
         )}
 
-        {/* STAFF & WAITERS MANAGEMENT TAB */}
+        {/* STAFF & PERSONNEL ROSTER TAB */}
         {activeTab === 'staff' && (
-          <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900">
-                  {activeVertical === 'FOOD' ? 'Kitchen & Service Staff' : (activeVertical === 'DOCTOR' ? 'Doctors & Clinic Staff' : 'Stylists & Salon Team')}
-                </h1>
-                <p className="text-slate-500 mt-1">
-                  {activeVertical === 'FOOD' 
-                    ? 'Manage your chefs, captains, and waiters for dining tables & KOT assignments.' 
-                    : 'Manage active working staff, shift schedules, and resource desks.'}
-                </p>
-              </div>
-              <button 
-                onClick={() => setShowStaffModal(true)}
-                className="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md shadow-rose-600/20 transition-colors flex items-center gap-2 text-sm"
-              >
-                <PlusCircle className="w-4 h-4" /> Add Staff Member
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {[
-                { name: 'Chef Rajesh Kumar', role: 'Head Chef', shift: 'Morning & Evening', status: 'On Duty', assigned: 'Kitchen Main (KOT)' },
-                { name: 'Amit Singh', role: 'Captain / Waiter', shift: 'Full Day', status: 'Active on Floor', assigned: 'Tables 1 to 4' },
-                { name: 'Sunil Rawat', role: 'Service Waiter', shift: 'Evening Shift', status: 'Active on Floor', assigned: 'Tables 5 to 7' },
-                { name: 'Vikas Mehra', role: 'Tandoor & Breads Chef', shift: 'Morning & Evening', status: 'On Duty', assigned: 'Live Tandoor Station' }
-              ].map((member, i) => (
-                <div key={i} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between group hover:border-rose-300 transition-all">
-                  <div>
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-black text-base">
-                        {member.name.charAt(0)}
-                      </div>
-                      <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        ● {member.status}
-                      </span>
-                    </div>
-                    <h3 className="font-bold text-base text-slate-900">{member.name}</h3>
-                    <p className="text-xs font-semibold text-rose-600 mt-0.5">{member.role}</p>
-                    <div className="mt-4 pt-3 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Assignment:</span>
-                        <span className="font-semibold text-slate-800">{member.assigned}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Shift:</span>
-                        <span className="font-semibold text-slate-700">{member.shift}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-5 pt-3 border-t border-slate-100 flex gap-2">
-                    <button 
-                      onClick={() => setShowStaffModal(true)}
-                      className="flex-1 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
-                    >
-                      Edit Shift
-                    </button>
-                    <button 
-                      onClick={() => alert(`Shift status for ${member.name} updated.`)}
-                      className="px-3 py-2 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
-                    >
-                      Take Break
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <SellerStaffTab 
+            activeVertical={activeVertical} 
+            onOpenStaffModal={() => setShowStaffModal(true)} 
+          />
         )}
 
-        {['projects', 'milestones', 'enquiries', 'inventory', 'proposals'].includes(activeTab) && (
+        {/* EVENT & PARTY ORGANIZER WORKFLOW STATION */}
+        {(activeTab === 'events_station' || activeTab === 'proposals') && (
+          <SellerEventsStationTab 
+            eventInquiries={eventInquiries}
+            user={user}
+            onAddNewService={() => setActiveTab('add_service')}
+            onUpdateEventStatus={handleUpdateEventStatus}
+          />
+        )}
+
+        {['projects', 'milestones', 'enquiries', 'inventory'].includes(activeTab) && (
           <div className="max-w-6xl mx-auto py-20 text-center animate-in fade-in duration-300">
             <div className="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4">
               <Package className="w-8 h-8" />
@@ -2991,6 +2590,32 @@ function DashboardContent() {
                       ) : (
                         <div className="text-sm font-medium text-slate-800 bg-slate-50/70 px-3.5 py-2.5 rounded-xl border border-slate-200/60">
                           {user?.business?.name || 'Not provided'}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">Business Sector / Specialty</label>
+                      {isEditingProfile ? (
+                        <select 
+                          value={profileForm.sector} 
+                          onChange={e => setProfileForm({...profileForm, sector: e.target.value})} 
+                          className="w-full px-3.5 py-2.5 text-sm font-normal text-slate-900 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        >
+                          <option value="Event & Party">Event & Party</option>
+                          <option value="Food & Dining / Restaurant">Food & Dining / Restaurant</option>
+                          <option value="Salon & Parlor">Salon & Parlor</option>
+                          <option value="Healthcare & Doctor">Healthcare & Doctor</option>
+                          <option value="Automobile & Car Wash">Automobile & Car Wash</option>
+                          <option value="Professional">Professional Services</option>
+                          <option value="Home Repair">Home Services & Repair</option>
+                          <option value="Electronics">Electronics</option>
+                          <option value="Fashion & Apparel">Fashion & Apparel</option>
+                          <option value="FMCG & Groceries">FMCG & Groceries</option>
+                        </select>
+                      ) : (
+                        <div className="text-sm font-medium text-slate-800 bg-slate-50/70 px-3.5 py-2.5 rounded-xl border border-slate-200/60">
+                          {user?.business?.sector || 'Not specified'}
                         </div>
                       )}
                     </div>

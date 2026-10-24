@@ -208,8 +208,8 @@ export default function DynamicFormEngine({
     if (sName.includes('doctor') || sName.includes('health') || sName.includes('clinic')) {
       return ['healthcare', 'doctor', 'dentist', 'physiotherapy', 'medical'].includes(cName);
     }
-    if (sName.includes('salon') || sName.includes('parlor') || sName.includes('beauty') || sName.includes('spa')) {
-      return ['beauty', 'salon', 'spa', 'beauty parlour'].includes(cName);
+    if (sName.includes('salon') || sName.includes('parlor') || sName.includes('parlour') || sName.includes('beauty') || sName.includes('spa')) {
+      return ['beauty', 'salon', 'salon & parlour', 'salon & parlor', 'spa', 'beauty parlour'].includes(cName) || cName.includes('salon') || cName.includes('parlour') || cName.includes('parlor') || cName.includes('beauty') || cName.includes('spa');
     }
     if (sName.includes('food') || sName.includes('restaurant') || sName.includes('dining') || sName.includes('cafe')) {
       return ['food & dining', 'food & dining / restaurant', 'restaurant', 'cafe', 'food shop'].includes(cName);
@@ -281,6 +281,15 @@ export default function DynamicFormEngine({
         const autoCat = availableCategories.find(c => c.name.toLowerCase().includes('car wash') || c.name.toLowerCase().includes('automobile') || c.name.toLowerCase().includes('mechanic'));
         if (autoCat && (!category || category.toLowerCase().includes('home') || category.toLowerCase() === 'carpenter' || !availableCategories.some(c => c.name === category))) {
           setCategory(autoCat.name);
+          return;
+        }
+      }
+
+      // 1.2 If active vertical is SALON or user sector relates to salon/parlour/beauty/spa, prioritize Salon & Parlour
+      if (activeVertical === 'SALON' || userSector.toLowerCase().includes('salon') || userSector.toLowerCase().includes('parlor') || userSector.toLowerCase().includes('parlour') || userSector.toLowerCase().includes('beauty') || userSector.toLowerCase().includes('spa')) {
+        const salonCat = availableCategories.find(c => c.name.toLowerCase().includes('salon') || c.name.toLowerCase().includes('parlour') || c.name.toLowerCase().includes('parlor'));
+        if (salonCat && (!category || !availableCategories.some(c => c.name === category))) {
+          setCategory(salonCat.name);
           return;
         }
       }
@@ -1172,14 +1181,23 @@ export default function DynamicFormEngine({
               ];
             }
 
-            // Salon & Spa
-            if (catLower.includes('salon') || catLower.includes('beauty') || catLower.includes('parlour') || catLower.includes('spa') || sectorLower.includes('salon') || sectorLower.includes('beauty')) {
+            // Salon, Beauty Parlour & Spa
+            if (catLower.includes('salon') || catLower.includes('beauty') || catLower.includes('parlour') || catLower.includes('parlor') || catLower.includes('spa') || sectorLower.includes('salon') || sectorLower.includes('beauty')) {
               if (catLower.includes('spa') || subLower.includes('spa')) {
                 return [
                   { name: 'Aroma Oil Massage (45 Min)', defaultPrice: 1200 },
                   { name: 'Deep Tissue Full Body Spa (60 Min)', defaultPrice: 1800 },
                   { name: 'Foot Reflexology (30 Min)', defaultPrice: 600 },
                   { name: 'Body Polish & Scrub', defaultPrice: 1500 }
+                ];
+              }
+              if (subLower.includes('parlour') || subLower.includes('parlor') || subLower.includes('beauty')) {
+                return [
+                  { name: 'Bridal & Party HD Makeup', defaultPrice: 3500 },
+                  { name: 'De-Tan Facial & Glow Cleanup', defaultPrice: 800 },
+                  { name: 'Full Arms & Legs Rica Waxing', defaultPrice: 650 },
+                  { name: 'Eyebrow Threading & Forehead', defaultPrice: 80 },
+                  { name: 'Pedicure & Manicure Care', defaultPrice: 900 }
                 ];
               }
               return [

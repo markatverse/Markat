@@ -23,7 +23,9 @@ export default function UserWidget() {
     );
   }
 
-  const isAdmin = user.role.includes('admin') || user.role === 'ADMIN' || user.role === 'SUPER_ADMIN';
+  const roleLower = (user.role || '').toLowerCase();
+  const isAdmin = roleLower.includes('admin');
+  const isBusiness = roleLower === 'business' || roleLower === 'seller' || roleLower === 'elite';
 
   return (
     <div className="user-widget">
@@ -36,7 +38,7 @@ export default function UserWidget() {
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Welcome back,</div>
             <div style={{ fontWeight: '600' }}>{user.name}</div>
             <div style={{ fontSize: '12px', color: 'var(--accent-blue)' }}>
-              {isAdmin ? 'Admin Account ✓' : user.role === 'business' || user.role === 'seller' || user.role === 'SELLER' || user.role === 'elite' || user.role === 'ELITE' ? 'Business Account ✓' : 'Verified Buyer ✓'}
+              {isAdmin ? 'Admin Account ✓' : isBusiness ? 'Business Account ✓' : 'Verified Buyer ✓'}
             </div>
           </div>
         </div>

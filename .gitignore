@@ -7,3 +7,4 @@ frontend/.next/
 
 .vercel
 .env*
+backend/uploads/*.pdf

@@ -8,12 +8,12 @@ export default function MarketplaceLayout({ children }: { children: React.ReactN
   const pathname = usePathname();
 
   const tabs = [
-    { name: 'Products', href: '/admin/marketplace/products' },
-    { name: 'Services', href: '/admin/marketplace/services' },
-    { name: 'Categories', href: '/admin/marketplace/categories' },
-    { name: 'Category Relations', href: '/admin/marketplace/relations' },
-    { name: 'Industries', href: '/admin/marketplace/industries' },
-    { name: 'Brands', href: '/admin/marketplace/brands' },
+    { name: 'Products', href: '/admin/marketplace/products', icon: '📦' },
+    { name: 'Services', href: '/admin/marketplace/services', icon: '🛠️' },
+    { name: 'Categories', href: '/admin/marketplace/categories', icon: '🗂️' },
+    { name: 'Category Relations', href: '/admin/marketplace/relations', icon: '🔗' },
+    { name: 'Industries', href: '/admin/marketplace/industries', icon: '🏢' },
+    { name: 'Brands', href: '/admin/marketplace/brands', icon: '⭐' },
   ];
 
   const handleAction = () => {
@@ -62,6 +62,7 @@ export default function MarketplaceLayout({ children }: { children: React.ReactN
               <button 
                 className={`pb-4 text-sm font-bold transition-colors whitespace-nowrap flex items-center gap-2 ${isActive ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-slate-400 hover:text-slate-200'}`}
               >
+                <span>{tab.icon}</span>
                 {tab.name}
               </button>
             </Link>

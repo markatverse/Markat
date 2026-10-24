@@ -1,12 +1,39 @@
 import type { Product } from '@/context/ProductContext';
 
-const legacyServiceCategories = ['Services', 'Home Services', 'Transport', 'Rentals', 'Organizers'];
+const legacyServiceCategories = [
+  'Services',
+  'Home Services',
+  'Transport',
+  'Rentals',
+  'Organizers',
+  'Salon & Parlour',
+  'Salon & Parlor',
+  'Salon',
+  'Beauty Parlour',
+  'Spa',
+  'Car Wash',
+  'Automobile Service',
+  'Doctor & Clinic',
+  'Health & Wellness',
+  'Event Services'
+];
 
 export function isServiceProduct(product?: Product | null) {
   if (!product) return false;
-  return product.primaryType
-    ? product.primaryType === 'SERVICE'
-    : legacyServiceCategories.includes(product.category);
+  if (product.primaryType === 'SERVICE') return true;
+  if (product.primaryType === 'PRODUCT' || product.primaryType === 'VEHICLE') return false;
+  const cat = (product.category || '').toLowerCase();
+  const subcat = (product.subcategory || '').toLowerCase();
+  if (
+    cat.includes('salon') || cat.includes('saloon') || cat.includes('parlor') || cat.includes('parlour') ||
+    cat.includes('spa') || cat.includes('beauty') || cat.includes('barber') ||
+    cat.includes('service') || cat.includes('doctor') || cat.includes('clinic') ||
+    cat.includes('car wash') || cat.includes('wash') ||
+    subcat.includes('salon') || subcat.includes('parlour') || subcat.includes('spa')
+  ) {
+    return true;
+  }
+  return legacyServiceCategories.some(c => c.toLowerCase() === cat);
 }
 
 export function matchesProductSearch(product: Product, query: string) {

@@ -816,7 +816,7 @@ export const defaultCategories: Category[] = [
   {
     id: 's1',
     primaryType: 'SERVICE',
-    name: 'Salon',
+    name: 'Salon & Parlour',
     theme: 'bg-pink-50 text-pink-600',
     icon: 'Scissors',
     allowedListingTypes: ['Service'],
@@ -827,7 +827,7 @@ export const defaultCategories: Category[] = [
     optionalFeatures: ['Meeting'],
     subcategories: [
       { 
-        name: 'Hair Salon', 
+        name: 'Salon', 
         parameters: [
           { name: 'Target Audience', type: 'radio', options: ['Men Only', 'Women Only', 'Unisex'] },
           { name: 'Service Location', type: 'radio', options: ['In-Salon Only', 'At-Home Service Available', 'Both Salon & Home'] },
@@ -837,14 +837,17 @@ export const defaultCategories: Category[] = [
       { 
         name: 'Beauty Parlour', 
         parameters: [
-          { name: 'Service Category', type: 'radio', options: ['Facial & Skincare', 'Waxing & Threading', 'Bridal & Party Makeup', 'Manicure & Pedicure'] },
-          { name: 'Products Used', type: 'radio', options: ['Premium Herbal / Organic', 'International Brands (L\'Oreal, MAC, Cheryl\'s)', 'Standard Salon Grade'] }
+          { name: 'Service Category', type: 'radio', options: ['Facial & Skincare', 'Waxing & Threading', 'Bridal & Party Makeup', 'Manicure & Pedicure', 'Nail Art Studio', 'De-Tan & Bleach'] },
+          { name: 'Products Used', type: 'radio', options: ['Premium Herbal / Organic', 'International Brands (L\'Oreal, MAC, Cheryl\'s)', 'Standard Salon Grade'] },
+          { name: 'Service Location', type: 'radio', options: ['In-Parlour Only', 'At-Home Service Available', 'Both Parlour & Home'] }
         ] 
       },
       { 
-        name: 'Nail Art Studio', 
+        name: 'Spa', 
         parameters: [
-          { name: 'Technique', type: 'checkbox', options: ['Gel Extensions', 'Acrylic Extensions', 'Nail Art & Ombre', 'Cuticle Care & Polish'] }
+          { name: 'Therapy Type', type: 'radio', options: ['Ayurvedic Panchakarma', 'Swedish Deep Tissue', 'Aromatherapy Relaxation', 'Thai Yoga Massage', 'Foot Reflexology'] },
+          { name: 'Session Duration', type: 'radio', options: ['30 Minutes', '45 Minutes', '60 Minutes', '90 Minutes', '120 Minutes'] },
+          { name: 'Facilities Available', type: 'checkbox', options: ['Steam Bath', 'Sauna Room', 'Jacuzzi', 'Shower En-suite'] }
         ] 
       }
     ]
@@ -1662,7 +1665,7 @@ export function useProducts() {
       allProducts: [],
       categories: [],
       allCategories: [],
-      isLoading: false,
+      isLoading: true,
       userLocation: 'Detecting Location...',
       userLat: null,
       userLng: null,

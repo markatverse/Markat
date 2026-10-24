@@ -211,13 +211,22 @@ let ServiceQueueService = class ServiceQueueService {
             });
             await this.applyCommission(currentlyServing.id, queue.sellerId);
         }
-        const nextToken = await this.prisma.serviceBooking.findFirst({
-            where: { queueId, status: { in: ['WAITING', 'CHECKED_IN', 'ABSENT'] } },
+        let nextToken = await this.prisma.serviceBooking.findFirst({
+            where: { queueId, status: { in: ['WAITING', 'CHECKED_IN'] } },
             orderBy: [
                 { appointmentTime: 'asc' },
                 { tokenNumber: 'asc' }
             ],
         });
+        if (!nextToken) {
+            nextToken = await this.prisma.serviceBooking.findFirst({
+                where: { queueId, status: 'ABSENT' },
+                orderBy: [
+                    { appointmentTime: 'asc' },
+                    { tokenNumber: 'asc' }
+                ],
+            });
+        }
         if (!nextToken) {
             await this.prisma.serviceQueue.update({
                 where: { id: queueId },
@@ -261,7 +270,7 @@ let ServiceQueueService = class ServiceQueueService {
             throw new NotFoundException('Booking not found');
         return this.prisma.serviceBooking.update({
             where: { id: tokenId },
-            data: { status: 'ABSENT' },
+            data: { status: 'ABSENT', resourceId: null },
         });
     }
     async markWaiting(tokenId) {
@@ -274,6 +283,36 @@ let ServiceQueueService = class ServiceQueueService {
             where: { id: tokenId },
             data: { status: 'WAITING' },
         });
+    }
+    async startServing(tokenId, resourceId) {
+        const token = await this.prisma.serviceBooking.findUnique({
+            where: { id: tokenId },
+        });
+        if (!token)
+            throw new NotFoundException('Booking not found');
+        let targetResourceId = resourceId || token.resourceId;
+        if (!targetResourceId && token.queueId && this.prisma.queueResource) {
+            const resource = await this.prisma.queueResource.findFirst({
+                where: { queueId: token.queueId, isActive: true },
+            });
+            if (resource)
+                targetResourceId = resource.id;
+        }
+        const updated = await this.prisma.serviceBooking.update({
+            where: { id: tokenId },
+            data: {
+                status: 'SERVING',
+                servedAt: new Date(),
+                resourceId: targetResourceId || undefined,
+            },
+        });
+        if (token.queueId && token.bookingMode === 'TOKEN' && token.tokenNumber) {
+            await this.prisma.serviceQueue.update({
+                where: { id: token.queueId },
+                data: { currentToken: token.tokenNumber },
+            });
+        }
+        return updated;
     }
     async markDone(tokenId) {
         const booking = await this.prisma.serviceBooking.update({

@@ -16,8 +16,8 @@ async function main() {
     try {
       await prisma.sector.delete({ where: { id } });
       console.log(`Deleted sector ${id}`);
-    } catch (e) {
-      console.log(`Could not delete ${id}:`, e.message);
+    } catch (e: any) {
+      console.log(`Could not delete ${id}:`, e?.message || e);
     }
   }
 

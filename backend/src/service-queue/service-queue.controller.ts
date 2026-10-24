@@ -145,6 +145,15 @@ export class ServiceQueueController {
     return this.serviceQueueService.markWaiting(tokenId);
   }
 
+  /** Start serving a token (e.g. Start Wash / Call into Bay) */
+  @Patch('token/:tokenId/start')
+  startServing(
+    @Param('tokenId') tokenId: string,
+    @Body('resourceId') resourceId?: string,
+  ) {
+    return this.serviceQueueService.startServing(tokenId, resourceId);
+  }
+
   // ─── Staff & Resources ───────────────────────────────────────────────────
 
   @Post(':queueId/staff')

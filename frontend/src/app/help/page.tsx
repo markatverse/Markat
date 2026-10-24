@@ -596,7 +596,7 @@ export default function HelpCenterPage() {
         pattern: detected.pattern,
         urgency: detected.urgency,
         isComplaint: detected.isComplaint,
-        confidence: `${Math.round(detected.confidence * 100)}%`,
+        confidence: `${Math.round((detected.confidence ?? 0) * 100)}%`,
         summary: detected.summary
       }, ...patterns.slice(0, 49)];
       localStorage.setItem('MV_SUPPORT_PATTERNS', JSON.stringify(patterns));

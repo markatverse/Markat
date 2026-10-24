@@ -101,6 +101,10 @@ export default function Navbar() {
     }
   };
 
+  const roleLower = (user?.role || '').toLowerCase();
+  const isAdmin = roleLower.includes('admin');
+  const isSellerOrBusiness = roleLower === 'seller' || roleLower === 'business' || roleLower === 'elite';
+
   return (
     <nav className="flex flex-wrap md:flex-nowrap items-center justify-between py-2 px-3 sm:px-6 bg-white border-b border-slate-200 sticky top-0 z-[999] shadow-sm gap-y-3 gap-x-2">
       {/* 1. Logo (Top Left on Mobile, Left on Desktop) */}
@@ -122,7 +126,7 @@ export default function Navbar() {
         </Link>
       </div>
 
-      {(user?.role !== 'super_admin' && user?.role !== 'admin') && (
+      {!isAdmin && (
         <>
           {/* Deliver to (Hidden on Mobile, Left on Desktop) */}
           <div
@@ -296,7 +300,7 @@ export default function Navbar() {
         </>
       )}
 
-      {(user?.role === 'super_admin' || user?.role === 'admin') && (
+      {isAdmin && (
         <div className="flex-1 flex justify-center hidden md:flex order-2">
           <div className="bg-amber-50 px-5 py-2 rounded-lg border border-amber-500/50 flex items-center gap-2 shadow-sm">
             <span className="text-amber-500">🛡️</span>
@@ -307,7 +311,7 @@ export default function Navbar() {
 
       <div className="flex items-center gap-2 sm:gap-3 md:gap-5 text-slate-600 shrink-0 order-2 md:order-3 ml-auto md:ml-0">
 
-        {(user?.role !== 'super_admin' && user?.role !== 'admin') && (
+        {!isAdmin && (
           <>
             <Link href="/help" className="hidden lg:flex flex-col items-center gap-1 cursor-pointer hover:text-blue-600 transition-colors group">
               <Headphones className="w-5 h-5 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
@@ -319,7 +323,7 @@ export default function Navbar() {
                 <div className="w-5 h-5 bg-slate-200 rounded animate-pulse"></div>
                 <div className="hidden lg:block w-16 h-3 bg-slate-200 rounded animate-pulse mt-1"></div>
               </div>
-            ) : user && (user.role === 'seller' || user.role === 'business' || user.role === 'SELLER' || user.role === 'elite' || user.role === 'ELITE') ? (
+            ) : user && isSellerOrBusiness ? (
               // Logged in as Seller
               <Link href="/seller/dashboard" className="flex flex-col items-center gap-1 cursor-pointer hover:text-blue-600 transition-colors group ml-2">
                 <Store className="w-5 h-5 group-hover:scale-110 transition-transform text-indigo-600" strokeWidth={1.5} />
@@ -343,7 +347,7 @@ export default function Navbar() {
           </>
         )}
 
-        {(user?.role !== 'super_admin' && user?.role !== 'admin') && (
+        {!isAdmin && (
           <>
             {isLoading ? (
               <div className="flex flex-col items-center gap-1 ml-2 opacity-50">

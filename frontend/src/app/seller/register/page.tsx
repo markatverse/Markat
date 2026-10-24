@@ -8,10 +8,19 @@ import LocationPicker from '@/components/LocationPicker';
 import toast from 'react-hot-toast';
 import { 
   Building2, MapPin, Store, CheckCircle2, ArrowRight, ArrowLeft, 
-  ShieldCheck, Sparkles, Phone, Mail, Clock, FileText, Briefcase
+  ShieldCheck, Sparkles, Phone, Mail, Clock, FileText, Briefcase,
+  UploadCloud, FileCheck, Eye, EyeOff, ExternalLink, AlertCircle
 } from 'lucide-react';
 
 import { getApiUrl } from '@/utils/api';
+import { 
+  validateGst, 
+  validatePan, 
+  validateAadhaar, 
+  formatAadhaarInput, 
+  maskAadhaar, 
+  hasValidTaxId 
+} from '@/utils/kycValidation';
 
 const API_URL = getApiUrl();
 
@@ -32,12 +41,20 @@ export default function SellerRegistrationPage() {
   const [selectedSector, setSelectedSector] = useState<string>('');
   const [loadingConfig, setLoadingConfig] = useState(false);
 
-  // Step 2: Business Identity & Contact
+  // Step 2: Business Identity & Contact & KYC
   const [businessName, setBusinessName] = useState<string>('');
   const [businessPhone, setBusinessPhone] = useState<string>('');
+  const [hasGst, setHasGst] = useState<boolean>(true);
   const [gstNumber, setGstNumber] = useState<string>('');
+  const [panNumber, setPanNumber] = useState<string>('');
+  const [aadharNumber, setAadharNumber] = useState<string>('');
+  const [idProofType, setIdProofType] = useState<'AADHAAR' | 'PAN' | 'GST'>('AADHAAR');
+  const [idProofUrl, setIdProofUrl] = useState<string>('');
+  const [idProofFileName, setIdProofFileName] = useState<string>('');
+  const [isUploadingDoc, setIsUploadingDoc] = useState<boolean>(false);
   const [ownerName, setOwnerName] = useState<string>('');
   const [ownerEmail, setOwnerEmail] = useState<string>('');
+  const [showMaskedAadhaar, setShowMaskedAadhaar] = useState<boolean>(true);
 
   // Step 3: Location, Address & Map Coordinates
   const [latitude, setLatitude] = useState<number | null>(28.6139);
@@ -103,6 +120,7 @@ export default function SellerRegistrationPage() {
       { id: 'both_textiles', name: 'Textiles & Garments' },
     ],
     'SERVICE': [
+      { id: 'srv_carwash', name: 'Automobile & Car Wash' },
       { id: 'srv_food', name: 'Food & Dining / Restaurant' },
       { id: 'srv_salon', name: 'Salon & Beauty Services' },
       { id: 'srv_health', name: 'Healthcare & Clinic' },
@@ -229,6 +247,59 @@ export default function SellerRegistrationPage() {
     } catch {}
   };
 
+  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size exceeds 10MB limit. Please upload a smaller file.');
+      return;
+    }
+
+    setIsUploadingDoc(true);
+    setIdProofFileName(file.name);
+
+    try {
+      const formData = new FormData();
+      formData.append('files', file);
+
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      const res = await fetch(`${API_URL}/upload`, {
+        method: 'POST',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const uploadedUrl = data.urls?.[0];
+        if (uploadedUrl) {
+          setIdProofUrl(uploadedUrl);
+          toast.success('KYC Document uploaded successfully!');
+          return;
+        }
+      }
+
+      // Fallback: Read as Base64 data URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setIdProofUrl(reader.result as string);
+        toast.success('KYC Document attached successfully!');
+      };
+      reader.readAsDataURL(file);
+    } catch (err: any) {
+      console.warn('Upload fallback to FileReader:', err);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setIdProofUrl(reader.result as string);
+        toast.success('KYC Document attached locally!');
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setIsUploadingDoc(false);
+    }
+  };
+
   const handleFinalRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -246,6 +317,10 @@ export default function SellerRegistrationPage() {
       const typeName = selectedTypeObj ? selectedTypeObj.name : (selectedType || `${businessModel} Merchant`);
       const finalSector = selectedSector || (FALLBACK_SECTORS[businessModel] ? FALLBACK_SECTORS[businessModel][0].name : 'General');
 
+      const cleanedAadhaar = aadharNumber.replace(/\D/g, '');
+      const cleanedGst = gstNumber.trim().toUpperCase();
+      const cleanedPan = (panNumber.trim().toUpperCase() || (cleanedGst.length === 15 ? cleanedGst.substring(2, 12) : ''));
+
       const payload = {
         ownerName: ownerName || user?.name || 'Seller',
         businessName: businessName.trim() || 'My Store',
@@ -258,7 +333,11 @@ export default function SellerRegistrationPage() {
         longitude: longitude || 77.2090,
         email: ownerEmail || user?.email || '',
         phone: businessPhone || user?.phone || '',
-        gstNumber: gstNumber || '',
+        gstNumber: cleanedGst,
+        panNumber: cleanedPan,
+        aadharNumber: cleanedAadhaar,
+        idProofType: idProofType || 'AADHAAR',
+        idProofUrl: idProofUrl || '',
         businessHours,
       };
 
@@ -510,34 +589,42 @@ export default function SellerRegistrationPage() {
             </div>
           )}
 
-          {/* STEP 2: BUSINESS PROFILE */}
+          {/* STEP 2: BUSINESS PROFILE & KYC IDENTIFICATION */}
           {step === 2 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="mb-6">
-                <span className="text-emerald-600 font-extrabold text-xs tracking-wider uppercase">Identity</span>
-                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Business Information</h1>
-                <p className="text-slate-500 text-xs sm:text-sm mt-1">Enter your store name and official contact identifiers.</p>
+                <span className="text-emerald-600 font-extrabold text-xs tracking-wider uppercase">Identity & KYC Verification</span>
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Business & KYC Information</h1>
+                <p className="text-slate-500 text-xs sm:text-sm mt-1">
+                  Enter your official business identifiers, Aadhaar, PAN / GST, and upload document proof for admin phone KYC verification.
+                </p>
               </div>
 
-              <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-5 mb-8">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase">Business / Store Name <span className="text-rose-500">*</span></label>
-                  <div className="relative">
-                    <Store className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                    <input
-                      required
-                      type="text"
-                      value={businessName}
-                      onChange={(e) => setBusinessName(e.target.value)}
-                      placeholder="e.g. Apex Electricals & Supplies"
-                      className="w-full p-3.5 pl-11 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all font-medium"
-                    />
-                  </div>
-                </div>
-
+              <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6 mb-8">
+                
+                {/* Store Name & Phone */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase">Business Phone <span className="text-rose-500">*</span></label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase">
+                      Business / Store Name <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Store className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                      <input
+                        required
+                        type="text"
+                        value={businessName}
+                        onChange={(e) => setBusinessName(e.target.value)}
+                        placeholder="e.g. Apex Electricals & Supplies"
+                        className="w-full p-3.5 pl-11 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase">
+                      Business Phone <span className="text-rose-500">*</span>
+                    </label>
                     <div className="relative">
                       <Phone className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
                       <input
@@ -546,30 +633,232 @@ export default function SellerRegistrationPage() {
                         maxLength={10}
                         value={businessPhone}
                         onChange={(e) => setBusinessPhone(e.target.value.replace(/\D/g, ''))}
-                        placeholder="10-digit mobile number"
+                        placeholder="10-digit mobile number for KYC call"
                         className="w-full p-3.5 pl-11 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all font-medium"
                       />
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase">GST / PAN Number (Optional)</label>
-                    <div className="relative">
-                      <FileText className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="text"
-                        value={gstNumber}
-                        onChange={(e) => setGstNumber(e.target.value.toUpperCase())}
-                        placeholder="e.g. 07AAAAA0000A1Z5"
-                        className="w-full p-3.5 pl-11 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all font-medium uppercase"
-                      />
-                    </div>
+                    <span className="text-[11px] text-slate-400 mt-1 block">Admin will call this phone to complete KYC</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+                {/* Tax Identification (GST / PAN) Section */}
+                <div className="pt-4 border-t border-slate-100">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                    <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <FileText className="w-4 h-4 text-emerald-600" />
+                      Tax Identification (GST or PAN) <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="flex bg-slate-100 p-0.5 rounded-lg text-xs font-semibold">
+                      <button
+                        type="button"
+                        onClick={() => { setHasGst(true); }}
+                        className={`px-3 py-1 rounded-md transition-all ${hasGst ? 'bg-white text-emerald-700 shadow-xs font-bold' : 'text-slate-500 hover:text-slate-800'}`}
+                      >
+                        I have GSTIN
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setHasGst(false); }}
+                        className={`px-3 py-1 rounded-md transition-all ${!hasGst ? 'bg-white text-emerald-700 shadow-xs font-bold' : 'text-slate-500 hover:text-slate-800'}`}
+                      >
+                        PAN Only (GST Exempt)
+                      </button>
+                    </div>
+                  </div>
+
+                  {hasGst ? (
+                    <div>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          maxLength={15}
+                          value={gstNumber}
+                          onChange={(e) => {
+                            const val = e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, '');
+                            setGstNumber(val);
+                            if (val.length === 15) {
+                              setPanNumber(val.substring(2, 12));
+                            }
+                          }}
+                          placeholder="e.g. 07AAAAA0000A1Z5 (15 Characters)"
+                          className={`w-full p-3.5 bg-slate-50 border rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:bg-white transition-all font-mono font-bold uppercase tracking-wider ${
+                            gstNumber.length > 0 
+                              ? (validateGst(gstNumber).valid ? 'border-emerald-500 bg-emerald-50/20' : 'border-amber-400') 
+                              : 'border-slate-200 focus:border-emerald-500'
+                          }`}
+                        />
+                        {gstNumber.length === 15 && validateGst(gstNumber).valid && (
+                          <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-600 font-bold text-xs flex items-center gap-1">
+                            <CheckCircle2 className="w-4 h-4" /> Valid GST
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex justify-between items-center mt-1 text-[11px]">
+                        <span className="text-slate-500">Format: 2-digit state code + 10-digit PAN + entity & checksum</span>
+                        {gstNumber.length > 0 && !validateGst(gstNumber).valid && (
+                          <span className="text-amber-600 font-semibold">{validateGst(gstNumber).message}</span>
+                        )}
+                      </div>
+                      {panNumber && validatePan(panNumber).valid && (
+                        <div className="mt-2 p-2 rounded-lg bg-emerald-50/60 border border-emerald-200/60 text-[11px] text-emerald-800 font-medium flex items-center justify-between">
+                          <span>Linked PAN extracted from GST: <strong className="font-mono">{panNumber}</strong></span>
+                          <span className="text-emerald-700 font-bold">✓ Verified</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          maxLength={10}
+                          value={panNumber}
+                          onChange={(e) => setPanNumber(e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, ''))}
+                          placeholder="e.g. ABCDE1234F (10 Characters)"
+                          className={`w-full p-3.5 bg-slate-50 border rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:bg-white transition-all font-mono font-bold uppercase tracking-wider ${
+                            panNumber.length > 0 
+                              ? (validatePan(panNumber).valid ? 'border-emerald-500 bg-emerald-50/20' : 'border-amber-400') 
+                              : 'border-slate-200 focus:border-emerald-500'
+                          }`}
+                        />
+                        {panNumber.length === 10 && validatePan(panNumber).valid && (
+                          <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-600 font-bold text-xs flex items-center gap-1">
+                            <CheckCircle2 className="w-4 h-4" /> Valid PAN
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex justify-between items-center mt-1 text-[11px]">
+                        <span className="text-slate-500">Format: 5 letters + 4 digits + 1 letter (Income Tax PAN)</span>
+                        {panNumber.length > 0 && !validatePan(panNumber).valid && (
+                          <span className="text-amber-600 font-semibold">{validatePan(panNumber).message}</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Aadhaar Number Section */}
+                <div className="pt-4 border-t border-slate-100">
+                  <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    Authorized Person Aadhaar Number <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      maxLength={14}
+                      value={aadharNumber}
+                      onChange={(e) => setAadharNumber(formatAadhaarInput(e.target.value))}
+                      placeholder="XXXX XXXX XXXX (12 Digits)"
+                      className={`w-full p-3.5 bg-slate-50 border rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:bg-white transition-all font-mono font-bold tracking-widest ${
+                        aadharNumber.replace(/\D/g, '').length > 0
+                          ? (validateAadhaar(aadharNumber).valid ? 'border-emerald-500 bg-emerald-50/20' : 'border-amber-400')
+                          : 'border-slate-200 focus:border-emerald-500'
+                      }`}
+                    />
+                    {validateAadhaar(aadharNumber).valid && (
+                      <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-600 font-bold text-xs flex items-center gap-1">
+                        <CheckCircle2 className="w-4 h-4" /> Valid Aadhaar
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex justify-between items-center mt-1 text-[11px]">
+                    <span className="text-slate-500">UIDAI compliant 12-digit individual Aadhaar identity</span>
+                    {aadharNumber.replace(/\D/g, '').length > 0 && !validateAadhaar(aadharNumber).valid && (
+                      <span className="text-amber-600 font-semibold">{validateAadhaar(aadharNumber).message}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Document Proof Upload Section */}
+                <div className="pt-4 border-t border-slate-100">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                    <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <UploadCloud className="w-4 h-4 text-emerald-600" />
+                      Upload Real ID / Document Proof <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] text-slate-500 font-medium">Select Proof Type:</span>
+                      <select
+                        value={idProofType}
+                        onChange={(e) => setIdProofType(e.target.value as any)}
+                        className="p-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:border-emerald-500"
+                      >
+                        <option value="AADHAAR">Aadhaar Card</option>
+                        <option value="PAN">PAN Card</option>
+                        <option value="GST">GST Registration Certificate</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {!idProofUrl ? (
+                    <label className="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer bg-slate-50/50 hover:bg-emerald-50/20 transition-all group">
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,application/pdf"
+                        onChange={handleDocumentUpload}
+                        disabled={isUploadingDoc}
+                        className="hidden"
+                      />
+                      <div className="w-12 h-12 rounded-2xl bg-white shadow-xs border border-slate-200 flex items-center justify-center text-slate-600 group-hover:scale-105 group-hover:text-emerald-600 transition-all mb-3">
+                        {isUploadingDoc ? (
+                          <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <UploadCloud className="w-6 h-6" />
+                        )}
+                      </div>
+                      <div className="text-xs font-bold text-slate-800 group-hover:text-emerald-700 text-center">
+                        {isUploadingDoc ? 'Uploading & verifying document...' : `Click or Drag to Upload Real ${idProofType === 'AADHAAR' ? 'Aadhaar Card' : idProofType === 'PAN' ? 'PAN Card' : 'GST Certificate'}`}
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-1">Accepts PDF, JPG, PNG or WEBP (Max 10 MB)</p>
+                    </label>
+                  ) : (
+                    <div className="p-4 rounded-xl border-2 border-emerald-500/40 bg-emerald-50/30 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-lg bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                          <FileCheck className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-900 truncate">
+                              {idProofFileName || `${idProofType}_Proof_Document`}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold shrink-0">
+                              ✓ Attached
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 mt-0.5">
+                            Type: <span className="font-semibold text-slate-700">{idProofType} Card</span> • Ready for admin KYC review
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {idProofUrl.startsWith('http') && (
+                          <a
+                            href={idProofUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors flex items-center gap-1"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" /> View
+                          </a>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => { setIdProofUrl(''); setIdProofFileName(''); }}
+                          className="px-2.5 py-1.5 rounded-lg bg-rose-50 text-rose-700 text-xs font-bold hover:bg-rose-100 transition-colors"
+                        >
+                          Change
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Owner & Email Section */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase">Owner Name</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase">Owner / Authorized Name</label>
                     <input
                       type="text"
                       value={ownerName}
@@ -594,6 +883,7 @@ export default function SellerRegistrationPage() {
                 </div>
               </div>
 
+              {/* Step Navigation with KYC Form Guard */}
               <div className="flex justify-between items-center">
                 <button
                   type="button"
@@ -604,9 +894,37 @@ export default function SellerRegistrationPage() {
                 </button>
                 <button
                   type="button"
-                  disabled={!businessName.trim() || !businessPhone.trim()}
-                  onClick={() => setStep(3)}
-                  className="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2"
+                  onClick={() => {
+                    if (!businessName.trim()) {
+                      toast.error('Please enter your business / store name');
+                      return;
+                    }
+                    if (!businessPhone.trim() || businessPhone.replace(/\D/g, '').length !== 10) {
+                      toast.error('Please enter a valid 10-digit mobile number for the admin KYC verification call');
+                      return;
+                    }
+                    if (hasGst) {
+                      if (!validateGst(gstNumber).valid) {
+                        toast.error(validateGst(gstNumber).message || 'Please enter a valid 15-character GSTIN');
+                        return;
+                      }
+                    } else {
+                      if (!validatePan(panNumber).valid) {
+                        toast.error(validatePan(panNumber).message || 'Please enter a valid 10-character PAN number');
+                        return;
+                      }
+                    }
+                    if (!validateAadhaar(aadharNumber).valid) {
+                      toast.error(validateAadhaar(aadharNumber).message || 'Please enter a valid 12-digit Aadhaar number');
+                      return;
+                    }
+                    if (!idProofUrl) {
+                      toast.error('Please upload your real Aadhaar card, PAN card, or GST certificate');
+                      return;
+                    }
+                    setStep(3);
+                  }}
+                  className="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2"
                 >
                   Continue to Location <ArrowRight className="w-4 h-4" />
                 </button>
@@ -828,15 +1146,17 @@ export default function SellerRegistrationPage() {
           {step === 5 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="mb-6">
-                <span className="text-emerald-600 font-extrabold text-xs tracking-wider uppercase">Activation</span>
-                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Review & Launch Store</h1>
-                <p className="text-slate-500 text-xs sm:text-sm mt-1">Please verify your details. Upon completion, your merchant dashboard will be instantly activated.</p>
+                <span className="text-emerald-600 font-extrabold text-xs tracking-wider uppercase">Verification & Launch</span>
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Review & Submit for Verification</h1>
+                <p className="text-slate-500 text-xs sm:text-sm mt-1">
+                  Please review your business & KYC information. Upon submission, an admin officer will review your documents and verify your store via phone.
+                </p>
               </div>
 
               <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6 mb-8">
                 
-                {/* Summary Card */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-6 border-b border-slate-100">
+                {/* Store & Classification Card */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-slate-100">
                   <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
                     <span className="text-[10px] uppercase font-bold text-slate-400">Store Name</span>
                     <h3 className="text-base font-black text-slate-900 mt-0.5">{businessName}</h3>
@@ -846,7 +1166,73 @@ export default function SellerRegistrationPage() {
                   <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
                     <span className="text-[10px] uppercase font-bold text-slate-400">Sector & Classification</span>
                     <h3 className="text-base font-black text-slate-900 mt-0.5">{selectedSector || 'General'}</h3>
-                    <p className="text-xs text-slate-500 font-medium mt-1">Phone: +91-{businessPhone}</p>
+                    <p className="text-xs text-slate-500 font-medium mt-1">Contact: +91-{businessPhone}</p>
+                  </div>
+                </div>
+
+                {/* KYC & Identity Verification Summary */}
+                <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      Submitted KYC Identifiers
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
+                      Pending Admin Call
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                    <div className="p-3 bg-white rounded-lg border border-slate-200/70">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Tax ID / GSTIN</span>
+                      <span className="font-mono text-xs font-bold text-slate-900 break-all">
+                        {gstNumber || 'GST Exempt'}
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-lg border border-slate-200/70">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">PAN Number</span>
+                      <span className="font-mono text-xs font-bold text-slate-900">
+                        {panNumber || (gstNumber.length === 15 ? gstNumber.substring(2, 12) : 'N/A')}
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-lg border border-slate-200/70">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block">Aadhaar Number</span>
+                        <button
+                          type="button"
+                          onClick={() => setShowMaskedAadhaar(!showMaskedAadhaar)}
+                          className="text-slate-400 hover:text-slate-700"
+                        >
+                          {showMaskedAadhaar ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                      <span className="font-mono text-xs font-bold text-slate-900">
+                        {showMaskedAadhaar ? maskAadhaar(aadharNumber) : aadharNumber}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Document Proof Badge */}
+                  <div className="p-3 bg-emerald-50/70 border border-emerald-200/70 rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FileCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <div className="text-xs text-slate-800">
+                        <span className="font-bold">{idProofType} Card Document:</span>{' '}
+                        <span className="text-slate-600 font-medium">{idProofFileName || 'Proof Document Uploaded'}</span>
+                      </div>
+                    </div>
+                    {idProofUrl && idProofUrl.startsWith('http') && (
+                      <a
+                        href={idProofUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-emerald-700 hover:underline text-xs font-bold flex items-center gap-1"
+                      >
+                        Preview <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
                   </div>
                 </div>
 
@@ -859,23 +1245,14 @@ export default function SellerRegistrationPage() {
                   </div>
                 </div>
 
-                {/* Capabilities Provisioned */}
-                <div>
-                  <h4 className="text-xs font-bold text-slate-700 uppercase mb-2">Enabled Merchant Tools:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="px-3 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold">✓ Multi-Channel Wallet</span>
-                    <span className="px-3 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold">✓ Realtime Orders</span>
-                    {businessModel === 'SERVICE' ? (
-                      <>
-                        <span className="px-3 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold">✓ Live Token Queue</span>
-                        <span className="px-3 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold">✓ Staff & Slot Booking</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-bold">✓ Product Inventory</span>
-                        <span className="px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-bold">✓ Logistics & Shipping</span>
-                      </>
-                    )}
+                {/* Notice of Admin Call & Journey */}
+                <div className="p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 text-amber-900 flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="text-xs leading-relaxed">
+                    <strong className="font-bold block text-amber-950 mb-0.5">Admin KYC Phone Verification Protocol</strong>
+                    Upon submitting, your store status will be <span className="font-bold underline">Pending Verification</span>. 
+                    An administrator will review your submitted documents and place a brief verification call to <strong>+91-{businessPhone}</strong>.
+                    Once approved, your store will be fully activated and ready to start your journey on MarkatVerse!
                   </div>
                 </div>
               </div>
@@ -895,7 +1272,7 @@ export default function SellerRegistrationPage() {
                   onClick={handleFinalRegistration}
                   className="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2"
                 >
-                  {isSubmitting ? 'Activating Store...' : 'Complete & Launch Store 🚀'}
+                  {isSubmitting ? 'Submitting Application...' : 'Submit for Verification & Launch 🚀'}
                 </button>
               </div>
             </div>

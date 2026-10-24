@@ -40,22 +40,22 @@ export default function ProductDetails() {
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [rfqMessage, setRfqMessage] = useState('');
   const [isEliteExpanded, setIsEliteExpanded] = useState(false);
-  
+
   const product = products.find(p => p.id === id);
 
   // ── Category Rules — from Admin Relationship Manager ──
   const rules = useCategoryRules(product?.category);
   const noRulesDefined = rules.allowedFeatures.length === 0;
-  const hasProductStock    = rules.allows('Product Stock');
-  const hasB2B             = rules.allows('B2B');
-  const hasBulkPricing     = rules.allows('Bulk Pricing') || rules.allows('MOQ');
+  const hasProductStock = rules.allows('Product Stock');
+  const hasB2B = rules.allows('B2B');
+  const hasBulkPricing = rules.allows('Bulk Pricing') || rules.allows('MOQ');
   const sellerBookingModel = (product?.parameters as any)?.bookingModel;
-  const hasToken           = rules.allows('Token') || sellerBookingModel === 'TOKEN';
-  const hasAppointment     = rules.allows('Appointment') || sellerBookingModel === 'APPOINTMENT';
-  const hasRFQ             = rules.allows('RFQ') || rules.allows('Quote');
-  const hasMeeting         = rules.allows('Meeting') || rules.isOptional('Meeting');
+  const hasToken = rules.allows('Token') || sellerBookingModel === 'TOKEN' || sellerBookingModel === 'HYBRID' || sellerBookingModel === 'QUEUE_ONLY';
+  const hasAppointment = rules.allows('Appointment') || sellerBookingModel === 'APPOINTMENT' || sellerBookingModel === 'HYBRID';
+  const hasRFQ = rules.allows('RFQ') || rules.allows('Quote');
+  const hasMeeting = rules.allows('Meeting') || rules.isOptional('Meeting');
   const hasVehicleTestDrive = rules.allows('Vehicle Test Drive');
-  const hasService         = rules.allows('Service') || product?.primaryType === 'SERVICE' || (product ? isServiceProduct(product) : false);
+  const hasService = rules.allows('Service') || product?.primaryType === 'SERVICE' || (product ? isServiceProduct(product) : false);
 
 
   const requireAuth = (action: () => void) => {
@@ -73,40 +73,40 @@ export default function ProductDetails() {
     }
   }, [product?.id, product?.category]);
 
-// Helper to parse parameter options whether array or comma/space separated strings
-const parseParamOptions = (val: any, paramName?: string): string[] => {
-  if (!val && val !== 0) return [];
-  if (Array.isArray(val)) {
-    return val.map(String).map(s => s.trim()).filter(Boolean);
-  }
-  const str = String(val).trim();
-  if (!str) return [];
-  
-  // If comma separated, split by comma
-  if (str.includes(',')) {
-    return str.split(',').map(s => s.trim()).filter(Boolean);
-  }
-
-  // If color parameter contains space-separated color names (e.g. "Black White Blue Green")
-  if (paramName && paramName.toLowerCase() === 'color' && str.includes(' ')) {
-    const knownColors = ['white', 'black', 'red', 'blue', 'green', 'grey', 'gray', 'navy', 'yellow', 'purple', 'pink', 'orange', 'silver', 'gold', 'brown'];
-    const tokens = str.split(/\s+/).filter(Boolean);
-    // If multiple known colors are present separated by space
-    const matchingColors = tokens.filter(t => knownColors.includes(t.toLowerCase()));
-    if (matchingColors.length > 1) {
-      return tokens;
+  // Helper to parse parameter options whether array or comma/space separated strings
+  const parseParamOptions = (val: any, paramName?: string): string[] => {
+    if (!val && val !== 0) return [];
+    if (Array.isArray(val)) {
+      return val.map(String).map(s => s.trim()).filter(Boolean);
     }
-  }
+    const str = String(val).trim();
+    if (!str) return [];
 
-  return [str];
-};
+    // If comma separated, split by comma
+    if (str.includes(',')) {
+      return str.split(',').map(s => s.trim()).filter(Boolean);
+    }
+
+    // If color parameter contains space-separated color names (e.g. "Black White Blue Green")
+    if (paramName && paramName.toLowerCase() === 'color' && str.includes(' ')) {
+      const knownColors = ['white', 'black', 'red', 'blue', 'green', 'grey', 'gray', 'navy', 'yellow', 'purple', 'pink', 'orange', 'silver', 'gold', 'brown'];
+      const tokens = str.split(/\s+/).filter(Boolean);
+      // If multiple known colors are present separated by space
+      const matchingColors = tokens.filter(t => knownColors.includes(t.toLowerCase()));
+      if (matchingColors.length > 1) {
+        return tokens;
+      }
+    }
+
+    return [str];
+  };
 
   // Initialize RFQ quantity and variants
   useEffect(() => {
     if (product?.category === 'B2B' || product?.category === 'Construction Materials') {
       setRfqQuantity(12);
     }
-    
+
     if (product?.parameters) {
       const initialVariants: Record<string, string> = {};
       Object.keys(product.parameters).forEach(key => {
@@ -124,7 +124,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
 
   const printRate = (product?.originalPrice && product?.price && product.originalPrice > product.price) ? product.originalPrice : (product?.price || 0);
   let currentActivePrice = product?.price || 0;
-  
+
   // Dynamic Pricing based on selected option
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   useEffect(() => {
@@ -137,18 +137,23 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
   if (activeOption) {
     currentActivePrice = activeOption.price;
   }
-  
-  const isElite = user?.role === 'elite';
-  const WALK_IN_CATEGORIES = ['salon', 'saloon', 'beauty', 'hair', 'barber', 'spa', 'nail', 'massage', 'pedicure', 'doctor', 'clinic', 'medical', 'hospital', 'dentist'];
-  const isServiceQueue = product ? WALK_IN_CATEGORIES.some(c => product.category?.toLowerCase().includes(c) || product.subcategory?.toLowerCase().includes(c)) : false;
 
+  const isElite = user?.role === 'elite';
   const isFoodDining = product ? (
-    product.category?.toLowerCase().includes('food') || 
-    product.category?.toLowerCase().includes('dining') || 
+    product.category?.toLowerCase().includes('food') ||
+    product.category?.toLowerCase().includes('dining') ||
     product.category?.toLowerCase().includes('restaurant') ||
+    product.category?.toLowerCase().includes('cafe') ||
     product.subcategory?.toLowerCase().includes('restaurant') ||
     product.subcategory?.toLowerCase().includes('dining') ||
-    product.subcategory?.toLowerCase().includes('cafe')
+    product.subcategory?.toLowerCase().includes('cafe') ||
+    product.subcategory?.toLowerCase().includes('food') ||
+    product.subcategory?.toLowerCase().includes('bistro') ||
+    product.subcategory?.toLowerCase().includes('bar') ||
+    product.name?.toLowerCase().includes('restaurant') ||
+    product.name?.toLowerCase().includes('cafe') ||
+    product.name?.toLowerCase().includes('dining') ||
+    product.name?.toLowerCase().includes('bistro')
   ) : false;
 
   const isAutoWash = product ? (
@@ -177,6 +182,16 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
     product.name?.toLowerCase().includes('wedding') ||
     product.name?.toLowerCase().includes('party') ||
     (product.parameters as any)?.bookingModel === 'PROPOSAL'
+  ) : false;
+
+  const WALK_IN_CATEGORIES = ['salon', 'saloon', 'beauty', 'hair', 'barber', 'spa', 'nail', 'massage', 'pedicure', 'doctor', 'clinic', 'medical', 'hospital', 'dentist'];
+  const isServiceQueue = product ? (
+    WALK_IN_CATEGORIES.some(c => (product.category || '').toLowerCase().includes(c) || (product.subcategory || '').toLowerCase().includes(c) || (product.name || '').toLowerCase().includes(c)) ||
+    hasToken ||
+    sellerBookingModel === 'TOKEN' ||
+    sellerBookingModel === 'HYBRID' ||
+    sellerBookingModel === 'QUEUE_ONLY' ||
+    (isServiceProduct(product) && !isFoodDining && !isOrganizer && !isAutoWash)
   ) : false;
 
   // Event & Organizer Customer Booking States
@@ -291,13 +306,13 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
     };
   }, [isGuestDropdownOpen, isDateDropdownOpen]);
 
-  const isRetail = (product?.primaryType === 'SERVICE' || isFoodDining || isOrganizer || hasService) ? false : (noRulesDefined
-    ? !['Services', 'Home Services', 'Organizers', 'Transport', 'Rentals', 'Subscriptions', 'B2B', 'Construction Materials'].includes(product?.category || '')
+  const isRetail = (product?.primaryType === 'SERVICE' || isFoodDining || isOrganizer || hasService || isServiceQueue) ? false : (noRulesDefined
+    ? !['Services', 'Home Services', 'Organizers', 'Transport', 'Rentals', 'Subscriptions', 'B2B', 'Construction Materials', 'Salon & Parlour', 'Salon & Parlor', 'Salon', 'Beauty Parlour', 'Spa', 'Car Wash'].includes(product?.category || '')
     : hasProductStock);
-  const isWholesaleConfig = (product?.primaryType === 'SERVICE' || isFoodDining || isOrganizer || hasService) ? false : (noRulesDefined
+  const isWholesaleConfig = (product?.primaryType === 'SERVICE' || isFoodDining || isOrganizer || hasService || isServiceQueue) ? false : (noRulesDefined
     ? (product?.category === 'B2B' || product?.category === 'Construction Materials' || (isRetail && isElite))
     : ((hasB2B && hasBulkPricing) || (isRetail && isElite)));
-  
+
   if (product && !activeOption) { // Only apply wholesale logic if not using dynamic options
     if (isWholesaleConfig) {
       const basePrice = product.price;
@@ -364,14 +379,14 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
   const displayedRelated = relatedProducts.length > 0 ? relatedProducts : products.filter(p => p.id !== product.id).slice(0, 4);
 
   // Map actual images from product, falling back to mock structure if none exist
-  const productImages = product.images && product.images.length > 0 
+  const productImages = product.images && product.images.length > 0
     ? product.images.map((img, i) => ({ url: img || "/hero-left-logo.png", label: `View ${i + 1}`, icon: <Camera className="w-16 h-16 opacity-50 mb-4" strokeWidth={1.5} /> }))
     : [
-        { icon: <Camera className="w-16 h-16 opacity-50 mb-4" strokeWidth={1.5} />, label: 'Front View', url: product.image || "/hero-left-logo.png" },
-        { icon: <Ruler className="w-16 h-16 opacity-50 mb-4" strokeWidth={1.5} />, label: 'Side View', url: "/hero-left-logo.png" },
-        { icon: <ZoomIn className="w-16 h-16 opacity-50 mb-4" strokeWidth={1.5} />, label: 'Close Up', url: "/hero-left-logo.png" },
-        { icon: <Package className="w-16 h-16 opacity-50 mb-4" strokeWidth={1.5} />, label: 'In Box', url: "/hero-left-logo.png" }
-      ];
+      { icon: <Camera className="w-16 h-16 opacity-50 mb-4" strokeWidth={1.5} />, label: 'Front View', url: product.image || "/hero-left-logo.png" },
+      { icon: <Ruler className="w-16 h-16 opacity-50 mb-4" strokeWidth={1.5} />, label: 'Side View', url: "/hero-left-logo.png" },
+      { icon: <ZoomIn className="w-16 h-16 opacity-50 mb-4" strokeWidth={1.5} />, label: 'Close Up', url: "/hero-left-logo.png" },
+      { icon: <Package className="w-16 h-16 opacity-50 mb-4" strokeWidth={1.5} />, label: 'In Box', url: "/hero-left-logo.png" }
+    ];
 
   const submitRfq = async () => {
     if (!user) {
@@ -382,7 +397,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
       alert("Seller information not available.");
       return;
     }
-    
+
     try {
       const res = await fetch(`${API_URL}/leads`, {
         method: 'POST',
@@ -409,21 +424,21 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
 
   return (
     <div className="max-w-[1400px] mx-auto p-3.5 sm:p-6 lg:p-10 bg-white relative z-0">
-      
+
       <AdvertisementWidget position="PRODUCT_PAGE" className="mb-4 sm:mb-8" />
-      
+
       {/* Top Section: Images and Details */}
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
-        
+
         {/* Left: Product Image Gallery */}
         <div className="flex-1 lg:max-w-[50%]">
           {/* Main Image */}
           <div className="w-full h-[260px] sm:h-[400px] lg:h-[480px] bg-slate-100 rounded-2xl flex flex-col items-center justify-center text-slate-500 border border-slate-200 overflow-hidden shadow-sm relative">
             {productImages[activeImage]?.url ? (
-              <img 
-                src={productImages[activeImage].url} 
-                alt={product.name} 
-                className={`w-full h-full ${isFoodDining ? 'object-cover' : 'object-contain p-4'}`} 
+              <img
+                src={productImages[activeImage].url}
+                alt={product.name}
+                className={`w-full h-full ${(isFoodDining || isServiceProduct(product) || isServiceQueue) ? 'object-cover' : 'object-contain p-4'}`}
               />
             ) : (
               <>
@@ -436,14 +451,19 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                 <UtensilsCrossed className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-400" /> Dining Venue
               </div>
             )}
+            {(isServiceProduct(product) || hasService || isServiceQueue) && !isFoodDining && !isAutoWash && (
+              <div className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-black/60 backdrop-blur-md border border-white/20 text-white px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold tracking-wide flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-teal-400" /> Verified Service Studio & Salon
+              </div>
+            )}
           </div>
-          
+
           {/* Thumbnails */}
           {productImages.length > 1 && (
             <div className="flex gap-2.5 sm:gap-4 mt-3 sm:mt-4 overflow-x-auto pb-1.5">
               {productImages.map((img, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   onClick={() => setActiveImage(index)}
                   className={`w-14 h-14 sm:w-20 sm:h-20 shrink-0 bg-slate-50 rounded-xl cursor-pointer flex flex-col items-center justify-center border-2 transition-all overflow-hidden shadow-xs
                     ${activeImage === index ? 'border-blue-600 ring-2 ring-blue-100' : 'border-slate-200 hover:border-blue-300 opacity-70 hover:opacity-100'}
@@ -458,7 +478,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
               ))}
             </div>
           )}
-          
+
           {/* Sold By / Restaurant Venue Details Card (Desktop Left Column) */}
           <div className="hidden lg:block mt-8 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">
@@ -486,7 +506,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
             </div>
             {/* Seller Communication & Resource Links */}
             <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center gap-2">
-              <a 
+              <a
                 href={`https://wa.me/919876543210?text=${encodeURIComponent(`Hello! I am inquiring about "${product.name}" on MarkatVerse. Could you share more details and availability?`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -495,21 +515,21 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                 <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
                 <span>WhatsApp Seller</span>
               </a>
-              <a 
+              <a
                 href="tel:+919876543210"
                 className="flex items-center justify-center gap-1.5 py-2 px-3 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition-all shadow-xs"
               >
                 <Phone className="w-3.5 h-3.5 text-blue-600" />
                 <span>Call Store</span>
               </a>
-              <Link 
+              <Link
                 href={`/shop/${encodeURIComponent((product.seller || 'unknown').toLowerCase().replace(/ /g, '-'))}`}
                 className="flex items-center justify-center gap-1.5 py-2 px-3 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition-all shadow-xs"
               >
                 <span>Store Catalog & Hours →</span>
               </Link>
             </div>
-            
+
             <div className="flex gap-6 sm:gap-10 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-slate-100">
               <div>
                 <div className="text-[10px] sm:text-xs text-slate-500 font-medium mb-0.5 sm:mb-1">Seller Rating</div>
@@ -544,7 +564,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
               </div>
             )}
           </div>
-          
+
         </div>
 
         {/* Right: Product Info & Actions */}
@@ -552,19 +572,17 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
           {/* Top Category and Badges Lockup (matching card design) */}
           <div className="flex flex-wrap items-center gap-2 mb-3">
             {product.badge && (
-              <span className={`px-2.5 py-0.5 rounded-md text-[10px] sm:text-xs font-bold uppercase shadow-xs ${
-                product.badgeColor === 'badge-gold' ? 'bg-amber-400 text-slate-900' : 'bg-red-500 text-white'
-              }`}>
+              <span className={`px-2.5 py-0.5 rounded-md text-[10px] sm:text-xs font-bold uppercase shadow-xs ${product.badgeColor === 'badge-gold' ? 'bg-amber-400 text-slate-900' : 'bg-red-500 text-white'
+                }`}>
                 {product.badge}
               </span>
             )}
 
             {product.category && (
-              <span className={`text-[10px] sm:text-xs font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-md border ${
-                isAutoWash 
-                  ? 'text-cyan-800 bg-cyan-50 border-cyan-200' 
+              <span className={`text-[10px] sm:text-xs font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-md border ${isAutoWash
+                  ? 'text-cyan-800 bg-cyan-50 border-cyan-200'
                   : 'text-indigo-700 bg-indigo-50 border-indigo-100'
-              }`}>
+                }`}>
                 {product.category} {product.subcategory ? `› ${product.subcategory}` : ''}
               </span>
             )}
@@ -575,11 +593,10 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
               </span>
             )}
 
-            <Link 
+            <Link
               href={`/shop/${encodeURIComponent((product.seller || 'unknown').toLowerCase().replace(/ /g, '-'))}`}
-              className={`text-xs font-bold uppercase tracking-wider ml-auto flex items-center gap-1 ${
-                isAutoWash ? 'text-cyan-700 hover:text-cyan-800' : 'text-blue-600 hover:text-blue-800'
-              }`}
+              className={`text-xs font-bold uppercase tracking-wider ml-auto flex items-center gap-1 ${isAutoWash ? 'text-cyan-700 hover:text-cyan-800' : 'text-blue-600 hover:text-blue-800'
+                }`}
             >
               <span>{product.seller || 'Verified Seller'}</span>
               <ShieldCheck className={`w-3.5 h-3.5 ${isAutoWash ? 'text-cyan-700' : 'text-blue-600'}`} />
@@ -587,7 +604,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
           </div>
 
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 mb-2 leading-tight">{product.name}</h1>
-          
+
           <div className="text-slate-600 font-medium text-xs sm:text-sm mb-3 sm:mb-4 flex items-center gap-1.5 sm:gap-2">
             <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" />
             <span className="truncate">
@@ -600,27 +617,45 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
             <div className="flex flex-wrap items-center gap-4">
               <StarRating rating={Number(product.rating || 0)} totalReviews={Number(product.reviews || 0)} compact={true} />
             </div>
-            <button 
+            <button
               onClick={() => requireAuth(() => toggleWishlist(product.id))}
-              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border transition-colors shadow-2xs text-xs sm:text-sm ${
-                isInWishlist(product.id) 
-                  ? 'border-red-200 bg-red-50 text-red-600' 
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border transition-colors shadow-2xs text-xs sm:text-sm ${isInWishlist(product.id)
+                  ? 'border-red-200 bg-red-50 text-red-600'
                   : 'border-slate-200 bg-white text-slate-600 hover:border-red-200 hover:bg-red-50 hover:text-red-500'
-              }`}
+                }`}
             >
               <Heart className="w-4 h-4 sm:w-5 sm:h-5" fill={isInWishlist(product.id) ? "currentColor" : "none"} />
               <span className="font-bold">{isInWishlist(product.id) ? 'Saved' : 'Save'}</span>
             </button>
           </div>
 
-          <div className={isAutoWash ? "mb-4" : "p-4 sm:p-6 bg-slate-50 rounded-2xl mb-6 sm:mb-8 border border-slate-200 shadow-2xs"}>
-            {!isAutoWash && (
+          <div className={isAutoWash ? "mb-4" : (isServiceProduct(product) || hasService || isServiceQueue) ? "mb-6 sm:mb-8 flex flex-col gap-5" : "p-4 sm:p-6 bg-slate-50 rounded-2xl mb-6 sm:mb-8 border border-slate-200 shadow-2xs"}>
+            {(isServiceProduct(product) || hasService || isServiceQueue) && !isAutoWash && !isOrganizer && !isFoodDining ? (
+              <div className="p-4 sm:p-6 bg-gradient-to-r from-teal-50 via-emerald-50/50 to-cyan-50 rounded-2xl border border-teal-200/90 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div className="text-[11px] font-bold text-teal-800 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                    <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+                    <span>Service Rate / Consultation Fee</span>
+                  </div>
+                  <div className="text-3xl sm:text-4xl font-black text-slate-900 flex items-baseline gap-2">
+                    <span>₹{currentActivePrice.toLocaleString('en-IN')}</span>
+                    <span className="text-xs sm:text-sm font-semibold text-slate-500">starting rate</span>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:items-end text-xs text-teal-900 font-medium bg-white/95 px-4 py-2.5 rounded-xl border border-teal-200 shadow-2xs">
+                  <span className="flex items-center gap-1.5 text-teal-800 font-bold">
+                    <Clock className="w-3.5 h-3.5 text-teal-600" /> Walk-In Live Token & Advance Appointments
+                  </span>
+                  <span className="text-slate-500 text-[11px] mt-0.5">Direct in-salon service • Pay after appointment</span>
+                </div>
+              </div>
+            ) : !isAutoWash ? (
               <>
                 <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
                   {isOrganizer
                     ? 'Package / Estimation Rate'
-                    : isFoodDining 
-                      ? 'Reservation / Dining Rate' 
+                    : isFoodDining
+                      ? 'Reservation / Dining Rate'
                       : (isServiceProduct(product) ? 'Service Rate' : 'Price')}
                 </div>
                 <div className="text-3xl sm:text-4xl font-extrabold text-slate-900 flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -648,23 +683,23 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                   )}
                 </div>
               </>
-            )}
-            
+            ) : null}
+
             {isWholesaleConfig && (() => {
               const basePrice = product.price;
-              
+
               return (
                 <div className="mt-5 border border-blue-200 rounded-xl overflow-hidden shadow-sm">
                   <div className="bg-blue-50 px-4 py-3 text-sm font-bold text-blue-900 border-b border-blue-200 flex justify-between items-center">
                     <span>{isRetail ? 'Elite Wholesale Tiered Pricing' : 'Wholesale Tiered Pricing'}</span>
                     <span className="text-xs bg-white text-blue-700 px-2 py-1 rounded border border-blue-200">MOQ: 12 Units</span>
                   </div>
-                  <div 
-                    className="grid text-center divide-x divide-slate-200 bg-white" 
+                  <div
+                    className="grid text-center divide-x divide-slate-200 bg-white"
                     style={{ gridTemplateColumns: `repeat(${(product.wholesaleTiers ? product.wholesaleTiers.length : 3) + (isRetail && isElite ? 1 : 0)}, minmax(0, 1fr))` }}
                   >
                     {isRetail && isElite && (
-                      <div 
+                      <div
                         onClick={() => {
                           setRfqQuantity(1);
                           setBundleMultiplier(1);
@@ -682,8 +717,8 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                         const qtyNum = Number(rfqQuantity) || 0;
                         const isActive = qtyNum >= tier.minQty && (!nextTier || qtyNum < nextTier.minQty);
                         return (
-                          <div 
-                            key={index} 
+                          <div
+                            key={index}
                             onClick={() => {
                               setRfqQuantity(tier.minQty);
                               setBundleMultiplier(1);
@@ -704,7 +739,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                       })
                     ) : (
                       <>
-                        <div 
+                        <div
                           onClick={() => {
                             setRfqQuantity(12);
                             setBundleMultiplier(1);
@@ -715,7 +750,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                           <span className="font-bold text-slate-800">₹{Math.round(basePrice * 0.80).toLocaleString('en-IN')}</span>
                           <span className="text-[10px] text-emerald-600 font-bold mt-1">20% Wholesale Margin</span>
                         </div>
-                        <div 
+                        <div
                           onClick={() => {
                             setRfqQuantity(100);
                             setBundleMultiplier(1);
@@ -726,7 +761,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                           <span className="font-bold text-slate-800">₹{Math.round(basePrice * 0.70).toLocaleString('en-IN')}</span>
                           <span className="text-[10px] text-emerald-600 font-bold mt-1">30% Wholesale Margin</span>
                         </div>
-                        <div 
+                        <div
                           onClick={() => {
                             setRfqQuantity(150);
                             setBundleMultiplier(1);
@@ -743,7 +778,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                 </div>
               );
             })()}
-            
+
             {!isAutoWash && activeOption && activeOption.price > 0 ? (
               activeOption.discountPercentage && activeOption.discountPercentage > 0 ? (
                 <>
@@ -769,7 +804,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
             {!isOrganizer && !isFoodDining && (product.primaryType !== 'SERVICE') && (noRulesDefined ? !['Services', 'Home Services', 'Organizers', 'Transport', 'Rentals', 'Subscriptions', 'B2B', 'Construction Materials'].includes(product.category) : hasProductStock) && (
               <div className="mt-4 p-3 sm:p-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 border border-amber-400 shadow-sm shadow-amber-500/10 transition-all">
                 <div className="flex items-center justify-between gap-3">
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setIsEliteExpanded(!isEliteExpanded)}
                     className="flex items-center gap-2 text-left group cursor-pointer focus:outline-none"
@@ -791,7 +826,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                     </div>
                   </button>
 
-                  <button 
+                  <button
                     onClick={() => {
                       if (user && user.id) {
                         updateUserRole(user.id, isElite ? 'buyer' : 'elite');
@@ -809,7 +844,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                 {isEliteExpanded && (
                   <div className="mt-2.5 pt-2.5 border-t border-white/20 text-xs text-white/95 font-medium animate-in fade-in slide-in-from-top-1 duration-200">
                     <p className="leading-relaxed">
-                      {isElite 
+                      {isElite
                         ? '✓ Elite Membership Active: You enjoy wholesale tiered discounts, verified direct seller contact, and priority support.'
                         : 'Unlock exclusive wholesale tiered discounts, direct seller contact numbers, and priority dispatch on this order.'}
                     </p>
@@ -817,9 +852,9 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                 )}
               </div>
             )}
-            
+
             {/* Dynamic Variant Selectors (For physical/regular retail items with options; service booking widgets like SmartQueueWidget and dining reservation handle options directly) */}
-            {product.options && product.options.length > 0 && !isFoodDining && !hasToken && !isAutoWash && (
+            {product.options && product.options.length > 0 && !isFoodDining && !hasToken && !isAutoWash && !isServiceProduct(product) && !isServiceQueue && !hasService && (
               <div className="mt-8 space-y-6 pt-6 border-t border-slate-200">
                 <div>
                   <div className="flex items-center justify-between mb-3">
@@ -831,14 +866,13 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                     {product.options.map(option => {
                       const isSelected = selectedOptionId === option.id;
                       return (
-                        <div 
+                        <div
                           key={option.id}
                           onClick={() => setSelectedOptionId(option.id)}
-                          className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all border-2 flex flex-col items-start gap-1 cursor-pointer ${
-                            isSelected 
+                          className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all border-2 flex flex-col items-start gap-1 cursor-pointer ${isSelected
                               ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20'
                               : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300'
-                          }`}
+                            }`}
                         >
                           <span>{option.name}</span>
                           {option.discountPercentage && option.discountPercentage > 0 && (
@@ -853,8 +887,71 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                 </div>
               </div>
             )}
-            
-            {product.parameters && Object.keys(product.parameters).length > 0 && !isFoodDining && !hasToken && !isAutoWash && (() => {
+
+            {/* Service Highlights, Facilities & Amenities (When it IS a service listing) */}
+            {(isServiceProduct(product) || hasService || isServiceQueue) && product.parameters && Object.keys(product.parameters).length > 0 && !isFoodDining && !isAutoWash && (() => {
+              const excludedKeys = ['bookingmodel', 'bookingoptions', 'bookingoption', 'servicetype', 'flow', 'allowedfeatures', 'queueenabled'];
+              const publicEntries = Object.entries(product.parameters).filter(([paramName]) => {
+                const cleaned = paramName.toLowerCase().replace(/[\s_-]/g, '');
+                return !excludedKeys.some(k => cleaned.includes(k) || k.includes(cleaned));
+              });
+
+              if (publicEntries.length === 0) return null;
+
+              return (
+                <div className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
+                  <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center">
+                        <Sparkles className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="font-extrabold text-xs sm:text-sm text-slate-800 uppercase tracking-wide">
+                        Salon Amenities & Service Facilities
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
+                      Verified Facility
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {publicEntries.map(([paramName, rawOptions]) => {
+                      const parsedOptions = parseParamOptions(rawOptions, paramName);
+                      if (parsedOptions.length === 0) return null;
+                      const isLocation = paramName.toLowerCase().includes('location') || paramName.toLowerCase().includes('setting');
+                      const isGender = paramName.toLowerCase().includes('gender') || paramName.toLowerCase().includes('focus') || paramName.toLowerCase().includes('audience');
+                      const isAmenities = paramName.toLowerCase().includes('amenit') || paramName.toLowerCase().includes('facility');
+
+                      return (
+                        <div key={paramName} className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/60 shadow-2xs flex flex-col gap-1.5">
+                          <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                            {isLocation ? <MapPin className="w-3 h-3 text-teal-600" /> :
+                              isGender ? <Users className="w-3 h-3 text-blue-600" /> :
+                                isAmenities ? <Sparkles className="w-3 h-3 text-amber-500" /> :
+                                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
+                            {paramName}
+                          </span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {parsedOptions.map((item, idx) => (
+                              <span
+                                key={idx}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-slate-800 border border-slate-200 shadow-2xs"
+                              >
+                                <CheckCircle2 className="w-3 h-3 text-teal-600" />
+                                {item}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Physical Product Variant Selectors (For physical goods with selectable parameters) */}
+            {product.parameters && Object.keys(product.parameters).length > 0 && !isFoodDining && !hasToken && !isAutoWash && !isServiceProduct(product) && !isServiceQueue && !hasService && (() => {
               // Hide internal backend/flow configuration keys and static specification fields (like warranty) from customer variant selection UI
               const excludedKeys = ['bookingmodel', 'bookingoptions', 'bookingoption', 'servicetype', 'flow', 'allowedfeatures', 'queueenabled', 'warranty'];
               const publicEntries = Object.entries(product.parameters).filter(([paramName]) => {
@@ -881,100 +978,100 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                             <button className="text-xs font-bold text-blue-600 hover:underline">Size Guide</button>
                           )}
                         </div>
-                        
+
                         <div className={paramName.toLowerCase() === 'color' ? "flex flex-wrap gap-3" : "flex flex-wrap gap-3"}>
                           {parsedOptions.map(option => {
-                          const isSelected = currentValue === option;
-                          
-                          // Special rendering for 'Color' variants
-                          if (paramName.toLowerCase() === 'color') {
-                            const hexMap: Record<string, string> = {
-                              'white': '#f8fafc',
-                              'black': '#0f172a',
-                              'red': '#ef4444',
-                              'blue': '#3b82f6',
-                              'green': '#22c55e',
-                              'grey': '#94a3b8',
-                              'navy': '#1e3a8a',
-                              'natural titanium': '#a3a3a3',
-                              'blue titanium': '#334155',
-                              'white titanium': '#f1f5f9',
-                              'black titanium': '#1e293b',
-                              'active black': '#09090b',
-                              'cyan cider': '#06b6d4',
-                              'navy blue': '#172554',
-                              'olive green': '#3f6212',
-                              'maroon': '#831843',
-                              'silver': '#e2e8f0'
-                            };
-                            const colorHex = hexMap[option.toLowerCase()] || '#cbd5e1';
-                            
+                            const isSelected = currentValue === option;
+
+                            // Special rendering for 'Color' variants
+                            if (paramName.toLowerCase() === 'color') {
+                              const hexMap: Record<string, string> = {
+                                'white': '#f8fafc',
+                                'black': '#0f172a',
+                                'red': '#ef4444',
+                                'blue': '#3b82f6',
+                                'green': '#22c55e',
+                                'grey': '#94a3b8',
+                                'navy': '#1e3a8a',
+                                'natural titanium': '#a3a3a3',
+                                'blue titanium': '#334155',
+                                'white titanium': '#f1f5f9',
+                                'black titanium': '#1e293b',
+                                'active black': '#09090b',
+                                'cyan cider': '#06b6d4',
+                                'navy blue': '#172554',
+                                'olive green': '#3f6212',
+                                'maroon': '#831843',
+                                'silver': '#e2e8f0'
+                              };
+                              const colorHex = hexMap[option.toLowerCase()] || '#cbd5e1';
+
+                              return (
+                                <button
+                                  key={option}
+                                  onClick={() => setSelectedVariants(prev => ({ ...prev, [paramName]: option }))}
+                                  className={`w-10 h-10 rounded-full border-2 transition-all shadow-sm ${isSelected ? 'border-blue-600 ring-2 ring-blue-100 scale-110' : 'border-slate-300 hover:scale-105'}`}
+                                  style={{ backgroundColor: colorHex }}
+                                  title={option}
+                                />
+                              );
+                            }
+
+                            // Special rendering for 'Vehicle Type' variants
+                            if (paramName.toLowerCase().includes('vehicle')) {
+                              const vehicleIconMap: Record<string, string> = {
+                                'bike': '🏍️',
+                                'car': '🚗',
+                                'truck': '🚚',
+                                'bus': '🚌',
+                                'jcb': '🚜',
+                                'heavy vehicle': '🚜',
+                                'heavy vehicle (jcb)': '🚜',
+                                'heavy automobile': '🚜'
+                              };
+                              const vIcon = vehicleIconMap[option.toLowerCase()] || '🚘';
+                              return (
+                                <button
+                                  key={option}
+                                  onClick={() => setSelectedVariants(prev => ({ ...prev, [paramName]: option }))}
+                                  className={`px-4 py-2.5 rounded-xl font-bold text-sm transition-all border-2 flex items-center gap-2 ${isSelected ? 'bg-cyan-600 text-white border-cyan-600 shadow-md shadow-cyan-600/20' : 'bg-white text-slate-700 border-slate-200 hover:border-cyan-300'}`}
+                                >
+                                  <span className="text-base">{vIcon}</span>
+                                  <span>{option}</span>
+                                </button>
+                              );
+                            }
+
+                            // Default pill rendering for other variants
                             return (
-                              <button 
-                                key={option} 
-                                onClick={() => setSelectedVariants(prev => ({...prev, [paramName]: option}))}
-                                className={`w-10 h-10 rounded-full border-2 transition-all shadow-sm ${isSelected ? 'border-blue-600 ring-2 ring-blue-100 scale-110' : 'border-slate-300 hover:scale-105'}`}
-                                style={{ backgroundColor: colorHex }}
-                                title={option}
-                              />
-                            );
-                          }
-                          
-                          // Special rendering for 'Vehicle Type' variants
-                          if (paramName.toLowerCase().includes('vehicle')) {
-                            const vehicleIconMap: Record<string, string> = {
-                              'bike': '🏍️',
-                              'car': '🚗',
-                              'truck': '🚚',
-                              'bus': '🚌',
-                              'jcb': '🚜',
-                              'heavy vehicle': '🚜',
-                              'heavy vehicle (jcb)': '🚜',
-                              'heavy automobile': '🚜'
-                            };
-                            const vIcon = vehicleIconMap[option.toLowerCase()] || '🚘';
-                            return (
-                              <button 
+                              <button
                                 key={option}
-                                onClick={() => setSelectedVariants(prev => ({...prev, [paramName]: option}))}
-                                className={`px-4 py-2.5 rounded-xl font-bold text-sm transition-all border-2 flex items-center gap-2 ${isSelected ? 'bg-cyan-600 text-white border-cyan-600 shadow-md shadow-cyan-600/20' : 'bg-white text-slate-700 border-slate-200 hover:border-cyan-300'}`}
+                                onClick={() => setSelectedVariants(prev => ({ ...prev, [paramName]: option }))}
+                                className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all border-2 ${isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20' : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300'}`}
                               >
-                                <span className="text-base">{vIcon}</span>
-                                <span>{option}</span>
+                                {option}
                               </button>
                             );
-                          }
-                          
-                          // Default pill rendering for other variants
-                          return (
-                            <button 
-                              key={option}
-                              onClick={() => setSelectedVariants(prev => ({...prev, [paramName]: option}))}
-                              className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all border-2 ${isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20' : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300'}`}
-                            >
-                              {option}
-                            </button>
-                          );
-                        })}
+                          })}
+                        </div>
                       </div>
-                    </div>
                     );
                   })}
                 </div>
-            );
-          })()}
+              );
+            })()}
 
             <div className="mt-4 flex flex-col gap-4">
 
               {/* ── CAR WASH & AUTOMOBILE DEDICATED BOOKING ── */}
               {isAutoWash ? (
                 <CarWashBookingWidget service={product} />
-              ) : hasToken ? (
+              ) : (isServiceQueue || hasToken || hasAppointment || isServiceProduct(product) || hasService) && !isOrganizer && !isFoodDining ? (
                 <SmartQueueWidget service={product} />
               ) : null}
 
               {/* ── FOOD & DINING / RESTAURANT TABLE RESERVATION ── */}
-              {isFoodDining && !hasToken && !isAutoWash && (
+              {isFoodDining && !isAutoWash && (
                 <div className="w-full bg-white rounded-2xl border border-slate-200/90 shadow-md p-3.5 sm:p-6 transition-all">
                   {/* Compact Header with Segmented Switcher */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 sm:pb-4 border-b border-slate-100">
@@ -1001,11 +1098,10 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                           const standardOpt = product.options?.find(o => !o.name.toLowerCase().includes('vip') && !o.name.toLowerCase().includes('private') && !o.name.toLowerCase().includes('cabin') && !o.name.toLowerCase().includes('candlelight') && !o.name.toLowerCase().includes('romantic'));
                           if (standardOpt) setSelectedOptionId(standardOpt.id);
                         }}
-                        className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                          diningMode === 'reserve'
+                        className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${diningMode === 'reserve'
                             ? 'bg-white text-rose-600 shadow-xs border border-slate-200/60'
                             : 'text-slate-600 hover:text-slate-900'
-                        }`}
+                          }`}
                       >
                         <UtensilsCrossed className="w-3.5 h-3.5" />
                         <span>Regular Table</span>
@@ -1017,11 +1113,10 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                           const privateOpt = product.options?.find(o => o.name.toLowerCase().includes('vip') || o.name.toLowerCase().includes('private') || o.name.toLowerCase().includes('cabin') || o.name.toLowerCase().includes('candlelight') || o.name.toLowerCase().includes('romantic') || o.name.toLowerCase().includes('rooftop'));
                           if (privateOpt) setSelectedOptionId(privateOpt.id);
                         }}
-                        className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                          diningMode === 'book'
+                        className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${diningMode === 'book'
                             ? 'bg-rose-600 text-white shadow-xs'
                             : 'text-slate-600 hover:text-slate-900'
-                        }`}
+                          }`}
                       >
                         <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                         <span>Private Cabin</span>
@@ -1095,11 +1190,10 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                                   setPartySize(num);
                                   setIsGuestDropdownOpen(false);
                                 }}
-                                className={`w-full px-3 py-2 text-left text-xs sm:text-sm font-medium flex items-center justify-between transition-colors cursor-pointer ${
-                                  partySize === num
+                                className={`w-full px-3 py-2 text-left text-xs sm:text-sm font-medium flex items-center justify-between transition-colors cursor-pointer ${partySize === num
                                     ? 'bg-rose-50 text-rose-600 font-bold'
                                     : 'text-slate-700 hover:bg-slate-50'
-                                }`}
+                                  }`}
                               >
                                 <span>{num} {num === 1 ? 'Guest' : 'Guests'}</span>
                                 {partySize === num && (
@@ -1136,11 +1230,10 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                                   setReservationDate(opt.val);
                                   setIsDateDropdownOpen(false);
                                 }}
-                                className={`w-full px-3.5 py-2 text-left text-xs sm:text-sm font-medium flex items-center justify-between transition-colors cursor-pointer ${
-                                  reservationDate === opt.val
+                                className={`w-full px-3.5 py-2 text-left text-xs sm:text-sm font-medium flex items-center justify-between transition-colors cursor-pointer ${reservationDate === opt.val
                                     ? 'bg-rose-50 text-rose-600 font-bold'
                                     : 'text-slate-700 hover:bg-slate-50'
-                                }`}
+                                  }`}
                               >
                                 <span>{opt.label}</span>
                                 {reservationDate === opt.val && (
@@ -1261,10 +1354,10 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                           alert(`🎉 Reservation Confirmed!\n\nBooking ID: ${newBooking.id}\nRestaurant: ${product.seller}\nParty Size: ${partySize} Guests\nDate: ${reservationDate}\nSlot: ${reservationTime}\nSetup: ${selectedPlan}\n\n✓ Instant SMS & WhatsApp notification sent to customer.\n✓ Live reservation alert dispatched to seller operations desk.`);
                         })}
                       >
-                        <UtensilsCrossed className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /> 
+                        <UtensilsCrossed className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                         <span className="truncate">
-                          {diningMode === 'reserve' 
-                            ? `Confirm Table (${partySize} ${partySize === 1 ? 'Guest' : 'Guests'})` 
+                          {diningMode === 'reserve'
+                            ? `Confirm Table (${partySize} ${partySize === 1 ? 'Guest' : 'Guests'})`
                             : `Book Private Dining — ₹${currentActivePrice.toLocaleString('en-IN')}`}
                         </span>
                       </button>
@@ -1599,7 +1692,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                                 read: false
                               });
                               localStorage.setItem('markat_seller_notifications', JSON.stringify(sellerNotifs));
-                            } catch {}
+                            } catch { }
 
                             setOrganizerSubmitted(true);
                             alert(`🎉 Event Planning Request Sent!\n\nInquiry ID: ${inquiry.id}\nOrganizer: ${product.seller}\nOccasion: ${eventType}\nDate: ${eventDate}\nEstimated Guests: ${guestCount}\nCity: ${inquiry.eventCity}\n\n✓ The organizer's event director will review your vision and send over photos, previous stage portfolios, and quotation.`);
@@ -1670,7 +1763,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
               )}
 
               {/* ── SERVICE-ONLY ACTION FLOW (when not queue, not dining, not organizer, not autowash) ── */}
-              {hasService && !isOrganizer && !isFoodDining && !hasToken && !hasAppointment && !hasRFQ && !hasMeeting && !isRetail && !isAutoWash && (
+              {hasService && !isOrganizer && !isFoodDining && !isServiceQueue && !hasToken && !hasAppointment && !hasRFQ && !hasMeeting && !isRetail && !isAutoWash && (
                 <div className="flex flex-col gap-3 w-full p-4 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-2xl border border-teal-200 shadow-2xs">
                   <div className="flex items-center justify-between">
                     <div>
@@ -1695,7 +1788,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                         try {
                           const existing = JSON.parse(localStorage.getItem('markat_service_bookings') || '[]');
                           localStorage.setItem('markat_service_bookings', JSON.stringify([inquiry, ...existing]));
-                          
+
                           const customerNotifs = JSON.parse(localStorage.getItem(`markat_notifs_${user?.id || 'guest'}`) || '[]');
                           customerNotifs.unshift({
                             id: `NOTIF-${Date.now()}`,
@@ -1706,7 +1799,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                             read: false
                           });
                           localStorage.setItem(`markat_notifs_${user?.id || 'guest'}`, JSON.stringify(customerNotifs));
-                        } catch {}
+                        } catch { }
                         alert(`🎉 Booking Request Sent to ${product.seller}!\n\nReference ID: ${inquiry.id}\nService: ${product.name}\nEstimated Rate: ₹${currentActivePrice.toLocaleString('en-IN')}\n\n✓ The service specialist will contact you promptly.`);
                       })}
                     >
@@ -1793,7 +1886,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
 
             {/* Communication & Resource Links */}
             <div className="mt-3.5 pt-3 border-t border-slate-100 flex flex-wrap items-center gap-2">
-              <a 
+              <a
                 href={`https://wa.me/919876543210?text=${encodeURIComponent(`Hello! I am inquiring about "${product.name}" on MarkatVerse. Could you share more details and availability?`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -1802,21 +1895,21 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                 <MessageCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 <span>WhatsApp</span>
               </a>
-              <a 
+              <a
                 href="tel:+919876543210"
                 className="flex items-center justify-center gap-1.5 py-2 px-3 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition-all shadow-xs"
               >
                 <Phone className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                 <span>Call Store</span>
               </a>
-              <Link 
+              <Link
                 href={`/shop/${encodeURIComponent((product.seller || 'unknown').toLowerCase().replace(/ /g, '-'))}`}
                 className="flex items-center justify-center gap-1 py-2 px-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition-all shadow-xs"
               >
                 <span>Store Catalog & Hours →</span>
               </Link>
             </div>
-            
+
             <div className="flex gap-6 mt-3.5 pt-3 border-t border-slate-100">
               <div>
                 <div className="text-[10px] text-slate-500 font-medium mb-0.5">Seller Rating</div>
@@ -1839,7 +1932,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
       {/* Bottom Section: Related Products */}
       <div className="mt-20 pt-10 border-t border-slate-200">
         <h2 className="text-2xl font-bold text-slate-900 mb-8">More from {product.seller}</h2>
-        
+
         <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-6">
           {displayedRelated.map(relatedItem => (
             <Link key={relatedItem.id} href={`/product/${relatedItem.id}`} className="no-underline group">
@@ -1870,7 +1963,7 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl relative">
-            <button 
+            <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
             >
@@ -1878,29 +1971,29 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
             </button>
             <h3 className="text-xl font-bold text-slate-900 mb-2">Request Quote</h3>
             <p className="text-sm text-slate-500 mb-6">Send an inquiry directly to {product.seller}</p>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Required Quantity</label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   value={rfqQuantity}
                   onChange={(e) => setRfqQuantity(e.target.value === '' ? '' : parseInt(e.target.value))}
                   min={product.moq || 1}
-                  className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:border-blue-500" 
+                  className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
                 />
                 {product.moq && <p className="text-xs text-amber-600 mt-1">Minimum Order Quantity is {product.moq}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Message / Requirements</label>
-                <textarea 
+                <textarea
                   value={rfqMessage}
                   onChange={(e) => setRfqMessage(e.target.value)}
                   placeholder="Describe your requirements, customisation needs, etc."
                   className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:border-blue-500 h-32 resize-none"
                 />
               </div>
-              <button 
+              <button
                 onClick={submitRfq}
                 className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg transition-colors shadow-md"
               >

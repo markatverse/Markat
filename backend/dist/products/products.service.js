@@ -98,11 +98,11 @@ let ProductsService = class ProductsService {
             const showOutOfRange = data?.showOutOfRange === true;
             const productsNoRadiusLimit = data?.productsNoRadiusLimit !== false;
             const distanceWeight = data?.distanceWeight ?? 50;
-            const serviceCategories = ['Services', 'Home Services', 'Transport', 'Rentals', 'Organizers', 'Beauty', 'Salon', 'Home', 'Professional'];
+            const serviceCategories = ['Services', 'Home Services', 'Transport', 'Rentals', 'Organizers', 'Beauty', 'Salon', 'Salon & Parlour', 'Salon & Parlor', 'Spa', 'Beauty Parlour', 'Home', 'Professional'];
             const isServiceItem = (p) => {
                 if (p.primaryType)
                     return p.primaryType === 'SERVICE';
-                return serviceCategories.includes(p.categoryName || '');
+                return serviceCategories.includes(p.categoryName || '') || (p.categoryName || '').toLowerCase().includes('salon') || (p.categoryName || '').toLowerCase().includes('parlour');
             };
             products = withDistances.filter(p => {
                 if (p._distance === Infinity)

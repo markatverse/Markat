@@ -94,8 +94,22 @@ export default function SmartQueueWidget({ service }: { service: any }) {
     let paramServices: string[] = [];
     if (service.parameters) {
       for (const key of Object.keys(service.parameters)) {
-        if (Array.isArray(service.parameters[key]) && service.parameters[key].length > 0) {
-          paramServices = [...paramServices, ...service.parameters[key]];
+        const lowerKey = key.toLowerCase();
+        if (
+          lowerKey.includes('amenit') || lowerKey.includes('location') || lowerKey.includes('gender') ||
+          lowerKey.includes('setting') || lowerKey.includes('facility') || lowerKey.includes('booking') ||
+          lowerKey.includes('focus') || lowerKey.includes('audience') || lowerKey.includes('hygiene') ||
+          lowerKey.includes('warranty') || lowerKey.includes('stylist') || lowerKey.includes('chair')
+        ) {
+          continue;
+        }
+        if (
+          lowerKey.includes('service') || lowerKey.includes('treatment') || lowerKey.includes('package') ||
+          lowerKey.includes('menu') || lowerKey.includes('hair') || lowerKey.includes('beauty')
+        ) {
+          if (Array.isArray(service.parameters[key]) && service.parameters[key].length > 0) {
+            paramServices = [...paramServices, ...service.parameters[key]];
+          }
         }
       }
     }

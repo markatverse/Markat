@@ -40,9 +40,13 @@ export function useAdminRole() {
   const context = useContext(AdminRoleContext);
   if (context === undefined) {
     return {
+      currentAdminRole: 'super_admin' as AdminRole,
+      setCurrentAdminRole: () => {},
       currentRole: 'SUPER_ADMIN' as any,
       setCurrentRole: () => {},
       hasPermission: () => true,
+      canEdit: () => true,
+      canToggleSector: () => true,
     };
   }
   return context;

@@ -10,7 +10,13 @@ export default function ExceptionCenter() {
   const [exceptions, setExceptions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('PENDING');
-  const { token } = useAuth();
+
+  const getToken = () => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('token') || localStorage.getItem('adminToken') || '';
+    }
+    return '';
+  };
 
   useEffect(() => {
     fetchExceptions();
@@ -19,6 +25,7 @@ export default function ExceptionCenter() {
   const fetchExceptions = async () => {
     try {
       setLoading(true);
+      const token = getToken();
       const res = await fetch(`${API_URL}/api/admin/exceptions?status=${statusFilter}`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -41,6 +48,7 @@ export default function ExceptionCenter() {
     if (notes === null) return;
 
     try {
+      const token = getToken();
       const res = await fetch(`${API_URL}/api/admin/exceptions/${id}/resolve`, {
         method: 'POST',
         headers: {

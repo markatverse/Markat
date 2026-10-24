@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useProducts, Category, ListingType, BusinessModel, FeatureRule, FormField } from '@/context/ProductContext';
 import { useAdminRole } from '@/context/AdminRoleContext';
 import { ShieldAlert, ChevronRight, Check, Plus, Trash2, Settings, List, Tags, Shield, CreditCard, Maximize2, Minimize2 } from 'lucide-react';
+import { getCategoryEmoji, getSubcategoryEmoji } from '@/utils/categoryEmoji';
 
 export default function CategoryRelationsPage() {
   const { canEdit } = useAdminRole();
@@ -91,18 +92,6 @@ export default function CategoryRelationsPage() {
     { icon: '🚗', label: 'VEHICLE', type: 'VEHICLE' },
   ];
 
-  const CAT_EMOJIS: Record<string, string> = {
-    'Electronics': '💻',
-    'Construction': '🏗️',
-    'Agriculture': '🌾',
-    'Beauty': '💅',
-    'Healthcare': '🩺',
-    'Home': '🏠',
-    'Professional': '💼',
-    'Car Wash': '🧼',
-    'Sales & Rentals': '🔑',
-  };
-
   const addSubcategory = () => {
     if (!hasEditPermission) return;
     const newName = window.prompt("Enter new subcategory name:");
@@ -175,7 +164,7 @@ export default function CategoryRelationsPage() {
                 </div>
                 <div className="p-1 md:p-2 space-y-0 md:space-y-1">
                   {cats.map(cat => {
-                    const emoji = CAT_EMOJIS[cat.name] || '🏷️';
+                    const emoji = getCategoryEmoji(cat);
                     return (
                       <button
                         key={cat.id}
@@ -208,7 +197,10 @@ export default function CategoryRelationsPage() {
                 <div className="flex items-center gap-1.5 md:gap-2 mb-0 md:mb-0.5">
                   <span className="text-[8px] md:text-[10px] font-black text-indigo-400 uppercase tracking-widest px-1.5 md:px-2 py-0.5 bg-indigo-500/10 rounded-full border border-indigo-500/20">{selectedCat.primaryType}</span>
                 </div>
-                <h2 className="text-base md:text-xl font-black text-white">{selectedCat.name}</h2>
+                <h2 className="text-base md:text-xl font-black text-white flex items-center gap-2.5">
+                  <span className="text-2xl shrink-0">{getCategoryEmoji(selectedCat)}</span>
+                  <span>{selectedCat.name}</span>
+                </h2>
               </div>
               <div className="flex items-center gap-2">
                 <button 
@@ -416,8 +408,8 @@ export default function CategoryRelationsPage() {
                       {draft.subcategories.map((sub, idx) => (
                         <div key={idx} className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 flex items-center justify-between group hover:border-indigo-500/50 transition-colors">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
-                              <List className="w-4 h-4" />
+                            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-base shrink-0 shadow-inner">
+                              <span>{getSubcategoryEmoji(sub.name, selectedCat?.name)}</span>
                             </div>
                             <span className="font-bold text-slate-200">{sub.name}</span>
                           </div>

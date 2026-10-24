@@ -17,8 +17,8 @@ export default function AdminLoginPage() {
 
   useEffect(() => {
     if (user) {
-      const role = user.role?.toUpperCase();
-      if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
+      const role = user.role?.toUpperCase() || '';
+      if (role.includes('ADMIN')) {
         router.replace('/admin');
       } else if (['SELLER', 'BUSINESS'].includes(role)) {
         router.replace('/seller/dashboard');
@@ -45,7 +45,8 @@ export default function AdminLoginPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Login failed');
 
-      if (data.user.role.toUpperCase() !== 'SUPER_ADMIN' && data.user.role.toUpperCase() !== 'ADMIN') {
+      const roleUpper = (data.user?.role || '').toUpperCase();
+      if (!roleUpper.includes('ADMIN')) {
         throw new Error('Unauthorized. Admin access required.');
       }
 

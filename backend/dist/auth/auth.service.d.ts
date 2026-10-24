@@ -69,12 +69,6 @@ export declare class AuthService {
         };
     }>;
     getMe(token: string): Promise<{
-        id: string;
-        markatId: string | null;
-        email: string | null;
-        phone: string | null;
-        name: string;
-        role: string;
         business: ({
             wallet: {
                 id: string;
@@ -88,27 +82,33 @@ export declare class AuthService {
                 owedToPlatform: number;
             } | null;
         } & {
-            id: string;
-            name: string;
-            createdAt: Date;
-            updatedAt: Date;
-            businessCode: string | null;
-            userId: string;
-            logo: string | null;
-            description: string | null;
-            businessModel: import(".prisma/client").$Enums.MainType;
             businessType: string;
             sector: string | null;
-            address: string | null;
+            id: string;
+            name: string;
+            userId: string;
+            createdAt: Date;
+            updatedAt: Date;
             pincode: string | null;
             latitude: number | null;
             longitude: number | null;
+            businessCode: string | null;
+            logo: string | null;
+            description: string | null;
+            businessModel: import(".prisma/client").$Enums.MainType;
+            address: string | null;
             gstNumber: string | null;
+            panNumber: string | null;
+            aadharNumber: string | null;
+            idProofType: string | null;
+            idProofUrl: string | null;
             businessHours: import("@prisma/client/runtime/library").JsonValue | null;
             verified: boolean;
             verificationStatus: string;
             verificationLevel: number;
             verificationNotes: string | null;
+            kycCallStatus: string | null;
+            kycNotes: string | null;
             capabilities: string[];
             maxListings: number;
             commissionType: string;
@@ -117,6 +117,12 @@ export declare class AuthService {
             subscriptionStartDate: Date | null;
             subscriptionEndDate: Date | null;
         }) | null;
+        id: string;
+        name: string;
+        markatId: string | null;
+        email: string | null;
+        phone: string | null;
+        role: string;
     }>;
     forgotPassword(identifier: string): Promise<{
         message: string;

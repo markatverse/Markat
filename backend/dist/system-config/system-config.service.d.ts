@@ -45,11 +45,11 @@ export declare class SystemConfigService {
     deletePaymentMethod(id: string): Promise<any[]>;
     getTaxRules(): Promise<{
         id: string;
-        updatedAt: Date;
         name: string;
-        rate: number;
         status: string;
         createdAt: Date;
+        updatedAt: Date;
+        rate: number;
     }[]>;
     addTaxRule(data: {
         name: string;
@@ -57,11 +57,11 @@ export declare class SystemConfigService {
         status?: string;
     }): Promise<{
         id: string;
-        updatedAt: Date;
         name: string;
-        rate: number;
         status: string;
         createdAt: Date;
+        updatedAt: Date;
+        rate: number;
     }>;
     updateTaxRule(id: string, data: {
         name?: string;
@@ -69,18 +69,18 @@ export declare class SystemConfigService {
         status?: string;
     }): Promise<{
         id: string;
-        updatedAt: Date;
         name: string;
-        rate: number;
         status: string;
         createdAt: Date;
+        updatedAt: Date;
+        rate: number;
     }>;
     deleteTaxRule(id: string): Promise<{
         id: string;
-        updatedAt: Date;
         name: string;
-        rate: number;
         status: string;
         createdAt: Date;
+        updatedAt: Date;
+        rate: number;
     }>;
 }

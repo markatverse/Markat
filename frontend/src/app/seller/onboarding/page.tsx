@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import LocationPicker from '@/components/LocationPicker';
 import toast from 'react-hot-toast';
-import { User, Phone, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { User, Phone, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, ArrowLeft, UploadCloud, FileCheck, FileText, CheckCircle2 } from 'lucide-react';
 
 import { getApiUrl } from '@/utils/api';
+import { validateGst, validatePan, validateAadhaar, formatAadhaarInput } from '@/utils/kycValidation';
 
 const API_URL = getApiUrl();
 
@@ -50,9 +51,15 @@ export default function SellerOnboarding() {
   const [emailOtp, setEmailOtp] = useState('');
   const [otpTimer, setOtpTimer] = useState(300);
 
-  // Business Info
+  // Business Info & KYC
   const [businessName, setBusinessName] = useState('');
   const [gstNumber, setGstNumber] = useState('');
+  const [panNumber, setPanNumber] = useState('');
+  const [aadharNumber, setAadharNumber] = useState('');
+  const [idProofType, setIdProofType] = useState<'AADHAAR' | 'PAN' | 'GST'>('AADHAAR');
+  const [idProofUrl, setIdProofUrl] = useState('');
+  const [idProofFileName, setIdProofFileName] = useState('');
+  const [isUploadingDoc, setIsUploadingDoc] = useState(false);
 
   // Business Type
   const [primaryOffering, setPrimaryOffering] = useState('');
@@ -213,6 +220,7 @@ export default function SellerOnboarding() {
       'Grocery & Essentials': ['All']
     },
     'Service Provider': {
+      'Automobile & Car Wash': ['All'],
       'Food & Dining / Restaurant': ['All'],
       'Salon & Parlor': ['All'],
       'Healthcare & Doctor': ['All'],
@@ -328,12 +336,60 @@ export default function SellerOnboarding() {
     }
   };
 
+  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size exceeds 10MB limit.');
+      return;
+    }
+    setIsUploadingDoc(true);
+    setIdProofFileName(file.name);
+    try {
+      const formData = new FormData();
+      formData.append('files', file);
+      const token = registeredToken || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
+      const res = await fetch(`${API_URL}/upload`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.urls?.[0]) {
+          setIdProofUrl(data.urls[0]);
+          toast.success('Document uploaded!');
+          return;
+        }
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setIdProofUrl(reader.result as string);
+        toast.success('Document attached!');
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setIdProofUrl(reader.result as string);
+        toast.success('Document attached!');
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setIsUploadingDoc(false);
+    }
+  };
+
   const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
       const token = registeredToken || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
       let res: Response;
+      const cleanedAadhaar = aadharNumber.replace(/\D/g, '');
+      const cleanedGst = gstNumber.trim().toUpperCase();
+      const cleanedPan = panNumber.trim().toUpperCase() || (cleanedGst.length === 15 ? cleanedGst.substring(2, 12) : '');
+
       try {
         res = await fetch(`${API_URL}/sellers`, {
           method: 'POST',
@@ -353,7 +409,11 @@ export default function SellerOnboarding() {
             longitude: longitude || 77.2090,
             email: email || '',
             phone: phone || '',
-            gstNumber: gstNumber || '',
+            gstNumber: cleanedGst,
+            panNumber: cleanedPan,
+            aadharNumber: cleanedAadhaar,
+            idProofType,
+            idProofUrl,
             businessHours,
           }),
         });
@@ -674,9 +734,122 @@ export default function SellerOnboarding() {
                 <h2 className="text-2xl font-bold text-slate-900 mb-1">🏢 Business Profile</h2>
                 <p className="text-slate-500 text-sm">Basic details about your business and location</p>
               </div>
-              <form onSubmit={e => { e.preventDefault(); setStep(3); }} className="flex flex-col gap-6">
+              <form onSubmit={e => {
+                e.preventDefault();
+                if (!gstNumber && !panNumber) {
+                  toast.error('Please enter either a valid GSTIN or PAN number');
+                  return;
+                }
+                if (gstNumber && !validateGst(gstNumber).valid) {
+                  toast.error(validateGst(gstNumber).message || 'Invalid GST number');
+                  return;
+                }
+                if (!gstNumber && panNumber && !validatePan(panNumber).valid) {
+                  toast.error(validatePan(panNumber).message || 'Invalid PAN number');
+                  return;
+                }
+                if (!validateAadhaar(aadharNumber).valid) {
+                  toast.error(validateAadhaar(aadharNumber).message || 'Valid 12-digit Aadhaar number is required');
+                  return;
+                }
+                if (!idProofUrl) {
+                  toast.error('Please upload your real Aadhaar, PAN, or GST proof document');
+                  return;
+                }
+                setStep(3);
+              }} className="flex flex-col gap-6">
                 <div><label className={labelClasses}>Legal Business Name <span className="text-red-500">*</span></label><input required type="text" value={businessName} onChange={e => setBusinessName(e.target.value)} placeholder="e.g. ACME Corp" className={inputClasses} /></div>
-                <div><label className={labelClasses}>GST / PAN Number (Optional)</label><input type="text" value={gstNumber} onChange={e => setGstNumber(e.target.value)} placeholder="e.g. 22AAAAA0000A1Z5" className={inputClasses} /></div>
+                
+                {/* Tax ID & PAN */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClasses}>GSTIN (15-Char)</label>
+                    <input 
+                      type="text" 
+                      maxLength={15}
+                      value={gstNumber} 
+                      onChange={e => {
+                        const val = e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, '');
+                        setGstNumber(val);
+                        if (val.length === 15) setPanNumber(val.substring(2, 12));
+                      }} 
+                      placeholder="e.g. 22AAAAA0000A1Z5" 
+                      className={inputClasses} 
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClasses}>PAN Number (10-Char) <span className="text-red-500">*</span></label>
+                    <input 
+                      type="text" 
+                      maxLength={10}
+                      value={panNumber} 
+                      onChange={e => setPanNumber(e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, ''))} 
+                      placeholder="e.g. ABCDE1234F" 
+                      className={inputClasses} 
+                    />
+                  </div>
+                </div>
+
+                {/* Aadhaar Number */}
+                <div>
+                  <label className={labelClasses}>Aadhaar Number (12-Digit) <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    maxLength={14}
+                    value={aadharNumber} 
+                    onChange={e => setAadharNumber(formatAadhaarInput(e.target.value))} 
+                    placeholder="XXXX XXXX XXXX" 
+                    className={inputClasses} 
+                  />
+                </div>
+
+                {/* Document Proof Upload */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className={labelClasses}>Upload Real ID Proof Document <span className="text-red-500">*</span></label>
+                    <select
+                      value={idProofType}
+                      onChange={e => setIdProofType(e.target.value as any)}
+                      className="text-xs bg-slate-100 border border-slate-200 rounded p-1 font-semibold"
+                    >
+                      <option value="AADHAAR">Aadhaar Card</option>
+                      <option value="PAN">PAN Card</option>
+                      <option value="GST">GST Certificate</option>
+                    </select>
+                  </div>
+
+                  {!idProofUrl ? (
+                    <label className="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer bg-white text-center transition-all">
+                      <input 
+                        type="file" 
+                        accept="image/png,image/jpeg,image/webp,application/pdf"
+                        onChange={handleDocumentUpload} 
+                        disabled={isUploadingDoc}
+                        className="hidden" 
+                      />
+                      <UploadCloud className="w-6 h-6 text-slate-400 mb-1" />
+                      <span className="text-xs font-bold text-slate-700">
+                        {isUploadingDoc ? 'Uploading...' : `Upload Real ${idProofType} Card / Certificate`}
+                      </span>
+                      <span className="text-[10px] text-slate-400 mt-0.5">PDF, PNG, JPG (Max 10MB)</span>
+                    </label>
+                  ) : (
+                    <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
+                        <FileCheck className="w-4 h-4 text-emerald-600" />
+                        <span>{idProofFileName || `${idProofType} Proof Attached`}</span>
+                      </div>
+                      <button 
+                        type="button" 
+                        onClick={() => { setIdProofUrl(''); setIdProofFileName(''); }}
+                        className="text-xs font-bold text-rose-600 hover:underline"
+                      >
+                        Change
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex justify-between items-center mt-2 border-t border-slate-100 pt-6 mb-4">
                   <h3 className="text-sm font-bold text-slate-800">Pinpoint your Location on Map</h3>
                 </div>

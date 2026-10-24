@@ -68,6 +68,9 @@ let ServiceQueueController = class ServiceQueueController {
     markWaiting(tokenId) {
         return this.serviceQueueService.markWaiting(tokenId);
     }
+    startServing(tokenId, resourceId) {
+        return this.serviceQueueService.startServing(tokenId, resourceId);
+    }
     addStaff(queueId, body) {
         return this.serviceQueueService.addStaff(queueId, body);
     }
@@ -203,6 +206,14 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ServiceQueueController.prototype, "markWaiting", null);
+__decorate([
+    Patch('token/:tokenId/start'),
+    __param(0, Param('tokenId')),
+    __param(1, Body('resourceId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], ServiceQueueController.prototype, "startServing", null);
 __decorate([
     Post(':queueId/staff'),
     __param(0, Param('queueId')),

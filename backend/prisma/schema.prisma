@@ -46,11 +46,17 @@ model Business {
   latitude     Float?
   longitude    Float?
   gstNumber    String?
+  panNumber    String?
+  aadharNumber String?
+  idProofType  String?
+  idProofUrl   String?
   businessHours Json?
   verified     Boolean  @default(false)
-  verificationStatus String @default("PENDING") // PENDING, ACTION_REQUIRED, AUTO_VERIFIED, ADMIN_REVIEW_REQUIRED
+  verificationStatus String @default("PENDING") // PENDING, ACTION_REQUIRED, AUTO_VERIFIED, ADMIN_REVIEW_REQUIRED, APPROVED, REJECTED
   verificationLevel  Int    @default(0) // 0=None, 1=Basic, 2=Manual
   verificationNotes  String?
+  kycCallStatus String? @default("PENDING") // PENDING, CALLED, VERIFIED
+  kycNotes     String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

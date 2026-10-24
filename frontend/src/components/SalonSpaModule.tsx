@@ -95,10 +95,10 @@ export default function SalonSpaModule({
             <Scissors className="w-4 h-4 text-violet-500" />
           </div>
           <div className="text-2xl font-black text-slate-900">
-            {chairResources.filter(c => c.status === 'In Session').length} / {chairResources.length}
+            {chairResources.filter((c: any) => c.status === 'In Session').length} / {chairResources.length}
           </div>
           <span className="text-[11px] font-semibold text-emerald-600">
-            {chairResources.filter(c => c.status === 'Available').length} chairs open right now
+            {chairResources.filter((c: any) => c.status === 'Available').length} chairs open right now
           </span>
         </div>
 

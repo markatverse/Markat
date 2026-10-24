@@ -35,8 +35,11 @@ let SellersController = class SellersController {
     findAll() {
         return this.sellersService.findAll();
     }
-    updateStatus(id, status) {
-        return this.sellersService.updateStatus(id, status);
+    updateStatus(id, status, kycCallStatus, kycNotes) {
+        return this.sellersService.updateStatus(id, status, { kycCallStatus, kycNotes });
+    }
+    updateKyc(id, body) {
+        return this.sellersService.updateKyc(id, body);
     }
     updateUser(userId, data) {
         return this.sellersService.updateUser(userId, data);
@@ -63,10 +66,20 @@ __decorate([
     Patch(':id/status'),
     __param(0, Param('id')),
     __param(1, Body('status')),
+    __param(2, Body('kycCallStatus')),
+    __param(3, Body('kycNotes')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], SellersController.prototype, "updateStatus", null);
+__decorate([
+    Patch(':id/kyc'),
+    __param(0, Param('id')),
+    __param(1, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], SellersController.prototype, "updateKyc", null);
 __decorate([
     Patch('user/:userId'),
     __param(0, Param('userId')),

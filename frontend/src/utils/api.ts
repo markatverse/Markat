@@ -29,7 +29,7 @@ const inFlightRequests = new Map<string, Promise<any>>();
 
 export const fastFetch = async <T = any>(
   endpoint: string, 
-  options?: RequestInit & { ttlMs?: number }
+  options?: RequestInit & { ttlMs?: number; timeoutMs?: number }
 ): Promise<T | null> => {
   const base = getApiUrl();
   const url = endpoint.startsWith('http') ? endpoint : `${base}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
@@ -51,7 +51,11 @@ export const fastFetch = async <T = any>(
 
   const fetchPromise = (async () => {
     try {
-      const res = await fetch(url, options);
+      const { timeoutMs, ttlMs: _ttlMs, ...fetchInit } = options || {};
+      const signal = timeoutMs && typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal
+        ? AbortSignal.timeout(timeoutMs)
+        : fetchInit.signal;
+      const res = await fetch(url, { ...fetchInit, signal });
       if (!res.ok) return null;
       const data = await res.json();
       if ((!options?.method || options.method === 'GET') && ttl > 0) {

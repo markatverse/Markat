@@ -22,6 +22,11 @@ export default function ProductGrid({ products: propProducts, limit, category, p
   const { getTopCategories, trends } = useUserTrends();
   const router = useRouter();
   const [showLocationToast, setShowLocationToast] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (contextProducts.length > 0 && !personalized && !recent) setShowLocationToast(true);
@@ -96,7 +101,7 @@ export default function ProductGrid({ products: propProducts, limit, category, p
   // Limit items if specified
   const finalProducts = limit ? productsToRender.slice(0, limit) : productsToRender;
 
-  if (isLoading) {
+  if (!mounted || isLoading) {
     return <ProductGridSkeleton count={limit || 8} />;
   }
 
