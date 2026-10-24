@@ -69,7 +69,10 @@ export default function SmartQueueWidget({ service }: { service: any }) {
   
   interface ServiceItem { label: string; price: number; originalPrice?: number; discount?: number; emoji: string; }
   const cat = service.category?.toLowerCase() || '';
+  const subcat = service.subcategory?.toLowerCase() || '';
+  const isAuto = cat.includes('car wash') || cat.includes('wash') || cat.includes('automobile') || cat.includes('auto') || cat.includes('vehicle') || cat.includes('mechanic') || subcat.includes('wash') || subcat.includes('automobile');
   const emoji = 
+    isAuto ? '🚗' :
     cat.includes('doctor') || cat.includes('clinic') || cat.includes('medical') || cat.includes('hospital') || cat.includes('dentist') ? '🩺' : 
     cat.includes('spa') || cat.includes('massage') ? '💆‍♀️' : 
     cat.includes('salon') || cat.includes('saloon') || cat.includes('beauty') || cat.includes('parlor') || cat.includes('parlour') ? '💇‍♀️' :
@@ -403,7 +406,7 @@ export default function SmartQueueWidget({ service }: { service: any }) {
         <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-4">
           {status.resources && status.resources.length > 0 && (
             <div>
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Select Space / Chair <span className="normal-case font-medium text-slate-400">(Optional)</span></p>
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">{isAuto ? 'Select Service Bay / Station' : 'Select Space / Chair'} <span className="normal-case font-medium text-slate-400">(Optional)</span></p>
               <div className="flex flex-wrap gap-2">
                 {status.resources.map(r => (
                   <button key={r.id} onClick={() => setSelectedResource(r.id === selectedResource ? null : r.id)}
@@ -416,7 +419,7 @@ export default function SmartQueueWidget({ service }: { service: any }) {
           )}
           {status.staff && status.staff.length > 0 && (
             <div>
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Select Staff <span className="normal-case font-medium text-slate-400">(Optional)</span></p>
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">{isAuto ? 'Select Service Specialist / Technician' : 'Select Staff'} <span className="normal-case font-medium text-slate-400">(Optional)</span></p>
               <div className="flex flex-wrap gap-2">
                 {status.staff.map(s => (
                   <button key={s.id} onClick={() => setSelectedStaff(s.id === selectedStaff ? null : s.id)}
