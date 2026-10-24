@@ -10,7 +10,7 @@ interface DynamicFormEngineProps {
   onCancel: () => void;
   isService?: boolean;
   sellerSector?: string;
-  activeVertical?: 'FOOD' | 'SALON' | 'DOCTOR' | 'NONE';
+  activeVertical?: 'FOOD' | 'SALON' | 'DOCTOR' | 'EVENT' | 'AUTOWASH' | 'NONE';
 }
 
 export default function DynamicFormEngine({ 
@@ -170,6 +170,12 @@ export default function DynamicFormEngine({
     const sName = userSector.toLowerCase().trim();
 
     // 1. Check active vertical override if provided
+    if (activeVertical === 'AUTOWASH') {
+      return ['car wash & automobile', 'car wash', 'automobile & car wash', 'mechanic'].includes(cName);
+    }
+    if (activeVertical === 'EVENT') {
+      return ['event planner', 'event & party', 'events & parties', 'events', 'wedding', 'party', 'organizers'].includes(cName) || cName.includes('event') || cName.includes('organizer') || cName.includes('wedding') || cName.includes('party');
+    }
     if (activeVertical === 'DOCTOR') {
       return ['healthcare', 'doctor', 'clinic', 'dentist', 'physiotherapy', 'medical'].includes(cName);
     }
@@ -183,7 +189,22 @@ export default function DynamicFormEngine({
     // 2. If no sector registered, allow all categories of primary type
     if (!sName) return true;
 
-    // 3. Exact matching or sector-specific rules
+    // 3. Strict sector-specific rules
+
+    // AUTOMOBILE & CAR WASH (Strictly automotive services ONLY — NEVER show carpenter, plumber, etc.)
+    if (
+      sName.includes('car wash') || 
+      sName.includes('automobile') || 
+      sName.includes('mechanic') || 
+      sName.includes('auto repair') ||
+      (sName.includes('auto') && !sName.includes('author'))
+    ) {
+      return ['car wash & automobile', 'car wash', 'automobile & car wash', 'mechanic'].includes(cName);
+    }
+
+    if (sName.includes('organizer') || sName.includes('event') || sName.includes('wedding') || sName.includes('party')) {
+      return ['event planner', 'organizers', 'photographer'].includes(cName) || cName.includes('organizer') || cName.includes('event') || cName.includes('wedding') || cName.includes('party');
+    }
     if (sName.includes('doctor') || sName.includes('health') || sName.includes('clinic')) {
       return ['healthcare', 'doctor', 'dentist', 'physiotherapy', 'medical'].includes(cName);
     }
@@ -193,17 +214,23 @@ export default function DynamicFormEngine({
     if (sName.includes('food') || sName.includes('restaurant') || sName.includes('dining') || sName.includes('cafe')) {
       return ['food & dining', 'food & dining / restaurant', 'restaurant', 'cafe', 'food shop'].includes(cName);
     }
-    if (sName.includes('home repair') || sName.includes('repair') || sName.includes('electrician') || sName.includes('plumb')) {
-      return ['home', 'plumber', 'electrician', 'carpenter', 'mechanic', 'painter', 'cleaner'].includes(cName);
+
+    // HOME SERVICES & REPAIR (Domestic household maintenance only — strictly domestic trades, no automobile)
+    if (
+      sName.includes('home repair') || 
+      sName.includes('home service') || 
+      sName === 'home' || 
+      sName.includes('electrician') || 
+      sName.includes('plumb') || 
+      (sName.includes('repair') && !sName.includes('auto') && !sName.includes('car'))
+    ) {
+      return ['home', 'plumber', 'electrician', 'carpenter', 'painter', 'cleaner'].includes(cName);
     }
     if (sName.includes('cleaning') || sName.includes('pest')) {
       return ['home', 'cleaner'].includes(cName);
     }
     if (sName.includes('professional')) {
       return ['professional', 'consultant', 'lawyer', 'accountant', 'freelancer', 'tutor'].includes(cName);
-    }
-    if (sName.includes('car wash') || sName.includes('automobile')) {
-      return ['car wash', 'mechanic', 'sales & rentals'].includes(cName);
     }
     if (sName.includes('vehicle') || sName.includes('rental') || sName.includes('transport')) {
       return ['sales & rentals', 'car wash'].includes(cName);
@@ -220,6 +247,7 @@ export default function DynamicFormEngine({
     if (sName.includes('fashion') || sName.includes('apparel') || sName.includes('clothing')) {
       return ['fashion', 'apparel', 'clothing'].includes(cName);
     }
+
     if (sName.includes('grocery') || sName.includes('fmcg')) {
       return ['grocery & essentials', 'fmcg & groceries', 'grocery', 'food & dining'].includes(cName);
     }
@@ -238,23 +266,44 @@ export default function DynamicFormEngine({
 
   // Auto-select category based on user sector or registration restriction
   useEffect(() => {
-    if (!category && availableCategories.length > 0) {
-      const directMatch = availableCategories.find(c => {
-        const cLower = c.name.toLowerCase();
-        const sLower = userSector.toLowerCase();
-        return cLower === sLower || sLower.includes(cLower) || cLower.includes(sLower);
-      });
-      if (directMatch) {
-        setCategory(directMatch.name);
-      } else if (availableCategories.length === 1) {
-        setCategory(availableCategories[0].name);
+    if (availableCategories.length > 0) {
+      // 1. If active vertical is EVENT or user sector relates to organizer/event/wedding/party, prioritize Event Planner
+      if (activeVertical === 'EVENT' || userSector.toLowerCase().includes('event') || userSector.toLowerCase().includes('organizer') || userSector.toLowerCase().includes('wedding') || userSector.toLowerCase().includes('party')) {
+        const eventCat = availableCategories.find(c => c.name.toLowerCase().includes('event') || c.name.toLowerCase().includes('organizer'));
+        if (eventCat && (!category || category.toLowerCase() === 'professional' || !availableCategories.some(c => c.name === category))) {
+          setCategory(eventCat.name);
+          return;
+        }
+      }
+
+      // 1.1 If active vertical is AUTOWASH or user sector relates to automobile/car wash, prioritize Car Wash & Automobile
+      if (activeVertical === 'AUTOWASH' || userSector.toLowerCase().includes('car wash') || userSector.toLowerCase().includes('automobile') || userSector.toLowerCase().includes('auto') || userSector.toLowerCase().includes('wash')) {
+        const autoCat = availableCategories.find(c => c.name.toLowerCase().includes('car wash') || c.name.toLowerCase().includes('automobile') || c.name.toLowerCase().includes('mechanic'));
+        if (autoCat && (!category || category.toLowerCase().includes('home') || category.toLowerCase() === 'carpenter' || !availableCategories.some(c => c.name === category))) {
+          setCategory(autoCat.name);
+          return;
+        }
+      }
+
+      if (!category) {
+        // 2. Direct string match
+        const directMatch = availableCategories.find(c => {
+          const cLower = c.name.toLowerCase();
+          const sLower = userSector.toLowerCase();
+          return cLower === sLower || sLower.includes(cLower) || cLower.includes(sLower);
+        });
+        if (directMatch) {
+          setCategory(directMatch.name);
+        } else if (availableCategories.length === 1) {
+          setCategory(availableCategories[0].name);
+        }
       }
     }
-  }, [availableCategories, category, userSector]);
+  }, [availableCategories, category, userSector, activeVertical]);
 
-  // For product selling: NEVER lock category to sector. Always allow full category selection dropdown.
-  // Locked category only applies to specialized Service flows (like Doctor clinic, Salon, etc.) where strict flow specialization is required.
-  const isCategoryLocked = isService && availableCategories.length === 1;
+  // For services: allow sellers to select from available categories without hard locking unless strictly single doctor/clinic
+  // For EVENT, organizer, or general service providers, let them choose freely among available service categories
+  const isCategoryLocked = isService && availableCategories.length === 1 && !activeVertical && !userSector.toLowerCase().includes('event') && !userSector.toLowerCase().includes('organizer') && !userSector.toLowerCase().includes('party') && !userSector.toLowerCase().includes('professional');
 
   const selectedCategory = availableCategories.find(c => c.name === category);
   const availableSubcategories = selectedCategory?.subcategories || [];
@@ -727,28 +776,98 @@ export default function DynamicFormEngine({
         <div className="space-y-4">
           <h3 className="text-sm font-bold text-indigo-700 uppercase tracking-wider border-b border-indigo-100 pb-2 flex items-center gap-2">
             <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-[10px]">Medical Workflow</span>
-            Professional Details
+            Doctor & Clinic Requirements
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-indigo-50/50 rounded-xl border border-indigo-100">
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Medical Registration No (MCI/SMC) *</label>
-              <input required type="text" value={parameters['MCI Number'] as string || ''} onChange={e => setParameters(p => ({...p, 'MCI Number': e.target.value}))} placeholder="e.g. MCI-12345" className="w-full px-4 py-3 rounded-xl border border-indigo-200 focus:border-indigo-500 outline-none text-slate-900" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-indigo-50/50 rounded-xl border border-indigo-100">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">MCI / Medical License No. *</label>
+              <input required type="text" value={parameters['MCI Number'] as string || ''} onChange={e => setParameters(p => ({...p, 'MCI Number': e.target.value}))} placeholder="e.g. MCI-12345" className="w-full px-3 py-2 rounded-lg border border-indigo-200 focus:border-indigo-500 outline-none text-slate-900 text-sm bg-white" />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Specialization *</label>
-              <select required value={parameters['Specialization'] as string || ''} onChange={e => setParameters(p => ({...p, 'Specialization': e.target.value}))} className="w-full px-4 py-3 rounded-xl border border-indigo-200 focus:border-indigo-500 outline-none text-slate-900 bg-white">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">Specialization *</label>
+              <select required value={parameters['Specialization'] as string || ''} onChange={e => setParameters(p => ({...p, 'Specialization': e.target.value}))} className="w-full px-3 py-2 rounded-lg border border-indigo-200 focus:border-indigo-500 outline-none text-slate-900 bg-white text-sm">
                 <option value="">Select Specialization...</option>
                 <option value="General Physician">General Physician</option>
                 <option value="Cardiologist">Cardiologist</option>
                 <option value="Dermatologist">Dermatologist</option>
                 <option value="Pediatrician">Pediatrician</option>
                 <option value="Dentist">Dentist</option>
+                <option value="Physiotherapist">Physiotherapist</option>
                 <option value="Other">Other</option>
               </select>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Years of Experience *</label>
-              <input required type="number" min="0" value={parameters['Experience'] as string || ''} onChange={e => setParameters(p => ({...p, 'Experience': e.target.value}))} placeholder="e.g. 5" className="w-full px-4 py-3 rounded-xl border border-indigo-200 focus:border-indigo-500 outline-none text-slate-900" />
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">Years of Experience</label>
+              <input type="number" min="0" value={parameters['Experience'] as string || ''} onChange={e => setParameters(p => ({...p, 'Experience': e.target.value}))} placeholder="e.g. 5" className="w-full px-3 py-2 rounded-lg border border-indigo-200 focus:border-indigo-500 outline-none text-slate-900 text-sm bg-white" />
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* EVENT PLANNER & PARTY ORGANIZER SPECIFIC REQUIREMENTS */}
+      {(category.toLowerCase().includes('event') || category.toLowerCase().includes('organizer') || category.toLowerCase().includes('wedding') || category.toLowerCase().includes('party')) ? (
+        <div className="space-y-4">
+          <h3 className="text-sm font-bold text-fuchsia-700 uppercase tracking-wider border-b border-fuchsia-100 pb-2 flex items-center gap-2">
+            <span className="bg-fuchsia-100 text-fuchsia-700 px-2 py-0.5 rounded text-[10px]">Event Organizer Workflow</span>
+            Event Scope & Production Requirements
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-fuchsia-50/50 rounded-xl border border-fuchsia-100">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">Event Occasion Type</label>
+              <select value={parameters['Occasion Type'] as string || ''} onChange={e => setParameters(p => ({...p, 'Occasion Type': e.target.value}))} className="w-full px-3 py-2 rounded-lg border border-fuchsia-200 focus:border-fuchsia-500 outline-none text-slate-900 bg-white text-sm">
+                <option value="">Select Occasion...</option>
+                <option value="Wedding & Reception">Wedding & Reception</option>
+                <option value="Birthday Party & Milestone">Birthday Party & Milestone</option>
+                <option value="Corporate Gala & Conference">Corporate Gala & Conference</option>
+                <option value="Anniversary & Private Dining">Anniversary & Private Dining</option>
+                <option value="Stage Show & Musical Night">Stage Show & Musical Night</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">Guest Capacity Scope</label>
+              <select value={parameters['Guest Scope'] as string || ''} onChange={e => setParameters(p => ({...p, 'Guest Scope': e.target.value}))} className="w-full px-3 py-2 rounded-lg border border-fuchsia-200 focus:border-fuchsia-500 outline-none text-slate-900 bg-white text-sm">
+                <option value="50 - 150 Guests (Intimate)">50 - 150 Guests (Intimate)</option>
+                <option value="150 - 500 Guests (Grand)">150 - 500 Guests (Grand)</option>
+                <option value="500 - 2,000 Guests (Mega Production)">500 - 2,000 Guests (Mega Production)</option>
+                <option value="Custom Scope / Scalable">Custom Scope / Scalable</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">Advance Booking Notice (Days)</label>
+              <input type="number" min="1" value={parameters['Advance Notice Days'] as string || '7'} onChange={e => setParameters(p => ({...p, 'Advance Notice Days': e.target.value}))} placeholder="e.g. 7" className="w-full px-3 py-2 rounded-lg border border-fuchsia-200 focus:border-fuchsia-500 outline-none text-slate-900 text-sm bg-white" />
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* SALON & SPA SERVICE REQUIREMENTS */}
+      {(category.toLowerCase().includes('salon') || category.toLowerCase().includes('beauty') || category.toLowerCase().includes('spa')) ? (
+        <div className="space-y-4">
+          <h3 className="text-sm font-bold text-violet-700 uppercase tracking-wider border-b border-violet-100 pb-2 flex items-center gap-2">
+            <span className="bg-violet-100 text-violet-700 px-2 py-0.5 rounded text-[10px]">Salon & Spa Workflow</span>
+            Service Duration & Chair Requirements
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-violet-50/50 rounded-xl border border-violet-100">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">Session Duration (Mins) *</label>
+              <input type="number" min="5" step="5" value={parameters['Duration'] as string || '30'} onChange={e => setParameters(p => ({...p, 'Duration': e.target.value}))} placeholder="e.g. 30" className="w-full px-3 py-2 rounded-lg border border-violet-200 focus:border-violet-500 outline-none text-slate-900 text-sm bg-white" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">Resource Station Needed</label>
+              <select value={parameters['Resource Needed'] as string || 'Styling Chair'} onChange={e => setParameters(p => ({...p, 'Resource Needed': e.target.value}))} className="w-full px-3 py-2 rounded-lg border border-violet-200 focus:border-violet-500 outline-none text-slate-900 bg-white text-sm">
+                <option value="Styling Chair">Styling Chair</option>
+                <option value="Hair Wash Basin">Hair Wash Basin</option>
+                <option value="Private Spa Room">Private Spa Room</option>
+                <option value="Nail & Pedicure Station">Nail & Pedicure Station</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">Stylist Level</label>
+              <select value={parameters['Stylist Level'] as string || 'Standard Stylist'} onChange={e => setParameters(p => ({...p, 'Stylist Level': e.target.value}))} className="w-full px-3 py-2 rounded-lg border border-violet-200 focus:border-violet-500 outline-none text-slate-900 bg-white text-sm">
+                <option value="Standard Stylist">Standard Stylist</option>
+                <option value="Senior Stylist">Senior Stylist</option>
+                <option value="Master Aesthetician">Master Aesthetician</option>
+              </select>
             </div>
           </div>
         </div>
@@ -893,16 +1012,16 @@ export default function DynamicFormEngine({
             {isService && (
               <div className="col-span-1 md:col-span-3 mt-2 space-y-2 p-3.5 bg-slate-50/80 rounded-xl border border-slate-200">
                 <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Service Booking Model</label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <label className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all ${(parameters['bookingModel'] as string) === 'TOKEN' || !parameters['bookingModel'] ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-slate-200 bg-white text-slate-500 hover:border-violet-200'}`}>
-                    <input type="radio" name="bookingModel" value="TOKEN" checked={(parameters['bookingModel'] as string) === 'TOKEN' || !parameters['bookingModel']} onChange={() => setParameters(p => ({...p, bookingModel: 'TOKEN'}))} className="hidden" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+                  <label className={`flex flex-col items-center justify-center p-2.5 rounded-lg border-2 cursor-pointer transition-all ${(parameters['bookingModel'] as string) === 'TOKEN' || (!parameters['bookingModel'] && !category.toLowerCase().includes('event') && !category.toLowerCase().includes('professional')) ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-slate-200 bg-white text-slate-500 hover:border-violet-200'}`}>
+                    <input type="radio" name="bookingModel" value="TOKEN" checked={(parameters['bookingModel'] as string) === 'TOKEN' || (!parameters['bookingModel'] && !category.toLowerCase().includes('event') && !category.toLowerCase().includes('professional'))} onChange={() => setParameters(p => ({...p, bookingModel: 'TOKEN'}))} className="hidden" />
                     <div className="text-center">
                       <div className="font-bold text-xs">Live Token</div>
                       <div className="text-[10px] opacity-80">Walk-ins only</div>
                     </div>
                   </label>
                   
-                  <label className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all ${(parameters['bookingModel'] as string) === 'APPOINTMENT' ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-slate-200 bg-white text-slate-500 hover:border-amber-200'}`}>
+                  <label className={`flex flex-col items-center justify-center p-2.5 rounded-lg border-2 cursor-pointer transition-all ${(parameters['bookingModel'] as string) === 'APPOINTMENT' ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-slate-200 bg-white text-slate-500 hover:border-amber-200'}`}>
                     <input type="radio" name="bookingModel" value="APPOINTMENT" checked={(parameters['bookingModel'] as string) === 'APPOINTMENT'} onChange={() => setParameters(p => ({...p, bookingModel: 'APPOINTMENT'}))} className="hidden" />
                     <div className="text-center">
                       <div className="font-bold text-xs">Appointment</div>
@@ -910,11 +1029,19 @@ export default function DynamicFormEngine({
                     </div>
                   </label>
 
-                  <label className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all ${(parameters['bookingModel'] as string) === 'HYBRID' ? 'border-fuchsia-500 bg-fuchsia-50 text-fuchsia-700' : 'border-slate-200 bg-white text-slate-500 hover:border-fuchsia-200'}`}>
+                  <label className={`flex flex-col items-center justify-center p-2.5 rounded-lg border-2 cursor-pointer transition-all ${(parameters['bookingModel'] as string) === 'PROPOSAL' || (!parameters['bookingModel'] && (category.toLowerCase().includes('event') || category.toLowerCase().includes('professional') || category.toLowerCase().includes('consultant'))) ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white text-slate-500 hover:border-blue-200'}`}>
+                    <input type="radio" name="bookingModel" value="PROPOSAL" checked={(parameters['bookingModel'] as string) === 'PROPOSAL' || (!parameters['bookingModel'] && (category.toLowerCase().includes('event') || category.toLowerCase().includes('professional') || category.toLowerCase().includes('consultant')))} onChange={() => setParameters(p => ({...p, bookingModel: 'PROPOSAL'}))} className="hidden" />
+                    <div className="text-center">
+                      <div className="font-bold text-xs">Proposal & Quote</div>
+                      <div className="text-[10px] opacity-80">Consultation / Custom</div>
+                    </div>
+                  </label>
+
+                  <label className={`flex flex-col items-center justify-center p-2.5 rounded-lg border-2 cursor-pointer transition-all ${(parameters['bookingModel'] as string) === 'HYBRID' ? 'border-fuchsia-500 bg-fuchsia-50 text-fuchsia-700' : 'border-slate-200 bg-white text-slate-500 hover:border-fuchsia-200'}`}>
                     <input type="radio" name="bookingModel" value="HYBRID" checked={(parameters['bookingModel'] as string) === 'HYBRID'} onChange={() => setParameters(p => ({...p, bookingModel: 'HYBRID'}))} className="hidden" />
                     <div className="text-center">
-                      <div className="font-bold text-xs">Hybrid (Both)</div>
-                      <div className="text-[10px] opacity-80">Walk-ins + Appointments</div>
+                      <div className="font-bold text-xs">Hybrid</div>
+                      <div className="text-[10px] opacity-80">Walk-in + Slots</div>
                     </div>
                   </label>
                 </div>
@@ -1111,13 +1238,24 @@ export default function DynamicFormEngine({
             }
 
             // Car Wash / Automobiles
-            if (catLower.includes('car wash') || sectorLower.includes('car') || sectorLower.includes('wash')) {
+            if (catLower.includes('car wash') || sectorLower.includes('car') || sectorLower.includes('wash') || catLower.includes('automobile') || sectorLower.includes('automobile') || catLower.includes('mechanic')) {
               return [
-                { name: 'Bike / Scooter Foam Wash', defaultPrice: 150 },
-                { name: 'Hatchback Exterior + Interior Vacuum', defaultPrice: 350 },
-                { name: 'Sedan Complete Wash & Polish', defaultPrice: 500 },
-                { name: 'SUV / 7-Seater Deep Wash & Detailing', defaultPrice: 750 },
-                { name: 'Underbody & Engine Coating', defaultPrice: 400 }
+                { name: 'Bike Complete Foam Wash & Polish', defaultPrice: 150 },
+                { name: 'Car Full Exterior Wash & Interior Vacuum', defaultPrice: 450 },
+                { name: 'Truck Pressure Wash & Chassis Degreasing', defaultPrice: 1200 },
+                { name: 'Bus Deep Sanitization & Interior Wash', defaultPrice: 1500 },
+                { name: 'Heavy Vehicle (JCB / Earthmover) Overhaul Wash', defaultPrice: 2000 }
+              ];
+            }
+
+            // Event Planner / Party Organizer / Weddings
+            if (catLower.includes('event') || catLower.includes('organizer') || catLower.includes('wedding') || catLower.includes('party') || sectorLower.includes('event') || sectorLower.includes('organizer') || sectorLower.includes('wedding')) {
+              return [
+                { name: 'Stage & Royal Floral Decor', defaultPrice: 25000 },
+                { name: 'Full DJ Sound & Ambient Lighting', defaultPrice: 15000 },
+                { name: 'Catering Management (Per 100 Guests)', defaultPrice: 35000 },
+                { name: 'Pre-Wedding Consultation & Venue Scouting', defaultPrice: 5000 },
+                { name: 'Kids Birthday Theme Setup & Host', defaultPrice: 8500 }
               ];
             }
 

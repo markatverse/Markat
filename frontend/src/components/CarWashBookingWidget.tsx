@@ -11,7 +11,7 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
 export interface VehicleOption {
   id: string;
-  name: 'Bike' | 'Car' | 'Truck' | 'Bus' | 'JCB' | 'Heavy Automobile' | string;
+  name: 'Bike' | 'Car' | 'Truck' | 'Bus' | 'Heavy Vehicle (JCB)' | string;
   icon: string;
   price: number;
   estMinutes: number;
@@ -22,8 +22,7 @@ export const VEHICLE_OPTIONS: VehicleOption[] = [
   { id: 'car', name: 'Car', icon: '🚗', price: 350, estMinutes: 25 },
   { id: 'truck', name: 'Truck', icon: '🚚', price: 800, estMinutes: 40 },
   { id: 'bus', name: 'Bus', icon: '🚌', price: 1000, estMinutes: 45 },
-  { id: 'jcb', name: 'JCB', icon: '🚜', price: 1200, estMinutes: 50 },
-  { id: 'heavy', name: 'Heavy Auto', icon: '🚛', price: 1500, estMinutes: 60 }
+  { id: 'heavy', name: 'Heavy Vehicle (JCB)', icon: '🚜', price: 1200, estMinutes: 55 }
 ];
 
 interface QueueStatus {
@@ -75,10 +74,14 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
   const vehicleList = useMemo(() => {
     if (service?.options && service.options.length > 0) {
       return VEHICLE_OPTIONS.map(v => {
-        const matched = service.options.find((opt: any) => 
-          opt.name?.toLowerCase().includes(v.name.toLowerCase()) || 
-          v.name.toLowerCase().includes(opt.name?.toLowerCase())
-        );
+        const matched = service.options.find((opt: any) => {
+          const optLower = (opt.name || '').toLowerCase();
+          const vLower = v.name.toLowerCase();
+          if (v.id === 'heavy' && (optLower.includes('jcb') || optLower.includes('heavy') || optLower.includes('earthmover') || optLower.includes('trailer'))) {
+            return true;
+          }
+          return optLower.includes(vLower) || vLower.includes(optLower);
+        });
         if (matched && matched.price > 0) {
           return { ...v, price: matched.price };
         }
@@ -359,7 +362,7 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
             </span>
           </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
             {vehicleList.map(v => {
               const isSelected = selectedVehicle.id === v.id;
               return (

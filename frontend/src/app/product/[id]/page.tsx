@@ -922,7 +922,9 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                               'truck': '🚚',
                               'bus': '🚌',
                               'jcb': '🚜',
-                              'heavy automobile': '🚛'
+                              'heavy vehicle': '🚜',
+                              'heavy vehicle (jcb)': '🚜',
+                              'heavy automobile': '🚜'
                             };
                             const vIcon = vehicleIconMap[option.toLowerCase()] || '🚘';
                             return (

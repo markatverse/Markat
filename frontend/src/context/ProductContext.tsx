@@ -612,7 +612,203 @@ export const defaultCategories: Category[] = [
     subcategories: [
       { name: 'Staples & Grains', parameters: [{ name: 'Weight / Pack', type: 'radio', options: ['500 g', '1 Kg', '5 Kg', '10 Kg Bag', '25 Kg Bag'] }, { name: 'Dietary Preference', type: 'radio', options: ['100% Organic', 'Natural / Unpolished', 'Regular Commercial'] }] },
       { name: 'Edible Oils & Ghee', parameters: [{ name: 'Oil Type', type: 'radio', options: ['Cold Pressed Mustard', 'Refined Sunflower', 'Groundnut Oil', 'Desi Cow Ghee (A2)'] }, { name: 'Volume', type: 'radio', options: ['500 ml', '1 Litre Pouch', '1 Litre Bottle', '5 Litre Can', '15 Litre Tin'] }] },
-      { name: 'Snacks & Packaged Food', parameters: [{ name: 'Food Preference', type: 'radio', options: ['Vegetarian (Green Dot)', 'Non-Vegetarian'] }, { name: 'Shelf Life', type: 'radio', options: ['1-3 Months', '6 Months', '12 Months'] }] }
+      { name: 'Snacks & Packaged Food', parameters: [{ name: 'Food Preference', type: 'radio', options: ['Vegetarian (Green Dot)', 'Non-Vegetarian'] }, { name: 'Shelf Life', type: 'radio', options: ['1-3 Months', '6 Months', '12 Months'] }] },
+      { name: 'Beverages & Tea/Coffee', parameters: [{ name: 'Type', type: 'radio', options: ['CTC Tea Leaf', 'Green Tea', 'Filter Coffee / Instant', 'Juices & Syrups'] }, { name: 'Packaging', type: 'radio', options: ['Tin Caddy', 'Pouch', 'Glass Bottle', 'Tetrapack'] }] }
+    ]
+  },
+  {
+    id: 'c7',
+    primaryType: 'PRODUCT',
+    name: 'Healthcare & Medical Devices',
+    theme: 'bg-teal-50 text-teal-600',
+    icon: 'ShieldPlus',
+    allowedListingTypes: ['Product'],
+    businessModels: ['B2C', 'B2B', 'Bulk Pricing'],
+    workflow: 'Product Sales Workflow',
+    allowedFeatures: ['Product Stock', 'B2C', 'B2B', 'Bulk Pricing'],
+    notApplicable: ['Service', 'Appointment', 'Token', 'Vehicle Test Drive'],
+    optionalFeatures: ['RFQ', 'Sample'],
+    subcategories: [
+      { name: 'Medical Equipment & Monitors', parameters: [
+        { name: 'Device Type', type: 'radio', options: ['Digital BP Monitor', 'Pulse Oximeter', 'Blood Glucose Meter / Strips', 'Nebulizer Machine', 'Infrared Thermometer', 'Oxygen Concentrator'] },
+        { name: 'Power Source', type: 'radio', options: ['Battery Operated', 'USB Rechargeable', 'AC Mains Plug', 'Dual Battery / AC'] },
+        { name: 'Certifications', type: 'checkbox', options: ['FDA Approved', 'CE Certified', 'ISO 13485', 'CDSCO Registered'] },
+        { name: 'Warranty Period', type: 'text', placeholder: 'e.g. 2 Years Manufacturer Warranty' }
+      ]},
+      { name: 'Surgical & Clinic Supplies', parameters: [
+        { name: 'Supply Category', type: 'radio', options: ['Nitrile / Latex Gloves', 'Surgical Masks (3-Ply / N95)', 'Sterilization Pouches & Autoclave', 'Syringes & Cannulas', 'Bandages & Wound Dressing'] },
+        { name: 'Sterility Status', type: 'radio', options: ['EO Gas Sterile', 'Gamma Irradiated', 'Non-Sterile Bulk'] },
+        { name: 'Pack Quantity', type: 'radio', options: ['Pack of 50', 'Pack of 100', 'Master Carton (1000 pcs)'] }
+      ]},
+      { name: 'Wellness & Nutrition Supplements', parameters: [
+        { name: 'Supplement Type', type: 'radio', options: ['Whey Protein / Plant Protein', 'Multivitamins & Minerals', 'Omega-3 Fish Oil', 'Immunity Boosters (Chyawanprash/Herbs)', 'Collagen & Biotin'] },
+        { name: 'Form Factor', type: 'radio', options: ['Tablets / Capsules', 'Powder', 'Gummies', 'Liquid Drops'] },
+        { name: 'FSSAI License No.', type: 'text', placeholder: 'e.g. 10019022009876' }
+      ]}
+    ]
+  },
+  {
+    id: 'c8',
+    primaryType: 'PRODUCT',
+    name: 'Automotive Parts & Accessories',
+    theme: 'bg-slate-100 text-slate-800',
+    icon: 'Wrench',
+    allowedListingTypes: ['Product'],
+    businessModels: ['B2C', 'B2B', 'Bulk Pricing', 'MOQ'],
+    workflow: 'Product Sales Workflow',
+    allowedFeatures: ['Product Stock', 'B2C', 'B2B', 'Bulk Pricing', 'MOQ'],
+    notApplicable: ['Service', 'Appointment', 'Token'],
+    optionalFeatures: ['RFQ'],
+    subcategories: [
+      { name: 'Car Spare Parts', parameters: [
+        { name: 'Part Type', type: 'radio', options: ['Brake Pads & Rotors', 'Engine Oil & Air Filters', 'Spark Plugs & Ignition Coil', 'Clutch Plates & Flywheel', 'Shock Absorbers & Struts', 'Headlight & Taillight Assembly'] },
+        { name: 'Vehicle Compatibility', type: 'text', placeholder: 'e.g. Maruti Swift (2018-2023), Hyundai Creta' },
+        { name: 'Condition / OEM', type: 'radio', options: ['OEM Genuine Parts', 'Aftermarket High Performance', 'Certified Replacement'] }
+      ]},
+      { name: 'Two-Wheeler Spares', parameters: [
+        { name: 'Component', type: 'radio', options: ['Drive Chain & Sprocket Kit', 'Disc Brake Pads / Shoes', 'Exhaust Silencer', 'Carburetor / Injector', 'Batteries & Self Starter'] },
+        { name: 'Compatible Bike/Scooter', type: 'text', placeholder: 'e.g. Hero Splendor, Royal Enfield Classic 350, Honda Activa' }
+      ]},
+      { name: 'Car Electronics & Interior', parameters: [
+        { name: 'Accessory', type: 'radio', options: ['Android Infotainment Touchscreen', 'Dashcam Dual Channel', 'Seat Covers Custom Fit', 'Reverse Parking Sensors / Camera', 'High Power LED Headlight Bulbs'] },
+        { name: 'Operating Voltage', type: 'radio', options: ['12V Car Socket', '24V Truck/Commercial', 'Direct Battery Hardwire'] }
+      ]},
+      { name: 'Lubricants & Car Care', parameters: [
+        { name: 'Product Type', type: 'radio', options: ['Fully Synthetic Engine Oil (5W-30 / 0W-20)', 'Semi-Synthetic Oil (10W-40)', 'Coolant & Brake Fluid (DOT 4)', 'Ceramic Coating & Polish Wax'] },
+        { name: 'Volume Capacity', type: 'radio', options: ['1 Litre', '3.5 Litres', '4 Litres Can', '5 Litres Can'] }
+      ]}
+    ]
+  },
+  {
+    id: 'c9',
+    primaryType: 'PRODUCT',
+    name: 'Industrial Machinery & Tools',
+    theme: 'bg-zinc-100 text-zinc-800',
+    icon: 'Cpu',
+    allowedListingTypes: ['Product'],
+    businessModels: ['B2B', 'Bulk Pricing', 'MOQ', 'RFQ'],
+    workflow: 'B2B / Manufacturer Workflow',
+    allowedFeatures: ['Product Stock', 'B2B', 'Bulk Pricing', 'MOQ', 'RFQ', 'Quote'],
+    notApplicable: ['Service', 'Appointment', 'Token', 'Vehicle Test Drive'],
+    optionalFeatures: ['Meeting', 'Sample'],
+    subcategories: [
+      { name: 'Power Tools & Workshop Equipment', parameters: [
+        { name: 'Tool Category', type: 'radio', options: ['Angle Grinder', 'Rotary Hammer Drill', 'Cordless Impact Driver', 'Cut-off Machine / Marble Cutter', 'Welding Inverter Machine'] },
+        { name: 'Power Rating (Watts)', type: 'radio', options: ['500W - 850W', '900W - 1400W', '1500W - 2400W Heavy Duty'] },
+        { name: 'Power Source', type: 'radio', options: ['220V Corded Electric', '18V/20V Li-Ion Battery Cordless', 'Pneumatic Air Powered'] }
+      ]},
+      { name: 'Generators & Electric Motors', parameters: [
+        { name: 'Equipment Type', type: 'radio', options: ['Silent Diesel Generator (DG Set)', 'Portable Petrol Generator', 'Three-Phase Induction Motor', 'Variable Frequency Drive (VFD)'] },
+        { name: 'Capacity / KVA', type: 'radio', options: ['2 KVA - 5 KVA', '7.5 KVA - 15 KVA', '25 KVA - 62.5 KVA', '125 KVA+ Industrial'] },
+        { name: 'Starting System', type: 'radio', options: ['Electric Key Start', 'Auto Mains Failure (AMF)', 'Recoil Pull Start'] }
+      ]},
+      { name: 'Packaging & Warehouse Material', parameters: [
+        { name: 'Item Type', type: 'radio', options: ['BOPP Packaging Tape', 'Stretch Film Cling Roll', 'Corrugated Shipping Boxes (3-Ply/5-Ply)', 'Strapping Machine Rolls', 'Hydraulic Hand Pallet Truck'] },
+        { name: 'Load Capacity', type: 'radio', options: ['500 Kg', '1 Ton', '2.5 Tons', '3 Tons'] }
+      ]}
+    ]
+  },
+  {
+    id: 'c10',
+    primaryType: 'PRODUCT',
+    name: 'Beauty, Cosmetics & Personal Care',
+    theme: 'bg-rose-50 text-rose-600',
+    icon: 'Sparkles',
+    allowedListingTypes: ['Product'],
+    businessModels: ['B2C', 'B2B', 'Bulk Pricing'],
+    workflow: 'Product Sales Workflow',
+    allowedFeatures: ['Product Stock', 'B2C', 'B2B', 'Bulk Pricing'],
+    notApplicable: ['Service', 'Appointment', 'Token', 'Vehicle Test Drive'],
+    optionalFeatures: ['RFQ', 'Sample'],
+    subcategories: [
+      { name: 'Skincare & Face Care', parameters: [
+        { name: 'Category', type: 'radio', options: ['Face Serum (Vitamin C/Hyaluronic)', 'Moisturizer / Cream', 'Sunscreen SPF 50+', 'Face Cleanser / Foaming Wash', 'Sheet Mask / Peel-off'] },
+        { name: 'Skin Type', type: 'radio', options: ['All Skin Types', 'Oily & Acne-Prone', 'Dry & Sensitive', 'Combination'] },
+        { name: 'Formulation Traits', type: 'checkbox', options: ['Dermatologically Tested', 'Cruelty Free & Vegan', 'Paraben & Sulphate Free', 'Organic Certified'] }
+      ]},
+      { name: 'Hair Care Products', parameters: [
+        { name: 'Product Type', type: 'radio', options: ['Anti-Dandruff Shampoo', 'Keratin / Smoothing Conditioner', 'Hair Growth Oil / Serum', 'Hair Mask / Deep Spa', 'Styling Wax & Clay'] },
+        { name: 'Key Active Ingredients', type: 'text', placeholder: 'e.g. Red Onion, Rosemary Oil, Biotin, Argan Oil' }
+      ]},
+      { name: 'Color Cosmetics & Makeup', parameters: [
+        { name: 'Makeup Item', type: 'radio', options: ['Matte Liquid Lipstick', 'Foundation & Concealer', 'Eyeliner & Kajal', 'Eyeshadow Palette', 'Setting Powder & Primer'] },
+        { name: 'Shade / Color Tone', type: 'text', placeholder: 'e.g. Nude Pink, Warm Caramel, Classic Red' }
+      ]},
+      { name: 'Fragrances & Deodorants', parameters: [
+        { name: 'Fragrance Concentration', type: 'radio', options: ['Eau De Parfum (EDP)', 'Eau De Toilette (EDT)', 'Body Mist / Spray', 'Non-Alcoholic Attar Roll-on'] },
+        { name: 'Scent Family', type: 'radio', options: ['Fresh Citrus & Aquatic', 'Warm Woody & Oud', 'Floral & Fruity', 'Spicy Oriental'] }
+      ]}
+    ]
+  },
+  {
+    id: 'c11',
+    primaryType: 'PRODUCT',
+    name: 'Sports, Fitness & Outdoor',
+    theme: 'bg-emerald-50 text-emerald-700',
+    icon: 'Activity',
+    allowedListingTypes: ['Product'],
+    businessModels: ['B2C', 'B2B', 'Bulk Pricing'],
+    workflow: 'Product Sales Workflow',
+    allowedFeatures: ['Product Stock', 'B2C', 'B2B'],
+    notApplicable: ['Service', 'Appointment', 'Token'],
+    optionalFeatures: ['RFQ'],
+    subcategories: [
+      { name: 'Gym & Fitness Gear', parameters: [
+        { name: 'Equipment Category', type: 'radio', options: ['Dumbbells & Barbells (Rubber/Hex)', 'Resistance Bands Set', 'Yoga Mat (Anti-Slip 6mm/8mm)', 'Motorized Treadmill', 'Exercise Air Bike / Spin Bike'] },
+        { name: 'Weight / Spec', type: 'text', placeholder: 'e.g. 5kg Pair, 10kg-50kg Set, Max User Weight 120kg' }
+      ]},
+      { name: 'Racquet & Ball Sports', parameters: [
+        { name: 'Sport Type', type: 'radio', options: ['Cricket (English/Kashmir Willow)', 'Badminton (Graphite Racquets)', 'Football / Futsal (Size 5)', 'Tennis / Table Tennis', 'Basketball'] },
+        { name: 'Player Level', type: 'radio', options: ['Beginner / Recreational', 'Intermediate Club Player', 'Professional Match Grade'] }
+      ]}
+    ]
+  },
+  {
+    id: 'c12',
+    primaryType: 'PRODUCT',
+    name: 'Books, Stationery & Office Supplies',
+    theme: 'bg-amber-50 text-amber-800',
+    icon: 'BookOpen',
+    allowedListingTypes: ['Product'],
+    businessModels: ['B2C', 'B2B', 'Bulk Pricing'],
+    workflow: 'Product Sales Workflow',
+    allowedFeatures: ['Product Stock', 'B2C', 'B2B'],
+    notApplicable: ['Service', 'Appointment', 'Token'],
+    optionalFeatures: ['Bulk Pricing'],
+    subcategories: [
+      { name: 'Books & Educational Material', parameters: [
+        { name: 'Genre / Category', type: 'radio', options: ['School / College Textbooks', 'Competitive Exam Preparation', 'Fiction & Literature', 'Self-Help & Business Growth', 'Children Story Books'] },
+        { name: 'Language', type: 'radio', options: ['English', 'Hindi', 'Regional Languages', 'Bilingual'] },
+        { name: 'Binding', type: 'radio', options: ['Paperback', 'Hardcover', 'Spiral Bound'] }
+      ]},
+      { name: 'Office Stationery & Paper Products', parameters: [
+        { name: 'Item Type', type: 'radio', options: ['A4 Copy Paper (70/75/80 GSM)', 'Spiral Notebooks & Registers', 'Gel / Ballpoint Pens (Pack)', 'Files, Folders & Document Bags', 'Desk Organizers & Whiteboards'] },
+        { name: 'Pack Quantity', type: 'radio', options: ['Single Unit', 'Pack of 5 / 10', 'Box of 500 Sheets (1 Ream)', 'Carton of 5 Reams'] }
+      ]}
+    ]
+  },
+  {
+    id: 'c13',
+    primaryType: 'PRODUCT',
+    name: 'Baby Care & Toys',
+    theme: 'bg-sky-50 text-sky-600',
+    icon: 'Baby',
+    allowedListingTypes: ['Product'],
+    businessModels: ['B2C', 'B2B'],
+    workflow: 'Product Sales Workflow',
+    allowedFeatures: ['Product Stock', 'B2C', 'B2B'],
+    notApplicable: ['Service', 'Appointment', 'Token'],
+    optionalFeatures: ['Bulk Pricing'],
+    subcategories: [
+      { name: 'Baby Essentials & Diapers', parameters: [
+        { name: 'Item', type: 'radio', options: ['Pant Style Diapers', 'Baby Wet Wipes (Water Based)', 'Bathing Wash & Gentle Shampoo', 'Feeding Bottles (BPA Free)', 'Teethers & Pacifiers'] },
+        { name: 'Size / Age Group', type: 'radio', options: ['Newborn (NB)', 'Small (S) 4-8kg', 'Medium (M) 7-12kg', 'Large (L) 9-14kg', 'XL 12-17kg'] }
+      ]},
+      { name: 'Educational Toys & Games', parameters: [
+        { name: 'Toy Type', type: 'radio', options: ['Building Blocks & LEGO', 'Remote Control Cars & Drones', 'Board Games & Puzzles', 'Musical Learning Toys', 'Soft Plush Toys'] },
+        { name: 'Recommended Age', type: 'radio', options: ['0-2 Years', '3-5 Years', '6-8 Years', '9-12 Years', 'Teens & Family'] },
+        { name: 'Safety Standards', type: 'checkbox', options: ['BIS Certified (ISI Mark)', 'Non-Toxic BPA Free Plastic', 'Smooth Rounded Edges'] }
+      ]}
     ]
   },
 
@@ -789,6 +985,41 @@ export const defaultCategories: Category[] = [
     ]
   },
   {
+    id: 's-professional',
+    primaryType: 'SERVICE',
+    name: 'Professional',
+    theme: 'bg-indigo-50 text-indigo-600',
+    icon: 'Briefcase',
+    allowedListingTypes: ['Service'],
+    businessModels: ['B2C', 'B2B', 'Quote', 'Meeting'],
+    workflow: 'Meeting / Proposal Workflow',
+    allowedFeatures: ['Service', 'B2C', 'B2B', 'Quote', 'Meeting'],
+    notApplicable: ['Product Stock', 'Vehicle Test Drive', 'Token', 'MOQ', 'Bulk Pricing'],
+    optionalFeatures: ['RFQ', 'Appointment'],
+    subcategories: [
+      { 
+        name: 'Consultant', 
+        parameters: [
+          { name: 'Field of Practice', type: 'radio', options: ['Company Registration & GST/Tax', 'Corporate & Contract Law', 'Intellectual Property (Trademark/Patent)', 'Financial Planning & Wealth Management', 'IT / Software Architecture Strategy'] },
+          { name: 'Consultation Mode', type: 'radio', options: ['Online Video Conference (Zoom/Meet)', 'In-Person Chamber Meeting', 'Client Office Visit'] }
+        ] 
+      },
+      { 
+        name: 'Lawyer', 
+        parameters: [
+          { name: 'Legal Domain', type: 'radio', options: ['Civil & Property Dispute', 'Criminal Law', 'Corporate / Trademark', 'Family / Matrimonial'] },
+          { name: 'Court Jurisdiction', type: 'text', placeholder: 'e.g. High Court, District Sessions Court' }
+        ] 
+      },
+      { 
+        name: 'Accountant', 
+        parameters: [
+          { name: 'Accounting Service', type: 'checkbox', options: ['ITR Income Tax Filing', 'GST Return Filing', 'Audited Balance Sheet (P&L)', 'Payroll Management'] }
+        ] 
+      }
+    ]
+  },
+  {
     id: 's7',
     primaryType: 'SERVICE',
     name: 'Consultant',
@@ -850,9 +1081,9 @@ export const defaultCategories: Category[] = [
       { 
         name: 'Automobile Repair & Servicing', 
         parameters: [
-          { name: 'Vehicle Type', type: 'radio', options: ['Two Wheeler (Bike/Scooter)', 'Four Wheeler (Hatchback/Sedan)', 'SUV & Luxury Car', 'Commercial Light Vehicle'] },
-          { name: 'Services Offered', type: 'checkbox', options: ['Engine Oil & Filter Change', 'Brake Pad & Disc Replacement', 'Clutch & Gearbox Overhaul', 'Battery Jumpstart & Replacement', 'Suspension & Steering Repair'] },
-          { name: 'Service Location', type: 'radio', options: ['Garage Workshop Visit', 'Doorstep Breakdown Assistance', 'Both Workshop & Doorstep'] }
+          { name: 'Vehicle Type', type: 'radio', options: ['Bike', 'Car', 'Truck', 'Bus', 'Heavy Vehicle (JCB)'] },
+          { name: 'Services Offered', type: 'checkbox', options: ['Engine Oil & Filter Change', 'Brake Pad & Disc Replacement', 'Clutch & Gearbox Overhaul', 'Battery Jumpstart & Replacement', 'Suspension & Steering Repair', 'Hydraulics & Machinery Maintenance'] },
+          { name: 'Service Location', type: 'radio', options: ['Garage Workshop Visit', 'Doorstep Breakdown Assistance', 'Roadside Towing & Rescue', 'On-Site Field Visit (JCB & Heavy Commercial)'] }
         ] 
       }
     ]
@@ -967,6 +1198,22 @@ export const defaultCategories: Category[] = [
           { name: 'Occasion', type: 'radio', options: ['Wedding & Reception', 'Engagement / Roka', 'Haldi & Mehndi Setup', 'Corporate Conference / Gala', 'Kids Theme Birthday'] },
           { name: 'Included Services', type: 'checkbox', options: ['Stage & Floral Decoration', 'Sound & DJ Lighting Setup', 'Catering Management', 'Guest Welcome & Hospitality', 'Venue Booking Assistance'] }
         ] 
+      },
+      {
+        name: 'Birthday & Party Planning',
+        parameters: [
+          { name: 'Party Type', type: 'radio', options: ['Kids Theme Birthday', 'Milestone Adult Birthday', 'Anniversary Celebration', 'Cocktail / Bachelor Party', 'Baby Shower / Gender Reveal'] },
+          { name: 'Venue Arrangements', type: 'radio', options: ['Home / Backyard Setup', 'Banquet Hall / Hotel Ballroom', 'Open Lawn / Farmhouse', 'Rooftop Lounge'] },
+          { name: 'Add-on Entertainment', type: 'checkbox', options: ['Live DJ & Sound System', 'Magic Show & Balloon Artist', 'Custom Photo Booth & Props', 'Tattoo & Face Painter', 'Live Acoustic Singer'] }
+        ]
+      },
+      {
+        name: 'Corporate Events & Galas',
+        parameters: [
+          { name: 'Event Format', type: 'radio', options: ['Annual Corporate Gala / Awards', 'Product Launch & Press Conference', 'Dealer / Partner Meet', 'Hackathon / Tech Conference', 'Team Building Retreat'] },
+          { name: 'Audio-Visual & Tech', type: 'checkbox', options: ['LED Video Wall (P2/P3)', 'Live Stage Truss & Intelligent Lighting', 'Live Webcast / Hybrid Streaming', 'Multi-Mic Audio Console', 'Podium & Branding Backdrops'] },
+          { name: 'Estimated Attendees', type: 'radio', options: ['Up to 50 Attendees', '50 - 200 Attendees', '200 - 500 Attendees', '500+ Attendees'] }
+        ]
       }
     ]
   },
@@ -1006,6 +1253,37 @@ export const defaultCategories: Category[] = [
           { name: 'Shop Type', type: 'radio', options: ['Artisan Bakery & Cake Shop', 'Traditional Sweet Mart (Mithai)', 'Gourmet Organic Grocery', 'Ice Cream Parlour & Desserts'] },
           { name: 'Order & Packaging Mode', type: 'radio', options: ['Over-The-Counter Takeaway', 'Dine-in Tables Available', 'Express Home Delivery'] }
         ] 
+      }
+    ]
+  },
+  {
+    id: 's16',
+    primaryType: 'SERVICE',
+    name: 'Car Wash & Automobile',
+    theme: 'bg-cyan-50 text-cyan-700',
+    icon: 'Car',
+    allowedListingTypes: ['Service'],
+    businessModels: ['B2C', 'Token', 'Appointment', 'Quote'],
+    workflow: 'Appointment Workflow',
+    allowedFeatures: ['Service', 'B2C', 'Token', 'Appointment', 'Quote'],
+    notApplicable: ['Product Stock', 'Vehicle Test Drive', 'B2B', 'MOQ'],
+    optionalFeatures: ['Meeting'],
+    subcategories: [
+      {
+        name: 'Car Wash & Detailing',
+        parameters: [
+          { name: 'Vehicle Type', type: 'radio', options: ['Bike', 'Car', 'Truck', 'Bus', 'Heavy Vehicle (JCB)'] },
+          { name: 'Wash Package', type: 'checkbox', options: ['Foam Pressure Wash & Hand Dry', 'Interior Deep Vacuum & Dashboard Polish', 'Underbody & Engine Bay Wash', 'Teflon Coating & Gloss Wax', 'Ceramic Paint Shield (9H)', 'Windshield Rain Repellent Treatment'] },
+          { name: 'Service Mode', type: 'radio', options: ['Drive-in Center (Live Token)', 'Doorstep Mobile Wash Van', 'Complimentary Pickup & Drop'] }
+        ]
+      },
+      {
+        name: 'Automobile Repair & Servicing',
+        parameters: [
+          { name: 'Vehicle Type', type: 'radio', options: ['Bike', 'Car', 'Truck', 'Bus', 'Heavy Vehicle (JCB)'] },
+          { name: 'Service Scope', type: 'checkbox', options: ['Periodic Maintenance & Synthetic Oil Change', 'Brake Pad & Disc Replacement', 'Clutch Plate & Gearbox Service', 'Battery Diagnostic & Jumpstart', 'Air Conditioning Service & Filter Change', 'Suspension & Steering Overhaul', 'Hydraulics & Heavy Machinery Servicing'] },
+          { name: 'Service Location', type: 'radio', options: ['Authorized Service Center Visit', 'Doorstep Breakdown Assistance', 'Roadside Towing & Rescue', 'On-Site Field Visit (JCB & Heavy Commercial)'] }
+        ]
       }
     ]
   },
@@ -1173,12 +1451,36 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       .finally(() => setIsLoading(false));
 
     // Fetch categories with instant local cache + fastFetch
+    const mergeWithDefaults = (fetched: Category[]): Category[] => {
+      const mergedMap = new Map<string, Category>();
+      // 1. Put all defaultCategories first
+      defaultCategories.forEach(c => mergedMap.set(c.name.toLowerCase().trim(), c));
+      // 2. Overlay server data
+      fetched.forEach(c => {
+        const key = c.name.toLowerCase().trim();
+        const existing = mergedMap.get(key);
+        if (existing) {
+          mergedMap.set(key, {
+            ...existing,
+            ...c,
+            // If server has empty or fewer subcategories, keep the richer subcategories
+            subcategories: (c.subcategories && c.subcategories.length >= (existing.subcategories?.length || 0))
+              ? c.subcategories
+              : existing.subcategories
+          });
+        } else {
+          mergedMap.set(key, c);
+        }
+      });
+      return Array.from(mergedMap.values());
+    };
+
     try {
       const cachedCat = localStorage.getItem('mv_cache_categories');
       if (cachedCat) {
         const parsedCat = JSON.parse(cachedCat);
         if (Array.isArray(parsedCat) && parsedCat.length > 0) {
-          setCategories(parsedCat);
+          setCategories(mergeWithDefaults(parsedCat));
         }
       }
     } catch {}
@@ -1186,9 +1488,10 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     fastFetch<any[]>(`${API_URL}/categories`, { ttlMs: 60000 })
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
-          setCategories(data);
+          const merged = mergeWithDefaults(data);
+          setCategories(merged);
           try {
-            localStorage.setItem('mv_cache_categories', JSON.stringify(data));
+            localStorage.setItem('mv_cache_categories', JSON.stringify(merged));
           } catch {}
         } else {
           setCategories(defaultCategories);
@@ -1356,11 +1659,15 @@ export function useProducts() {
   if (context === undefined) {
     return {
       products: [],
+      allProducts: [],
       categories: [],
+      allCategories: [],
       isLoading: false,
       userLocation: 'Detecting Location...',
       userLat: null,
       userLng: null,
+      setUserLat: () => {},
+      setUserLng: () => {},
       radiusFilter: null,
       setRadiusFilter: () => {},
       setUserLocation: () => {},
@@ -1368,6 +1675,7 @@ export function useProducts() {
       filterProducts: () => [],
       getProductById: () => undefined,
       addProduct: async () => {},
+      editProduct: async () => {},
       updateProduct: async () => {},
       deleteProduct: async () => {},
       addCategory: async () => {},
