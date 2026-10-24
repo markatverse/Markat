@@ -174,6 +174,9 @@ export default function TokenTrackerPage() {
     queue.shopName?.toLowerCase().includes('bay')
   );
 
+  const plateMatch = token.service?.match(/\[Plate:\s*([^\]]+)\]/i) || token.customerName?.match(/\(([^)]+)\)$/);
+  const detectedPlate = plateMatch ? plateMatch[1].trim() : null;
+
   const waitingBefore = waitingTokens.filter(t => t.tokenNumber < token.tokenNumber);
   const waitingAfter  = waitingTokens.filter(t => t.tokenNumber > token.tokenNumber);
 
@@ -261,6 +264,17 @@ export default function TokenTrackerPage() {
             <div className="text-right">
               <div className="text-slate-400 text-[10px] font-black uppercase tracking-wider">Service</div>
               <div className={`font-black text-sm ${isWashService ? 'text-cyan-800' : 'text-slate-900'}`}>{token.service}</div>
+              {detectedPlate && (
+                <div className="mt-1.5 inline-flex items-center rounded border-2 border-slate-900 bg-white overflow-hidden shadow-2xs">
+                  <div className="bg-[#003893] text-white px-1.5 py-0.5 text-[7px] font-black tracking-widest flex items-center gap-1 border-r border-slate-900">
+                    <span className="text-[8px]">☸</span>
+                    <span>IND</span>
+                  </div>
+                  <span className="px-2 py-0.5 font-mono font-black text-xs text-slate-950 tracking-wider">
+                    {detectedPlate.toUpperCase()}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 

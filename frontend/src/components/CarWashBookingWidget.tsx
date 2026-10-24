@@ -267,9 +267,15 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
               <div className="text-sm font-extrabold text-white leading-tight">{service.seller || service.name}</div>
             </div>
           </div>
-          <span className="text-cyan-300 font-mono font-bold text-xs bg-cyan-950 px-2.5 py-1 rounded-md border border-cyan-700">
-            {plateNumber.toUpperCase()}
-          </span>
+          <div className="inline-flex items-center rounded border-2 border-slate-900 bg-white overflow-hidden shadow-xs shrink-0">
+            <div className="bg-[#003893] text-white px-1.5 py-1 text-[8px] font-black tracking-widest flex items-center gap-1 border-r border-slate-900">
+              <span className="text-[9px]">☸</span>
+              <span>IND</span>
+            </div>
+            <span className="px-2 py-0.5 font-mono font-black text-xs sm:text-sm text-slate-950 tracking-wider">
+              {plateNumber.toUpperCase()}
+            </span>
+          </div>
         </div>
 
         <div className="my-4 text-center">
@@ -392,34 +398,64 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
 
         {/* COMPACT INPUTS: NUMBER PLATE & MOBILE NUMBER ON SINGLE ROW */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {/* Plate */}
+          {/* Authentic Indian HSRP Number Plate */}
           <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">
-              Plate No. <span className="text-red-500">*</span>
-            </label>
-            <div className="flex items-center rounded-xl border border-slate-300 bg-white focus-within:border-cyan-700 focus-within:ring-1 focus-within:ring-cyan-200 overflow-hidden shadow-xs">
-              <div className="bg-cyan-800 text-white px-2 py-1.5 text-[8px] font-black uppercase tracking-wider shrink-0 flex items-center gap-0.5">
-                <span>🇮🇳</span>
-                <span>IND</span>
+            <div className="flex items-center justify-between mb-0.5">
+              <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1">
+                <span>Vehicle Plate No.</span>
+                <span className="text-red-500">*</span>
+              </label>
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
+                HSRP Standard
+              </span>
+            </div>
+
+            <div className="relative flex items-center rounded-lg border-2 border-slate-900 bg-white shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-cyan-600 focus-within:border-slate-950 transition-all">
+              {/* Left HSRP Sovereign Blue Band */}
+              <div className="bg-[#003893] text-white px-2 py-1.5 flex flex-col items-center justify-center shrink-0 border-r border-slate-900 select-none">
+                {/* Ashoka Chakra Hologram */}
+                <div className="w-3.5 h-3.5 rounded-full bg-blue-900/60 border border-blue-300/80 flex items-center justify-center mb-0.5 shadow-inner">
+                  <svg className="w-2.5 h-2.5 text-cyan-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <circle cx="12" cy="12" r="3.5" fill="currentColor" />
+                    <line x1="12" y1="2" x2="12" y2="22" />
+                    <line x1="2" y1="12" x2="22" y2="12" />
+                    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                    <line x1="4.93" y1="19.07" x2="19.07" y2="4.93" />
+                  </svg>
+                </div>
+                {/* IND Country Code */}
+                <span className="text-[9px] font-black tracking-widest text-white leading-none font-sans">
+                  IND
+                </span>
               </div>
-              <input
-                type="text"
-                required
-                placeholder="DL 01 AB 1234"
-                value={plateNumber}
-                onChange={e => setPlateNumber(e.target.value.toUpperCase())}
-                className="w-full px-2.5 py-1.5 text-xs font-black font-mono tracking-wider text-slate-900 outline-none uppercase placeholder:font-sans placeholder:tracking-normal placeholder:font-normal placeholder:text-slate-400"
-              />
+
+              {/* Number Plate Text Input */}
+              <div className="relative flex-1 flex items-center bg-white">
+                <input
+                  type="text"
+                  required
+                  maxLength={13}
+                  placeholder="DL 01 AB 1234"
+                  value={plateNumber}
+                  onChange={e => setPlateNumber(e.target.value.toUpperCase())}
+                  className="w-full px-2.5 py-1.5 text-xs sm:text-sm font-black font-mono tracking-widest text-slate-950 outline-none uppercase bg-transparent placeholder:font-sans placeholder:tracking-normal placeholder:font-normal placeholder:text-slate-400"
+                />
+                {/* Corner Security Rivet */}
+                <div className="pr-2 flex items-center gap-1 shrink-0 pointer-events-none select-none">
+                  <div className="w-2 h-2 rounded-full bg-slate-300 border border-slate-500 shadow-inner" title="Security Rivet" />
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Mobile */}
           <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">
+            <label className="block text-[10px] font-bold text-slate-600 uppercase mb-0.5 tracking-wider">
               Mobile (Updates)
             </label>
-            <div className="flex items-center rounded-xl border border-slate-300 bg-white focus-within:border-cyan-700 focus-within:ring-1 focus-within:ring-cyan-200 overflow-hidden shadow-xs">
-              <span className="px-2 py-1.5 bg-slate-50 text-slate-500 text-[11px] font-bold border-r border-slate-200">
+            <div className="flex items-center rounded-lg border-2 border-slate-300 bg-white focus-within:border-cyan-700 focus-within:ring-2 focus-within:ring-cyan-100 overflow-hidden shadow-xs transition-all">
+              <span className="px-2.5 py-2 bg-slate-50 text-slate-600 text-xs font-bold border-r border-slate-200">
                 +91
               </span>
               <input
@@ -427,7 +463,7 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
                 placeholder="9876543210"
                 value={phone}
                 onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
-                className="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-900 outline-none placeholder:text-slate-400"
+                className="w-full px-2.5 py-2 text-xs sm:text-sm font-semibold text-slate-900 outline-none placeholder:text-slate-400"
               />
             </div>
           </div>
