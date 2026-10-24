@@ -466,11 +466,11 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
           </div>
         </div>
 
-        {/* APPOINTMENT PICKER (ONLY WHEN SCHEDULE SLOT IS ACTIVE) */}
+        {/* APPOINTMENT PICKER (ONLY WHEN SCHEDULE SLOT IS ACTIVE) - IN ONE LINE ON MOBILE */}
         {bookingMode === 'APPOINTMENT' && (
-          <div className="p-3 bg-cyan-50/40 rounded-xl border border-cyan-100 grid grid-cols-1 sm:grid-cols-2 gap-2.5 animate-in fade-in duration-150">
-            <div>
-              <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+          <div className="p-2.5 sm:p-3 bg-cyan-50/40 rounded-xl border border-cyan-100 grid grid-cols-2 gap-2 sm:gap-2.5 animate-in fade-in duration-150">
+            <div className="min-w-0">
+              <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1 truncate">
                 Preferred Date
               </label>
               <input
@@ -478,24 +478,24 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
                 min={todayStr}
                 value={appointmentDate}
                 onChange={e => setAppointmentDate(e.target.value)}
-                className="w-full h-10 px-3 rounded-lg border border-slate-300 bg-white font-bold text-xs text-slate-800 outline-none focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100 shadow-2xs"
+                className="w-full h-10 px-2 sm:px-3 rounded-lg border border-slate-300 bg-white font-bold text-[11px] sm:text-xs text-slate-800 outline-none focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100 shadow-2xs min-w-0"
               />
             </div>
-            <div>
-              <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+            <div className="min-w-0">
+              <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1 truncate">
                 Preferred Time Slot
               </label>
               <select
                 value={appointmentTime}
                 onChange={e => setAppointmentTime(e.target.value)}
-                className="w-full h-10 px-3 rounded-lg border border-slate-300 bg-white font-bold text-xs text-slate-800 outline-none focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100 shadow-2xs cursor-pointer"
+                className="w-full h-10 px-1.5 sm:px-3 rounded-lg border border-slate-300 bg-white font-bold text-[11px] sm:text-xs text-slate-800 outline-none focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100 shadow-2xs cursor-pointer min-w-0"
               >
-                <option value="09:00">09:00 AM (Morning Slot)</option>
+                <option value="09:00">09:00 AM (Morning)</option>
                 <option value="11:00">11:00 AM (Prime Slot)</option>
-                <option value="13:00">01:00 PM (Afternoon Slot)</option>
-                <option value="15:00">03:00 PM (Afternoon Slot)</option>
-                <option value="17:00">05:00 PM (Evening Slot)</option>
-                <option value="19:00">07:00 PM (Night Slot)</option>
+                <option value="13:00">01:00 PM (Afternoon)</option>
+                <option value="15:00">03:00 PM (Afternoon)</option>
+                <option value="17:00">05:00 PM (Evening)</option>
+                <option value="19:00">07:00 PM (Night)</option>
               </select>
             </div>
           </div>
