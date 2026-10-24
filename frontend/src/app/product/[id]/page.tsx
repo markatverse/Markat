@@ -629,24 +629,21 @@ export default function ProductDetails() {
             </button>
           </div>
 
-          <div className={isAutoWash ? "mb-4" : (isServiceProduct(product) || hasService || isServiceQueue) ? "mb-6 sm:mb-8 flex flex-col gap-5" : "p-4 sm:p-6 bg-slate-50 rounded-2xl mb-6 sm:mb-8 border border-slate-200 shadow-2xs"}>
+          <div className={isAutoWash ? "mb-4" : (isServiceProduct(product) || hasService || isServiceQueue) ? "mb-4 sm:mb-5" : "p-4 sm:p-6 bg-slate-50 rounded-2xl mb-6 sm:mb-8 border border-slate-200 shadow-2xs"}>
             {(isServiceProduct(product) || hasService || isServiceQueue) && !isAutoWash && !isOrganizer && !isFoodDining ? (
-              <div className="p-4 sm:p-6 bg-gradient-to-r from-teal-50 via-emerald-50/50 to-cyan-50 rounded-2xl border border-teal-200/90 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
                 <div>
-                  <div className="text-[11px] font-bold text-teal-800 uppercase tracking-wider flex items-center gap-1.5 mb-1">
-                    <Sparkles className="w-3.5 h-3.5 text-teal-600" />
-                    <span>Service Rate / Consultation Fee</span>
+                  <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5">
+                    Service Rate
                   </div>
                   <div className="text-3xl sm:text-4xl font-black text-slate-900 flex items-baseline gap-2">
                     <span>₹{currentActivePrice.toLocaleString('en-IN')}</span>
                     <span className="text-xs sm:text-sm font-semibold text-slate-500">starting rate</span>
                   </div>
                 </div>
-                <div className="flex flex-col sm:items-end text-xs text-teal-900 font-medium bg-white/95 px-4 py-2.5 rounded-xl border border-teal-200 shadow-2xs">
-                  <span className="flex items-center gap-1.5 text-teal-800 font-bold">
-                    <Clock className="w-3.5 h-3.5 text-teal-600" /> Walk-In Live Token & Advance Appointments
-                  </span>
-                  <span className="text-slate-500 text-[11px] mt-0.5">Direct in-salon service • Pay after appointment</span>
+                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200/80 shadow-2xs">
+                  <Clock className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Live Queue & Advance Appointments</span>
                 </div>
               </div>
             ) : !isAutoWash ? (
@@ -888,67 +885,7 @@ export default function ProductDetails() {
               </div>
             )}
 
-            {/* Service Highlights, Facilities & Amenities (When it IS a service listing) */}
-            {(isServiceProduct(product) || hasService || isServiceQueue) && product.parameters && Object.keys(product.parameters).length > 0 && !isFoodDining && !isAutoWash && (() => {
-              const excludedKeys = ['bookingmodel', 'bookingoptions', 'bookingoption', 'servicetype', 'flow', 'allowedfeatures', 'queueenabled'];
-              const publicEntries = Object.entries(product.parameters).filter(([paramName]) => {
-                const cleaned = paramName.toLowerCase().replace(/[\s_-]/g, '');
-                return !excludedKeys.some(k => cleaned.includes(k) || k.includes(cleaned));
-              });
 
-              if (publicEntries.length === 0) return null;
-
-              return (
-                <div className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
-                  <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center">
-                        <Sparkles className="w-3.5 h-3.5" />
-                      </div>
-                      <span className="font-extrabold text-xs sm:text-sm text-slate-800 uppercase tracking-wide">
-                        Salon Amenities & Service Facilities
-                      </span>
-                    </div>
-                    <span className="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
-                      Verified Facility
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {publicEntries.map(([paramName, rawOptions]) => {
-                      const parsedOptions = parseParamOptions(rawOptions, paramName);
-                      if (parsedOptions.length === 0) return null;
-                      const isLocation = paramName.toLowerCase().includes('location') || paramName.toLowerCase().includes('setting');
-                      const isGender = paramName.toLowerCase().includes('gender') || paramName.toLowerCase().includes('focus') || paramName.toLowerCase().includes('audience');
-                      const isAmenities = paramName.toLowerCase().includes('amenit') || paramName.toLowerCase().includes('facility');
-
-                      return (
-                        <div key={paramName} className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/60 shadow-2xs flex flex-col gap-1.5">
-                          <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                            {isLocation ? <MapPin className="w-3 h-3 text-teal-600" /> :
-                              isGender ? <Users className="w-3 h-3 text-blue-600" /> :
-                                isAmenities ? <Sparkles className="w-3 h-3 text-amber-500" /> :
-                                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
-                            {paramName}
-                          </span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {parsedOptions.map((item, idx) => (
-                              <span
-                                key={idx}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-slate-800 border border-slate-200 shadow-2xs"
-                              >
-                                <CheckCircle2 className="w-3 h-3 text-teal-600" />
-                                {item}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })()}
 
             {/* Physical Product Variant Selectors (For physical goods with selectable parameters) */}
             {product.parameters && Object.keys(product.parameters).length > 0 && !isFoodDining && !hasToken && !isAutoWash && !isServiceProduct(product) && !isServiceQueue && !hasService && (() => {
