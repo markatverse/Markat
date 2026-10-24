@@ -343,22 +343,30 @@ export default function SmartQueueWidget({ service }: { service: any }) {
     </div>
   );
 
-  // Join form
+  // Join form (Compact & High Density)
   if (step === 'join') return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h4 className="font-black text-slate-900 flex items-center gap-2"><Ticket className="w-4 h-4 text-violet-600" /> Get Your Token</h4>
-        <button onClick={() => setStep('view')} className="text-slate-400 hover:text-slate-700 text-xs font-semibold">← Back</button>
+    <div className="space-y-2.5 sm:space-y-3">
+      <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
+        <h4 className="font-extrabold text-xs sm:text-sm text-slate-900 flex items-center gap-1.5">
+          <Ticket className="w-3.5 h-3.5 text-violet-600" /> Get Your Token
+        </h4>
+        <button onClick={() => setStep('view')} className="text-violet-600 hover:text-violet-800 text-xs font-bold cursor-pointer">
+          ← Back
+        </button>
       </div>
 
       {/* Multi-Service Selector */}
       <div>
-        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Select Services <span className="normal-case font-medium text-slate-400">(pick one or more)</span></p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Select Services</span>
+          <span className="text-[10px] text-slate-400 font-medium">Pick one or more</span>
+        </div>
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
           {availableServices.map(svc => {
             const isChosen = selectedServices.some(s => s.label === svc.label);
             return (
               <button key={svc.label}
+                type="button"
                 onClick={() => {
                   if (isChosen && selectedServices.length === 1) return; // Prevent deselecting the only selected service
                   setSelectedServices(prev =>
@@ -367,49 +375,48 @@ export default function SmartQueueWidget({ service }: { service: any }) {
                       : [...prev, svc]
                   );
                 }}
-                className={`relative flex flex-col items-center gap-1 py-3 px-2 rounded-2xl border-2 font-bold text-sm transition-all ${
+                className={`relative flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 sm:py-2 sm:px-2 rounded-xl border text-center transition-all cursor-pointer min-h-[56px] sm:min-h-[64px] ${
                   isChosen
-                    ? 'border-violet-500 bg-violet-50 text-violet-700 shadow-md shadow-violet-100'
-                    : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-violet-200 hover:bg-violet-50/50'
+                    ? 'border-2 border-violet-600 bg-violet-50 text-violet-900 shadow-xs font-black ring-1 ring-violet-500/20'
+                    : 'border-slate-200 bg-slate-50 hover:border-violet-300 hover:bg-violet-50/30 text-slate-700 font-bold'
                 }`}>
                 {isChosen && (
-                  <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-violet-600 rounded-full flex items-center justify-center text-white text-[9px] font-black z-10">✓</span>
+                  <span className="absolute top-1 right-1 w-3.5 h-3.5 bg-violet-600 rounded-full flex items-center justify-center text-white text-[8px] font-black z-10">✓</span>
                 )}
                 {svc.discount ? (
-                  <span className="absolute -top-2 -left-2 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md shadow-sm transform -rotate-12">
-                    {svc.discount}% OFF
+                  <span className="absolute -top-1.5 -left-1 bg-red-500 text-white text-[8px] font-black px-1 py-0.2 rounded-sm shadow-2xs">
+                    {svc.discount}%
                   </span>
                 ) : null}
-                <span className="text-xl">{svc.emoji}</span>
-                <span className="text-xs leading-tight text-center">{svc.label}</span>
-                <div className="flex items-center gap-1">
+                <span className="text-base sm:text-lg leading-none">{svc.emoji}</span>
+                <span className="text-[10px] sm:text-xs leading-tight truncate w-full text-center mt-0.5 font-bold">{svc.label}</span>
+                <div className="flex items-center gap-1 mt-0.5">
                   {svc.discount ? (
                     <span className="text-[9px] text-slate-400 line-through">₹{svc.originalPrice}</span>
                   ) : null}
-                  <span className={`font-black text-xs ${isChosen ? 'text-violet-600' : 'text-slate-400'}`}>₹{svc.price}</span>
+                  <span className={`text-[10px] sm:text-xs font-black ${isChosen ? 'text-violet-700' : 'text-slate-500'}`}>₹{svc.price}</span>
                 </div>
               </button>
             );
           })}
         </div>
 
-        {/* Order Summary */}
+        {/* Compact Order Summary Strip */}
         {selectedServices.length > 0 ? (
-          <div className="mt-3 bg-gradient-to-r from-violet-50 to-indigo-50 border border-violet-200 rounded-2xl px-4 py-3 space-y-1">
-            <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Your Order</p>
-            {selectedServices.map(s => (
-              <div key={s.label} className="flex justify-between text-sm">
-                <span className="text-slate-700 font-medium">{s.emoji} {s.label}</span>
-                <span className="text-violet-700 font-bold">₹{s.price}</span>
-              </div>
-            ))}
-            <div className="pt-2 mt-1 border-t border-violet-200 flex justify-between">
-              <span className="font-black text-slate-800 text-sm">Total</span>
-              <span className="font-black text-violet-700 text-base">₹{totalPrice}</span>
+          <div className="mt-2 bg-violet-50/80 border border-violet-200/80 rounded-xl px-3 py-1.5 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-1.5 truncate min-w-0 mr-2">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider shrink-0">Order:</span>
+              <span className="font-bold text-violet-950 truncate text-[11px] sm:text-xs">
+                {selectedServices.map(s => s.label).join(', ')}
+              </span>
+            </div>
+            <div className="flex items-baseline gap-1 shrink-0">
+              <span className="text-[10px] text-slate-500 font-bold uppercase">Total:</span>
+              <span className="text-xs sm:text-sm font-black text-violet-700">₹{totalPrice}</span>
             </div>
           </div>
         ) : (
-          <div className="mt-3 bg-red-50 border border-red-100 rounded-xl px-3 py-2 text-xs text-red-500 font-semibold text-center">
+          <div className="mt-2 bg-red-50 border border-red-100 rounded-xl px-3 py-1.5 text-[11px] text-red-500 font-bold text-center">
             ⚠️ Please select at least one service
           </div>
         )}
@@ -417,14 +424,14 @@ export default function SmartQueueWidget({ service }: { service: any }) {
 
       {/* Staff & Resource Selection */}
       {((status?.resources && status.resources.length > 0) || (status?.staff && status.staff.length > 0)) && (
-        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-4">
+        <div className="bg-slate-50 border border-slate-100 rounded-xl p-2.5 space-y-2">
           {status.resources && status.resources.length > 0 && (
             <div>
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">{isAuto ? 'Select Service Bay / Station' : 'Select Space / Chair'} <span className="normal-case font-medium text-slate-400">(Optional)</span></p>
-              <div className="flex flex-wrap gap-2">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{isAuto ? 'Service Bay' : 'Space / Chair'}</p>
+              <div className="flex flex-wrap gap-1.5">
                 {status.resources.map(r => (
                   <button key={r.id} onClick={() => setSelectedResource(r.id === selectedResource ? null : r.id)}
-                    className={`px-3 py-2 rounded-xl text-sm font-bold border transition-colors ${selectedResource === r.id ? 'bg-violet-600 text-white border-violet-600 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:border-violet-300'}`}>
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-colors ${selectedResource === r.id ? 'bg-violet-600 text-white border-violet-600 shadow-xs' : 'bg-white text-slate-600 border-slate-200 hover:border-violet-300'}`}>
                     {r.name}
                   </button>
                 ))}
@@ -433,12 +440,12 @@ export default function SmartQueueWidget({ service }: { service: any }) {
           )}
           {status.staff && status.staff.length > 0 && (
             <div>
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">{isAuto ? 'Select Service Specialist / Technician' : 'Select Staff'} <span className="normal-case font-medium text-slate-400">(Optional)</span></p>
-              <div className="flex flex-wrap gap-2">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{isAuto ? 'Specialist' : 'Staff'}</p>
+              <div className="flex flex-wrap gap-1.5">
                 {status.staff.map(s => (
                   <button key={s.id} onClick={() => setSelectedStaff(s.id === selectedStaff ? null : s.id)}
-                    className={`px-3 py-2 rounded-xl text-sm font-bold border transition-colors ${selectedStaff === s.id ? 'bg-violet-600 text-white border-violet-600 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:border-violet-300'}`}>
-                    {s.name} <span className="text-[10px] opacity-70 ml-1">({s.role})</span>
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-colors ${selectedStaff === s.id ? 'bg-violet-600 text-white border-violet-600 shadow-xs' : 'bg-white text-slate-600 border-slate-200 hover:border-violet-300'}`}>
+                    {s.name} <span className="text-[9px] opacity-70 ml-1">({s.role})</span>
                   </button>
                 ))}
               </div>
@@ -447,64 +454,81 @@ export default function SmartQueueWidget({ service }: { service: any }) {
         </div>
       )}
 
-      {selected && (
-        <div className="bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3">
-          <div className="text-slate-700 font-bold text-sm">{selected.shopName}</div>
-          <div className="text-slate-400 text-xs mt-0.5 flex items-center gap-3">
-            <span>Now serving #{selected.currentToken}</span>
-            <span>·</span>
-            <span>{Math.max(0, selected.lastToken - selected.currentToken)} waiting</span>
-          </div>
-        </div>
-      )}
-
       {/* Booking Mode Selector */}
-      <div className="flex gap-2 p-1 bg-slate-100 rounded-xl mb-4">
+      <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-xl text-xs font-bold border border-slate-200/60">
         <button 
+          type="button"
           onClick={() => setBookingMode('TOKEN')}
-          className={`flex-1 py-2 rounded-lg text-sm font-bold transition-colors ${bookingMode === 'TOKEN' ? 'bg-white shadow text-violet-700' : 'text-slate-500 hover:text-slate-700'}`}
+          className={`py-1.5 rounded-lg text-xs transition-all flex items-center justify-center gap-1 ${bookingMode === 'TOKEN' ? 'bg-white shadow-xs text-violet-700 font-black' : 'text-slate-500 hover:text-slate-700 font-semibold'}`}
         >
-          Walk-in Now (Token)
+          Walk-in (Token)
         </button>
         <button 
+          type="button"
           onClick={() => setBookingMode('APPOINTMENT')}
-          className={`flex-1 py-2 rounded-lg text-sm font-bold transition-colors ${bookingMode === 'APPOINTMENT' ? 'bg-white shadow text-violet-700' : 'text-slate-500 hover:text-slate-700'}`}
+          className={`py-1.5 rounded-lg text-xs transition-all flex items-center justify-center gap-1 ${bookingMode === 'APPOINTMENT' ? 'bg-white shadow-xs text-violet-700 font-black' : 'text-slate-500 hover:text-slate-700 font-semibold'}`}
         >
           Book Appointment
         </button>
       </div>
 
-      <input type="text" placeholder="Your name *" value={name} onChange={e => setName(e.target.value)}
-        className="w-full px-4 py-3.5 border-2 border-slate-100 focus:border-violet-400 rounded-2xl outline-none text-slate-900 font-medium bg-slate-50 transition-colors" />
-      <div className="flex gap-2 w-full">
-        <select 
-          value={countryCode}
-          onChange={(e) => setCountryCode(e.target.value)}
-          className="w-1/3 px-3 py-3.5 border-2 border-slate-100 focus:border-violet-400 rounded-2xl outline-none text-slate-900 font-medium bg-slate-50 transition-colors appearance-none cursor-pointer"
-        >
-          <option value="+91">🇮🇳 +91</option>
-          <option value="+1">🇺🇸 +1</option>
-          <option value="+44">🇬🇧 +44</option>
-          <option value="+971">🇦🇪 +971</option>
-          <option value="+61">🇦🇺 +61</option>
-          <option value="+65">🇸🇬 +65</option>
-        </select>
-        <input type="tel" placeholder="Phone number (optional)" value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
-          className="w-2/3 px-4 py-3.5 border-2 border-slate-100 focus:border-violet-400 rounded-2xl outline-none text-slate-900 font-medium bg-slate-50 transition-colors" />
+      {/* Name and Mobile aligned in one row side by side */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="min-w-0">
+          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5 truncate">Name *</label>
+          <input 
+            type="text" 
+            placeholder="Your name" 
+            value={name} 
+            onChange={e => setName(e.target.value)}
+            className="w-full h-10 px-3 border border-slate-300 focus:border-violet-500 rounded-xl outline-none text-slate-900 font-semibold bg-white text-xs sm:text-sm transition-colors shadow-2xs" 
+          />
+        </div>
+        <div className="min-w-0">
+          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5 truncate">Mobile *</label>
+          <div className="h-10 flex items-center rounded-xl border border-slate-300 bg-white shadow-2xs overflow-hidden focus-within:border-violet-500 transition-colors">
+            <span className="h-full px-2.5 bg-slate-50 text-slate-600 text-[11px] sm:text-xs font-bold border-r border-slate-200 flex items-center justify-center shrink-0">
+              +91
+            </span>
+            <input 
+              type="tel" 
+              placeholder="9876543210" 
+              value={phone} 
+              onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
+              className="h-full flex-1 px-2.5 text-xs sm:text-sm font-semibold text-slate-900 bg-transparent outline-none placeholder:text-slate-400 min-w-0" 
+            />
+          </div>
+        </div>
       </div>
       
+      {/* Appointment Date and Time aligned in one row side by side */}
       {bookingMode === 'APPOINTMENT' && (
-        <div className="flex gap-3">
-          <input type="date" value={appointmentDate} onChange={e => setAppointmentDate(e.target.value)}
-            className="flex-1 px-4 py-3.5 border-2 border-slate-100 focus:border-violet-400 rounded-2xl outline-none text-slate-900 font-medium bg-slate-50 transition-colors" />
-          <input type="time" value={appointmentTime} onChange={e => setAppointmentTime(e.target.value)}
-            className="flex-1 px-4 py-3.5 border-2 border-slate-100 focus:border-violet-400 rounded-2xl outline-none text-slate-900 font-medium bg-slate-50 transition-colors" />
+        <div className="grid grid-cols-2 gap-2 p-2 bg-violet-50/50 rounded-xl border border-violet-100 animate-in fade-in duration-150">
+          <div className="min-w-0">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5 truncate">Date</label>
+            <input 
+              type="date" 
+              min={new Date().toISOString().split('T')[0]} 
+              value={appointmentDate} 
+              onChange={e => setAppointmentDate(e.target.value)}
+              className="w-full h-9 px-2 border border-slate-300 focus:border-violet-500 rounded-lg outline-none text-slate-900 font-bold bg-white text-xs" 
+            />
+          </div>
+          <div className="min-w-0">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5 truncate">Time</label>
+            <input 
+              type="time" 
+              value={appointmentTime} 
+              onChange={e => setAppointmentTime(e.target.value)}
+              className="w-full h-9 px-2 border border-slate-300 focus:border-violet-500 rounded-lg outline-none text-slate-900 font-bold bg-white text-xs" 
+            />
+          </div>
         </div>
       )}
 
-      {err && <p className="text-red-500 text-sm bg-red-50 border border-red-100 px-4 py-3 rounded-xl">⚠️ {err}</p>}
+      {err && <p className="text-red-500 text-xs bg-red-50 border border-red-100 px-3 py-2 rounded-xl font-bold">⚠️ {err}</p>}
       <button onClick={join} disabled={joining || selectedServices.length === 0}
-        className="w-full py-4 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-base rounded-2xl transition-all shadow-xl shadow-violet-200 flex items-center justify-center gap-2">
+        className="w-full h-11 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold text-xs sm:text-sm rounded-xl transition-all shadow-md shadow-violet-200 flex items-center justify-center gap-2 active:scale-98 cursor-pointer">
         {joining ? <Loader2 className="w-4 h-4 animate-spin" /> : (bookingMode === 'TOKEN' ? <Ticket className="w-4 h-4" /> : <CalendarClock className="w-4 h-4" />)}
         {joining ? 'Processing…' : (bookingMode === 'TOKEN' ? `Pay ₹${totalPrice} & Get Token 🎫` : `Pay ₹${totalPrice} & Book 📅`)}
       </button>
