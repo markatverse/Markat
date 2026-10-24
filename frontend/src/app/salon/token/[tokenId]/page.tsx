@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
   Clock, CheckCircle2, Loader2, RefreshCw, ArrowLeft,
-  AlertCircle, Scissors, Users
+  AlertCircle, Scissors, Users, Car
 } from "lucide-react";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
@@ -165,6 +165,15 @@ export default function TokenTrackerPage() {
   const isNoShow  = token.status === "NO_SHOW";
   const isWaiting = token.status === "WAITING";
 
+  const isWashService = Boolean(
+    token.service?.toLowerCase().includes('wash') ||
+    token.service?.toLowerCase().includes('automobile') ||
+    token.service?.toLowerCase().includes('vehicle') ||
+    queue.shopName?.toLowerCase().includes('wash') ||
+    queue.shopName?.toLowerCase().includes('automobile') ||
+    queue.shopName?.toLowerCase().includes('bay')
+  );
+
   const waitingBefore = waitingTokens.filter(t => t.tokenNumber < token.tokenNumber);
   const waitingAfter  = waitingTokens.filter(t => t.tokenNumber > token.tokenNumber);
 
@@ -181,8 +190,8 @@ export default function TokenTrackerPage() {
             </Link>
             
             <div className="flex items-center gap-2 text-slate-500 text-xs font-bold bg-slate-100 px-3 py-1.5 rounded-lg">
-              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-blue-600' : ''}`} />
-              <button onClick={() => fetchStatus(true)} className="hover:text-blue-600 transition-colors">
+              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? `animate-spin ${isWashService ? 'text-cyan-700' : 'text-blue-600'}` : ''}`} />
+              <button onClick={() => fetchStatus(true)} className={`transition-colors ${isWashService ? 'hover:text-cyan-700' : 'hover:text-blue-600'}`}>
                 Refresh ({countdown}s)
               </button>
             </div>
@@ -192,13 +201,19 @@ export default function TokenTrackerPage() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6">
 
-        {/* Salon name */}
+        {/* Shop / Bay name */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-full mb-3 shadow-sm">
-            <Scissors className="w-4 h-4 text-blue-600" />
+            {isWashService ? (
+              <Car className="w-4 h-4 text-cyan-700" />
+            ) : (
+              <Scissors className="w-4 h-4 text-blue-600" />
+            )}
             <span className="text-slate-700 font-bold text-xs sm:text-sm truncate">{queue.shopName}</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">Live Tracker</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+            {isWashService ? 'Automobile Wash Tracker' : 'Live Tracker'}
+          </h1>
         </div>
 
         {/* ── Your Turn Alert ────────────────────────────────────────────── */}
@@ -206,7 +221,9 @@ export default function TokenTrackerPage() {
           <div className="mb-6 bg-emerald-50 border-2 border-emerald-200 rounded-3xl p-5 text-center shadow-sm">
             <div className="text-4xl mb-2 animate-bounce">🎉</div>
             <div className="text-emerald-700 font-black text-2xl">It&apos;s Your Turn!</div>
-            <div className="text-emerald-600 text-sm mt-1 font-bold">Please head to the service counter now</div>
+            <div className="text-emerald-600 text-sm mt-1 font-bold">
+              {isWashService ? 'Please drive your vehicle directly into the wash bay lane now' : 'Please head to the service counter now'}
+            </div>
           </div>
         )}
 
@@ -215,11 +232,12 @@ export default function TokenTrackerPage() {
           isServing  ? 'border-emerald-300' :
           isDone     ? 'border-blue-200' :
           isNoShow   ? 'border-red-200' :
+          isWashService ? 'border-cyan-700/25' :
                        'border-slate-200'
         }`}>
           {/* Background Accent */}
           <div className={`absolute top-0 right-0 w-32 h-32 blur-3xl opacity-20 pointer-events-none rounded-bl-full ${
-            isServing ? 'bg-emerald-500' : isDone ? 'bg-blue-500' : 'bg-slate-400'
+            isServing ? 'bg-emerald-500' : isDone ? 'bg-blue-500' : isWashService ? 'bg-cyan-500' : 'bg-slate-400'
           }`} />
 
           <div className="relative z-10 flex items-start justify-between mb-6">
@@ -228,19 +246,21 @@ export default function TokenTrackerPage() {
               isServing ? 'bg-emerald-100 border-emerald-200 text-emerald-700' :
               isDone    ? 'bg-blue-100 border-blue-200 text-blue-700' :
               isNoShow  ? 'bg-red-100 border-red-200 text-red-700' :
+              isWashService ? 'bg-cyan-50 border-cyan-200 text-cyan-800' :
                           'bg-amber-100 border-amber-200 text-amber-700'
             }`}>
               <div className={`w-1.5 h-1.5 rounded-full ${
                 isServing ? 'bg-emerald-500 animate-pulse' :
                 isDone    ? 'bg-blue-500' :
                 isNoShow  ? 'bg-red-500' :
+                isWashService ? 'bg-cyan-600 animate-pulse' :
                             'bg-amber-500 animate-pulse'
               }`} />
-              {isServing ? 'NOW SERVING YOU' : isDone ? 'COMPLETED' : isNoShow ? 'NO SHOW' : 'WAITING IN QUEUE'}
+              {isServing ? 'NOW IN WASH BAY' : isDone ? 'COMPLETED' : isNoShow ? 'NO SHOW' : 'WAITING IN QUEUE'}
             </div>
             <div className="text-right">
               <div className="text-slate-400 text-[10px] font-black uppercase tracking-wider">Service</div>
-              <div className="text-slate-900 font-black text-sm">{token.service}</div>
+              <div className={`font-black text-sm ${isWashService ? 'text-cyan-800' : 'text-slate-900'}`}>{token.service}</div>
             </div>
           </div>
 
@@ -249,7 +269,7 @@ export default function TokenTrackerPage() {
             <div>
               <div className="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Your Token</div>
               <div className={`text-6xl sm:text-7xl font-black leading-none tracking-tighter ${
-                isServing ? 'text-emerald-600' : isDone ? 'text-blue-600' : 'text-slate-900'
+                isServing ? 'text-emerald-600' : isDone ? 'text-blue-600' : isWashService ? 'text-cyan-700' : 'text-slate-900'
               }`}>
                 #{token.tokenNumber}
               </div>

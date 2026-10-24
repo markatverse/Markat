@@ -560,7 +560,11 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
             )}
 
             {product.category && (
-              <span className="text-[10px] sm:text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 uppercase tracking-wide px-2.5 py-0.5 rounded-md">
+              <span className={`text-[10px] sm:text-xs font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-md border ${
+                isAutoWash 
+                  ? 'text-cyan-800 bg-cyan-50 border-cyan-200' 
+                  : 'text-indigo-700 bg-indigo-50 border-indigo-100'
+              }`}>
                 {product.category} {product.subcategory ? `› ${product.subcategory}` : ''}
               </span>
             )}
@@ -573,10 +577,12 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
 
             <Link 
               href={`/shop/${encodeURIComponent((product.seller || 'unknown').toLowerCase().replace(/ /g, '-'))}`}
-              className="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wider ml-auto flex items-center gap-1"
+              className={`text-xs font-bold uppercase tracking-wider ml-auto flex items-center gap-1 ${
+                isAutoWash ? 'text-cyan-700 hover:text-cyan-800' : 'text-blue-600 hover:text-blue-800'
+              }`}
             >
               <span>{product.seller || 'Verified Seller'}</span>
-              <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+              <ShieldCheck className={`w-3.5 h-3.5 ${isAutoWash ? 'text-cyan-700' : 'text-blue-600'}`} />
             </Link>
           </div>
 
@@ -1663,8 +1669,8 @@ const parseParamOptions = (val: any, paramName?: string): string[] => {
                 </div>
               )}
 
-              {/* ── SERVICE-ONLY ACTION FLOW (when not queue, not dining, not organizer) ── */}
-              {hasService && !isOrganizer && !isFoodDining && !hasToken && !hasAppointment && !hasRFQ && !hasMeeting && !isRetail && (
+              {/* ── SERVICE-ONLY ACTION FLOW (when not queue, not dining, not organizer, not autowash) ── */}
+              {hasService && !isOrganizer && !isFoodDining && !hasToken && !hasAppointment && !hasRFQ && !hasMeeting && !isRetail && !isAutoWash && (
                 <div className="flex flex-col gap-3 w-full p-4 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-2xl border border-teal-200 shadow-2xs">
                   <div className="flex items-center justify-between">
                     <div>

@@ -255,7 +255,8 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
     const estWait = bookingResult.estimatedWaitMin ?? (currentVehicle.estMinutes * Math.max(1, bookingResult.ahead || 0));
 
     return (
-      <div className="w-full bg-slate-900 text-white rounded-2xl p-4 sm:p-5 shadow-xl border border-slate-800 animate-in fade-in duration-200">
+      <div className="w-full bg-slate-900 text-white rounded-2xl p-4 sm:p-5 shadow-xl border border-cyan-500/30 animate-in fade-in duration-200 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-teal-300 to-cyan-500" />
         <div className="flex items-center justify-between pb-3 border-b border-white/10">
           <div className="flex items-center gap-2">
             <span className="text-xl">{currentVehicle.icon}</span>
@@ -266,7 +267,7 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
               <div className="text-sm font-extrabold text-white leading-tight">{service.seller || service.name}</div>
             </div>
           </div>
-          <span className="text-cyan-400 font-mono font-bold text-xs bg-cyan-950/80 px-2.5 py-1 rounded-md border border-cyan-800">
+          <span className="text-cyan-300 font-mono font-bold text-xs bg-cyan-950 px-2.5 py-1 rounded-md border border-cyan-700">
             {plateNumber.toUpperCase()}
           </span>
         </div>
@@ -286,7 +287,7 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
         <div className="flex gap-2">
           <Link
             href={`/salon/token/${token.id}`}
-            className="flex-1 py-2.5 px-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-extrabold text-xs rounded-xl text-center transition-all flex items-center justify-center gap-1.5"
+            className="flex-1 py-2.5 px-3 bg-cyan-700 hover:bg-cyan-800 text-white font-extrabold text-xs rounded-xl text-center transition-all flex items-center justify-center gap-1.5 shadow-md shadow-cyan-950"
           >
             <Clock className="w-3.5 h-3.5" /> Track Live Token
           </Link>
@@ -309,31 +310,33 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
   const estWaitMin = (waitingCount + 1) * (currentVehicle.estMinutes || 20);
 
   return (
-    <div className="w-full bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-4 transition-all">
+    <div className="w-full bg-white rounded-2xl border-2 border-cyan-700/20 shadow-sm shadow-cyan-900/5 p-3.5 sm:p-4 transition-all relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-600 via-cyan-700 to-teal-600" />
+
       {/* ── Compact Header Bar ── */}
       <div className="flex items-center justify-between pb-3 border-b border-slate-100 gap-2 flex-wrap">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-cyan-50 border border-cyan-200 text-cyan-600 flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg bg-cyan-700 text-white flex items-center justify-center shadow-xs">
             <Car className="w-4 h-4" />
           </div>
           <div>
             <span className="text-xs font-extrabold text-slate-900 block leading-tight">Automobile & Wash Bay</span>
-            <div className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="text-[10px] text-cyan-800 font-bold flex items-center gap-1.5 bg-cyan-50 px-2.5 py-0.5 rounded-md border border-cyan-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-600 animate-pulse" />
               Live Queue: {servingToken ? `Serving #${servingToken}` : 'Ready'} · {waitingCount} Waiting · ~{estWaitMin}m
             </div>
           </div>
         </div>
 
         {/* Compact Mode Toggle */}
-        <div className="inline-flex p-0.5 bg-slate-100 rounded-lg text-[11px] font-bold">
+        <div className="inline-flex p-0.5 bg-slate-100 rounded-lg text-[11px] font-bold border border-slate-200/70">
           <button
             type="button"
             onClick={() => setBookingMode('TOKEN')}
-            className={`px-2.5 py-1 rounded-md transition-all ${
+            className={`px-3 py-1 rounded-md transition-all ${
               bookingMode === 'TOKEN'
-                ? 'bg-white text-cyan-700 shadow-xs font-black'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'bg-white text-cyan-700 shadow-xs font-black border border-cyan-300 ring-1 ring-cyan-700/20'
+                : 'text-slate-500 hover:text-cyan-700'
             }`}
           >
             Walk-in (Live)
@@ -341,10 +344,10 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
           <button
             type="button"
             onClick={() => setBookingMode('APPOINTMENT')}
-            className={`px-2.5 py-1 rounded-md transition-all ${
+            className={`px-3 py-1 rounded-md transition-all ${
               bookingMode === 'APPOINTMENT'
-                ? 'bg-white text-cyan-700 shadow-xs font-black'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'bg-white text-cyan-700 shadow-xs font-black border border-cyan-300 ring-1 ring-cyan-700/20'
+                : 'text-slate-500 hover:text-cyan-700'
             }`}
           >
             Schedule Slot
@@ -353,7 +356,7 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
       </div>
 
       <form onSubmit={handleBookWash} className="pt-3 space-y-3">
-        {/* COMPACT VEHICLE SELECTOR: 6 CHIPS IN A TIGHT ROW */}
+        {/* COMPACT VEHICLE SELECTOR: 5 CHIPS IN A TIGHT ROW */}
         <div>
           <div className="flex items-center justify-between mb-1.5 text-[11px] font-bold">
             <span className="text-slate-600 uppercase tracking-wider">Select Vehicle Type</span>
@@ -372,8 +375,8 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
                   onClick={() => setSelectedVehicle(v)}
                   className={`py-1.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
                     isSelected
-                      ? 'border-cyan-600 bg-cyan-50/90 text-cyan-900 shadow-xs font-black ring-1 ring-cyan-500'
-                      : 'border-slate-200 bg-slate-50/60 hover:bg-slate-100 text-slate-700 font-bold'
+                      ? 'border-cyan-700 bg-cyan-50 text-cyan-900 shadow-xs font-black ring-1 ring-cyan-700'
+                      : 'border-slate-200 bg-slate-50/60 hover:border-cyan-300 text-slate-700 font-bold'
                   }`}
                 >
                   <span className="text-lg leading-none">{v.icon}</span>
@@ -394,8 +397,8 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
             <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">
               Plate No. <span className="text-red-500">*</span>
             </label>
-            <div className="flex items-center rounded-xl border border-slate-300 bg-white focus-within:border-cyan-600 focus-within:ring-1 focus-within:ring-cyan-100 overflow-hidden shadow-xs">
-              <div className="bg-blue-800 text-white px-2 py-1.5 text-[8px] font-black uppercase tracking-wider shrink-0 flex items-center gap-0.5">
+            <div className="flex items-center rounded-xl border border-slate-300 bg-white focus-within:border-cyan-700 focus-within:ring-1 focus-within:ring-cyan-200 overflow-hidden shadow-xs">
+              <div className="bg-cyan-800 text-white px-2 py-1.5 text-[8px] font-black uppercase tracking-wider shrink-0 flex items-center gap-0.5">
                 <span>🇮🇳</span>
                 <span>IND</span>
               </div>
@@ -415,7 +418,7 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
             <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">
               Mobile (Updates)
             </label>
-            <div className="flex items-center rounded-xl border border-slate-300 bg-white focus-within:border-cyan-600 focus-within:ring-1 focus-within:ring-cyan-100 overflow-hidden shadow-xs">
+            <div className="flex items-center rounded-xl border border-slate-300 bg-white focus-within:border-cyan-700 focus-within:ring-1 focus-within:ring-cyan-200 overflow-hidden shadow-xs">
               <span className="px-2 py-1.5 bg-slate-50 text-slate-500 text-[11px] font-bold border-r border-slate-200">
                 +91
               </span>
@@ -438,12 +441,12 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
               min={todayStr}
               value={appointmentDate}
               onChange={e => setAppointmentDate(e.target.value)}
-              className="w-full px-2.5 py-1 rounded-lg border border-slate-300 bg-white font-semibold outline-none focus:border-cyan-600"
+              className="w-full px-2.5 py-1 rounded-lg border border-slate-300 bg-white font-semibold outline-none focus:border-cyan-700"
             />
             <select
               value={appointmentTime}
               onChange={e => setAppointmentTime(e.target.value)}
-              className="w-full px-2.5 py-1 rounded-lg border border-slate-300 bg-white font-semibold outline-none focus:border-cyan-600"
+              className="w-full px-2.5 py-1 rounded-lg border border-slate-300 bg-white font-semibold outline-none focus:border-cyan-700"
             >
               <option value="09:00">09:00 AM</option>
               <option value="11:00">11:00 AM</option>
@@ -468,14 +471,14 @@ export default function CarWashBookingWidget({ service }: { service: any }) {
             <div className="text-[10px] text-slate-400 font-bold uppercase leading-none">Total Rate</div>
             <div className="flex items-baseline gap-1 mt-0.5">
               <span className="text-xl font-black text-slate-900 leading-none">₹{activePrice}</span>
-              <span className="text-[11px] text-slate-500 font-bold">({currentVehicle.name})</span>
+              <span className="text-[11px] text-cyan-700 font-bold">({currentVehicle.name})</span>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={submitting}
-            className="py-2.5 px-5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-md shadow-cyan-600/20 transition-all flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-60 cursor-pointer"
+            className="py-2.5 px-6 bg-cyan-700 hover:bg-cyan-800 active:bg-cyan-900 text-white font-black text-xs sm:text-sm rounded-xl shadow-md shadow-cyan-700/25 transition-all flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-60 cursor-pointer"
           >
             {submitting ? (
               <span>Generating...</span>
