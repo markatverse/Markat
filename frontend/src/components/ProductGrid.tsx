@@ -1,11 +1,11 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useProducts, Product } from '@/context/ProductContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useSettings } from '@/context/SettingsContext';
-import { MapPin, Heart, Share2, ShoppingBag, Calendar, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { MapPin, Heart, Share2, ShoppingBag, Calendar, CheckCircle2, ShieldCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import toast from 'react-hot-toast';
 
@@ -15,7 +15,23 @@ import ProductGridSkeleton from './ProductGridSkeleton';
 import { isServiceProduct } from '@/utils/productSearch';
 import { getServiceBadge } from '@/utils/serviceBadges';
 
-export default function ProductGrid({ products: propProducts, limit, category, personalized, recent, serviceOnly }: { products?: Product[], limit?: number, category?: string, personalized?: boolean, recent?: boolean, serviceOnly?: boolean }) {
+export default function ProductGrid({ 
+  products: propProducts, 
+  limit, 
+  category, 
+  personalized, 
+  recent, 
+  serviceOnly,
+  horizontal 
+}: { 
+  products?: Product[], 
+  limit?: number, 
+  category?: string, 
+  personalized?: boolean, 
+  recent?: boolean, 
+  serviceOnly?: boolean,
+  horizontal?: boolean 
+}) {
   const { products: contextProducts, isLoading, userLocation, userLat, userLng, radiusFilter, setRadiusFilter } = useProducts();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { addToCart } = useCart();
@@ -24,6 +40,16 @@ export default function ProductGrid({ products: propProducts, limit, category, p
   const router = useRouter();
   const [showLocationToast, setShowLocationToast] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const isHorizontal = recent || horizontal;
+
+  const scrollCarousel = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 320 * (direction === 'left' ? -1 : 1);
+      scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -103,10 +129,26 @@ export default function ProductGrid({ products: propProducts, limit, category, p
   const finalProducts = limit ? productsToRender.slice(0, limit) : productsToRender;
 
   if (!mounted || isLoading) {
+    if (isHorizontal) {
+      return (
+        <div className="flex gap-3 sm:gap-4 overflow-hidden py-1">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="w-[185px] sm:w-[220px] shrink-0 bg-slate-100 animate-pulse rounded-2xl h-[280px]" />
+          ))}
+        </div>
+      );
+    }
     return <ProductGridSkeleton count={limit || 8} />;
   }
 
   if (finalProducts.length === 0) {
+    if (recent) {
+      return (
+        <div className="py-8 px-4 text-center text-slate-400 text-xs sm:text-sm bg-slate-50/70 border border-dashed border-slate-200 rounded-2xl">
+          Items you recently viewed will appear here.
+        </div>
+      );
+    }
     return <div className="text-center p-10 text-slate-400">No {serviceOnly ? 'services' : 'products'} found.</div>;
   }
 
@@ -141,12 +183,35 @@ export default function ProductGrid({ products: propProducts, limit, category, p
           )}
         </div>
       )}
-      <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 sm:gap-4">
-      {finalProducts.map(product => {
-        const isService = isServiceProduct(product);
-        const route = `/product/${product.id}`;
-        return (
-        <div key={product.id} onClick={() => router.push(route)} className="cursor-pointer no-underline text-inherit group">
+      <div className="relative group/carousel">
+        {isHorizontal && finalProducts.length > 2 && (
+          <button
+            type="button"
+            onClick={() => scrollCarousel('left')}
+            className="hidden md:flex absolute -left-3.5 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-white shadow-md border border-slate-200 text-slate-700 items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all hover:bg-slate-50 hover:scale-105 active:scale-95 cursor-pointer"
+            aria-label="Scroll left"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+        )}
+
+        <div 
+          ref={isHorizontal ? scrollContainerRef : undefined}
+          className={
+            isHorizontal 
+              ? "flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-4 pt-1 px-1 snap-x snap-mandatory scroll-smooth no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              : "grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 sm:gap-4"
+          }
+        >
+        {finalProducts.map(product => {
+          const isService = isServiceProduct(product);
+          const route = `/product/${product.id}`;
+          return (
+          <div 
+            key={product.id} 
+            onClick={() => router.push(route)} 
+            className={`${isHorizontal ? 'w-[185px] sm:w-[220px] shrink-0 snap-start' : ''} cursor-pointer no-underline text-inherit group`}
+          >
           <div className="bg-white rounded-2xl p-2.5 sm:p-3.5 text-slate-900 relative h-full flex flex-col border border-slate-100 hover:border-blue-200 group-hover:-translate-y-1 transition-all duration-200 shadow-xs hover:shadow-md">
             
             {/* Top Badges (New Arrival / Discount / Premium) */}
@@ -317,7 +382,19 @@ export default function ProductGrid({ products: propProducts, limit, category, p
         </div>
         );
       })}
-    </div>
+        </div>
+
+        {isHorizontal && finalProducts.length > 2 && (
+          <button
+            type="button"
+            onClick={() => scrollCarousel('right')}
+            className="hidden md:flex absolute -right-3.5 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-white shadow-md border border-slate-200 text-slate-700 items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-opacity hover:bg-slate-50 hover:scale-105 active:scale-95 cursor-pointer"
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
