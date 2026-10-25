@@ -129,7 +129,7 @@ export default async function Home() {
   return (
     <div className="w-full min-h-[calc(100vh-80px)] flex bg-slate-50">
       {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-7xl mx-auto p-3 sm:p-6 lg:p-8 flex flex-col gap-2 sm:gap-4 overflow-hidden">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-2 sm:pt-3 lg:pt-4 pb-6 sm:pb-10 flex flex-col gap-2 sm:gap-4 overflow-hidden">
         <HomeSectionsContainer
           initialLayout={initialLayout}
           serverBanners={serverBanners}

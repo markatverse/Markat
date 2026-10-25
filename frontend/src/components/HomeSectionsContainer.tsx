@@ -67,27 +67,15 @@ export default function HomeSectionsContainer({
     switch (id) {
       // 1. Promo Banners
       case 'banners':
-        return (
-          <div key="banners" className="w-full">
-            <BannerSlideshow banners={serverBanners} />
-          </div>
-        );
+        return <BannerSlideshow key="banners" banners={serverBanners} />;
 
       // 2. Advertisements
       case 'advertisements':
-        return (
-          <div key="advertisements" className="w-full">
-            <AdSlideshow ads={serverAds} />
-          </div>
-        );
+        return <AdSlideshow key="advertisements" ads={serverAds} />;
 
       // 3. Live Token Status
       case 'live_booking':
-        return (
-          <div key="live_booking" className="w-full">
-            <LiveBookingWidget />
-          </div>
-        );
+        return <LiveBookingWidget key="live_booking" />;
 
       // 4. Quick Shortcuts
       case 'quick_shortcuts':
