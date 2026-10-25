@@ -7,6 +7,7 @@ export default function ContentLayout({ children }: { children: React.ReactNode 
   const pathname = usePathname();
 
   const tabs = [
+    { name: 'Homepage Layout', href: '/admin/content/homepage' },
     { name: 'CMS', href: '/admin/content/cms' },
     { name: 'Banners', href: '/admin/content/banners' },
     { name: 'Advertisements', href: '/admin/content/advertisements' },

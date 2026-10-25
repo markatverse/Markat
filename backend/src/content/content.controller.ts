@@ -134,4 +134,17 @@ export class ContentController {
   deleteSeoMetadata(@Param('id') id: string) {
     return this.contentService.deleteSeoMetadata(id);
   }
+
+  // --- Homepage Layout ---
+  @Get('homepage-layout')
+  getHomepageLayout() {
+    return this.contentService.getHomepageLayout();
+  }
+
+  @Post('homepage-layout')
+  updateHomepageLayout(@Body() data: any) {
+    const sections = Array.isArray(data) ? data : (data.sections || []);
+    return this.contentService.updateHomepageLayout(sections);
+  }
 }
+

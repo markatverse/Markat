@@ -92,6 +92,13 @@ let ContentController = class ContentController {
     deleteSeoMetadata(id) {
         return this.contentService.deleteSeoMetadata(id);
     }
+    getHomepageLayout() {
+        return this.contentService.getHomepageLayout();
+    }
+    updateHomepageLayout(data) {
+        const sections = Array.isArray(data) ? data : (data.sections || []);
+        return this.contentService.updateHomepageLayout(sections);
+    }
 };
 __decorate([
     Get('cms'),
@@ -268,6 +275,19 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ContentController.prototype, "deleteSeoMetadata", null);
+__decorate([
+    Get('homepage-layout'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], ContentController.prototype, "getHomepageLayout", null);
+__decorate([
+    Post('homepage-layout'),
+    __param(0, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], ContentController.prototype, "updateHomepageLayout", null);
 ContentController = __decorate([
     Controller('content'),
     __metadata("design:paramtypes", [ContentService])
