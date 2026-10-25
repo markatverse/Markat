@@ -15,6 +15,7 @@ import ReviewsSection from '@/components/ReviewsSection';
 import StarRating from '@/components/StarRating';
 import AdvertisementWidget from '@/components/AdvertisementWidget';
 import { isServiceProduct } from '@/utils/productSearch';
+import { getServiceBadge } from '@/utils/serviceBadges';
 
 const getApiUrl = () => {
   if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
@@ -43,6 +44,7 @@ export default function ProductDetails() {
   const [isEliteExpanded, setIsEliteExpanded] = useState(false);
 
   const product = products.find(p => p.id === id);
+  const serviceBadge = useMemo(() => getServiceBadge(product), [product]);
 
   // ── Category Rules — from Admin Relationship Manager ──
   const rules = useCategoryRules(product?.category);
@@ -473,22 +475,10 @@ export default function ProductDetails() {
                 <span className="text-lg font-medium">{productImages[activeImage]?.label}</span>
               </>
             )}
-            {isFoodDining && (
-              <div className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-black/60 backdrop-blur-md border border-white/20 text-white px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold tracking-wide flex items-center gap-1.5">
-                <UtensilsCrossed className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-400" /> Dining Venue
-              </div>
-            )}
-            {(isServiceProduct(product) || hasService || isServiceQueue || isProfessional) && !isFoodDining && !isAutoWash && (
-              <div className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-black/60 backdrop-blur-md border border-white/20 text-white px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold tracking-wide flex items-center gap-1.5">
-                {isProfessional ? (
-                  <>
-                    <Scale className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" /> Verified Legal & Professional Practice
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-teal-400" /> Verified Service Studio & Salon
-                  </>
-                )}
+            {serviceBadge && (
+              <div className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-black/60 backdrop-blur-md border border-white/20 text-white px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold tracking-wide flex items-center gap-1.5 shadow-md">
+                <serviceBadge.icon className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${serviceBadge.color}`} />
+                <span>{serviceBadge.label}</span>
               </div>
             )}
           </div>
@@ -517,7 +507,7 @@ export default function ProductDetails() {
           {/* Sold By / Restaurant Venue Details Card (Desktop Left Column) */}
           <div className="hidden lg:block mt-8 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">
-              {isFoodDining ? 'Restaurant / Dining Venue' : (isServiceProduct(product) ? 'Service Provider' : 'Sold by')}
+              {serviceBadge ? serviceBadge.label : (isServiceProduct(product) ? 'Service Provider' : 'Sold by')}
             </div>
             <div className="flex flex-row items-center justify-between gap-2">
               <div className="flex items-center gap-3">
@@ -1852,7 +1842,7 @@ export default function ProductDetails() {
           {/* Sold By / Restaurant Venue Details Card (Mobile Flow) */}
           <div className="block lg:hidden mb-8 p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs">
             <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-3">
-              {isFoodDining ? 'Restaurant / Dining Venue' : (isServiceProduct(product) ? 'Service Provider' : 'Sold by')}
+              {serviceBadge ? serviceBadge.label : (isServiceProduct(product) ? 'Service Provider' : 'Sold by')}
             </div>
             <div className="flex flex-row items-center justify-between gap-2">
               <div className="flex items-center gap-3">

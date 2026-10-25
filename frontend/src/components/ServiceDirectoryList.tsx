@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Product, useProducts } from '@/context/ProductContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { Heart, Share2 } from 'lucide-react';
+import { getServiceBadge } from '@/utils/serviceBadges';
 
 export default function ServiceDirectoryList({ products }: { products: Product[] }) {
   const router = useRouter();
@@ -113,9 +114,22 @@ export default function ServiceDirectoryList({ products }: { products: Product[]
               </div>
             )}
             <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 z-10">
-              <span className="text-[10px] font-bold text-white uppercase tracking-wider bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg">
-                {product.category}
-              </span>
+              {(() => {
+                const serviceBadge = getServiceBadge(product);
+                if (serviceBadge) {
+                  return (
+                    <span className="bg-black/65 backdrop-blur-md border border-white/20 text-white px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide flex items-center gap-1 shadow-xs">
+                      <serviceBadge.icon className={`w-3 h-3 ${serviceBadge.color}`} />
+                      <span>{serviceBadge.label}</span>
+                    </span>
+                  );
+                }
+                return (
+                  <span className="text-[10px] font-bold text-white uppercase tracking-wider bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg">
+                    {product.category}
+                  </span>
+                );
+              })()}
               {product.isPremium && (
                 <span className="text-[10px] font-bold text-white bg-emerald-600/90 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1">
                   🎟️ Token

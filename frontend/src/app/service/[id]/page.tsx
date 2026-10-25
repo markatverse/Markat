@@ -12,6 +12,7 @@ import {
 import SmartQueueWidget from '@/components/SmartQueueWidget';
 import { useUserTrends } from '@/hooks/useUserTrends';
 import ReviewsSection from '@/components/ReviewsSection';
+import { getServiceBadge } from '@/utils/serviceBadges';
 
 // ─── Dynamic Walk-in Services ───────────────────────────────────────────────────
 
@@ -157,9 +158,22 @@ export default function ServiceDetails() {
                 </div>
               )}
               {/* Category badge */}
-              <div className="absolute top-4 left-4 bg-black/40 backdrop-blur-md border border-white/20 text-white px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider shadow-lg">
-                {service.category}
-              </div>
+              {(() => {
+                const serviceBadge = getServiceBadge(service);
+                if (serviceBadge) {
+                  return (
+                    <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md border border-white/20 text-white px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide flex items-center gap-1.5 shadow-lg">
+                      <serviceBadge.icon className={`w-3.5 h-3.5 ${serviceBadge.color}`} />
+                      <span>{serviceBadge.label}</span>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="absolute top-4 left-4 bg-black/40 backdrop-blur-md border border-white/20 text-white px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider shadow-lg">
+                    {service.category}
+                  </div>
+                );
+              })()}
               {isWalkIn && (
                 <div className="absolute bottom-4 left-4 right-4 bg-emerald-500/90 backdrop-blur-md border border-emerald-400/50 text-white px-4 py-3 rounded-2xl text-xs font-black flex items-center gap-2 justify-center shadow-xl shadow-emerald-900/50">
                   <div className="w-2 h-2 bg-white rounded-full animate-pulse" /> Live Token Queue Active

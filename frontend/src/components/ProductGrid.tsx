@@ -13,6 +13,7 @@ import { useUserTrends } from '@/hooks/useUserTrends';
 import StarRating from './StarRating';
 import ProductGridSkeleton from './ProductGridSkeleton';
 import { isServiceProduct } from '@/utils/productSearch';
+import { getServiceBadge } from '@/utils/serviceBadges';
 
 export default function ProductGrid({ products: propProducts, limit, category, personalized, recent, serviceOnly }: { products?: Product[], limit?: number, category?: string, personalized?: boolean, recent?: boolean, serviceOnly?: boolean }) {
   const { products: contextProducts, isLoading, userLocation, userLat, userLng, radiusFilter, setRadiusFilter } = useProducts();
@@ -157,11 +158,25 @@ export default function ProductGrid({ products: propProducts, limit, category, p
                   {product.badge}
                 </span>
               )}
-              {isService && (
-                <span className="px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold uppercase bg-purple-600 text-white shadow-xs flex items-center gap-1">
-                  <Calendar className="w-2.5 h-2.5" /> Bookable
-                </span>
-              )}
+              {(() => {
+                const serviceBadge = getServiceBadge(product);
+                if (serviceBadge) {
+                  return (
+                    <span className="bg-black/65 backdrop-blur-md border border-white/20 text-white px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold tracking-wide flex items-center gap-1 shadow-xs">
+                      <serviceBadge.icon className={`w-2.5 h-2.5 ${serviceBadge.color}`} />
+                      <span>{serviceBadge.label}</span>
+                    </span>
+                  );
+                }
+                if (isService) {
+                  return (
+                    <span className="px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold uppercase bg-purple-600 text-white shadow-xs flex items-center gap-1">
+                      <Calendar className="w-2.5 h-2.5" /> Bookable
+                    </span>
+                  );
+                }
+                return null;
+              })()}
             </div>
 
             {/* Product Image Frame */}
