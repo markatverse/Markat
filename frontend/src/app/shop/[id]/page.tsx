@@ -21,29 +21,29 @@ export default function PublicShopPage({ params }: { params: Promise<{ id: strin
       .then(res => res.json())
       .then(data => {
         const items: any[] = Array.isArray(data) ? data : (data && Array.isArray(data.data) ? data.data : []);
-        let shopProducts = items.filter((p: any) => 
-          (p.sellerName || p.seller || '').toLowerCase().includes(shopName.toLowerCase().split(' ')[0])
-        );
-        if (shopProducts.length === 0) {
-          shopProducts = items.slice(0, 6);
-        }
+        const normalizedShop = shopName.toLowerCase().trim();
+        const shopProducts = items.filter((p: any) => {
+          const seller = (p.sellerName || p.seller || '').toLowerCase().trim();
+          const sellerId = (p.sellerId || '').toLowerCase().trim();
+          return seller === normalizedShop || 
+                 seller.replace(/-/g, ' ') === normalizedShop ||
+                 sellerId === normalizedShop ||
+                 (normalizedShop.length > 2 && seller.includes(normalizedShop));
+        });
         setProducts(shopProducts);
 
         // Load custom dining dishes managed by seller
         try {
           const sellerId = shopProducts[0]?.sellerId;
-          const stored = localStorage.getItem(`markat_dining_menu_${sellerId || 'default'}`) || localStorage.getItem('markat_dining_menu_default');
-          if (stored) {
-            setDiningMenu(JSON.parse(stored));
+          if (sellerId) {
+            const stored = localStorage.getItem(`markat_dining_menu_${sellerId}`);
+            if (stored) {
+              setDiningMenu(JSON.parse(stored));
+            } else {
+              setDiningMenu([]);
+            }
           } else {
-            // Default restaurant menu items
-            setDiningMenu([
-              { id: 'm1', name: 'Dal Makhani Special', category: 'Main Course', price: 280, isVeg: true, inStock: true, description: 'Slow cooked black lentils with butter and cream.' },
-              { id: 'm2', name: 'Paneer Butter Masala', category: 'Main Course', price: 320, isVeg: true, inStock: true, description: 'Cottage cheese cubes in rich tomato cashew gravy.' },
-              { id: 'm3', name: 'Butter Tandoori Roti / Naan', category: 'Breads', price: 45, isVeg: true, inStock: true, description: 'Freshly baked Indian flatbread with butter.' },
-              { id: 'm4', name: 'Crispy Veg Spring Rolls', category: 'Starters', price: 210, isVeg: true, inStock: true, description: 'Golden fried rolls stuffed with seasoned vegetables.' },
-              { id: 'm5', name: 'Cold Coffee with Ice Cream', category: 'Beverages', price: 140, isVeg: true, inStock: true, description: 'Blended chilled espresso with rich vanilla scoop.' }
-            ]);
+            setDiningMenu([]);
           }
         } catch {}
       })
@@ -408,6 +408,24 @@ export default function PublicShopPage({ params }: { params: Promise<{ id: strin
               )
             )}
             
+            {services.length === 0 && physicalProducts.length === 0 && diningMenu.length === 0 && (
+              <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm">
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+                  <ShoppingCart className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-800 mb-2">No Active Listings Yet</h3>
+                <p className="text-sm text-slate-500 max-w-md mx-auto">
+                  {shopName} has not added any products or services yet. Please check back later.
+                </p>
+                <div className="mt-6">
+                  <Link href="/search">
+                    <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl transition-all">
+                      Explore Other Sellers
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
