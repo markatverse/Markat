@@ -224,6 +224,9 @@ export default function ProductDetails() {
   ) : false;
 
   // Event & Organizer Customer Booking States
+  const [organizerBookingMode, setOrganizerBookingMode] = useState<'appointment' | 'proposal'>('appointment');
+  const [appointmentDate, setAppointmentDate] = useState('');
+  const [appointmentTime, setAppointmentTime] = useState('');
   const [eventDate, setEventDate] = useState('');
   const [eventType, setEventType] = useState('Wedding & Reception');
   const [guestCount, setGuestCount] = useState('100 - 300 Guests');
@@ -1348,7 +1351,7 @@ export default function ProductDetails() {
               )}
 
               {/* ── APPOINTMENT BOOKING (Non-Dining Services) ── */}
-              {hasAppointment && !hasToken && !isFoodDining && !isAutoWash && !isProfessional && (
+              {hasAppointment && !hasToken && !isFoodDining && !isAutoWash && !isProfessional && !isOrganizer && (
                 <div className="flex flex-col gap-3 w-full p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200 shadow-xs">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-blue-900 font-extrabold text-sm">Schedule an Appointment</span>
@@ -1494,200 +1497,317 @@ export default function ProductDetails() {
               {/* ── SERVICE ORGANIZER / EVENT PLANNER CUSTOMER WORKFLOW ── */}
               {isOrganizer && (
                 <div className="flex flex-col gap-4 w-full p-5 bg-gradient-to-br from-fuchsia-50 via-purple-50 to-indigo-50 rounded-2xl border border-fuchsia-200/80 shadow-sm">
-                  <div className="flex items-center justify-between border-b border-fuchsia-200/60 pb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-fuchsia-600 text-white flex items-center justify-center shadow-xs">
-                        <PartyPopper className="w-4 h-4" />
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-fuchsia-200/60 pb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-fuchsia-600 text-white flex items-center justify-center shadow-xs shrink-0">
+                        {organizerBookingMode === 'appointment' ? <CalendarClock className="w-4 h-4" /> : <PartyPopper className="w-4 h-4" />}
                       </div>
                       <div>
-                        <span className="text-slate-900 font-extrabold text-sm block">Event Planning & Organization</span>
-                        <span className="text-[11px] text-fuchsia-700 font-semibold">Custom proposals • Venue & stage design • Zero booking fee</span>
+                        <span className="text-slate-900 font-extrabold text-sm block">
+                          {organizerBookingMode === 'appointment' ? 'Schedule an Appointment' : 'Event Planning & Organization'}
+                        </span>
+                        <span className="text-[11px] text-fuchsia-700 font-semibold">
+                          {organizerBookingMode === 'appointment'
+                            ? 'Book direct consultation or on-site meeting • Zero fee'
+                            : 'Custom proposals • Venue & stage design • Zero booking fee'}
+                        </span>
                       </div>
                     </div>
-                    {activeOption && (
-                      <span className="text-xs bg-fuchsia-600 text-white font-bold px-2.5 py-1 rounded-full shadow-2xs">
-                        {activeOption.name}
-                      </span>
-                    )}
-                  </div>
 
-                  {organizerSubmitted ? (
-                    <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-center space-y-2 animate-in fade-in">
-                      <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center font-bold">
-                        <CheckCircle2 className="w-6 h-6" />
-                      </div>
-                      <h4 className="font-bold text-emerald-900 text-sm">Inquiry Dispatched Successfully!</h4>
-                      <p className="text-xs text-emerald-700">
-                        {product.seller} will review your event requirements and connect with you on WhatsApp/Phone with a customized proposal.
-                      </p>
+                    {/* Segmented Switcher matching Image 2 style */}
+                    <div className="grid grid-cols-2 sm:inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200/80 w-full sm:w-auto shrink-0">
                       <button
                         type="button"
-                        onClick={() => setOrganizerSubmitted(false)}
-                        className="text-xs text-emerald-800 font-bold underline mt-2 inline-block cursor-pointer"
+                        onClick={() => setOrganizerBookingMode('appointment')}
+                        className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                          organizerBookingMode === 'appointment'
+                            ? 'bg-white text-fuchsia-700 shadow-xs border border-slate-200/60'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
                       >
-                        Submit another requirement
+                        <CalendarClock className="w-3.5 h-3.5 text-fuchsia-600" />
+                        <span>Appointment</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setOrganizerBookingMode('proposal')}
+                        className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                          organizerBookingMode === 'proposal'
+                            ? 'bg-white text-fuchsia-700 shadow-xs border border-slate-200/60'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Custom Proposal</span>
                       </button>
                     </div>
-                  ) : (
-                    <>
-                      {/* Grid 1: Occasion & Event Date */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center gap-1">
-                            <Sparkles className="w-3.5 h-3.5 text-fuchsia-600" /> Event / Occasion
-                          </label>
-                          <select
-                            value={eventType}
-                            onChange={e => setEventType(e.target.value)}
-                            className="w-full px-3 py-2.5 border border-purple-200 rounded-xl outline-none focus:border-fuchsia-500 text-slate-800 bg-white font-medium text-xs sm:text-sm shadow-2xs"
-                          >
-                            <option value="Wedding & Reception">Wedding & Reception</option>
-                            <option value="Engagement / Sangeet / Haldi">Engagement / Sangeet / Haldi</option>
-                            <option value="Corporate Conference / Gala">Corporate Conference / Gala</option>
-                            <option value="Birthday & Anniversary Party">Birthday & Anniversary Party</option>
-                            <option value="Concert & Stage Show">Concert & Stage Show</option>
-                            <option value="Exhibition & Brand Launch">Exhibition & Brand Launch</option>
-                          </select>
-                        </div>
+                  </div>
 
-                        <div>
+                  {/* ── TAB 1: SCHEDULE AN APPOINTMENT ── */}
+                  {organizerBookingMode === 'appointment' && (
+                    <div className="flex flex-col gap-3.5 animate-in fade-in">
+                      {activeOption && (
+                        <div className="flex items-center justify-between text-xs font-bold text-fuchsia-950 bg-white/80 px-3 py-2 rounded-xl border border-fuchsia-200/70 shadow-2xs">
+                          <span className="text-slate-600 font-medium">Selected Package:</span>
+                          <span className="bg-fuchsia-600 text-white font-bold px-2.5 py-0.5 rounded-full text-[11px]">
+                            {activeOption.name}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex flex-col sm:flex-row gap-2.5">
+                        <div className="flex-1">
                           <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center gap-1">
-                            <Calendar className="w-3.5 h-3.5 text-fuchsia-600" /> Expected Date
+                            <Calendar className="w-3.5 h-3.5 text-fuchsia-600" /> Preferred Date
                           </label>
                           <input
                             type="date"
-                            value={eventDate}
+                            value={appointmentDate}
                             min={todayStr}
-                            onChange={e => setEventDate(e.target.value)}
+                            onChange={e => setAppointmentDate(e.target.value)}
                             className="w-full px-3 py-2.5 border border-purple-200 rounded-xl outline-none focus:border-fuchsia-500 text-slate-800 bg-white font-medium text-xs sm:text-sm shadow-2xs"
                           />
                         </div>
-                      </div>
-
-                      {/* Grid 2: Guest Count & Estimated Budget */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
+                        <div className="flex-1">
                           <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center gap-1">
-                            <Users className="w-3.5 h-3.5 text-fuchsia-600" /> Expected Guests
-                          </label>
-                          <select
-                            value={guestCount}
-                            onChange={e => setGuestCount(e.target.value)}
-                            className="w-full px-3 py-2.5 border border-purple-200 rounded-xl outline-none focus:border-fuchsia-500 text-slate-800 bg-white font-medium text-xs sm:text-sm shadow-2xs"
-                          >
-                            <option value="Under 50 Guests (Intimate)">Under 50 Guests (Intimate)</option>
-                            <option value="50 - 150 Guests">50 - 150 Guests</option>
-                            <option value="150 - 400 Guests">150 - 400 Guests</option>
-                            <option value="400 - 1,000 Guests">400 - 1,000 Guests</option>
-                            <option value="1,000+ Mega Gathering">1,000+ Mega Gathering</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center gap-1">
-                            <Building2 className="w-3.5 h-3.5 text-fuchsia-600" /> Event City / Venue
+                            <Clock className="w-3.5 h-3.5 text-fuchsia-600" /> Preferred Time
                           </label>
                           <input
-                            type="text"
-                            placeholder="e.g. Pune / Mumbai / Goa"
-                            value={eventCity}
-                            onChange={e => setEventCity(e.target.value)}
+                            type="time"
+                            value={appointmentTime}
+                            onChange={e => setAppointmentTime(e.target.value)}
                             className="w-full px-3 py-2.5 border border-purple-200 rounded-xl outline-none focus:border-fuchsia-500 text-slate-800 bg-white font-medium text-xs sm:text-sm shadow-2xs"
                           />
                         </div>
                       </div>
 
-                      {/* Requirement Notes */}
-                      <div>
-                        <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center gap-1">
-                          <FileText className="w-3.5 h-3.5 text-fuchsia-600" /> Specific Requirements & Vision
-                        </label>
-                        <textarea
-                          rows={2}
-                          value={rfqMessage}
-                          onChange={e => setRfqMessage(e.target.value)}
-                          placeholder="e.g. Need royal floral stage, sound setup, live catering arrangement for 2 days..."
-                          className="w-full px-3 py-2 border border-purple-200 rounded-xl outline-none focus:border-fuchsia-500 text-slate-800 bg-white text-xs sm:text-sm resize-none shadow-2xs"
-                        />
-                      </div>
+                      <button
+                        type="button"
+                        className="w-full py-3.5 bg-fuchsia-600 hover:bg-fuchsia-700 active:scale-[0.99] text-white rounded-xl font-bold text-sm sm:text-base transition-all shadow-md shadow-fuchsia-600/25 flex items-center justify-center gap-2 cursor-pointer mt-1"
+                        onClick={() => requireAuth(() => {
+                          if (!appointmentDate) {
+                            alert('Please choose your preferred appointment date.');
+                            return;
+                          }
 
-                      {/* Organizer CTAs */}
-                      <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
-                        <button
-                          type="button"
-                          className="flex-1 w-full py-3 px-4 bg-fuchsia-600 hover:bg-fuchsia-700 active:scale-[0.99] text-white rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md shadow-fuchsia-600/25 flex items-center justify-center gap-2 cursor-pointer"
-                          onClick={() => requireAuth(() => {
-                            if (!eventDate) {
-                              alert('Please provide the anticipated date for your event.');
-                              return;
-                            }
+                          const apptId = `APT-${Math.floor(1000 + Math.random() * 9000)}`;
+                          try {
+                            // Notification for seller
+                            const sellerNotifs = JSON.parse(localStorage.getItem('markat_seller_notifications') || '[]');
+                            sellerNotifs.unshift({
+                              id: `NOTIF-S-${Date.now()}`,
+                              type: 'NEW_APPOINTMENT_BOOKING',
+                              title: `New Appointment with ${user?.name || 'Customer'}`,
+                              message: `Booked for ${activeOption ? activeOption.name : product.name} on ${appointmentDate} at ${appointmentTime || 'Standard Hours'}. Ref: ${apptId}`,
+                              timestamp: new Date().toISOString(),
+                              read: false
+                            });
+                            localStorage.setItem('markat_seller_notifications', JSON.stringify(sellerNotifs));
 
-                            const inquiry = {
-                              id: `EVT-${Math.floor(1000 + Math.random() * 9000)}`,
-                              seller: product.seller,
-                              organizerItem: product.name,
-                              servicePackage: activeOption ? activeOption.name : 'Standard Full Production',
-                              eventType,
-                              eventDate,
-                              guestCount,
-                              eventCity: eventCity || product.location || 'Local Area',
-                              notes: rfqMessage || 'Comprehensive event organizing and management proposal requested.',
-                              customerName: user?.name || 'Customer',
-                              customerPhone: user?.phone || '+91 98765 43210',
-                              status: 'New Inquiry',
-                              timestamp: new Date().toISOString()
-                            };
+                            // Notification for customer
+                            const customerNotifs = JSON.parse(localStorage.getItem(`markat_notifs_${user?.id || 'guest'}`) || '[]');
+                            customerNotifs.unshift({
+                              id: `NOTIF-${Date.now()}`,
+                              type: 'APPOINTMENT_CONFIRMED',
+                              title: `Appointment Booked with ${product.seller}`,
+                              message: `Your appointment on ${appointmentDate} at ${appointmentTime || 'Standard Hours'} has been scheduled. Ref: ${apptId}`,
+                              timestamp: new Date().toISOString(),
+                              read: false
+                            });
+                            localStorage.setItem(`markat_notifs_${user?.id || 'guest'}`, JSON.stringify(customerNotifs));
+                          } catch { }
 
-                            try {
-                              const existing = JSON.parse(localStorage.getItem('markat_event_proposals') || '[]');
-                              localStorage.setItem('markat_event_proposals', JSON.stringify([inquiry, ...existing]));
+                          alert(`🎉 Appointment Requested!\n\nOrganizer: ${product.seller}\nService: ${activeOption ? activeOption.name : product.name}\nDate: ${appointmentDate}\nTime: ${appointmentTime || 'Standard Business Hours'}\nRef: ${apptId}\n\n✓ The organizer has received your request and will call you to confirm.`);
+                        })}
+                      >
+                        <CalendarClock className="w-4 h-4" /> Book Appointment
+                      </button>
 
-                              // Customer notification
-                              const customerNotifs = JSON.parse(localStorage.getItem(`markat_notifs_${user?.id || 'guest'}`) || '[]');
-                              customerNotifs.unshift({
-                                id: `NOTIF-${Date.now()}`,
-                                type: 'EVENT_INQUIRY_SENT',
-                                title: `Proposal Request Sent to ${product.seller}`,
-                                message: `Your ${eventType} inquiry on ${eventDate} has been dispatched. Ref: ${inquiry.id}`,
-                                timestamp: new Date().toISOString(),
-                                read: false
-                              });
-                              localStorage.setItem(`markat_notifs_${user?.id || 'guest'}`, JSON.stringify(customerNotifs));
+                      <a
+                        href="tel:+919876543210"
+                        className="w-full py-1 text-center text-fuchsia-700 hover:underline font-semibold text-xs sm:text-sm transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <PhoneCall className="w-3.5 h-3.5" /> Prefer to Call? (+91-9876543210)
+                      </a>
+                    </div>
+                  )}
 
-                              // Seller notification
-                              const sellerNotifs = JSON.parse(localStorage.getItem('markat_seller_notifications') || '[]');
-                              sellerNotifs.unshift({
-                                id: `NOTIF-S-${Date.now()}`,
-                                type: 'NEW_EVENT_PROPOSAL_LEAD',
-                                title: `New Event Organizer Lead (${eventType})`,
-                                message: `${user?.name || 'Customer'} requested a quote for ${guestCount} on ${eventDate} in ${inquiry.eventCity}. Ref: ${inquiry.id}`,
-                                timestamp: new Date().toISOString(),
-                                read: false
-                              });
-                              localStorage.setItem('markat_seller_notifications', JSON.stringify(sellerNotifs));
-                            } catch { }
+                  {/* ── TAB 2: REQUEST CUSTOM PROPOSAL ── */}
+                  {organizerBookingMode === 'proposal' && (
+                    <>
+                      {organizerSubmitted ? (
+                        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-center space-y-2 animate-in fade-in">
+                          <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center font-bold">
+                            <CheckCircle2 className="w-6 h-6" />
+                          </div>
+                          <h4 className="font-bold text-emerald-900 text-sm">Inquiry Dispatched Successfully!</h4>
+                          <p className="text-xs text-emerald-700">
+                            {product.seller} will review your event requirements and connect with you on WhatsApp/Phone with a customized proposal.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setOrganizerSubmitted(false)}
+                            className="text-xs text-emerald-800 font-bold underline mt-2 inline-block cursor-pointer"
+                          >
+                            Submit another requirement
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-3.5 animate-in fade-in">
+                          {/* Grid 1: Occasion & Event Date */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center gap-1">
+                                <Sparkles className="w-3.5 h-3.5 text-fuchsia-600" /> Event / Occasion
+                              </label>
+                              <select
+                                value={eventType}
+                                onChange={e => setEventType(e.target.value)}
+                                className="w-full px-3 py-2.5 border border-purple-200 rounded-xl outline-none focus:border-fuchsia-500 text-slate-800 bg-white font-medium text-xs sm:text-sm shadow-2xs"
+                              >
+                                <option value="Wedding & Reception">Wedding & Reception</option>
+                                <option value="Engagement / Sangeet / Haldi">Engagement / Sangeet / Haldi</option>
+                                <option value="Corporate Conference / Gala">Corporate Conference / Gala</option>
+                                <option value="Birthday & Anniversary Party">Birthday & Anniversary Party</option>
+                                <option value="Concert & Stage Show">Concert & Stage Show</option>
+                                <option value="Exhibition & Brand Launch">Exhibition & Brand Launch</option>
+                              </select>
+                            </div>
 
-                            setOrganizerSubmitted(true);
-                            alert(`🎉 Event Planning Request Sent!\n\nInquiry ID: ${inquiry.id}\nOrganizer: ${product.seller}\nOccasion: ${eventType}\nDate: ${eventDate}\nEstimated Guests: ${guestCount}\nCity: ${inquiry.eventCity}\n\n✓ The organizer's event director will review your vision and send over photos, previous stage portfolios, and quotation.`);
-                          })}
-                        >
-                          <Send className="w-3.5 h-3.5" /> Request Custom Proposal & Quote
-                        </button>
+                            <div>
+                              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center gap-1">
+                                <Calendar className="w-3.5 h-3.5 text-fuchsia-600" /> Expected Date
+                              </label>
+                              <input
+                                type="date"
+                                value={eventDate}
+                                min={todayStr}
+                                onChange={e => setEventDate(e.target.value)}
+                                className="w-full px-3 py-2.5 border border-purple-200 rounded-xl outline-none focus:border-fuchsia-500 text-slate-800 bg-white font-medium text-xs sm:text-sm shadow-2xs"
+                              />
+                            </div>
+                          </div>
 
-                        <button
-                          type="button"
-                          className="w-full sm:w-auto py-3 px-4 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-xl font-bold text-xs sm:text-sm transition-colors flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
-                          onClick={() => requireAuth(() => {
-                            if (!eventDate) {
-                              alert('Please choose your preferred consultation date first.');
-                              return;
-                            }
-                            alert(`Consultation booked! An event coordinator from ${product.seller} will connect with you on ${eventDate} to review theme designs and logistics.`);
-                          })}
-                        >
-                          <CalendarClock className="w-3.5 h-3.5 text-fuchsia-600" /> Book Consultation
-                        </button>
-                      </div>
+                          {/* Grid 2: Guest Count & Estimated Budget */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center gap-1">
+                                <Users className="w-3.5 h-3.5 text-fuchsia-600" /> Expected Guests
+                              </label>
+                              <select
+                                value={guestCount}
+                                onChange={e => setGuestCount(e.target.value)}
+                                className="w-full px-3 py-2.5 border border-purple-200 rounded-xl outline-none focus:border-fuchsia-500 text-slate-800 bg-white font-medium text-xs sm:text-sm shadow-2xs"
+                              >
+                                <option value="Under 50 Guests (Intimate)">Under 50 Guests (Intimate)</option>
+                                <option value="50 - 150 Guests">50 - 150 Guests</option>
+                                <option value="150 - 400 Guests">150 - 400 Guests</option>
+                                <option value="400 - 1,000 Guests">400 - 1,000 Guests</option>
+                                <option value="1,000+ Mega Gathering">1,000+ Mega Gathering</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center gap-1">
+                                <Building2 className="w-3.5 h-3.5 text-fuchsia-600" /> Event City / Venue
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="e.g. Pune / Mumbai / Goa"
+                                value={eventCity}
+                                onChange={e => setEventCity(e.target.value)}
+                                className="w-full px-3 py-2.5 border border-purple-200 rounded-xl outline-none focus:border-fuchsia-500 text-slate-800 bg-white font-medium text-xs sm:text-sm shadow-2xs"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Requirement Notes */}
+                          <div>
+                            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center gap-1">
+                              <FileText className="w-3.5 h-3.5 text-fuchsia-600" /> Specific Requirements & Vision
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={rfqMessage}
+                              onChange={e => setRfqMessage(e.target.value)}
+                              placeholder="e.g. Need royal floral stage, sound setup, live catering arrangement for 2 days..."
+                              className="w-full px-3 py-2 border border-purple-200 rounded-xl outline-none focus:border-fuchsia-500 text-slate-800 bg-white text-xs sm:text-sm resize-none shadow-2xs"
+                            />
+                          </div>
+
+                          {/* Organizer CTAs */}
+                          <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
+                            <button
+                              type="button"
+                              className="flex-1 w-full py-3 px-4 bg-fuchsia-600 hover:bg-fuchsia-700 active:scale-[0.99] text-white rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md shadow-fuchsia-600/25 flex items-center justify-center gap-2 cursor-pointer"
+                              onClick={() => requireAuth(() => {
+                                if (!eventDate) {
+                                  alert('Please provide the anticipated date for your event.');
+                                  return;
+                                }
+
+                                const inquiry = {
+                                  id: `EVT-${Math.floor(1000 + Math.random() * 9000)}`,
+                                  seller: product.seller,
+                                  organizerItem: product.name,
+                                  servicePackage: activeOption ? activeOption.name : 'Standard Full Production',
+                                  eventType,
+                                  eventDate,
+                                  guestCount,
+                                  eventCity: eventCity || product.location || 'Local Area',
+                                  notes: rfqMessage || 'Comprehensive event organizing and management proposal requested.',
+                                  customerName: user?.name || 'Customer',
+                                  customerPhone: user?.phone || '+91 98765 43210',
+                                  status: 'New Inquiry',
+                                  timestamp: new Date().toISOString()
+                                };
+
+                                try {
+                                  const existing = JSON.parse(localStorage.getItem('markat_event_proposals') || '[]');
+                                  localStorage.setItem('markat_event_proposals', JSON.stringify([inquiry, ...existing]));
+
+                                  // Customer notification
+                                  const customerNotifs = JSON.parse(localStorage.getItem(`markat_notifs_${user?.id || 'guest'}`) || '[]');
+                                  customerNotifs.unshift({
+                                    id: `NOTIF-${Date.now()}`,
+                                    type: 'EVENT_INQUIRY_SENT',
+                                    title: `Proposal Request Sent to ${product.seller}`,
+                                    message: `Your ${eventType} inquiry on ${eventDate} has been dispatched. Ref: ${inquiry.id}`,
+                                    timestamp: new Date().toISOString(),
+                                    read: false
+                                  });
+                                  localStorage.setItem(`markat_notifs_${user?.id || 'guest'}`, JSON.stringify(customerNotifs));
+
+                                  // Seller notification
+                                  const sellerNotifs = JSON.parse(localStorage.getItem('markat_seller_notifications') || '[]');
+                                  sellerNotifs.unshift({
+                                    id: `NOTIF-S-${Date.now()}`,
+                                    type: 'NEW_EVENT_PROPOSAL_LEAD',
+                                    title: `New Event Organizer Lead (${eventType})`,
+                                    message: `${user?.name || 'Customer'} requested a quote for ${guestCount} on ${eventDate} in ${inquiry.eventCity}. Ref: ${inquiry.id}`,
+                                    timestamp: new Date().toISOString(),
+                                    read: false
+                                  });
+                                  localStorage.setItem('markat_seller_notifications', JSON.stringify(sellerNotifs));
+                                } catch { }
+
+                                setOrganizerSubmitted(true);
+                                alert(`🎉 Event Planning Request Sent!\n\nInquiry ID: ${inquiry.id}\nOrganizer: ${product.seller}\nOccasion: ${eventType}\nDate: ${eventDate}\nEstimated Guests: ${guestCount}\nCity: ${inquiry.eventCity}\n\n✓ The organizer's event director will review your vision and send over photos, previous stage portfolios, and quotation.`);
+                              })}
+                            >
+                              <Send className="w-3.5 h-3.5" /> Request Custom Proposal & Quote
+                            </button>
+
+                            <button
+                              type="button"
+                              className="w-full sm:w-auto py-3 px-4 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-xl font-bold text-xs sm:text-sm transition-colors flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+                              onClick={() => setOrganizerBookingMode('appointment')}
+                            >
+                              <CalendarClock className="w-3.5 h-3.5 text-fuchsia-600" /> Book Consultation
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
