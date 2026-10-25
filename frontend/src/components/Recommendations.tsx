@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Star } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useUserTrends } from '@/hooks/useUserTrends';
 
 const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
 
@@ -10,6 +11,7 @@ export default function Recommendations() {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { trends } = useUserTrends();
   const router = useRouter();
 
   useEffect(() => {
@@ -83,8 +85,10 @@ export default function Recommendations() {
 
   if (recommendations.length === 0) return null;
 
-  // Only show items that have a real image
-  const realItems = recommendations.filter((item) => item.images?.[0]);
+  // Only show items that have a real image and are not in recently viewed
+  const realItems = recommendations
+    .filter((item) => item.images?.[0])
+    .filter((item) => !trends?.recentlyViewed?.includes(item.id));
 
   if (realItems.length === 0) return null;
 
