@@ -1001,52 +1001,82 @@ export const defaultCategories: Category[] = [
     optionalFeatures: ['RFQ', 'Appointment'],
     subcategories: [
       { 
-        name: 'Consultant', 
+        name: 'Freelancer (IT & Web Developer)', 
         parameters: [
-          { name: 'Field of Practice', type: 'radio', options: ['Company Registration & GST/Tax', 'Corporate & Contract Law', 'Intellectual Property (Trademark/Patent)', 'Financial Planning & Wealth Management', 'IT / Software Architecture Strategy'] },
-          { name: 'Consultation Mode', type: 'radio', options: ['Online Video Conference (Zoom/Meet)', 'In-Person Chamber Meeting', 'Client Office Visit'] }
+          { name: 'Tech Stack / Skill', type: 'checkbox', options: ['Full-Stack Web (Next.js/React/Node)', 'WordPress / Shopify / WooCommerce', 'Backend APIs & Cloud Databases', 'DevOps & AWS/Cloud Setup', 'Bug Fixing & Code Audit'] },
+          { name: 'Engagement Model', type: 'radio', options: ['Fixed Project Milestone', 'Hourly Consultation Call', 'Monthly Dedicated Retainer'] }
+        ] 
+      },
+      { 
+        name: 'Freelancer (Video & Photo Editor)', 
+        parameters: [
+          { name: 'Editing Scope', type: 'checkbox', options: ['Instagram Reels & TikTok Shorts (Vertical)', 'YouTube Long-Form Storytelling', 'Podcast Audio/Video Sync & Multicam', 'Commercials & Product Promos', 'Color Grading & Audio Mastering'] },
+          { name: 'Deliverable Turnaround', type: 'radio', options: ['24-48 Hours Express', '3-5 Business Days', 'Weekly Project Cycle'] }
+        ] 
+      },
+      { 
+        name: 'Freelancer (UI/UX & Graphic Designer)', 
+        parameters: [
+          { name: 'Design Services', type: 'checkbox', options: ['Figma Web & App UI/UX Design', 'Brand Logo & Visual Identity Guidelines', 'Social Media Creatives & Ad Banners', 'Pitch Decks & Presentations', 'Product Packaging & Print Collateral'] }
+        ] 
+      },
+      { 
+        name: 'Freelancer (Content Writer & SEO)', 
+        parameters: [
+          { name: 'Writing Domain', type: 'checkbox', options: ['SEO Blog Posts & Thought Leadership', 'High-Converting Landing Page Copy', 'Email Marketing Funnels & Newsletters', 'Technical Documentation & Whitepapers'] }
         ] 
       },
       { 
         name: 'Lawyer', 
         parameters: [
-          { name: 'Legal Domain', type: 'radio', options: ['Civil & Property Dispute', 'Criminal Law', 'Corporate / Trademark', 'Family / Matrimonial'] },
-          { name: 'Court Jurisdiction', type: 'text', placeholder: 'e.g. High Court, District Sessions Court' }
+          { name: 'Legal Domain', type: 'radio', options: ['Civil & Property Dispute', 'Criminal Defense', 'Corporate & Contract Law', 'Family & Matrimonial', 'Consumer Court & RERA'] },
+          { name: 'Consultation Mode', type: 'radio', options: ['In-Chamber Office Meeting', 'Online Video Call (Google Meet)', 'Phone Advisory'] },
+          { name: 'Court Jurisdiction', type: 'text', placeholder: 'e.g. High Court, District Sessions Court, Supreme Court' }
         ] 
       },
       { 
-        name: 'Accountant', 
+        name: 'Chartered Accountant (CA)', 
         parameters: [
-          { name: 'Accounting Service', type: 'checkbox', options: ['ITR Income Tax Filing', 'GST Return Filing', 'Audited Balance Sheet (P&L)', 'Payroll Management'] }
+          { name: 'CA Specialization', type: 'checkbox', options: ['ITR Income Tax Filing', 'GST Return Filing & Notice', 'Company / LLP Incorporation', 'Audited Balance Sheet (P&L)', 'ROC & MCA Compliance', 'Virtual CFO & Advisory'] },
+          { name: 'Consultation Mode', type: 'radio', options: ['In-Office Chamber Meeting', 'Online Video Call (Zoom/Meet)', 'Phone Consultation'] }
         ] 
-      }
-    ]
-  },
-  {
-    id: 's7',
-    primaryType: 'SERVICE',
-    name: 'Consultant',
-    theme: 'bg-indigo-50 text-indigo-600',
-    icon: 'Briefcase',
-    allowedListingTypes: ['Service'],
-    businessModels: ['B2C', 'B2B', 'Quote', 'Meeting'],
-    workflow: 'Meeting / Proposal Workflow',
-    allowedFeatures: ['Service', 'B2C', 'B2B', 'Quote', 'Meeting'],
-    notApplicable: ['Product Stock', 'Vehicle Test Drive', 'Token', 'MOQ', 'Bulk Pricing'],
-    optionalFeatures: ['RFQ', 'Appointment'],
-    subcategories: [
+      },
       { 
-        name: 'Business & Legal Advisory', 
+        name: 'Tax Consultant & GST Practitioner', 
         parameters: [
-          { name: 'Field of Practice', type: 'radio', options: ['Company Registration & GST/Tax', 'Corporate & Contract Law', 'Intellectual Property (Trademark/Patent)', 'Financial Planning & Wealth Management', 'IT / Software Architecture Strategy'] },
-          { name: 'Consultation Mode', type: 'radio', options: ['Online Video Conference (Zoom/Meet)', 'In-Person Chamber Meeting', 'Client Office Visit'] },
-          { name: 'Deliverable', type: 'checkbox', options: ['Written Opinion / Legal Notice', 'Filing & Compliance Submission', '1-on-1 Recorded Consultation Call'] }
+          { name: 'Tax Services', type: 'checkbox', options: ['GST Registration & Returns', 'Income Tax Filing & Assessment', 'TDS & TCS Compliance', 'Tax Notice Resolution'] },
+          { name: 'Mode', type: 'radio', options: ['Online Consultation', 'Office Visit', 'Phone Advisory'] }
+        ] 
+      },
+      { 
+        name: 'Company Secretary (CS)', 
+        parameters: [
+          { name: 'Compliance Area', type: 'checkbox', options: ['Company / Startup Incorporation', 'Annual MCA ROC Filings', 'Secretarial Audit & Board Governance', 'Trademark & IP Filing'] }
+        ] 
+      },
+      { 
+        name: 'Business & Financial Consultant', 
+        parameters: [
+          { name: 'Field of Practice', type: 'radio', options: ['Corporate Strategy & Growth', 'Fundraising & Pitch Deck Prep', 'Financial Planning & Wealth Management', 'Operational Optimization'] },
+          { name: 'Consultation Mode', type: 'radio', options: ['Online Video Conference (Zoom/Meet)', 'In-Person Chamber Meeting', 'Client Office Visit'] }
+        ] 
+      },
+      { 
+        name: 'Architect & Interior Designer', 
+        parameters: [
+          { name: 'Design Services', type: 'checkbox', options: ['2D Floor Plans & Blueprints', '3D Photorealistic Interior Render', 'Full Home / Office Turnkey Renovation', 'Site Supervision & Quality Inspection'] }
+        ] 
+      },
+      { 
+        name: 'Civil & Structural Consultant', 
+        parameters: [
+          { name: 'Engineering Focus', type: 'checkbox', options: ['Structural Stability Audit', 'Building Construction Estimation', 'Municipal Map Approvals & Sanctions', 'Soil Testing & Foundation Design'] }
         ] 
       }
     ]
   },
   {
-    id: 's8',
+    id: 's-freelance',
     primaryType: 'SERVICE',
     name: 'Freelancer',
     theme: 'bg-cyan-50 text-cyan-600',
@@ -1059,11 +1089,60 @@ export const defaultCategories: Category[] = [
     optionalFeatures: ['RFQ', 'Appointment'],
     subcategories: [
       { 
-        name: 'Digital & Creative Services', 
+        name: 'IT & Web Developer', 
         parameters: [
-          { name: 'Expertise Skill', type: 'radio', options: ['Web & Mobile App Development', 'UI/UX Design (Figma)', 'Digital Marketing & SEO/Ads', 'Content Writing & Copywriting', 'Video Editing & Animation'] },
-          { name: 'Revision Policy', type: 'radio', options: ['2 Rounds Included', 'Unlimited Minor Revisions', 'Pay-per-revision'] },
-          { name: 'Turnaround Time', type: 'radio', options: ['24-48 Hours Express', '3-5 Business Days', '1-2 Weeks Project'] }
+          { name: 'Tech Stack / Skill', type: 'checkbox', options: ['Full-Stack Web (Next.js/React/Node)', 'WordPress / Shopify / WooCommerce', 'Backend APIs & Cloud Databases', 'DevOps & AWS/Cloud Setup', 'Bug Fixing & Code Audit'] },
+          { name: 'Engagement Model', type: 'radio', options: ['Fixed Project Milestone', 'Hourly Consultation Call', 'Monthly Dedicated Retainer'] }
+        ] 
+      },
+      { 
+        name: 'Mobile App Developer', 
+        parameters: [
+          { name: 'Platform', type: 'checkbox', options: ['Cross-Platform Flutter App', 'React Native iOS & Android', 'Native Android (Kotlin)', 'Native iOS (Swift)'] },
+          { name: 'Engagement Model', type: 'radio', options: ['Full App MVP Sprint', 'Feature Addition', 'App Store / Play Store Deployment'] }
+        ] 
+      },
+      { 
+        name: 'Video & Reel Editor', 
+        parameters: [
+          { name: 'Editing Scope', type: 'checkbox', options: ['Instagram Reels & TikTok Shorts (Vertical)', 'YouTube Long-Form Storytelling', 'Podcast Audio/Video Sync & Multicam', 'Commercials & Product Promos', 'Color Grading & Audio Mastering'] },
+          { name: 'Deliverable Turnaround', type: 'radio', options: ['24-48 Hours Express', '3-5 Business Days', 'Weekly Project Cycle'] }
+        ] 
+      },
+      { 
+        name: 'Photo & Media Editor', 
+        parameters: [
+          { name: 'Editing Type', type: 'checkbox', options: ['E-Commerce Product Photo Retouching', 'High-End Portrait & Beauty Retouch', 'Real Estate HDR Enhancement', 'Background Removal & Composite'] }
+        ] 
+      },
+      { 
+        name: 'UI/UX & Product Designer', 
+        parameters: [
+          { name: 'Design Focus', type: 'checkbox', options: ['Figma Web & Landing Page Design', 'Complete Mobile App UI/UX & Prototypes', 'Design System & Component Library', 'Wireframing & User Journey Mapping'] }
+        ] 
+      },
+      { 
+        name: 'Graphic Designer & Branding', 
+        parameters: [
+          { name: 'Design Services', type: 'checkbox', options: ['Brand Logo & Visual Identity Guidelines', 'Social Media Creatives & Ad Banners', 'Pitch Decks & Presentations', 'Product Packaging & Print Collateral'] }
+        ] 
+      },
+      { 
+        name: 'Content Writer & Copywriter', 
+        parameters: [
+          { name: 'Writing Domain', type: 'checkbox', options: ['SEO Blog Posts & Thought Leadership', 'High-Converting Landing Page Copy', 'Email Marketing Funnels & Newsletters', 'Technical Documentation & Whitepapers'] }
+        ] 
+      },
+      { 
+        name: 'Digital Marketer & SEO Specialist', 
+        parameters: [
+          { name: 'Marketing Domain', type: 'checkbox', options: ['Google Ads PPC & Search Campaigns', 'Meta Facebook & Instagram Ads', 'On-Page, Technical & Backlink SEO', 'Social Media Organic Growth Strategy'] }
+        ] 
+      },
+      { 
+        name: 'Voiceover & Audio Engineer', 
+        parameters: [
+          { name: 'Audio Services', type: 'checkbox', options: ['Commercial Voiceover (Hindi / English)', 'Podcast Audio Cleanup & Mixing', 'Sound Design & Royalty-Free Foley', 'Audiobook Narration'] }
         ] 
       }
     ]
@@ -1454,25 +1533,36 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       .finally(() => setIsLoading(false));
 
     // Fetch categories with instant local cache + fastFetch
+    const normalizeCategoryKey = (name: string) => {
+      const k = (name || '').toLowerCase().trim();
+      if (k === 'freelance' || k === 'freelancer') return 'freelancer';
+      return k;
+    };
+
     const mergeWithDefaults = (fetched: Category[]): Category[] => {
       const mergedMap = new Map<string, Category>();
       // 1. Put all defaultCategories first
-      defaultCategories.forEach(c => mergedMap.set(c.name.toLowerCase().trim(), c));
+      defaultCategories.forEach(c => {
+        const key = normalizeCategoryKey(c.name);
+        mergedMap.set(key, { ...c, name: key === 'freelancer' ? 'Freelancer' : c.name });
+      });
       // 2. Overlay server data
       fetched.forEach(c => {
-        const key = c.name.toLowerCase().trim();
+        const key = normalizeCategoryKey(c.name);
+        const canonicalName = key === 'freelancer' ? 'Freelancer' : c.name;
         const existing = mergedMap.get(key);
         if (existing) {
           mergedMap.set(key, {
             ...existing,
             ...c,
+            name: canonicalName,
             // If server has empty or fewer subcategories, keep the richer subcategories
             subcategories: (c.subcategories && c.subcategories.length >= (existing.subcategories?.length || 0))
               ? c.subcategories
               : existing.subcategories
           });
         } else {
-          mergedMap.set(key, c);
+          mergedMap.set(key, { ...c, name: canonicalName });
         }
       });
       return Array.from(mergedMap.values());
@@ -1513,7 +1603,12 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(product)
       });
-      if (!res.ok) throw new Error('Failed to add product');
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => null);
+        const errMsg = errJson?.message || errJson?.error || `Failed to add product (HTTP ${res.status})`;
+        console.error('Server error adding product:', errMsg, errJson);
+        throw new Error(errMsg);
+      }
       const newProduct = await res.json();
       setProducts(prev => [newProduct, ...prev]);
     } catch (err) {
@@ -1529,7 +1624,12 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated)
       });
-      if (!res.ok) throw new Error('Failed to edit product');
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => null);
+        const errMsg = errJson?.message || errJson?.error || `Failed to edit product (HTTP ${res.status})`;
+        console.error('Server error editing product:', errMsg, errJson);
+        throw new Error(errMsg);
+      }
       const updatedProduct = await res.json();
       setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updatedProduct } : p));
     } catch (err) {

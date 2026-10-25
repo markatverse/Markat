@@ -29,7 +29,10 @@ export function isServiceProduct(product?: Product | null) {
     cat.includes('spa') || cat.includes('beauty') || cat.includes('barber') ||
     cat.includes('service') || cat.includes('doctor') || cat.includes('clinic') ||
     cat.includes('car wash') || cat.includes('wash') ||
-    subcat.includes('salon') || subcat.includes('parlour') || subcat.includes('spa')
+    cat.includes('professional') || cat.includes('legal') ||
+    subcat.includes('salon') || subcat.includes('parlour') || subcat.includes('spa') ||
+    subcat.includes('lawyer') || subcat.includes('advocate') || subcat.includes('legal') ||
+    subcat.includes('consultant') || subcat.includes('accountant')
   ) {
     return true;
   }

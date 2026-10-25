@@ -20,6 +20,7 @@ import SellerLeadsTab from '@/components/seller/SellerLeadsTab';
 import SellerStaffTab from '@/components/seller/SellerStaffTab';
 import SellerCustomersTab from '@/components/seller/SellerCustomersTab';
 import SellerBookingsTab from '@/components/seller/SellerBookingsTab';
+import SellerQueueTab from '@/components/seller/SellerQueueTab';
 
 const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
 
@@ -1957,46 +1958,18 @@ function DashboardContent() {
 
         {activeTab === 'queue' && (
           <div className="max-w-6xl mx-auto animate-in fade-in duration-300">
-            <div className="mb-8 flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
-              <div className="w-full">
-                <h1 className="text-3xl font-bold text-slate-900">Queue & Token Management</h1>
-                <p className="text-slate-500 mt-2">Manage your live walk-in customers and tokens.</p>
-                {availableQueues.length > 1 && (
-                  <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
-                    <span className="text-sm font-semibold text-slate-600">Select Shop/Branch:</span>
-                    <select 
-                      className="border border-slate-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-blue-500 text-sm font-medium w-full sm:w-auto"
-                      value={selectedQueueId || ''} 
-                      onChange={(e) => fetchQueue(e.target.value)}
-                    >
-                      {availableQueues.map(q => (
-                        <option key={q.id} value={q.id}>{q.shopName}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-2 sm:gap-3 w-full lg:w-auto">
-                <button 
-                  onClick={() => setShowStaffModal(true)} 
-                  className="bg-indigo-50 border border-indigo-200 text-indigo-700 px-3 py-2 sm:px-4 rounded-lg font-medium hover:bg-indigo-100 transition-colors shadow-sm flex items-center justify-center gap-2 text-sm flex-1 sm:flex-none whitespace-nowrap"
-                >
-                  <Users className="w-4 h-4 shrink-0" /> <span>Manage Staff</span>
-                </button>
-                <button 
-                  onClick={() => setShowWalkInForm(true)} 
-                  className="bg-blue-600 border border-blue-600 text-white px-3 py-2 sm:px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2 text-sm flex-1 sm:flex-none whitespace-nowrap"
-                >
-                  <PlusCircle className="w-4 h-4 shrink-0" /> <span>Add Walk-in</span>
-                </button>
-                <button 
-                  onClick={() => fetchQueue()} 
-                  className="bg-white border border-slate-200 text-slate-700 px-3 py-2 sm:px-4 rounded-lg font-medium hover:bg-slate-50 transition-colors shadow-sm text-sm flex items-center justify-center gap-2 flex-1 sm:flex-none whitespace-nowrap"
-                >
-                  <span>Refresh Status</span>
-                </button>
-              </div>
-            </div>
+            <SellerQueueTab
+              queueData={queueData}
+              isQueueLoading={isQueueLoading}
+              availableQueues={availableQueues}
+              selectedQueueId={selectedQueueId}
+              activeVertical={activeVertical}
+              actionLoading={actionLoading}
+              onFetchQueue={fetchQueue}
+              onQueueAction={handleQueueAction}
+              onOpenWalkIn={() => setShowWalkInForm(true)}
+              onOpenStaffModal={() => setShowStaffModal(true)}
+            />
 
             {showWalkInForm && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
@@ -2191,243 +2164,7 @@ function DashboardContent() {
                 onUpdate={fetchQueue} 
               />
             )}
-            
-            {isQueueLoading && !queueData ? (
-              <div className="text-center py-20 text-slate-500">Loading queue...</div>
-            ) : !queueData ? (
-              <div className="text-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm text-slate-500">No active queue found.</div>
-            ) : (
-              <div className="flex flex-col gap-6">
-                
-                {/* Live Status Cards */}
-                {queueData.resources && queueData.resources.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {queueData.resources.map((resource: any) => {
-                      const servingTokens = Array.isArray(queueData.serving) ? queueData.serving : [];
-                      const servingToken = servingTokens.find((s: any) => s.resourceId === resource.id);
-                      const isAutoWash = activeVertical === 'AUTOWASH';
-                      const detectedPlate = servingToken ? (
-                        (servingToken.service || '').match(/\[Plate:\s*([^\]]+)\]/i)?.[1] ||
-                        (servingToken.customerName || '').match(/\(([^)]+)\)$/)?.[1] || ''
-                      ) : '';
-                      const cleanName = servingToken ? (
-                        detectedPlate ? servingToken.customerName.replace(/\s*\([^)]*\)\s*$/, '') : servingToken.customerName
-                      ) : '';
 
-                      return (
-                        <div key={resource.id} className={`${isAutoWash ? 'bg-gradient-to-br from-cyan-800 via-teal-900 to-slate-900 border border-cyan-500/30' : 'bg-gradient-to-br from-indigo-600 to-blue-700'} rounded-2xl p-4 text-white shadow-lg flex flex-col items-center justify-center relative overflow-hidden`}>
-                          <div className="absolute top-0 left-0 w-full h-full bg-[url('/noise.png')] opacity-10 mix-blend-overlay pointer-events-none"></div>
-                          <div className="relative z-10 text-center w-full">
-                            <div className={`${isAutoWash ? 'text-cyan-200' : 'text-indigo-200'} text-xs font-bold tracking-widest uppercase mb-1`}>
-                              {isAutoWash ? `🚿 ${resource.name}` : resource.name}
-                            </div>
-                            {servingToken ? (
-                              <>
-                                <div className="text-5xl font-black mb-1 text-white drop-shadow-md">
-                                  {servingToken.bookingMode === 'APPOINTMENT' ? 'Apt' : `#${servingToken.tokenNumber}`}
-                                </div>
-                                {detectedPlate && (
-                                  <div className="my-1.5 inline-flex items-center h-6 bg-white border border-slate-900 rounded-[3px] shadow-sm overflow-hidden px-1.5">
-                                    <div className="flex items-center gap-0.5 pr-1 border-r border-slate-300">
-                                      <span className="text-[7px] text-[#003893]">☸</span>
-                                      <span className="text-[7px] font-black tracking-tighter text-[#003893]">IND</span>
-                                    </div>
-                                    <span className="font-mono font-black text-[11px] text-slate-900 tracking-wider pl-1.5 uppercase">
-                                      {detectedPlate}
-                                    </span>
-                                  </div>
-                                )}
-                                <div className={`text-base font-bold ${isAutoWash ? 'text-cyan-100' : 'text-blue-100'}`}>{cleanName || servingToken.customerName}</div>
-                                <div className={`${isAutoWash ? 'text-cyan-200/80' : 'text-indigo-200'} text-xs mt-0.5 mb-3`}>{servingToken.service}</div>
-                              </>
-                            ) : (
-                              <div className="py-4">
-                                <div className={`text-3xl font-black ${isAutoWash ? 'text-cyan-400/40' : 'text-indigo-300/50'} mb-2`}>—</div>
-                                <div className={`${isAutoWash ? 'text-cyan-200' : 'text-indigo-200'} text-xs mb-3`}>Bay currently available</div>
-                              </div>
-                            )}
-                            <button 
-                              disabled={actionLoading === `next-${resource.id}`}
-                              onClick={() => handleQueueAction(`next-${resource.id}`, `/service-queue/${queueData.queue.id}/next`, 'POST', { resourceId: resource.id })}
-                              className="bg-white/20 hover:bg-white/30 text-white w-full py-1.5 rounded-lg font-bold text-sm shadow-sm transition-colors border border-white/20 disabled:opacity-50"
-                            >
-                              {actionLoading === `next-${resource.id}` ? 'Calling...' : (isAutoWash ? 'Call Next Vehicle' : 'Call Next')}
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className={`${activeVertical === 'AUTOWASH' ? 'bg-gradient-to-br from-cyan-800 via-teal-900 to-slate-900 border border-cyan-500/30' : 'bg-gradient-to-br from-indigo-600 to-blue-700'} rounded-2xl p-4 sm:p-5 text-white shadow-lg flex flex-col items-center justify-center relative overflow-hidden`}>
-                    <div className="absolute top-0 left-0 w-full h-full bg-[url('/noise.png')] opacity-10 mix-blend-overlay pointer-events-none"></div>
-                    <div className="relative z-10 text-center w-full">
-                      <div className={`${activeVertical === 'AUTOWASH' ? 'text-cyan-200' : 'text-indigo-200'} text-xs font-bold tracking-widest uppercase mb-2`}>
-                        {activeVertical === 'AUTOWASH' ? '🚿 NOW WASHING' : 'NOW SERVING'}
-                      </div>
-                      {queueData.serving && queueData.serving.length > 0 ? (
-                        <>
-                          <div className="text-6xl sm:text-7xl font-black mb-2 text-white drop-shadow-md">
-                            {queueData.serving[0].bookingMode === 'APPOINTMENT' ? 'Apt' : `#${queueData.serving[0].tokenNumber}`}
-                          </div>
-                          {(() => {
-                            const serving0 = queueData.serving[0];
-                            const detectedPlate = (serving0.service || '').match(/\[Plate:\s*([^\]]+)\]/i)?.[1] || (serving0.customerName || '').match(/\(([^)]+)\)$/)?.[1] || '';
-                            const cleanName = detectedPlate ? serving0.customerName.replace(/\s*\([^)]*\)\s*$/, '') : serving0.customerName;
-                            return (
-                              <>
-                                {detectedPlate && (
-                                  <div className="mb-2 inline-flex items-center h-7 bg-white border border-slate-900 rounded-[3px] shadow-sm overflow-hidden px-2">
-                                    <div className="flex items-center gap-0.5 pr-1 border-r border-slate-300">
-                                      <span className="text-[8px] text-[#003893]">☸</span>
-                                      <span className="text-[8px] font-black tracking-tighter text-[#003893]">IND</span>
-                                    </div>
-                                    <span className="font-mono font-black text-xs text-slate-900 tracking-wider pl-1.5 uppercase">
-                                      {detectedPlate}
-                                    </span>
-                                  </div>
-                                )}
-                                <div className={`text-lg font-bold ${activeVertical === 'AUTOWASH' ? 'text-cyan-100' : 'text-blue-100'}`}>{cleanName || serving0.customerName}</div>
-                                <div className={`${activeVertical === 'AUTOWASH' ? 'text-cyan-200/80' : 'text-indigo-200'} text-xs mt-1`}>{serving0.service}</div>
-                              </>
-                            );
-                          })()}
-                        </>
-                      ) : (
-                        <div className="py-2 sm:py-4">
-                          <div className={`text-4xl sm:text-5xl font-black ${activeVertical === 'AUTOWASH' ? 'text-cyan-300/40' : 'text-indigo-300/50'} mb-2`}>—</div>
-                          <div className={`${activeVertical === 'AUTOWASH' ? 'text-cyan-200' : 'text-indigo-200'} text-sm`}>No vehicle currently in bay</div>
-                        </div>
-                      )}
-                      <div className="mt-4 pt-4 border-t border-cyan-500/30 w-full flex justify-between">
-                        <div className="text-center">
-                          <div className="text-2xl font-black">{queueData.waitingCount}</div>
-                          <div className={`text-[9px] uppercase font-bold ${activeVertical === 'AUTOWASH' ? 'text-cyan-200' : 'text-indigo-200'} tracking-wider`}>Waiting</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-black">{queueData.doneToday}</div>
-                          <div className={`text-[9px] uppercase font-bold ${activeVertical === 'AUTOWASH' ? 'text-cyan-200' : 'text-indigo-200'} tracking-wider`}>Done Today</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Waiting List */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col">
-                  <div className="p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <h2 className="text-lg font-bold text-slate-900">
-                      {activeVertical === 'AUTOWASH' ? 'Up Next (Vehicles in Queue)' : 'Up Next'}
-                    </h2>
-                    {(!queueData.resources || queueData.resources.length === 0) && (
-                      <button 
-                        disabled={actionLoading === 'next-global'}
-                        onClick={() => handleQueueAction('next-global', `/service-queue/${queueData.queue.id}/next`)}
-                        className={`text-white px-5 py-2 rounded-lg font-bold text-sm shadow-sm transition-colors disabled:opacity-50 ${
-                          activeVertical === 'AUTOWASH' ? 'bg-cyan-700 hover:bg-cyan-800' : 'bg-emerald-600 hover:bg-emerald-700'
-                        }`}
-                      >
-                        {actionLoading === 'next-global' ? 'Calling...' : (activeVertical === 'AUTOWASH' ? 'Call Next Vehicle' : 'Call Next Customer')}
-                      </button>
-                    )}
-                  </div>
-                  
-                  <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                    {queueData.waiting?.length === 0 ? (
-                      <div className="text-center py-10 text-slate-500">
-                        {activeVertical === 'AUTOWASH' ? 'No vehicles waiting in line.' : 'Queue is empty.'}
-                      </div>
-                    ) : (
-                      queueData.waiting?.map((token: any, i: number) => {
-                        const detectedPlate = (token.service || '').match(/\[Plate:\s*([^\]]+)\]/i)?.[1] || (token.customerName || '').match(/\(([^)]+)\)$/)?.[1] || '';
-                        const cleanCustomerName = detectedPlate ? token.customerName.replace(/\s*\([^)]*\)\s*$/, '') : token.customerName;
-
-                        return (
-                          <div key={token.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 gap-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-white hover:shadow-sm transition-all">
-                            <div className="flex items-center gap-4 w-full">
-                              <div className={`w-14 h-12 rounded-xl flex flex-col items-center justify-center font-black text-sm ${
-                                i === 0 
-                                  ? (activeVertical === 'AUTOWASH' ? 'bg-cyan-100 text-cyan-800' : 'bg-indigo-100 text-indigo-700')
-                                  : 'bg-slate-200 text-slate-600'
-                              }`}>
-                                {token.bookingMode === 'APPOINTMENT' ? (
-                                  <><span>Apt</span><span className="text-[10px] font-bold">{new Date(token.appointmentTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></>
-                                ) : (
-                                  <span className="text-lg">#{token.tokenNumber}</span>
-                                )}
-                              </div>
-                              <div>
-                                <div className="font-bold text-slate-900 flex items-center gap-2 flex-wrap">
-                                  <span>{cleanCustomerName}</span>
-                                  {detectedPlate && (
-                                    <span className="inline-flex items-center h-5.5 bg-white border border-slate-900 rounded-[3px] shadow-2xs overflow-hidden px-1">
-                                      <span className="flex items-center gap-0.5 pr-1 border-r border-slate-200">
-                                        <span className="text-[7px] text-[#003893]">☸</span>
-                                        <span className="text-[8px] font-black tracking-tighter text-[#003893]">IND</span>
-                                      </span>
-                                      <span className="font-mono font-black text-[10px] text-slate-900 tracking-wider pl-1 uppercase">
-                                        {detectedPlate}
-                                      </span>
-                                    </span>
-                                  )}
-                                  {token.bookingMode === 'APPOINTMENT' && token.status === 'PENDING' && (
-                                    <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Pending Arrival</span>
-                                  )}
-                                  {token.bookingMode === 'APPOINTMENT' && token.status === 'CHECKED_IN' && (
-                                    <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Checked In</span>
-                                  )}
-                                  {token.status === 'ABSENT' && (
-                                    <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Absent (Late)</span>
-                                  )}
-                                </div>
-                                <div className="text-xs text-slate-500 font-medium">{token.service}</div>
-                              </div>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2 text-left sm:text-right w-full sm:w-auto mt-2 sm:mt-0">
-                            <div className="text-sm font-medium text-slate-700 mr-2 flex-1 sm:flex-none whitespace-nowrap">
-                              📞 {token.phone || 'No phone'}
-                            </div>
-                            
-                            {token.status !== 'ABSENT' ? (
-                              <button 
-                                disabled={actionLoading === `absent-${token.id}`}
-                                onClick={() => handleQueueAction(`absent-${token.id}`, `/service-queue/token/${token.id}/absent`, 'PATCH')}
-                                className="text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-md text-xs font-bold transition-colors disabled:opacity-50"
-                              >
-                                {actionLoading === `absent-${token.id}` ? '...' : 'Absent'}
-                              </button>
-                            ) : (
-                              <button 
-                                disabled={actionLoading === `waiting-${token.id}`}
-                                onClick={() => handleQueueAction(`waiting-${token.id}`, `/service-queue/token/${token.id}/waiting`, 'PATCH')}
-                                className="text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-md text-xs font-bold transition-colors disabled:opacity-50"
-                              >
-                                {actionLoading === `waiting-${token.id}` ? '...' : 'Return to Queue'}
-                              </button>
-                            )}
-                            
-                            <button 
-                              disabled={actionLoading === `noshow-${token.id}`}
-                              onClick={() => {
-                                if(confirm('Mark this customer as No-Show? They will be removed from the list.')) {
-                                  handleQueueAction(`noshow-${token.id}`, `/service-queue/token/${token.id}/no-show`, 'PATCH');
-                                }
-                              }}
-                              className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-md text-xs font-bold transition-colors disabled:opacity-50"
-                            >
-                              {actionLoading === `noshow-${token.id}` ? '...' : 'No Show'}
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })
-                    )}
-                  </div>
-                </div>
-
-
-              </div>
-            )}
           </div>
         )}
 

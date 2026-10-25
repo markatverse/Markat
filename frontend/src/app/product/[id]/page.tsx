@@ -7,9 +7,10 @@ import { useWishlist } from '@/context/WishlistContext';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useUserTrends } from '@/hooks/useUserTrends';
-import { ShieldCheck, Camera, Ruler, ZoomIn, Package, Star, Building2, MapPin, PhoneCall, Calendar, CalendarClock, Heart, UtensilsCrossed, Users, Clock, Utensils, Sparkles, MessageCircle, Phone, Share2, ChevronDown, PartyPopper, CheckCircle2, FileText, Send, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Camera, Ruler, ZoomIn, Package, Star, Building2, MapPin, PhoneCall, Calendar, CalendarClock, Heart, UtensilsCrossed, Users, Clock, Utensils, Sparkles, MessageCircle, Phone, Share2, ChevronDown, PartyPopper, CheckCircle2, FileText, Send, ArrowRight, Scale, Briefcase } from 'lucide-react';
 import SmartQueueWidget from '@/components/SmartQueueWidget';
 import CarWashBookingWidget from '@/components/CarWashBookingWidget';
+import ProfessionalBookingWidget from '@/components/ProfessionalBookingWidget';
 import ReviewsSection from '@/components/ReviewsSection';
 import StarRating from '@/components/StarRating';
 import AdvertisementWidget from '@/components/AdvertisementWidget';
@@ -184,14 +185,40 @@ export default function ProductDetails() {
     (product.parameters as any)?.bookingModel === 'PROPOSAL'
   ) : false;
 
+  const isProfessional = product ? (
+    (product.category || '').toLowerCase().includes('professional') ||
+    (product.category || '').toLowerCase().includes('lawyer') ||
+    (product.category || '').toLowerCase().includes('legal') ||
+    (product.category || '').toLowerCase().includes('advocate') ||
+    (product.category || '').toLowerCase().includes('consultant') ||
+    (product.category || '').toLowerCase().includes('consultancy') ||
+    (product.category || '').toLowerCase().includes('accountant') ||
+    (product.category || '').toLowerCase().includes('ca') ||
+    (product.category || '').toLowerCase().includes('architect') ||
+    (product.category || '').toLowerCase().includes('financial advisor') ||
+    (product.subcategory || '').toLowerCase().includes('lawyer') ||
+    (product.subcategory || '').toLowerCase().includes('legal') ||
+    (product.subcategory || '').toLowerCase().includes('advocate') ||
+    (product.subcategory || '').toLowerCase().includes('consultant') ||
+    (product.subcategory || '').toLowerCase().includes('chartered') ||
+    (product.subcategory || '').toLowerCase().includes('tax') ||
+    (product.subcategory || '').toLowerCase().includes('ca') ||
+    (product.subcategory || '').toLowerCase().includes('architect') ||
+    (product.name || '').toLowerCase().includes('advocate') ||
+    (product.name || '').toLowerCase().includes('lawyer') ||
+    (product.name || '').toLowerCase().includes('legal counsel')
+  ) : false;
+
   const WALK_IN_CATEGORIES = ['salon', 'saloon', 'beauty', 'hair', 'barber', 'spa', 'nail', 'massage', 'pedicure', 'doctor', 'clinic', 'medical', 'hospital', 'dentist'];
   const isServiceQueue = product ? (
-    WALK_IN_CATEGORIES.some(c => (product.category || '').toLowerCase().includes(c) || (product.subcategory || '').toLowerCase().includes(c) || (product.name || '').toLowerCase().includes(c)) ||
-    hasToken ||
-    sellerBookingModel === 'TOKEN' ||
-    sellerBookingModel === 'HYBRID' ||
-    sellerBookingModel === 'QUEUE_ONLY' ||
-    (isServiceProduct(product) && !isFoodDining && !isOrganizer && !isAutoWash)
+    !isProfessional && (
+      WALK_IN_CATEGORIES.some(c => (product.category || '').toLowerCase().includes(c) || (product.subcategory || '').toLowerCase().includes(c) || (product.name || '').toLowerCase().includes(c)) ||
+      hasToken ||
+      sellerBookingModel === 'TOKEN' ||
+      sellerBookingModel === 'HYBRID' ||
+      sellerBookingModel === 'QUEUE_ONLY' ||
+      (isServiceProduct(product) && !isFoodDining && !isOrganizer && !isAutoWash)
+    )
   ) : false;
 
   // Event & Organizer Customer Booking States
@@ -306,10 +333,10 @@ export default function ProductDetails() {
     };
   }, [isGuestDropdownOpen, isDateDropdownOpen]);
 
-  const isRetail = (product?.primaryType === 'SERVICE' || isFoodDining || isOrganizer || hasService || isServiceQueue) ? false : (noRulesDefined
-    ? !['Services', 'Home Services', 'Organizers', 'Transport', 'Rentals', 'Subscriptions', 'B2B', 'Construction Materials', 'Salon & Parlour', 'Salon & Parlor', 'Salon', 'Beauty Parlour', 'Spa', 'Car Wash'].includes(product?.category || '')
+  const isRetail = (product?.primaryType === 'SERVICE' || isFoodDining || isOrganizer || isProfessional || hasService || isServiceQueue) ? false : (noRulesDefined
+    ? !['Services', 'Home Services', 'Organizers', 'Transport', 'Rentals', 'Subscriptions', 'B2B', 'Construction Materials', 'Salon & Parlour', 'Salon & Parlor', 'Salon', 'Beauty Parlour', 'Spa', 'Car Wash', 'Professional'].includes(product?.category || '')
     : hasProductStock);
-  const isWholesaleConfig = (product?.primaryType === 'SERVICE' || isFoodDining || isOrganizer || hasService || isServiceQueue) ? false : (noRulesDefined
+  const isWholesaleConfig = (product?.primaryType === 'SERVICE' || isFoodDining || isOrganizer || isProfessional || hasService || isServiceQueue) ? false : (noRulesDefined
     ? (product?.category === 'B2B' || product?.category === 'Construction Materials' || (isRetail && isElite))
     : ((hasB2B && hasBulkPricing) || (isRetail && isElite)));
 
@@ -451,9 +478,17 @@ export default function ProductDetails() {
                 <UtensilsCrossed className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-400" /> Dining Venue
               </div>
             )}
-            {(isServiceProduct(product) || hasService || isServiceQueue) && !isFoodDining && !isAutoWash && (
+            {(isServiceProduct(product) || hasService || isServiceQueue || isProfessional) && !isFoodDining && !isAutoWash && (
               <div className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-black/60 backdrop-blur-md border border-white/20 text-white px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold tracking-wide flex items-center gap-1.5">
-                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-teal-400" /> Verified Service Studio & Salon
+                {isProfessional ? (
+                  <>
+                    <Scale className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" /> Verified Legal & Professional Practice
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-teal-400" /> Verified Service Studio & Salon
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -629,22 +664,31 @@ export default function ProductDetails() {
             </button>
           </div>
 
-          <div className={isAutoWash ? "mb-4" : (isServiceProduct(product) || hasService || isServiceQueue) ? "mb-4 sm:mb-5" : "p-4 sm:p-6 bg-slate-50 rounded-2xl mb-6 sm:mb-8 border border-slate-200 shadow-2xs"}>
-            {(isServiceProduct(product) || hasService || isServiceQueue) && !isAutoWash && !isOrganizer && !isFoodDining ? (
+          <div className={isAutoWash ? "mb-4" : (isServiceProduct(product) || hasService || isServiceQueue || isProfessional) ? "mb-4 sm:mb-5" : "p-4 sm:p-6 bg-slate-50 rounded-2xl mb-6 sm:mb-8 border border-slate-200 shadow-2xs"}>
+            {(isServiceProduct(product) || hasService || isServiceQueue || isProfessional) && !isAutoWash && !isOrganizer && !isFoodDining ? (
               <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
                 <div>
                   <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5">
-                    Service Rate
+                    {isProfessional ? 'Consultation Fee' : 'Service Rate'}
                   </div>
                   <div className="text-3xl sm:text-4xl font-black text-slate-900 flex items-baseline gap-2">
                     <span>₹{currentActivePrice.toLocaleString('en-IN')}</span>
-                    <span className="text-xs sm:text-sm font-semibold text-slate-500">starting rate</span>
+                    <span className="text-xs sm:text-sm font-semibold text-slate-500">
+                      {isProfessional ? 'per consultation' : 'starting rate'}
+                    </span>
                   </div>
                 </div>
-                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200/80 shadow-2xs">
-                  <Clock className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Live Queue & Advance Appointments</span>
-                </div>
+                {isProfessional ? (
+                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-950 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-300 shadow-2xs">
+                    <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Chamber & Online Consultation</span>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200/80 shadow-2xs">
+                    <Clock className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Live Queue & Advance Appointments</span>
+                  </div>
+                )}
               </div>
             ) : !isAutoWash ? (
               <>
@@ -1003,6 +1047,8 @@ export default function ProductDetails() {
               {/* ── CAR WASH & AUTOMOBILE DEDICATED BOOKING ── */}
               {isAutoWash ? (
                 <CarWashBookingWidget service={product} />
+              ) : isProfessional ? (
+                <ProfessionalBookingWidget service={product} />
               ) : (isServiceQueue || hasToken || hasAppointment || isServiceProduct(product) || hasService) && !isOrganizer && !isFoodDining ? (
                 <SmartQueueWidget service={product} />
               ) : null}
@@ -1312,7 +1358,7 @@ export default function ProductDetails() {
               )}
 
               {/* ── APPOINTMENT BOOKING (Non-Dining Services) ── */}
-              {hasAppointment && !hasToken && !isFoodDining && !isAutoWash && (
+              {hasAppointment && !hasToken && !isFoodDining && !isAutoWash && !isProfessional && (
                 <div className="flex flex-col gap-3 w-full p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200 shadow-xs">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-blue-900 font-extrabold text-sm">Schedule an Appointment</span>
@@ -1757,7 +1803,7 @@ export default function ProductDetails() {
 
           <div className="mb-8">
             <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-3 sm:mb-4">
-              {isFoodDining ? 'Dining & Table Guidelines' : 'Important Details'}
+              {isFoodDining ? 'Dining & Table Guidelines' : isProfessional ? 'Professional Consultation Guidelines' : 'Important Details'}
             </h3>
             <ul className="pl-5 text-xs sm:text-sm text-slate-600 leading-relaxed sm:leading-loose list-disc space-y-1.5 sm:space-y-0">
               {isOrganizer ? (
@@ -1775,6 +1821,14 @@ export default function ProductDetails() {
                   <li>Dress code: Smart Casual / Formal as per restaurant policy.</li>
                   <li>Cancellation or rescheduling available up to 2 hours in advance.</li>
                   <li>Fresh ingredients prepared live by certified culinary chefs.</li>
+                </>
+              ) : isProfessional ? (
+                <>
+                  <li>Strict Attorney-Client & Professional Privilege confidentiality maintained.</li>
+                  <li>In-Chamber appointments require bringing relevant case files or documentation.</li>
+                  <li>Video consultations are held over end-to-end encrypted Google Meet / Zoom links.</li>
+                  <li>Rescheduling is accommodated up to 2 hours prior to the booked slot.</li>
+                  <li>Professional advice is provided in accordance with applicable Bar & regulatory guidelines.</li>
                 </>
               ) : (isServiceQueue || product?.primaryType === 'SERVICE') ? (
                 <>

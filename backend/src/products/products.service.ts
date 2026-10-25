@@ -7,19 +7,60 @@ export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
   async create(data: any) {
+    // 1. Sanitize sellerId (must be a 24-character hexadecimal ObjectId or null)
+    let sellerId: string | null = null;
+    if (data.sellerId && typeof data.sellerId === 'string' && /^[0-9a-fA-F]{24}$/.test(data.sellerId)) {
+      sellerId = data.sellerId;
+    }
+
+    // 2. Sanitize price (fallback to 0 or first option price if missing/empty/NaN)
+    let price = 0;
+    if (data.price !== undefined && data.price !== null && data.price !== '') {
+      const parsed = parseFloat(data.price);
+      if (!isNaN(parsed) && parsed >= 0) price = parsed;
+    }
+    if (price === 0 && Array.isArray(data.options) && data.options.length > 0) {
+      const firstOptPrice = parseFloat(data.options[0]?.price);
+      if (!isNaN(firstOptPrice) && firstOptPrice >= 0) price = firstOptPrice;
+    }
+
+    // 3. Sanitize originalPrice
+    let originalPrice: number | null = null;
+    if (data.originalPrice !== undefined && data.originalPrice !== null && data.originalPrice !== '') {
+      const parsed = parseFloat(data.originalPrice);
+      if (!isNaN(parsed)) originalPrice = parsed;
+    }
+
+    // 4. Coordinates
+    let latitude: number | null = null;
+    if (data.latitude !== undefined && data.latitude !== null && data.latitude !== '') {
+      const parsed = parseFloat(data.latitude);
+      if (!isNaN(parsed)) latitude = parsed;
+    }
+    let longitude: number | null = null;
+    if (data.longitude !== undefined && data.longitude !== null && data.longitude !== '') {
+      const parsed = parseFloat(data.longitude);
+      if (!isNaN(parsed)) longitude = parsed;
+    }
+
+    // 5. moq and stock
+    const moq = data.moq && !isNaN(parseInt(data.moq)) ? parseInt(data.moq) : 1;
+    const stock = data.stock && !isNaN(parseInt(data.stock)) ? parseInt(data.stock) : 0;
+
     const product = await this.prisma.product.create({
       data: {
-        name: data.name,
+        name: data.name || 'Untitled Listing',
         type: data.primaryType || data.type || 'PRODUCT',
-        price: parseFloat(data.price),
-        originalPrice: data.originalPrice ? parseFloat(data.originalPrice) : null,
+        price,
+        originalPrice,
         description: data.description || null,
         categoryName: data.category || data.categoryName || null,
-        sellerId: data.sellerId || null,
+        sellerId,
         sellerName: data.seller || data.sellerName || 'MarkatVerse Seller',
         location: data.location || 'India',
-        latitude: data.latitude ? parseFloat(data.latitude) : null,
-        longitude: data.longitude ? parseFloat(data.longitude) : null,
+        pincode: data.pincode || null,
+        latitude,
+        longitude,
         rating: data.rating || '0.0',
         reviews: data.reviews || '0',
         discount: data.discount || null,
@@ -30,9 +71,9 @@ export class ProductsService {
         options: data.options || null,
         image: data.image || (data.images && data.images.length > 0 ? data.images[0] : null),
         images: data.images || (data.image ? [data.image] : []),
-        isB2B: data.isB2B || false,
-        moq: data.moq ? parseInt(data.moq) : 1,
-        stock: data.stock ? parseInt(data.stock) : 0,
+        isB2B: !!data.isB2B,
+        moq,
+        stock,
         sku: data.sku || null,
       },
     });
@@ -198,17 +239,42 @@ export class ProductsService {
   }
 
   async update(id: string, data: any) {
+    let sellerId: string | null | undefined = undefined;
+    if (data.sellerId !== undefined) {
+      if (data.sellerId && typeof data.sellerId === 'string' && /^[0-9a-fA-F]{24}$/.test(data.sellerId)) {
+        sellerId = data.sellerId;
+      } else {
+        sellerId = null;
+      }
+    }
+
+    let price: number | undefined = undefined;
+    if (data.price !== undefined && data.price !== null && data.price !== '') {
+      const parsed = parseFloat(data.price);
+      if (!isNaN(parsed) && parsed >= 0) price = parsed;
+    }
+
+    let originalPrice: number | null | undefined = undefined;
+    if (data.originalPrice !== undefined) {
+      if (data.originalPrice !== null && data.originalPrice !== '') {
+        const parsed = parseFloat(data.originalPrice);
+        originalPrice = !isNaN(parsed) ? parsed : null;
+      } else {
+        originalPrice = null;
+      }
+    }
+
     const p = await this.prisma.product.update({
       where: { id },
       data: {
-        name: data.name,
-        type: data.primaryType || data.type,
-        price: data.price ? parseFloat(data.price) : undefined,
-        originalPrice: data.originalPrice ? parseFloat(data.originalPrice) : undefined,
-        description: data.description,
-        categoryName: data.category || data.categoryName,
-        sellerId: data.sellerId,
-        sellerName: data.seller || data.sellerName,
+        name: data.name !== undefined ? data.name : undefined,
+        type: data.primaryType || data.type || undefined,
+        price,
+        originalPrice,
+        description: data.description !== undefined ? data.description : undefined,
+        categoryName: data.category || data.categoryName || undefined,
+        sellerId,
+        sellerName: data.seller || data.sellerName || undefined,
         discount: data.discount !== undefined ? data.discount : undefined,
         badge: data.badge !== undefined ? data.badge : undefined,
         badgeColor: data.badgeColor !== undefined ? data.badgeColor : undefined,
@@ -217,9 +283,9 @@ export class ProductsService {
         options: data.options !== undefined ? data.options : undefined,
         image: data.image !== undefined ? data.image : undefined,
         images: data.images !== undefined ? data.images : undefined,
-        isB2B: data.isB2B,
-        moq: data.moq ? parseInt(data.moq) : undefined,
-        stock: data.stock ? parseInt(data.stock) : undefined,
+        isB2B: data.isB2B !== undefined ? !!data.isB2B : undefined,
+        moq: data.moq && !isNaN(parseInt(data.moq)) ? parseInt(data.moq) : undefined,
+        stock: data.stock !== undefined && !isNaN(parseInt(data.stock)) ? parseInt(data.stock) : undefined,
       },
     });
     return this.mapProduct(p);

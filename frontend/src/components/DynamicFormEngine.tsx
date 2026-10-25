@@ -229,8 +229,8 @@ export default function DynamicFormEngine({
     if (sName.includes('cleaning') || sName.includes('pest')) {
       return ['home', 'cleaner'].includes(cName);
     }
-    if (sName.includes('professional')) {
-      return ['professional', 'consultant', 'lawyer', 'accountant', 'freelancer', 'tutor'].includes(cName);
+    if (sName.includes('professional') || sName.includes('freelance') || sName.includes('consultant')) {
+      return ['professional', 'freelance', 'freelancer', 'consultant', 'lawyer', 'accountant', 'tutor'].includes(cName);
     }
     if (sName.includes('vehicle') || sName.includes('rental') || sName.includes('transport')) {
       return ['sales & rentals', 'car wash'].includes(cName);
@@ -401,16 +401,24 @@ export default function DynamicFormEngine({
     setIsSubmitting(true);
     
     let finalPrice = 0;
-    let finalOriginalPrice = undefined;
-    let finalDiscount = undefined;
+    let finalOriginalPrice: number | undefined = undefined;
+    let finalDiscount: string | undefined = undefined;
 
     if (sellingType === 'B2C') {
-      finalPrice = Number(b2cPrice);
-      if (costPrice) finalOriginalPrice = Number(costPrice);
+      const parsed = parseFloat(b2cPrice);
+      if (!isNaN(parsed) && parsed >= 0) finalPrice = parsed;
+      if (costPrice && !isNaN(parseFloat(costPrice))) finalOriginalPrice = parseFloat(costPrice);
       if (discountPct) finalDiscount = `${discountPct}%`;
     } else {
-      finalPrice = wholesaleTiers[0].price;
+      finalPrice = (wholesaleTiers && wholesaleTiers[0]?.price) ? Number(wholesaleTiers[0].price) : 0;
     }
+
+    // Fallback: If price is 0 or NaN, but services/options exist, use first option price
+    if ((finalPrice <= 0 || isNaN(finalPrice)) && options && options.length > 0) {
+      const optP = parseFloat(String(options[0].price));
+      if (!isNaN(optP) && optP > 0) finalPrice = optP;
+    }
+    if (isNaN(finalPrice)) finalPrice = 0;
 
     const finalLocationString = [locArea, locCity, locDistrict, locState, pincode].filter(Boolean).join(', ');
 
@@ -1277,13 +1285,53 @@ export default function DynamicFormEngine({
               ];
             }
 
-            // Professional Services (Lawyer, Consultant, Accountant, Tutor)
-            if (catLower.includes('professional') || catLower.includes('consultant') || sectorLower.includes('consultant')) {
+            // Professional & Freelance Services (Lawyer, CA, IT Freelancer, Video Editor, Designer, Consultant)
+            if (catLower.includes('professional') || catLower.includes('freelance') || catLower.includes('consultant') || sectorLower.includes('consultant')) {
+              if (subLower.includes('lawyer') || subLower.includes('legal')) {
+                return [
+                  { name: 'Initial Legal Advisory (30 Mins)', defaultPrice: 1500 },
+                  { name: 'Comprehensive Chamber Consultation (1 Hr)', defaultPrice: 3000 },
+                  { name: 'Document & Agreement Vetting', defaultPrice: 5000 },
+                  { name: 'Court Representation / Notice Drafting', defaultPrice: 10000 }
+                ];
+              }
+              if (subLower.includes('accountant') || subLower.includes('ca') || subLower.includes('tax')) {
+                return [
+                  { name: 'Individual ITR Filing & Tax Planning', defaultPrice: 1000 },
+                  { name: 'Business GST Return & Audit Filing', defaultPrice: 2500 },
+                  { name: 'Audited Balance Sheet & P&L Sign-off', defaultPrice: 7500 },
+                  { name: 'Company Incorporation & MCA Setup', defaultPrice: 12000 }
+                ];
+              }
+              if (subLower.includes('editor') || subLower.includes('video')) {
+                return [
+                  { name: 'Shorts / Reels Editing (Up to 60s)', defaultPrice: 500 },
+                  { name: 'YouTube Video Edit (Up to 10 mins)', defaultPrice: 2000 },
+                  { name: 'Full Podcast Audio/Video Edit & Master', defaultPrice: 3500 },
+                  { name: 'Monthly Video Editing Retainer (15 Videos)', defaultPrice: 18000 }
+                ];
+              }
+              if (subLower.includes('developer') || subLower.includes('it') || subLower.includes('software')) {
+                return [
+                  { name: '1-Hour Tech Strategy & Architecture Call', defaultPrice: 1500 },
+                  { name: 'Single Page Landing / Bug Fix', defaultPrice: 3500 },
+                  { name: 'Complete MVP / Web App Feature Sprint', defaultPrice: 25000 },
+                  { name: 'Dedicated Monthly Developer Retainer', defaultPrice: 50000 }
+                ];
+              }
+              if (subLower.includes('designer') || subLower.includes('ui/ux')) {
+                return [
+                  { name: 'Brand Logo & Style Guide', defaultPrice: 3000 },
+                  { name: 'Landing Page UI/UX Design (Figma)', defaultPrice: 6000 },
+                  { name: 'Full Mobile App Design (Up to 10 Screens)', defaultPrice: 15000 },
+                  { name: 'Social Media Creatives Pack (10 Posts)', defaultPrice: 2500 }
+                ];
+              }
               return [
                 { name: 'Initial Advisory Call (30 Min)', defaultPrice: 500 },
-                { name: '1-Hour Deep Consultation', defaultPrice: 1000 },
-                { name: 'Document Audit & Review', defaultPrice: 1500 },
-                { name: 'Comprehensive Monthly Retainer', defaultPrice: 5000 }
+                { name: '1-Hour Deep Consultation', defaultPrice: 1500 },
+                { name: 'Project Scope Audit & Review', defaultPrice: 3000 },
+                { name: 'Comprehensive Monthly Retainer', defaultPrice: 10000 }
               ];
             }
 
