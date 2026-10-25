@@ -121,13 +121,22 @@ export const INITIAL_HOMEPAGE_SECTIONS: HomepageSection[] = [
     order: 9,
   },
   {
+    id: 'products_for_you',
+    label: 'Products For You',
+    description: 'Trending and curated physical retail & wholesale goods',
+    badge: 'Products',
+    category: 'products',
+    visible: true,
+    order: 10,
+  },
+  {
     id: 'recently_viewed',
     label: 'Recently Viewed Products',
     description: 'Horizontal scrollable row preserving customer browsing history',
     badge: 'History',
     category: 'products',
     visible: true,
-    order: 10,
+    order: 11,
   },
   {
     id: 'global_hubs',
@@ -136,7 +145,7 @@ export const INITIAL_HOMEPAGE_SECTIONS: HomepageSection[] = [
     badge: 'Hubs',
     category: 'navigation',
     visible: true,
-    order: 11,
+    order: 12,
   },
   {
     id: 'trust_badges',
@@ -145,7 +154,7 @@ export const INITIAL_HOMEPAGE_SECTIONS: HomepageSection[] = [
     badge: 'Assurance',
     category: 'trust',
     visible: true,
-    order: 12,
+    order: 13,
   },
   {
     id: 'blog_posts',
@@ -154,7 +163,7 @@ export const INITIAL_HOMEPAGE_SECTIONS: HomepageSection[] = [
     badge: 'Editorial',
     category: 'content',
     visible: true,
-    order: 13,
+    order: 14,
   },
 ];
 
@@ -303,6 +312,7 @@ export default function HomepageLayoutAdmin() {
       case 'recommendations': return <Sparkles className="w-4 h-4 text-rose-400" />;
       case 'top_picks': return <ShoppingBag className="w-4 h-4 text-blue-400" />;
       case 'services_for_you': return <Wrench className="w-4 h-4 text-emerald-400" />;
+      case 'products_for_you': return <ShoppingBag className="w-4 h-4 text-violet-400" />;
       case 'recently_viewed': return <Layers className="w-4 h-4 text-cyan-400" />;
       case 'global_hubs': return <Compass className="w-4 h-4 text-orange-400" />;
       case 'trust_badges': return <ShieldCheck className="w-4 h-4 text-green-400" />;

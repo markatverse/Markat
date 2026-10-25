@@ -453,7 +453,7 @@ export default function HomeSectionsContainer({
                 <h2 className="text-xl lg:text-2xl font-bold text-slate-900">Top Picks For You</h2>
                 <Link href="/search?filter=top_picks" className="text-blue-600 font-bold hover:underline text-sm flex items-center gap-1">View All <span className="text-lg leading-none">›</span></Link>
               </div>
-              <ProductGrid personalized={true} horizontal={true} excludeRecent={true} />
+              <ProductGrid personalized={true} horizontal={true} />
             </section>
           </ScrollReveal>
         );
@@ -467,7 +467,21 @@ export default function HomeSectionsContainer({
                 <h2 className="text-xl lg:text-2xl font-bold text-slate-900">Services For You</h2>
                 <Link href="/search?type=services" className="text-blue-600 font-bold hover:underline text-sm flex items-center gap-1">View All <span className="text-lg leading-none">›</span></Link>
               </div>
-              <ProductGrid serviceOnly={true} personalized={true} horizontal={true} excludeRecent={true} />
+              <ProductGrid serviceOnly={true} personalized={true} horizontal={true} />
+            </section>
+          </ScrollReveal>
+        );
+
+      // 10. Products For You
+      case 'products_for_you':
+        return (
+          <ScrollReveal key="products_for_you" delay={350}>
+            <section className="mt-4">
+              <div className="flex justify-between items-end border-b border-slate-200 pb-3 mb-4">
+                <h2 className="text-xl lg:text-2xl font-bold text-slate-900">Products For You</h2>
+                <Link href="/search?type=products" className="text-blue-600 font-bold hover:underline text-sm flex items-center gap-1">View All <span className="text-lg leading-none">›</span></Link>
+              </div>
+              <ProductGrid productsOnly={true} personalized={true} horizontal={true} />
             </section>
           </ScrollReveal>
         );

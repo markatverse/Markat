@@ -22,8 +22,8 @@ export default function ProductGrid({
   personalized, 
   recent, 
   serviceOnly,
-  horizontal,
-  excludeRecent
+  productsOnly,
+  horizontal 
 }: { 
   products?: Product[], 
   limit?: number, 
@@ -31,8 +31,8 @@ export default function ProductGrid({
   personalized?: boolean, 
   recent?: boolean, 
   serviceOnly?: boolean,
-  horizontal?: boolean,
-  excludeRecent?: boolean
+  productsOnly?: boolean,
+  horizontal?: boolean 
 }) {
   const { products: contextProducts, isLoading, userLocation, userLat, userLng, radiusFilter, setRadiusFilter } = useProducts();
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -70,17 +70,12 @@ export default function ProductGrid({
     items.sort((a, b) => trends.recentlyViewed.indexOf(a.id) - trends.recentlyViewed.indexOf(b.id));
   }
   
-  let productsToRender = [...(items || [])].filter(p => {
+  const productsToRender = [...(items || [])].filter(p => {
     if (category && p.category !== category) return false;
     if (serviceOnly && !isServiceProduct(p)) return false;
+    if (productsOnly && isServiceProduct(p)) return false;
     return true;
   });
-
-  // Exclude items that are already in Recently Viewed so Top Picks and Recents don't show duplicates
-  const shouldExcludeRecent = excludeRecent ?? (personalized && !recent);
-  if (shouldExcludeRecent && !recent && trends?.recentlyViewed && trends.recentlyViewed.length > 0) {
-    productsToRender = productsToRender.filter(p => !trends.recentlyViewed.includes(p.id));
-  }
 
   if (!recent) {
     const topCategories = personalized ? getTopCategories() : [];

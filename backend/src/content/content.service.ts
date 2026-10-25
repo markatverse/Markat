@@ -265,13 +265,22 @@ export const DEFAULT_HOMEPAGE_SECTIONS = [
     order: 9,
   },
   {
+    id: 'products_for_you',
+    label: 'Products For You',
+    description: 'Trending and curated physical retail & wholesale goods',
+    badge: 'Products',
+    category: 'products',
+    visible: true,
+    order: 10,
+  },
+  {
     id: 'recently_viewed',
     label: 'Recently Viewed Products',
     description: 'Horizontal scrollable row preserving customer browsing history',
     badge: 'History',
     category: 'products',
     visible: true,
-    order: 10,
+    order: 11,
   },
   {
     id: 'global_hubs',
@@ -280,7 +289,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS = [
     badge: 'Hubs',
     category: 'navigation',
     visible: true,
-    order: 11,
+    order: 12,
   },
   {
     id: 'trust_badges',
@@ -289,7 +298,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS = [
     badge: 'Assurance',
     category: 'trust',
     visible: true,
-    order: 12,
+    order: 13,
   },
   {
     id: 'blog_posts',
@@ -298,6 +307,6 @@ export const DEFAULT_HOMEPAGE_SECTIONS = [
     badge: 'Editorial',
     category: 'content',
     visible: true,
-    order: 13,
+    order: 14,
   },
 ];
