@@ -449,11 +449,11 @@ export default function HomeSectionsContainer({
         return (
           <ScrollReveal key="top_picks" delay={250}>
             <section className="mt-4">
-              <div className="flex justify-between items-end border-b border-slate-200 pb-3 mb-6">
+              <div className="flex justify-between items-end border-b border-slate-200 pb-3 mb-4">
                 <h2 className="text-xl lg:text-2xl font-bold text-slate-900">Top Picks For You</h2>
                 <Link href="/search?filter=top_picks" className="text-blue-600 font-bold hover:underline text-sm flex items-center gap-1">View All <span className="text-lg leading-none">›</span></Link>
               </div>
-              <ProductGrid personalized={true} />
+              <ProductGrid personalized={true} horizontal={true} />
             </section>
           </ScrollReveal>
         );
@@ -463,11 +463,11 @@ export default function HomeSectionsContainer({
         return (
           <ScrollReveal key="services_for_you" delay={300}>
             <section className="mt-4">
-              <div className="flex justify-between items-end border-b border-slate-200 pb-3 mb-6">
+              <div className="flex justify-between items-end border-b border-slate-200 pb-3 mb-4">
                 <h2 className="text-xl lg:text-2xl font-bold text-slate-900">Services For You</h2>
                 <Link href="/search?type=services" className="text-blue-600 font-bold hover:underline text-sm flex items-center gap-1">View All <span className="text-lg leading-none">›</span></Link>
               </div>
-              <ProductGrid serviceOnly={true} personalized={true} />
+              <ProductGrid serviceOnly={true} personalized={true} horizontal={true} />
             </section>
           </ScrollReveal>
         );
