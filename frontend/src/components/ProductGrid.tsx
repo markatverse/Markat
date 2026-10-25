@@ -22,7 +22,7 @@ export default function ProductGrid({
   personalized, 
   recent, 
   serviceOnly,
-  productsOnly,
+  productOnly,
   horizontal 
 }: { 
   products?: Product[], 
@@ -31,7 +31,7 @@ export default function ProductGrid({
   personalized?: boolean, 
   recent?: boolean, 
   serviceOnly?: boolean,
-  productsOnly?: boolean,
+  productOnly?: boolean,
   horizontal?: boolean 
 }) {
   const { products: contextProducts, isLoading, userLocation, userLat, userLng, radiusFilter, setRadiusFilter } = useProducts();
@@ -73,7 +73,7 @@ export default function ProductGrid({
   const productsToRender = [...(items || [])].filter(p => {
     if (category && p.category !== category) return false;
     if (serviceOnly && !isServiceProduct(p)) return false;
-    if (productsOnly && isServiceProduct(p)) return false;
+    if (productOnly && isServiceProduct(p)) return false;
     return true;
   });
 

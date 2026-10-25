@@ -152,6 +152,20 @@ export class ContentService {
         try {
           const parsed = JSON.parse(config.value);
           if (Array.isArray(parsed) && parsed.length > 0) {
+            const existingIds = new Set(parsed.map((s: any) => s.id));
+            const missing = DEFAULT_HOMEPAGE_SECTIONS.filter((s: any) => !existingIds.has(s.id));
+            if (missing.length > 0) {
+              const merged = [...parsed];
+              for (const m of missing) {
+                const targetIdx = merged.findIndex((s: any) => s.order >= m.order);
+                if (targetIdx !== -1) {
+                  merged.splice(targetIdx, 0, m);
+                } else {
+                  merged.push(m);
+                }
+              }
+              return merged.map((s: any, idx: number) => ({ ...s, order: idx + 1 }));
+            }
             return parsed;
           }
         } catch { }
@@ -267,7 +281,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS = [
   {
     id: 'products_for_you',
     label: 'Products For You',
-    description: 'Trending and curated physical retail & wholesale goods',
+    description: 'Trending physical products, retail electronics, fashion, and goods',
     badge: 'Products',
     category: 'products',
     visible: true,

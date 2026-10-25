@@ -123,7 +123,7 @@ export const INITIAL_HOMEPAGE_SECTIONS: HomepageSection[] = [
   {
     id: 'products_for_you',
     label: 'Products For You',
-    description: 'Trending and curated physical retail & wholesale goods',
+    description: 'Trending physical products, retail electronics, fashion, and goods',
     badge: 'Products',
     category: 'products',
     visible: true,
@@ -167,6 +167,26 @@ export const INITIAL_HOMEPAGE_SECTIONS: HomepageSection[] = [
   },
 ];
 
+export function mergeLayoutWithDefaults(sections?: HomepageSection[] | null): HomepageSection[] {
+  if (!Array.isArray(sections) || sections.length === 0) {
+    return INITIAL_HOMEPAGE_SECTIONS;
+  }
+  const existingIds = new Set(sections.map((s) => s.id));
+  const missing = INITIAL_HOMEPAGE_SECTIONS.filter((s) => !existingIds.has(s.id));
+  if (missing.length === 0) return sections;
+
+  const merged = [...sections];
+  for (const m of missing) {
+    const targetIdx = merged.findIndex((s) => s.order >= m.order);
+    if (targetIdx !== -1) {
+      merged.splice(targetIdx, 0, m);
+    } else {
+      merged.push(m);
+    }
+  }
+  return merged.map((s, idx) => ({ ...s, order: idx + 1 }));
+}
+
 export default function HomepageLayoutAdmin() {
   const [sections, setSections] = useState<HomepageSection[]>(INITIAL_HOMEPAGE_SECTIONS);
   const [isLoading, setIsLoading] = useState(true);
@@ -187,8 +207,11 @@ export default function HomepageLayoutAdmin() {
           try {
             const parsed = JSON.parse(local);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              setSections(parsed);
+              const merged = mergeLayoutWithDefaults(parsed);
+              setSections(merged);
+              localStorage.setItem('markat_homepage_layout', JSON.stringify(merged));
               setIsLoading(false);
+              return;
             }
           } catch { }
         }
@@ -197,8 +220,9 @@ export default function HomepageLayoutAdmin() {
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data) && data.length > 0) {
-            setSections(data);
-            localStorage.setItem('markat_homepage_layout', JSON.stringify(data));
+            const merged = mergeLayoutWithDefaults(data);
+            setSections(merged);
+            localStorage.setItem('markat_homepage_layout', JSON.stringify(merged));
           }
         }
       } catch (err) {
@@ -312,7 +336,7 @@ export default function HomepageLayoutAdmin() {
       case 'recommendations': return <Sparkles className="w-4 h-4 text-rose-400" />;
       case 'top_picks': return <ShoppingBag className="w-4 h-4 text-blue-400" />;
       case 'services_for_you': return <Wrench className="w-4 h-4 text-emerald-400" />;
-      case 'products_for_you': return <ShoppingBag className="w-4 h-4 text-violet-400" />;
+      case 'products_for_you': return <ShoppingBag className="w-4 h-4 text-amber-400" />;
       case 'recently_viewed': return <Layers className="w-4 h-4 text-cyan-400" />;
       case 'global_hubs': return <Compass className="w-4 h-4 text-orange-400" />;
       case 'trust_badges': return <ShieldCheck className="w-4 h-4 text-green-400" />;
@@ -672,7 +696,7 @@ export default function HomepageLayoutAdmin() {
                         </div>
                       )}
 
-                      {sec.id === 'top_picks' && (
+                      {(sec.id === 'top_picks' || sec.id === 'products_for_you') && (
                         <div className="grid grid-cols-4 gap-1 py-1">
                           {[1, 2, 3, 4].map(n => (
                             <div key={n} className="h-6 bg-slate-800/60 rounded flex items-center justify-center text-[8px] text-slate-400">

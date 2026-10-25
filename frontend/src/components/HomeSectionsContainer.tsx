@@ -21,6 +21,26 @@ interface HomeSectionsContainerProps {
   blogPosts: any[];
 }
 
+function mergeLayoutWithDefaults(sections?: HomepageSection[] | null): HomepageSection[] {
+  if (!Array.isArray(sections) || sections.length === 0) {
+    return INITIAL_HOMEPAGE_SECTIONS;
+  }
+  const existingIds = new Set(sections.map((s) => s.id));
+  const missing = INITIAL_HOMEPAGE_SECTIONS.filter((s) => !existingIds.has(s.id));
+  if (missing.length === 0) return sections;
+
+  const merged = [...sections];
+  for (const m of missing) {
+    const targetIdx = merged.findIndex((s) => s.order >= m.order);
+    if (targetIdx !== -1) {
+      merged.splice(targetIdx, 0, m);
+    } else {
+      merged.push(m);
+    }
+  }
+  return merged.map((s, idx) => ({ ...s, order: idx + 1 }));
+}
+
 export default function HomeSectionsContainer({
   initialLayout,
   serverBanners,
@@ -28,7 +48,7 @@ export default function HomeSectionsContainer({
   blogPosts,
 }: HomeSectionsContainerProps) {
   const [layout, setLayout] = useState<HomepageSection[]>(() => {
-    return (initialLayout && initialLayout.length > 0) ? initialLayout : INITIAL_HOMEPAGE_SECTIONS;
+    return mergeLayoutWithDefaults(initialLayout);
   });
 
   // Client-side hydration & sync with localStorage or admin broadcast updates
@@ -39,10 +59,18 @@ export default function HomeSectionsContainer({
         if (stored) {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            setLayout(parsed);
+            const merged = mergeLayoutWithDefaults(parsed);
+            setLayout(merged);
+            try {
+              localStorage.setItem('markat_homepage_layout', JSON.stringify(merged));
+            } catch { }
+            return;
           }
         }
       } catch { }
+      if (initialLayout && initialLayout.length > 0) {
+        setLayout(mergeLayoutWithDefaults(initialLayout));
+      }
     };
 
     syncLayout();
@@ -53,7 +81,7 @@ export default function HomeSectionsContainer({
       window.removeEventListener('homepage_layout_updated', syncLayout);
       window.removeEventListener('storage', syncLayout);
     };
-  }, []);
+  }, [initialLayout]);
 
   // Sorted and filtered active sections
   const visibleOrderedSections = useMemo(() => {
@@ -472,21 +500,21 @@ export default function HomeSectionsContainer({
           </ScrollReveal>
         );
 
-      // 10. Products For You
+      // 10. Products For You (Physical retail items)
       case 'products_for_you':
         return (
           <ScrollReveal key="products_for_you" delay={350}>
             <section className="mt-4">
               <div className="flex justify-between items-end border-b border-slate-200 pb-3 mb-4">
                 <h2 className="text-xl lg:text-2xl font-bold text-slate-900">Products For You</h2>
-                <Link href="/search?type=products" className="text-blue-600 font-bold hover:underline text-sm flex items-center gap-1">View All <span className="text-lg leading-none">›</span></Link>
+                <Link href="/search" className="text-blue-600 font-bold hover:underline text-sm flex items-center gap-1">View All <span className="text-lg leading-none">›</span></Link>
               </div>
-              <ProductGrid productsOnly={true} personalized={true} horizontal={true} />
+              <ProductGrid productOnly={true} personalized={true} horizontal={true} />
             </section>
           </ScrollReveal>
         );
 
-      // 10. Recently Viewed
+      // 11. Recently Viewed
       case 'recently_viewed':
         return (
           <ScrollReveal key="recently_viewed" delay={400}>
