@@ -360,7 +360,7 @@ function SearchContent() {
         ) : productType === 'services' || categories.some(category => category.name === selectedCategory && category.primaryType === 'SERVICE') || selectedCategory === 'Services' || selectedCategory === 'Home Services' ? (
           <ServiceDirectoryList products={filteredProducts} />
         ) : (
-          <ProductGrid products={filteredProducts} />
+          <ProductGrid products={filteredProducts} productOnly={productType === 'products'} />
         )}
         </main>
       </div>

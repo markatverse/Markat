@@ -507,7 +507,7 @@ export default function HomeSectionsContainer({
             <section className="mt-4">
               <div className="flex justify-between items-end border-b border-slate-200 pb-3 mb-4">
                 <h2 className="text-xl lg:text-2xl font-bold text-slate-900">Products For You</h2>
-                <Link href="/search" className="text-blue-600 font-bold hover:underline text-sm flex items-center gap-1">View All <span className="text-lg leading-none">›</span></Link>
+                <Link href="/search?type=products" className="text-blue-600 font-bold hover:underline text-sm flex items-center gap-1">View All <span className="text-lg leading-none">›</span></Link>
               </div>
               <ProductGrid productOnly={true} personalized={true} horizontal={true} />
             </section>
