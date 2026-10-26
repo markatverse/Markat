@@ -31,8 +31,9 @@ export class ServiceQueueController {
 
   /** Get queue for a specific seller */
   @Get('seller/:sellerId')
-  getQueueBySeller(@Param('sellerId') sellerId: string) {
-    return this.serviceQueueService.getQueueBySeller(sellerId);
+  async getQueueBySeller(@Param('sellerId') sellerId: string) {
+    const queue = await this.serviceQueueService.getQueueBySeller(sellerId);
+    return queue || {};
   }
 
   /** List all open queues */

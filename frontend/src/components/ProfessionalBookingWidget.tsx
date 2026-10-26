@@ -145,7 +145,7 @@ export default function ProfessionalBookingWidget({ service }: { service: any })
         if (service?.sellerId) {
           const r = await fetch(`${API}/service-queue/seller/${service.sellerId}`);
           if (r.ok) {
-            const data = await r.json();
+            const data = await r.json().catch(() => null);
             if (Array.isArray(data) && data.length > 0) qId = data[0].id;
             else if (data?.id) qId = data.id;
           }
@@ -153,7 +153,7 @@ export default function ProfessionalBookingWidget({ service }: { service: any })
         if (!qId) {
           const r = await fetch(`${API}/service-queue/queues`);
           if (r.ok) {
-            const all = await r.json();
+            const all = await r.json().catch(() => []);
             const shopName = service?.seller || service?.name || 'Professional Practice';
             const matched = Array.isArray(all) ? all.find((q: any) => q.shopName === shopName) : null;
             if (matched) qId = matched.id;
@@ -169,7 +169,7 @@ export default function ProfessionalBookingWidget({ service }: { service: any })
             })
           });
           if (cr.ok) {
-            const newQ = await cr.json();
+            const newQ = await cr.json().catch(() => null);
             if (newQ?.id) qId = newQ.id;
           }
         }
@@ -231,7 +231,7 @@ export default function ProfessionalBookingWidget({ service }: { service: any })
         });
 
         if (res.ok) {
-          const data = await res.json();
+          const data = await res.json().catch(() => null);
           bookingRef = data;
         }
       }
