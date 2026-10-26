@@ -5,6 +5,8 @@ import {
   Briefcase, PartyPopper, Wrench, Camera, Truck, Dumbbell
 } from 'lucide-react';
 
+import { isServiceProduct } from './productSearch';
+
 export interface ServiceBadgeInfo {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -17,6 +19,11 @@ export interface ServiceBadgeInfo {
  */
 export function getServiceBadge(product: any): ServiceBadgeInfo | null {
   if (!product) return null;
+
+  // Never assign service badges to physical products
+  const pType = (((product as any).primaryType || (product as any).type || '') + '').toUpperCase();
+  if (pType === 'PRODUCT' || pType === 'VEHICLE') return null;
+  if (!isServiceProduct(product)) return null;
 
   const cat = (product.category || '').toLowerCase();
   const sub = (product.subcategory || '').toLowerCase();

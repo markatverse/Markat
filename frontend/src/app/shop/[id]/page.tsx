@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { MapPin, Star, Shield, Phone, Mail, Clock, CheckCircle, Ticket, ShoppingCart, Calendar, Stethoscope, Scissors, Wrench, MessageCircle, UtensilsCrossed, Utensils } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import ProductGridSkeleton from '@/components/ProductGridSkeleton';
+import { isServiceProduct } from '@/utils/productSearch';
 
 
 export default function PublicShopPage({ params }: { params: Promise<{ id: string }> }) {
@@ -55,21 +56,15 @@ export default function PublicShopPage({ params }: { params: Promise<{ id: strin
 
   // Check if this venue is Food & Dining / Restaurant
   const isFoodDining = products.some(p => {
+    if (!isServiceProduct(p)) return false;
     const cat = (p.category || '').toLowerCase();
     const sub = (p.subcategory || '').toLowerCase();
-    const name = (p.name || '').toLowerCase();
-    return cat.includes('food') || cat.includes('dining') || cat.includes('restaurant') ||
-           sub.includes('food') || sub.includes('dining') || sub.includes('restaurant') || sub.includes('cafe') ||
-           name.includes('restaurant') || name.includes('cafe') || name.includes('dining');
-  }) || shopName.toLowerCase().includes('restaurant') || shopName.toLowerCase().includes('cafe') || shopName.toLowerCase().includes('dining') || shopName.toLowerCase().includes('kitchen') || shopName.toLowerCase().includes('food');
+    return cat.includes('restaurant') || cat.includes('dining') || sub.includes('restaurant') || sub.includes('cafe');
+  }) || shopName.toLowerCase().includes('restaurant') || shopName.toLowerCase().includes('cafe') || shopName.toLowerCase().includes('bistro');
 
-  // Categorize mock data into Services vs Products
-  const services = products.filter(p => {
-    const searchStr = `${p.category || ''} ${p.name} ${p.tags?.join(' ') || ''}`.toLowerCase();
-    return !isFoodDining && (searchStr.includes('service') || searchStr.includes('salon') || searchStr.includes('hair') || searchStr.includes('doctor') || searchStr.includes('repair') || searchStr.includes('consultation') || searchStr.includes('spa') || searchStr.includes('trim'));
-  });
-  
-  const physicalProducts = products.filter(p => !services.includes(p));
+  // Categorize data into Services vs Products using strict isServiceProduct
+  const services = products.filter(p => isServiceProduct(p));
+  const physicalProducts = products.filter(p => !isServiceProduct(p));
   const shopProducts = products;
 
   // Determine Shop Theme based on what they offer

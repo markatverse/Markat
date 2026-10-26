@@ -18,25 +18,67 @@ const legacyServiceCategories = [
   'Event Services'
 ];
 
-export function isServiceProduct(product?: Product | null) {
+const physicalProductCategories = [
+  'electronics',
+  'fashion',
+  'home & kitchen',
+  'home & living',
+  'construction',
+  'construction materials',
+  'industrial machinery & tools',
+  'industrial',
+  'grocery & fmcg',
+  'grocery',
+  'healthcare & medical devices',
+  'automotive parts & accessories',
+  'beauty, cosmetics & personal care',
+  'sports, fitness & outdoor',
+  'books, stationery & office supplies',
+  'kids, toys & baby care',
+  'jewelry, watches & luxury',
+  'pet supplies & pet care',
+  'mobile',
+  'laptop',
+  'cement',
+  'power tools'
+];
+
+export function isServiceProduct(product?: (Product & { type?: string }) | null): boolean {
   if (!product) return false;
-  if (product.primaryType === 'SERVICE') return true;
-  if (product.primaryType === 'PRODUCT' || product.primaryType === 'VEHICLE') return false;
-  const cat = (product.category || '').toLowerCase();
-  const subcat = (product.subcategory || '').toLowerCase();
+  
+  // 1. Explicit primaryType or database type flag
+  const pType = (((product as any).primaryType || (product as any).type || '') + '').toUpperCase();
+  if (pType === 'PRODUCT' || pType === 'VEHICLE') return false;
+  if (pType === 'SERVICE') return true;
+
+  const cat = (product.category || '').toLowerCase().trim();
+  const subcat = (product.subcategory || '').toLowerCase().trim();
+
+  // 2. Physical product categories are NEVER services
+  if (physicalProductCategories.some(c => cat === c || cat.startsWith(c) || subcat === c)) {
+    return false;
+  }
+
+  // 3. Explicit service categories
+  if (legacyServiceCategories.some(c => c.toLowerCase() === cat || cat.startsWith(c.toLowerCase()))) {
+    return true;
+  }
+
+  // 4. Specific service subcategories and keywords
   if (
-    cat.includes('salon') || cat.includes('saloon') || cat.includes('parlor') || cat.includes('parlour') ||
-    cat.includes('spa') || cat.includes('beauty') || cat.includes('barber') ||
-    cat.includes('service') || cat.includes('doctor') || cat.includes('clinic') ||
-    cat.includes('car wash') || cat.includes('wash') ||
-    cat.includes('professional') || cat.includes('legal') ||
-    subcat.includes('salon') || subcat.includes('parlour') || subcat.includes('spa') ||
-    subcat.includes('lawyer') || subcat.includes('advocate') || subcat.includes('legal') ||
-    subcat.includes('consultant') || subcat.includes('accountant')
+    cat === 'salon' || cat === 'spa' || cat === 'car wash' || cat === 'services' ||
+    cat === 'home services' || cat === 'event services' || cat === 'freelancer' ||
+    subcat.includes('salon service') || subcat.includes('spa service') ||
+    subcat.includes('haircut') || subcat.includes('facial & clean-up') ||
+    subcat.includes('car wash service') || subcat.includes('detailing package') ||
+    subcat.includes('repair service') || subcat.includes('consultation') ||
+    subcat.includes('lawyer') || subcat.includes('advocate') || subcat.includes('legal counsel') ||
+    subcat.includes('chartered accountant') || subcat.includes('tax consultant')
   ) {
     return true;
   }
-  return legacyServiceCategories.some(c => c.toLowerCase() === cat);
+
+  return false;
 }
 
 export function matchesProductSearch(product: Product, query: string) {

@@ -20,8 +20,9 @@ let ServiceQueueController = class ServiceQueueController {
     createQueue(body) {
         return this.serviceQueueService.createQueue(body);
     }
-    getQueueBySeller(sellerId) {
-        return this.serviceQueueService.getQueueBySeller(sellerId);
+    async getQueueBySeller(sellerId) {
+        const queue = await this.serviceQueueService.getQueueBySeller(sellerId);
+        return queue || {};
     }
     getAllQueues() {
         return this.serviceQueueService.getAllQueues();
@@ -96,7 +97,7 @@ __decorate([
     __param(0, Param('sellerId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], ServiceQueueController.prototype, "getQueueBySeller", null);
 __decorate([
     Get('queues'),

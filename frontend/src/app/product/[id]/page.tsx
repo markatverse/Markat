@@ -52,13 +52,14 @@ export default function ProductDetails() {
   const hasProductStock = rules.allows('Product Stock');
   const hasB2B = rules.allows('B2B');
   const hasBulkPricing = rules.allows('Bulk Pricing') || rules.allows('MOQ');
-  const sellerBookingModel = (product?.parameters as any)?.bookingModel;
-  const hasToken = rules.allows('Token') || sellerBookingModel === 'TOKEN' || sellerBookingModel === 'HYBRID' || sellerBookingModel === 'QUEUE_ONLY';
-  const hasAppointment = rules.allows('Appointment') || sellerBookingModel === 'APPOINTMENT' || sellerBookingModel === 'HYBRID';
+  const isPhysicalProduct = product?.primaryType === 'PRODUCT' || (product ? !isServiceProduct(product) : false);
+  const sellerBookingModel = isPhysicalProduct ? undefined : (product?.parameters as any)?.bookingModel;
+  const hasToken = isPhysicalProduct ? false : (rules.allows('Token') || sellerBookingModel === 'TOKEN' || sellerBookingModel === 'HYBRID' || sellerBookingModel === 'QUEUE_ONLY');
+  const hasAppointment = isPhysicalProduct ? false : (rules.allows('Appointment') || sellerBookingModel === 'APPOINTMENT' || sellerBookingModel === 'HYBRID');
   const hasRFQ = rules.allows('RFQ') || rules.allows('Quote');
-  const hasMeeting = rules.allows('Meeting') || rules.isOptional('Meeting');
+  const hasMeeting = isPhysicalProduct ? false : (rules.allows('Meeting') || rules.isOptional('Meeting'));
   const hasVehicleTestDrive = rules.allows('Vehicle Test Drive');
-  const hasService = rules.allows('Service') || product?.primaryType === 'SERVICE' || (product ? isServiceProduct(product) : false);
+  const hasService = isPhysicalProduct ? false : (rules.allows('Service') || product?.primaryType === 'SERVICE' || (product ? isServiceProduct(product) : false));
 
 
   const requireAuth = (action: () => void) => {
@@ -142,7 +143,9 @@ export default function ProductDetails() {
   }
 
   const isElite = user?.role === 'elite';
-  const isFoodDining = product ? (
+  const isActualService = product ? (!isPhysicalProduct && isServiceProduct(product)) : false;
+
+  const isFoodDining = product && isActualService ? (
     product.category?.toLowerCase().includes('food') ||
     product.category?.toLowerCase().includes('dining') ||
     product.category?.toLowerCase().includes('restaurant') ||
@@ -159,7 +162,7 @@ export default function ProductDetails() {
     product.name?.toLowerCase().includes('bistro')
   ) : false;
 
-  const isAutoWash = product ? (
+  const isAutoWash = product && isActualService ? (
     product.category?.toLowerCase().includes('car wash') ||
     product.category?.toLowerCase().includes('automobile') ||
     product.category?.toLowerCase().includes('car washing') ||
@@ -173,7 +176,7 @@ export default function ProductDetails() {
     product.name?.toLowerCase().includes('vehicle wash')
   ) : false;
 
-  const isOrganizer = product ? (
+  const isOrganizer = product && isActualService ? (
     product.category?.toLowerCase().includes('organizer') ||
     product.category?.toLowerCase().includes('event') ||
     product.category?.toLowerCase().includes('wedding') ||
@@ -187,7 +190,7 @@ export default function ProductDetails() {
     (product.parameters as any)?.bookingModel === 'PROPOSAL'
   ) : false;
 
-  const isProfessional = product ? (
+  const isProfessional = product && isActualService ? (
     (product.category || '').toLowerCase().includes('professional') ||
     (product.category || '').toLowerCase().includes('lawyer') ||
     (product.category || '').toLowerCase().includes('legal') ||
@@ -212,14 +215,14 @@ export default function ProductDetails() {
   ) : false;
 
   const WALK_IN_CATEGORIES = ['salon', 'saloon', 'beauty', 'hair', 'barber', 'spa', 'nail', 'massage', 'pedicure', 'doctor', 'clinic', 'medical', 'hospital', 'dentist'];
-  const isServiceQueue = product ? (
+  const isServiceQueue = product && isActualService ? (
     !isProfessional && (
       WALK_IN_CATEGORIES.some(c => (product.category || '').toLowerCase().includes(c) || (product.subcategory || '').toLowerCase().includes(c) || (product.name || '').toLowerCase().includes(c)) ||
       hasToken ||
       sellerBookingModel === 'TOKEN' ||
       sellerBookingModel === 'HYBRID' ||
       sellerBookingModel === 'QUEUE_ONLY' ||
-      (isServiceProduct(product) && !isFoodDining && !isOrganizer && !isAutoWash)
+      (!isFoodDining && !isOrganizer && !isAutoWash)
     )
   ) : false;
 
@@ -340,7 +343,7 @@ export default function ProductDetails() {
 
   const isRetail = (product?.primaryType === 'SERVICE' || isFoodDining || isOrganizer || isProfessional || hasService || isServiceQueue) ? false : (noRulesDefined
     ? !['Services', 'Home Services', 'Organizers', 'Transport', 'Rentals', 'Subscriptions', 'B2B', 'Construction Materials', 'Salon & Parlour', 'Salon & Parlor', 'Salon', 'Beauty Parlour', 'Spa', 'Car Wash', 'Professional'].includes(product?.category || '')
-    : hasProductStock);
+    : (hasProductStock || isPhysicalProduct));
   const isWholesaleConfig = (product?.primaryType === 'SERVICE' || isFoodDining || isOrganizer || isProfessional || hasService || isServiceQueue) ? false : (noRulesDefined
     ? (product?.category === 'B2B' || product?.category === 'Construction Materials' || (isRetail && isElite))
     : ((hasB2B && hasBulkPricing) || (isRetail && isElite)));

@@ -207,7 +207,7 @@ export default function ProductGrid({
           }
         >
         {finalProducts.map(product => {
-          const isService = isServiceProduct(product);
+          const isService = !productOnly && (serviceOnly || isServiceProduct(product));
           const route = `/product/${product.id}`;
           return (
           <div 
@@ -227,6 +227,7 @@ export default function ProductGrid({
                 </span>
               )}
               {(() => {
+                if (productOnly) return null;
                 const serviceBadge = getServiceBadge(product);
                 if (serviceBadge) {
                   return (

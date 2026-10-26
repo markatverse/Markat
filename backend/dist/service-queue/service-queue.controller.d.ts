@@ -29,28 +29,7 @@ export declare class ServiceQueueController {
         updatedAt: Date;
         sellerId: string | null;
     }>;
-    getQueueBySeller(sellerId: string): Promise<{
-        id: string;
-        shopName: string;
-        location: string | null;
-        pincode: string | null;
-        latitude: number | null;
-        longitude: number | null;
-        currentToken: number;
-        lastToken: number;
-        avgMinutes: number;
-        pricePerHour: number;
-        isOpen: boolean;
-        enableTokens: boolean;
-        enableAppointments: boolean;
-        queuePolicy: string;
-        status: string;
-        rating: string | null;
-        reviews: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-        sellerId: string | null;
-    } | null>;
+    getQueueBySeller(sellerId: string): Promise<{}>;
     getAllQueues(): Promise<{
         id: string;
         shopName: string;
