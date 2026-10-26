@@ -1514,6 +1514,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
             seller: item.sellerName,
             category: item.categoryName,
             subcategory: item.subcategory,
+            primaryType: (item.type === 'SERVICE' || item.primaryType === 'SERVICE') ? 'SERVICE' : (item.primaryType || 'PRODUCT'),
             image: item.image || item.sku || undefined,
             images: item.images || (item.image ? [item.image] : []),
             isPremium: false,
