@@ -111,9 +111,9 @@ export default function HomeSectionsContainer({
           <section key="quick_shortcuts" className="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 lg:p-5 flex items-center justify-between overflow-x-auto gap-4 lg:gap-8 w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {[
               { name: "Top Deals", icon: "🔥", style: "bg-red-50 text-[24px]", link: "/search?filter=top_deals" },
+              { name: "Services", icon: "🛠️", style: "bg-emerald-50 border border-emerald-200 text-[24px] shadow-sm relative", badge: "Live", link: "/search?type=services" },
               { name: "Food & Dining", icon: "🍔", style: "bg-amber-50 border border-amber-200 text-[24px] shadow-sm", link: "/search?category=Food%20%26%20Dining" },
               { name: "Salon & Spa", icon: "💇‍♀️", style: "bg-pink-50 border border-pink-200 text-[24px] shadow-sm", link: "/search?service=Salon" },
-              { name: "Services", icon: "🛠️", style: "bg-emerald-50 border border-emerald-200 text-[24px] shadow-sm relative", badge: "Live", link: "/search?type=services" },
               { name: "Mobiles", icon: "📱", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Mobiles" },
               { name: "Electronics", icon: "💻", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Electronics" },
               { name: "Fashion", icon: "👕", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Fashion" },
