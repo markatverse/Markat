@@ -208,7 +208,7 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-slate-50 py-8 px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="bg-slate-50 py-6 sm:py-8 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-6xl mx-auto">
         
         {/* Secure Checkout Header */}
@@ -247,10 +247,10 @@ export default function CheckoutPage() {
         </div>
 
         {step < 3 && (
-          <div className="flex flex-col lg:flex-row gap-8">
+          <div className="flex flex-col lg:flex-row gap-8 items-start">
             
-            {/* Left Column: Form */}
-            <div className="flex-[2] animate-in slide-in-from-right-4 fade-in duration-300">
+            {/* Left Column: Form / Payment Gateway */}
+            <div className="flex-1 w-full animate-in slide-in-from-right-4 fade-in duration-300">
               
               {step === 1 && (
                 <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
@@ -459,11 +459,11 @@ export default function CheckoutPage() {
             </div>
 
             {/* Right Column: Order Summary (Sticky) */}
-            <div className="flex-1">
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 sticky top-[100px]">
-                <h3 className="text-lg font-bold text-slate-800 mb-4 pb-4 border-b border-slate-100">Order Summary</h3>
+            <div className="w-full lg:w-[380px] shrink-0">
+              <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200 sticky top-[100px]">
+                <h3 className="text-base font-bold text-slate-800 mb-3 pb-3 border-b border-slate-100">Order Summary</h3>
                 
-                <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="space-y-3 mb-4 max-h-[260px] overflow-y-auto pr-2 custom-scrollbar">
                   {items.map(item => (
                     <div key={item.id} className="flex items-center gap-3">
                       <div className="w-12 h-12 bg-slate-100 rounded-lg overflow-hidden shrink-0 flex items-center justify-center">
@@ -484,7 +484,7 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
-                <div className="space-y-3 pt-4 border-t border-slate-100 text-sm">
+                <div className="space-y-2.5 pt-3 border-t border-slate-100 text-sm">
                   <div className="flex justify-between text-slate-500 font-medium">
                     <span>Subtotal</span>
                     <span>₹{total.toLocaleString('en-IN')}</span>
@@ -499,12 +499,12 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-slate-200 flex justify-between items-center">
-                  <span className="text-lg font-bold text-slate-800">Total</span>
-                  <span className="text-2xl font-black text-blue-600">₹{total.toLocaleString('en-IN')}</span>
+                <div className="mt-3 pt-3 border-t border-slate-200 flex justify-between items-center">
+                  <span className="text-base font-bold text-slate-800">Total</span>
+                  <span className="text-xl sm:text-2xl font-black text-blue-600">₹{total.toLocaleString('en-IN')}</span>
                 </div>
                 
-                <div className="mt-6 flex items-start gap-2 bg-emerald-50 text-emerald-700 p-3 rounded-xl text-xs font-medium">
+                <div className="mt-4 flex items-start gap-2 bg-emerald-50 text-emerald-700 p-2.5 rounded-xl text-xs font-medium">
                   <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
                   <p>Safe and secure payments. 100% Authentic products.</p>
                 </div>

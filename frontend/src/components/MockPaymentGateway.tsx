@@ -379,8 +379,8 @@ export default function MockPaymentGateway({
   }
 
   const cardContainerClass = inline
-    ? "bg-white rounded-3xl w-full flex flex-col md:flex-row overflow-hidden shadow-sm border border-slate-200"
-    : "bg-white rounded-3xl w-full max-w-[900px] h-[92vh] sm:h-[640px] max-h-[92vh] flex flex-col md:flex-row overflow-hidden shadow-2xl relative border border-slate-200 animate-in zoom-in-95 duration-300";
+    ? "bg-white rounded-2xl w-full flex flex-col md:flex-row overflow-hidden shadow-sm border border-slate-200"
+    : "bg-white rounded-3xl w-full max-w-[900px] h-[90vh] sm:h-[600px] max-h-[90vh] flex flex-col md:flex-row overflow-hidden shadow-2xl relative border border-slate-200 animate-in zoom-in-95 duration-300";
 
   const outerWrapperClass = inline
     ? "w-full"
@@ -464,7 +464,7 @@ export default function MockPaymentGateway({
         <div className="flex-1 bg-white flex flex-col relative h-full overflow-hidden">
           
           {/* Header Bar */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50/60">
             <div>
               <h3 className="font-extrabold text-slate-900 text-base sm:text-lg">Select Payment Method</h3>
               <p className="text-xs text-slate-500">Choose your preferred payment method below</p>
@@ -473,7 +473,7 @@ export default function MockPaymentGateway({
             {!inline && onCancel && (
               <button 
                 onClick={onCancel}
-                className="hidden md:flex text-slate-400 hover:text-slate-800 transition-colors p-2 bg-white rounded-full border border-slate-200/80 hover:bg-slate-100 shadow-sm"
+                className="hidden md:flex text-slate-400 hover:text-slate-800 transition-colors p-2 bg-white rounded-full border border-slate-200/80 hover:bg-slate-100 shadow-sm cursor-pointer"
                 title="Close payment window"
               >
                 <X className="w-4 h-4" />
@@ -484,12 +484,12 @@ export default function MockPaymentGateway({
           <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
             
             {/* Payment Method Selector Sidebar */}
-            <div className="w-full md:w-[210px] border-b md:border-b-0 md:border-r border-slate-100 bg-slate-50/70 overflow-x-auto md:overflow-y-auto flex md:flex-col shrink-0 p-2 md:p-3 gap-1.5">
+            <div className="w-full md:w-[210px] border-b md:border-b-0 md:border-r border-slate-100 bg-slate-50/70 overflow-x-auto md:overflow-y-auto flex md:flex-col shrink-0 p-2.5 gap-1.5">
 
               {/* UPI Option */}
               <button 
                 onClick={() => setMethod('upi')}
-                className={`flex-1 md:flex-none flex items-center gap-3 p-3 rounded-xl transition-all text-left ${
+                className={`flex-1 md:flex-none flex items-center gap-2.5 p-2.5 sm:p-3 rounded-xl transition-all text-left cursor-pointer ${
                   method === 'upi' 
                     ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20' 
                     : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/60 font-semibold'
@@ -499,7 +499,7 @@ export default function MockPaymentGateway({
                   <Smartphone className="w-4 h-4" />
                 </div>
                 <div className="truncate">
-                  <div className="text-xs sm:text-sm">UPI</div>
+                  <div className="text-xs sm:text-sm font-bold">UPI</div>
                   <div className={`text-[10px] truncate ${method === 'upi' ? 'text-blue-100' : 'text-slate-400'}`}>QR & Apps</div>
                 </div>
               </button>
@@ -507,7 +507,7 @@ export default function MockPaymentGateway({
               {/* Card Option */}
               <button 
                 onClick={() => setMethod('card')}
-                className={`flex-1 md:flex-none flex items-center gap-3 p-3 rounded-xl transition-all text-left ${
+                className={`flex-1 md:flex-none flex items-center gap-2.5 p-2.5 sm:p-3 rounded-xl transition-all text-left cursor-pointer ${
                   method === 'card' 
                     ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20' 
                     : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/60 font-semibold'
@@ -517,7 +517,7 @@ export default function MockPaymentGateway({
                   <CreditCard className="w-4 h-4" />
                 </div>
                 <div className="truncate">
-                  <div className="text-xs sm:text-sm">Cards</div>
+                  <div className="text-xs sm:text-sm font-bold">Cards</div>
                   <div className={`text-[10px] truncate ${method === 'card' ? 'text-blue-100' : 'text-slate-400'}`}>Debit & Credit</div>
                 </div>
               </button>
@@ -525,7 +525,7 @@ export default function MockPaymentGateway({
               {/* Cash on Delivery (COD) Option */}
               <button 
                 onClick={() => setMethod('cod')}
-                className={`flex-1 md:flex-none flex items-center gap-3 p-3 rounded-xl transition-all text-left ${
+                className={`flex-1 md:flex-none flex items-center gap-2.5 p-2.5 sm:p-3 rounded-xl transition-all text-left cursor-pointer ${
                   method === 'cod' 
                     ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20' 
                     : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/60 font-semibold'
@@ -535,7 +535,7 @@ export default function MockPaymentGateway({
                   <Banknote className="w-4 h-4" />
                 </div>
                 <div className="truncate">
-                  <div className="text-xs sm:text-sm">Cash on Delivery</div>
+                  <div className="text-xs sm:text-sm font-bold">Cash on Delivery</div>
                   <div className={`text-[10px] truncate ${method === 'cod' ? 'text-blue-100' : 'text-slate-400'}`}>Pay at Doorstep</div>
                 </div>
               </button>
@@ -543,7 +543,7 @@ export default function MockPaymentGateway({
               {/* Wallet Option */}
               <button 
                 onClick={() => setMethod('wallet')}
-                className={`flex-1 md:flex-none flex items-center gap-3 p-3 rounded-xl transition-all text-left ${
+                className={`flex-1 md:flex-none flex items-center gap-2.5 p-2.5 sm:p-3 rounded-xl transition-all text-left cursor-pointer ${
                   method === 'wallet' 
                     ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20' 
                     : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/60 font-semibold'
@@ -553,7 +553,7 @@ export default function MockPaymentGateway({
                   <Wallet className="w-4 h-4" />
                 </div>
                 <div className="truncate">
-                  <div className="text-xs sm:text-sm">Wallets</div>
+                  <div className="text-xs sm:text-sm font-bold">Wallets</div>
                   <div className={`text-[10px] truncate ${method === 'wallet' ? 'text-blue-100' : 'text-slate-400'}`}>Markat, Paytm</div>
                 </div>
               </button>
@@ -561,33 +561,33 @@ export default function MockPaymentGateway({
             </div>
 
             {/* Active Method Form Body */}
-            <div className="flex-1 p-5 sm:p-7 overflow-y-auto custom-scrollbar">
+            <div className="flex-1 p-4 sm:p-5 overflow-y-auto custom-scrollbar">
 
               {/* UPI MODE */}
               {method === 'upi' && (
-                <div className="space-y-5 animate-in fade-in duration-200">
-                  <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-bold text-slate-600">
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-bold text-slate-600 border border-slate-200/60">
                     <button 
                       onClick={() => setUpiSubMode('qr')}
-                      className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all ${upiSubMode === 'qr' ? 'bg-white text-blue-600 shadow-sm' : 'hover:text-slate-900'}`}
+                      className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${upiSubMode === 'qr' ? 'bg-white text-blue-600 shadow-sm font-bold' : 'hover:text-slate-900'}`}
                     >
                       <QrCode className="w-3.5 h-3.5" /> Scan QR Code
                     </button>
                     <button 
                       onClick={() => setUpiSubMode('vpa')}
-                      className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all ${upiSubMode === 'vpa' ? 'bg-white text-blue-600 shadow-sm' : 'hover:text-slate-900'}`}
+                      className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${upiSubMode === 'vpa' ? 'bg-white text-blue-600 shadow-sm font-bold' : 'hover:text-slate-900'}`}
                     >
                       <Smartphone className="w-3.5 h-3.5" /> Enter UPI ID / Number
                     </button>
                   </div>
 
                   {upiSubMode === 'qr' ? (
-                    <div className="flex flex-col items-center justify-center p-4 border border-slate-200 rounded-2xl bg-slate-50/50 text-center">
-                      <div className="relative p-3 bg-white rounded-2xl shadow-md border border-slate-200 mb-3 group">
+                    <div className="flex flex-col items-center justify-center p-3 sm:p-4 border border-slate-200 rounded-2xl bg-slate-50/50 text-center">
+                      <div className="relative p-2.5 bg-white rounded-2xl shadow-sm border border-slate-200 mb-2.5 group">
                         <img 
                           src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=markatverse@icici&pn=MarkatVerse%20Commerce&am=${amount}&tr=${txRef}&cu=INR`} 
                           alt="UPI Payment QR Code" 
-                          className="w-40 h-40 object-contain rounded-xl"
+                          className="w-36 h-36 sm:w-40 sm:h-40 object-contain rounded-xl"
                         />
                         <div className="absolute inset-0 bg-blue-600/5 backdrop-blur-[0.5px] rounded-2xl pointer-events-none" />
                       </div>
@@ -672,10 +672,10 @@ export default function MockPaymentGateway({
                     </div>
                   )}
 
-                  <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100 flex items-center justify-between text-xs">
+                  <div className="p-3 sm:p-3.5 bg-blue-50/70 rounded-xl border border-blue-200/80 flex items-center justify-between text-xs sm:text-sm">
                     <div>
-                      <span className="text-slate-500 block text-[10px] uppercase font-bold">Paying To</span>
-                      <span className="font-bold text-slate-800">markatverse@icici</span>
+                      <span className="text-slate-500 block text-[11px] uppercase font-bold tracking-wider mb-0.5">Verified Merchant VPA</span>
+                      <span className="font-mono font-bold text-slate-900 text-sm">markatverse@icici</span>
                     </div>
                     <button 
                       onClick={() => {
@@ -683,9 +683,9 @@ export default function MockPaymentGateway({
                         setCopiedUpi(true);
                         setTimeout(() => setCopiedUpi(false), 2000);
                       }}
-                      className="text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 bg-white px-2.5 py-1 rounded-lg border border-blue-200 shadow-2xs"
+                      className="text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-blue-200 shadow-xs cursor-pointer text-xs transition-all active:scale-95"
                     >
-                      {copiedUpi ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                      {copiedUpi ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                       <span>{copiedUpi ? 'Copied' : 'Copy'}</span>
                     </button>
                   </div>
@@ -913,20 +913,20 @@ export default function MockPaymentGateway({
           </div>
 
           {/* Footer Action Bar */}
-          <div className="p-4 sm:p-5 border-t border-slate-100 bg-white flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
-            <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500">
-              <Lock className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Payments are encrypted with AES-256 via Razorpay</span>
+          <div className="p-3.5 sm:p-4 border-t border-slate-100 bg-white flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+              <Lock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span>Payments encrypted with AES-256 via Razorpay</span>
             </div>
 
             <button 
               onClick={handlePay}
               disabled={status === 'processing' || razorpayLoading || (method === 'cod' && !codAgreed)}
-              className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-75 disabled:shadow-none min-w-[200px]"
+              className="w-full sm:w-auto px-6 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold rounded-xl transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-75 disabled:shadow-none min-w-[200px] cursor-pointer"
             >
               {status === 'processing' || razorpayLoading ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   <span>{statusMessage}</span>
                 </>
               ) : (
