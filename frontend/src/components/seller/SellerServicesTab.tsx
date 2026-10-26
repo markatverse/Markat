@@ -45,7 +45,7 @@ export default function SellerServicesTab({
               Single Establishment Active
             </span>
             <Link
-              href={`/product/${services[0].id}`}
+              href={`/shop/${encodeURIComponent((services[0].sellerName || services[0].seller || user?.business?.name || user?.name || '').toLowerCase().replace(/ /g, '-'))}`}
               target="_blank"
               className="bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md shadow-orange-600/20 transition-colors flex items-center gap-2 text-sm"
             >

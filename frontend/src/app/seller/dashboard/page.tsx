@@ -28,7 +28,74 @@ function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isAdding = searchParams.get('action') === 'add';
-  const [activeTab, setActiveTab] = useState(isAdding ? 'add_service' : 'overview');
+  const queryTab = searchParams.get('tab');
+  const querySubTab = searchParams.get('subtab') as 'tables' | 'reservations' | 'kot' | 'menu' | null;
+
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    if (queryTab) return queryTab;
+    if (isAdding) return 'add_service';
+    return 'overview';
+  });
+
+  const [foodSubTab, setFoodSubTab] = useState<'tables' | 'reservations' | 'kot' | 'menu'>(() => {
+    if (querySubTab && ['tables', 'reservations', 'kot', 'menu'].includes(querySubTab)) {
+      return querySubTab;
+    }
+    return 'tables';
+  });
+
+  // Dynamic Routing Helper: updates state and syncs query params in URL with history push
+  const navigateTab = React.useCallback((newTab: string, newSubTab?: 'tables' | 'reservations' | 'kot' | 'menu') => {
+    setActiveTab(newTab);
+    if (newSubTab) {
+      setFoodSubTab(newSubTab);
+    }
+    setIsMobileMenuOpen(false);
+
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', newTab);
+      if (newSubTab) {
+        url.searchParams.set('subtab', newSubTab);
+      } else if (newTab !== 'sector_station') {
+        url.searchParams.delete('subtab');
+      }
+      url.searchParams.delete('action');
+      window.history.pushState({}, '', url.toString());
+    }
+  }, []);
+
+  // Sync state if URL changes externally or via browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      const url = new URL(window.location.href);
+      const tabFromUrl = url.searchParams.get('tab');
+      if (tabFromUrl) {
+        setActiveTab(tabFromUrl);
+      } else {
+        setActiveTab('overview');
+      }
+      const subTabFromUrl = url.searchParams.get('subtab') as 'tables' | 'reservations' | 'kot' | 'menu' | null;
+      if (subTabFromUrl && ['tables', 'reservations', 'kot', 'menu'].includes(subTabFromUrl)) {
+        setFoodSubTab(subTabFromUrl);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // React to searchParams change if router.push was used
+  useEffect(() => {
+    const currentTab = searchParams.get('tab');
+    if (currentTab && currentTab !== activeTab) {
+      setActiveTab(currentTab);
+    }
+    const currentSubTab = searchParams.get('subtab') as 'tables' | 'reservations' | 'kot' | 'menu' | null;
+    if (currentSubTab && ['tables', 'reservations', 'kot', 'menu'].includes(currentSubTab) && currentSubTab !== foodSubTab) {
+      setFoodSubTab(currentSubTab);
+    }
+  }, [searchParams]);
+
   const mainContentRef = React.useRef<HTMLElement>(null);
 
   // Auto-scroll to top whenever a sidebar option/tab is clicked
@@ -51,7 +118,6 @@ function DashboardContent() {
   const [selectedServiceCategory, setSelectedServiceCategory] = useState<string>('All Services');
   const [searchBookingQuery, setSearchBookingQuery] = useState<string>('');
   const [selectedBookingDetails, setSelectedBookingDetails] = useState<any | null>(null);
-  const [foodSubTab, setFoodSubTab] = useState<'tables' | 'reservations' | 'kot' | 'menu'>('tables');
   
   // Store Operational & Notification Settings State
   const defaultStoreSettings = {
@@ -834,7 +900,7 @@ function DashboardContent() {
       setEditingProductId(null);
       setTimeout(() => {
         setShowSuccess(false);
-        setActiveTab((productData.primaryType === 'SERVICE' || isServiceProvider) ? 'services' : 'listings');
+        navigateTab((productData.primaryType === 'SERVICE' || isServiceProvider) ? 'services' : 'listings');
       }, 2500);
     } catch (err) {
       console.error(err);
@@ -992,7 +1058,7 @@ function DashboardContent() {
         
         <nav className="flex-1 px-4 py-2 space-y-1">
           <button 
-            onClick={() => { setActiveTab('overview'); setIsMobileMenuOpen(false); }} 
+            onClick={() => navigateTab('overview')} 
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'overview' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
           >
             <BarChart3 className="w-5 h-5" /> Dashboard
@@ -1000,7 +1066,7 @@ function DashboardContent() {
           
           {(!isService && !isServiceProvider) && (
             <button 
-              onClick={() => { setActiveTab('listings'); setIsMobileMenuOpen(false); }} 
+              onClick={() => navigateTab('listings')} 
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'listings' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
             >
               <Store className="w-5 h-5" /> My Shop
@@ -1068,7 +1134,7 @@ function DashboardContent() {
               {activeVertical === 'FOOD' ? (
                 <>
                   <button 
-                    onClick={() => { setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
+                    onClick={() => navigateTab('sector_station', foodSubTab)} 
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' ? 'bg-orange-50 text-orange-700 font-bold border border-orange-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                   >
                     <div className="flex items-center gap-3">
@@ -1080,7 +1146,7 @@ function DashboardContent() {
                   </button>
 
                   <button 
-                    onClick={() => { setActiveTab('services'); setIsMobileMenuOpen(false); }} 
+                    onClick={() => navigateTab('services')} 
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'services' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                   >
                     <div className="flex items-center gap-3">
@@ -1095,7 +1161,7 @@ function DashboardContent() {
                   {/* Primary Sector Workspace Station */}
                   {activeVertical === 'DOCTOR' && (
                     <button 
-                      onClick={() => { setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
+                      onClick={() => navigateTab('sector_station')} 
                       className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' ? 'bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                     >
                       <div className="flex items-center gap-3">
@@ -1107,7 +1173,7 @@ function DashboardContent() {
 
                   {activeVertical === 'SALON' && (
                     <button 
-                      onClick={() => { setActiveTab('sector_station'); setIsMobileMenuOpen(false); }} 
+                      onClick={() => navigateTab('sector_station')} 
                       className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                     >
                       <div className="flex items-center gap-3">
@@ -1119,7 +1185,7 @@ function DashboardContent() {
 
                   {activeVertical === 'EVENT' && (
                     <button 
-                      onClick={() => { setActiveTab('events_station'); setIsMobileMenuOpen(false); }} 
+                      onClick={() => navigateTab('events_station')} 
                       className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'events_station' ? 'bg-fuchsia-50 text-fuchsia-700 font-bold border border-fuchsia-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                     >
                       <div className="flex items-center gap-3">
@@ -1135,7 +1201,7 @@ function DashboardContent() {
 
                   {activeVertical === 'AUTOWASH' && (
                     <button 
-                      onClick={() => { setActiveTab('bookings'); setIsMobileMenuOpen(false); }} 
+                      onClick={() => navigateTab('bookings')} 
                       className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'bookings' ? 'bg-cyan-50 text-cyan-800 font-bold border border-cyan-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                     >
                       <div className="flex items-center gap-3">
@@ -1147,7 +1213,7 @@ function DashboardContent() {
 
                   {/* Appointments, Live Queue & Service Catalog */}
                   <button 
-                    onClick={() => { setActiveTab('bookings'); setIsMobileMenuOpen(false); }} 
+                    onClick={() => navigateTab('bookings')} 
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'bookings' ? 'bg-amber-50 text-amber-700 font-bold border border-amber-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                   >
                     <div className="flex items-center gap-3">
@@ -1156,14 +1222,14 @@ function DashboardContent() {
                   </button>
 
                   <button 
-                    onClick={() => { setActiveTab('queue'); setIsMobileMenuOpen(false); }} 
+                    onClick={() => navigateTab('queue')} 
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'queue' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                   >
                     <span className="w-5 h-5 flex items-center justify-center text-lg">🎟️</span> Live Tokens & Walk-ins
                   </button>
 
                   <button 
-                    onClick={() => { setActiveTab('services'); setIsMobileMenuOpen(false); }} 
+                    onClick={() => navigateTab('services')} 
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'services' ? 'bg-purple-50 text-purple-700 font-bold border border-purple-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                   >
                     <Briefcase className="w-5 h-5 text-purple-600" /> Services & Packages
@@ -1172,21 +1238,21 @@ function DashboardContent() {
               )}
 
               <button 
-                onClick={() => { setActiveTab('customers'); setIsMobileMenuOpen(false); }} 
+                onClick={() => navigateTab('customers')} 
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'customers' ? 'bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
               >
                 <Users className="w-5 h-5" /> Customers
               </button>
 
               <button 
-                onClick={() => { setActiveTab('staff'); setIsMobileMenuOpen(false); }} 
+                onClick={() => navigateTab('staff')} 
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'staff' ? 'bg-rose-50 text-rose-700 font-bold border border-rose-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
               >
                 <UserPlus className="w-5 h-5" /> {activeVertical === 'DOCTOR' ? 'Doctors & Staff' : (activeVertical === 'FOOD' ? 'Kitchen & Waiters' : (activeVertical === 'EVENT' ? 'Crew & Coordinators' : 'Stylists & Staff'))}
               </button>
 
               <button 
-                onClick={() => { setActiveTab('earnings'); setIsMobileMenuOpen(false); }} 
+                onClick={() => navigateTab('earnings')} 
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'earnings' ? 'bg-green-50 text-green-700 font-bold border border-green-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
               >
                 <TrendingUp className="w-5 h-5" /> Earnings
@@ -1197,7 +1263,7 @@ function DashboardContent() {
           {/* PRODUCT SPECIFIC TABS */}
           {(!isService && !isServiceProvider) && isCartFlow && (
             <button 
-              onClick={() => { setActiveTab('orders'); setIsMobileMenuOpen(false); }} 
+              onClick={() => navigateTab('orders')} 
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'orders' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
             >
               <Package className="w-5 h-5" /> Orders
@@ -1206,7 +1272,7 @@ function DashboardContent() {
 
           {(!isService && !isServiceProvider) && isRfqFlow && (
             <button 
-              onClick={() => { setActiveTab('leads'); setIsMobileMenuOpen(false); }} 
+              onClick={() => navigateTab('leads')} 
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'leads' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
             >
               <span className="w-5 h-5 flex items-center justify-center text-lg">💬</span> Leads / RFQ
@@ -1215,7 +1281,7 @@ function DashboardContent() {
 
           {(!isService && !isServiceProvider) && isProjectFlow && (
             <button 
-              onClick={() => { setActiveTab('projects'); setIsMobileMenuOpen(false); }} 
+              onClick={() => navigateTab('projects')} 
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'projects' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
             >
               <span className="w-5 h-5 flex items-center justify-center text-lg">🏗️</span> Projects
@@ -1225,7 +1291,7 @@ function DashboardContent() {
           {isAssetFlow && (
             <>
               <button 
-                onClick={() => { setActiveTab('enquiries'); setIsMobileMenuOpen(false); }} 
+                onClick={() => navigateTab('enquiries')} 
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'enquiries' ? 'bg-rose-50 text-rose-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
               >
                 <span className="w-5 h-5 flex items-center justify-center text-lg">🔑</span> Enquiries
@@ -1233,13 +1299,13 @@ function DashboardContent() {
             </>
           )}
           <button 
-            onClick={() => { setActiveTab('profile'); setIsMobileMenuOpen(false); }} 
+            onClick={() => navigateTab('profile')} 
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'profile' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
           >
             <User className="w-5 h-5" /> Profile
           </button>
           <button 
-            onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); }} 
+            onClick={() => navigateTab('settings')} 
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'settings' ? 'bg-red-50 text-red-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
           >
             <Settings className="w-5 h-5" /> Settings
@@ -1281,25 +1347,33 @@ function DashboardContent() {
 
               {/* Top Quick Actions Header */}
               <div className="flex items-center gap-2 shrink-0">
-                {myListings.length > 0 && (
-                  <Link
-                    href={`/product/${myListings[0].id}`}
-                    target="_blank"
-                    className="flex-1 sm:flex-none justify-center px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors shadow-2xs flex items-center gap-1.5"
-                  >
-                    <span>🌐</span> Storefront
-                  </Link>
-                )}
+                {(() => {
+                  const rawStoreName = user?.business?.businessName || user?.business?.name || user?.name || myListings[0]?.seller || 'store';
+                  const storeSlug = encodeURIComponent(rawStoreName.toLowerCase().replace(/\s+/g, '-'));
+                  const storefrontUrl = activeVertical === 'FOOD' && myListings[0]?.id 
+                    ? `/restaurant/${myListings[0].id}` 
+                    : `/shop/${storeSlug}`;
+                  
+                  return (
+                    <Link
+                      href={storefrontUrl}
+                      target="_blank"
+                      className="flex-1 sm:flex-none justify-center px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors shadow-2xs flex items-center gap-1.5"
+                    >
+                      <span>🌐</span> Storefront
+                    </Link>
+                  );
+                })()}
                 {activeVertical === 'FOOD' ? (
                   <button
-                    onClick={() => { setFoodSubTab('tables'); setActiveTab('sector_station'); }}
+                    onClick={() => navigateTab('sector_station', 'tables')}
                     className="flex-1 sm:flex-none justify-center px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold text-xs shadow-md shadow-orange-500/20 transition-all flex items-center gap-1.5"
                   >
                     <Utensils className="w-3.5 h-3.5" /> Floor
                   </button>
                 ) : (
                   <button
-                    onClick={() => setActiveTab(isServiceProvider ? 'add_service' : 'add_product')}
+                    onClick={() => navigateTab(isServiceProvider ? 'add_service' : 'add_product')}
                     className="flex-1 sm:flex-none justify-center px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all flex items-center gap-1.5"
                   >
                     <PlusCircle className="w-3.5 h-3.5" /> Add New
@@ -1395,7 +1469,7 @@ function DashboardContent() {
 
                     {/* 2. Active Tables */}
                     <div 
-                      onClick={() => { setFoodSubTab('tables'); setActiveTab('sector_station'); }}
+                      onClick={() => navigateTab('sector_station', 'tables')}
                       className="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-orange-300 transition-all cursor-pointer relative overflow-hidden group"
                     >
                       <div className="flex items-center justify-between text-slate-400 mb-1 sm:mb-2">
@@ -1414,7 +1488,7 @@ function DashboardContent() {
 
                     {/* 3. Live KOT Orders */}
                     <div 
-                      onClick={() => { setFoodSubTab('kot'); setActiveTab('sector_station'); }}
+                      onClick={() => navigateTab('sector_station', 'kot')}
                       className="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-amber-300 transition-all cursor-pointer relative overflow-hidden group"
                     >
                       <div className="flex items-center justify-between text-slate-400 mb-1 sm:mb-2">
@@ -1433,7 +1507,7 @@ function DashboardContent() {
 
                     {/* 4. Reservations Pending */}
                     <div 
-                      onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); }}
+                      onClick={() => navigateTab('sector_station', 'reservations')}
                       className="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-rose-300 transition-all cursor-pointer relative overflow-hidden group"
                     >
                       <div className="flex items-center justify-between text-slate-400 mb-1 sm:mb-2">
@@ -1473,7 +1547,7 @@ function DashboardContent() {
                 </div>
 
                 <div 
-                  onClick={() => setActiveTab(isServiceProvider ? 'services' : 'listings')}
+                  onClick={() => navigateTab(isServiceProvider ? 'services' : 'listings')}
                   className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between cursor-pointer hover:border-blue-300 transition-all"
                 >
                   <div>
@@ -1489,7 +1563,7 @@ function DashboardContent() {
                 </div>
 
                 <div 
-                  onClick={() => setActiveTab('queue')}
+                  onClick={() => navigateTab('queue')}
                   className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between cursor-pointer hover:border-amber-300 transition-all"
                 >
                   <div>
@@ -1520,8 +1594,8 @@ function DashboardContent() {
                     </div>
                   </div>
                   <button
-                    onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); }}
-                    className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors flex items-center gap-1"
+                    onClick={() => navigateTab('sector_station', 'reservations')}
+                    className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors flex items-center gap-1 cursor-pointer"
                   >
                     View All Reservations →
                   </button>
@@ -1603,7 +1677,7 @@ function DashboardContent() {
                               Accept
                             </button>
                             <button
-                              onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); }}
+                              onClick={() => navigateTab('sector_station', 'reservations')}
                               className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors border border-slate-200 cursor-pointer"
                             >
                               Review
@@ -1623,7 +1697,7 @@ function DashboardContent() {
                               {res.status}
                             </span>
                             <button
-                              onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); }}
+                              onClick={() => navigateTab('sector_station', 'reservations')}
                               className="px-2.5 py-1 text-slate-500 hover:text-slate-800 text-xs font-medium cursor-pointer"
                             >
                               Details →
@@ -1641,8 +1715,8 @@ function DashboardContent() {
                       <p className="text-sm font-semibold text-slate-700">No active tables or bookings yet</p>
                       <p className="text-xs text-slate-400 mt-1">Walk-in customers seated on the floor or online table reservations will appear here live.</p>
                       <button
-                        onClick={() => { setFoodSubTab('tables'); setActiveTab('sector_station'); }}
-                        className="mt-3 px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-xl text-xs font-bold transition-colors border border-orange-200"
+                        onClick={() => navigateTab('sector_station', 'tables')}
+                        className="mt-3 px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-xl text-xs font-bold transition-colors border border-orange-200 cursor-pointer"
                       >
                         Seat Walk-in Customer →
                       </button>
@@ -1665,7 +1739,7 @@ function DashboardContent() {
                 onAction={handleQueueAction}
                 actionLoading={actionLoading}
                 initialSubTab={foodSubTab}
-                onSubTabChange={(tab) => setFoodSubTab(tab)}
+                onSubTabChange={(tab) => navigateTab('sector_station', tab)}
               />
             )}
             {activeVertical === 'DOCTOR' && (
@@ -1794,8 +1868,8 @@ function DashboardContent() {
                       </p>
                     </div>
                     <button
-                      onClick={() => setActiveTab('staff')}
-                      className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors self-start sm:self-auto"
+                      onClick={() => navigateTab('staff')}
+                      className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors self-start sm:self-auto cursor-pointer"
                     >
                       Manage Staff →
                     </button>
@@ -1877,7 +1951,7 @@ function DashboardContent() {
             isQueueFlow={isQueueFlow}
             isMeetingFlow={isMeetingFlow}
             isProjectFlow={isProjectFlow}
-            onAddNew={() => setActiveTab('add_product')}
+            onAddNew={() => navigateTab('add_product')}
             onEdit={(product) => {
               setEditingProductId(product.id);
               setName(product.name);
@@ -1898,7 +1972,7 @@ function DashboardContent() {
                 });
                 setParameters(newParams);
               }
-              setActiveTab('add_product');
+              navigateTab('add_product');
             }}
             onDelete={(id) => deleteProduct(id)}
           />
@@ -1909,8 +1983,8 @@ function DashboardContent() {
             services={myListings}
             user={user}
             activeVertical={activeVertical}
-            onAddNew={() => setActiveTab('add_service')}
-            onGoToSectorStation={() => setActiveTab('sector_station')}
+            onAddNew={() => navigateTab('add_service')}
+            onGoToSectorStation={() => navigateTab('sector_station')}
             onEdit={(service) => {
               setEditingProductId(service.id);
               setName(service.name);
@@ -1931,7 +2005,7 @@ function DashboardContent() {
                 });
                 setParameters(newParams);
               }
-              setActiveTab('add_service');
+              navigateTab('add_service');
             }}
             onDelete={(id) => deleteProduct(id)}
           />
@@ -1962,7 +2036,7 @@ function DashboardContent() {
                 sellerSector={sellerSector}
                 activeVertical={activeVertical}
                 onSave={handleSaveListing} 
-                onCancel={() => setActiveTab(isServiceProvider ? 'services' : 'listings')} 
+                onCancel={() => navigateTab(isServiceProvider ? 'services' : 'listings')} 
                 initialData={editingProductId ? products.find(p => p.id === editingProductId) : undefined}
               />
             )}
@@ -2232,7 +2306,7 @@ function DashboardContent() {
           <SellerEventsStationTab 
             eventInquiries={eventInquiries}
             user={user}
-            onAddNewService={() => setActiveTab('add_service')}
+            onAddNewService={() => navigateTab('add_service')}
             onUpdateEventStatus={handleUpdateEventStatus}
           />
         )}
@@ -2783,8 +2857,8 @@ function DashboardContent() {
                 <p className="text-slate-500 mt-1">Configure operational preferences, notification alerts, and security.</p>
               </div>
               <button 
-                onClick={() => setActiveTab('profile')}
-                className="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3.5 py-2 rounded-xl transition-colors border border-indigo-100 flex items-center gap-1.5 w-fit"
+                onClick={() => navigateTab('profile')}
+                className="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3.5 py-2 rounded-xl transition-colors border border-indigo-100 flex items-center gap-1.5 w-fit cursor-pointer"
               >
                 <User className="w-4 h-4" /> View Business Profile →
               </button>
