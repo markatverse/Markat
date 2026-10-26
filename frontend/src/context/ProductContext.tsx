@@ -1564,6 +1564,8 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         let rawItems: any[] = [];
         if (data && Array.isArray(data.data)) {
           rawItems = data.data;
+        } else if (data && Array.isArray(data.products)) {
+          rawItems = data.products;
         } else if (Array.isArray(data)) {
           rawItems = data;
         }

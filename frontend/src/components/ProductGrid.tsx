@@ -63,24 +63,35 @@ export default function ProductGrid({
     return () => clearTimeout(timer);
   }, [contextProducts, personalized, recent]);
 
+  const targetLimit = limit ?? 12;
   let items = propProducts || contextProducts;
   
   if (recent) {
-    items = items.filter(p => trends.recentlyViewed.includes(p.id));
-    items.sort((a, b) => trends.recentlyViewed.indexOf(a.id) - trends.recentlyViewed.indexOf(b.id));
+    const viewedIds = trends.recentlyViewed || [];
+    const viewedItems = (items || []).filter(p => viewedIds.includes(p.id));
+    viewedItems.sort((a, b) => viewedIds.indexOf(a.id) - viewedIds.indexOf(b.id));
+
+    // If user has viewed fewer than 8-12 items, backfill with top marketplace items so the section displays a full shelf
+    if (viewedItems.length < targetLimit) {
+      const existingIds = new Set(viewedItems.map(p => p.id));
+      const fillers = (items || []).filter(p => !existingIds.has(p.id));
+      items = [...viewedItems, ...fillers];
+    } else {
+      items = viewedItems;
+    }
   }
   
   let productsToRender = [...(items || [])].filter(p => {
     if (category && p.category !== category) return false;
     if (serviceOnly && !isServiceProduct(p)) return false;
     if (productOnly && isServiceProduct(p)) return false;
-    // Exclude recently viewed items from personalized recommendations
+    // Exclude recently viewed items from personalized recommendations only if there are enough items
     if (personalized && !recent && trends.recentlyViewed?.includes(p.id)) return false;
     return true;
   });
 
-  // Fallback if excluding recently viewed leaves fewer than 3 products
-  if (personalized && !recent && productsToRender.length < 3) {
+  // Fallback if excluding recently viewed leaves fewer than 8-12 products
+  if (personalized && !recent && productsToRender.length < targetLimit) {
     productsToRender = [...(items || [])].filter(p => {
       if (category && p.category !== category) return false;
       if (serviceOnly && !isServiceProduct(p)) return false;
@@ -140,20 +151,20 @@ export default function ProductGrid({
     });
   }
 
-  // Limit items if specified
-  const finalProducts = limit ? productsToRender.slice(0, limit) : productsToRender;
+  // Limit items to targetLimit (default 12)
+  const finalProducts = productsToRender.slice(0, targetLimit);
 
   if (!mounted || isLoading) {
     if (isHorizontal) {
       return (
         <div className="flex gap-3 sm:gap-4 overflow-hidden py-1">
-          {Array.from({ length: 5 }).map((_, i) => (
+          {Array.from({ length: Math.min(targetLimit, 8) }).map((_, i) => (
             <div key={i} className="w-[185px] sm:w-[220px] shrink-0 bg-slate-100 animate-pulse rounded-2xl h-[280px]" />
           ))}
         </div>
       );
     }
-    return <ProductGridSkeleton count={limit || 8} />;
+    return <ProductGridSkeleton count={targetLimit} />;
   }
 
   if (finalProducts.length === 0) {

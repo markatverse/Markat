@@ -94,9 +94,9 @@ export default function Recommendations() {
 
   let realItems = [...unviewedRecs];
 
-  // If there are fewer than 6 recommendations after excluding recent items,
+  // If there are fewer than 12 recommendations after excluding recent items,
   // backfill with high-quality candidates from contextProducts that have NOT been recently viewed
-  if (realItems.length < 6 && contextProducts && contextProducts.length > 0) {
+  if (realItems.length < 12 && contextProducts && contextProducts.length > 0) {
     const existingIds = new Set(realItems.map((r) => r.id));
     const topCategories = getTopCategories();
 
@@ -123,7 +123,7 @@ export default function Recommendations() {
         itemType: (p.primaryType === 'SERVICE' || (p.category && ['service', 'salon', 'spa', 'doctor', 'repair', 'cleaning'].some(s => p.category.toLowerCase().includes(s)))) ? 'service' : 'product'
       }));
 
-    realItems = [...realItems, ...candidates].slice(0, 10);
+    realItems = [...realItems, ...candidates].slice(0, 12);
   }
 
   if (realItems.length === 0) return null;
