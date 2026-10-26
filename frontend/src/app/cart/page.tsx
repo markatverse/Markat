@@ -69,7 +69,7 @@ export default function CartPage() {
                       {/* Item Details */}
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start gap-2">
-                          <Link href={`/product/${item.id}`} className="hover:text-blue-600 transition-colors">
+                          <Link href={`/product/${item.id}`} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors">
                             <h3 className="text-sm sm:text-base font-semibold text-slate-900 leading-snug line-clamp-2">{item.name}</h3>
                           </Link>
                           {/* Price */}
@@ -200,7 +200,7 @@ export default function CartPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-start gap-2">
-                            <Link href={`/product/${item.id}`} className="hover:text-blue-600 transition-colors">
+                            <Link href={`/product/${item.id}`} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors">
                               <h4 className="text-xs sm:text-sm font-semibold text-slate-900 line-clamp-1">{item.name}</h4>
                             </Link>
                             <div className="text-xs sm:text-sm font-bold text-slate-900 sm:hidden">

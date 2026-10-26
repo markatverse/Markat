@@ -64,23 +64,27 @@ let RecommendationsService = class RecommendationsService {
             const userInteractions = await this.prisma.userInteraction.findMany({
                 where: { userId }
             });
-            const itemScores = new Map();
+            const interactedIds = new Set();
+            const categoryScores = new Map();
             for (const interaction of userInteractions) {
-                if (interaction.productId) {
-                    const current = itemScores.get(interaction.productId) || 0;
-                    itemScores.set(interaction.productId, current + interaction.weight);
-                }
-                if (interaction.serviceId) {
-                    const current = itemScores.get(interaction.serviceId) || 0;
-                    itemScores.set(interaction.serviceId, current + interaction.weight);
+                if (interaction.productId)
+                    interactedIds.add(interaction.productId);
+                if (interaction.serviceId)
+                    interactedIds.add(interaction.serviceId);
+            }
+            for (const item of allItems) {
+                if (interactedIds.has(item.id) && item.category) {
+                    const current = categoryScores.get(item.category) || 0;
+                    categoryScores.set(item.category, current + 1);
                 }
             }
-            recommended = allItems.sort((a, b) => {
-                const scoreA = itemScores.get(a.id) || 0;
-                const scoreB = itemScores.get(b.id) || 0;
-                if (scoreA !== scoreB) {
-                    return scoreB - scoreA;
-                }
+            const unviewedItems = allItems.filter(item => !interactedIds.has(item.id));
+            const candidates = unviewedItems.length >= 5 ? unviewedItems : allItems;
+            recommended = candidates.sort((a, b) => {
+                const catA = categoryScores.get(a.category) || 0;
+                const catB = categoryScores.get(b.category) || 0;
+                if (catA !== catB)
+                    return catB - catA;
                 return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
             });
         }

@@ -125,6 +125,7 @@ export default function SellerProductsTab({
                 <Link 
                   href={`/product/${product.id}`}
                   target="_blank"
+                  rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg font-medium text-sm transition-colors">
                   🌐 View Product Page
                 </Link>

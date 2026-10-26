@@ -496,7 +496,7 @@ export default function SellerStorefront() {
                         {product.category || 'Retail'}
                       </div>
                       
-                      <Link href={`/product/${product.id}`} className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 hover:text-indigo-600 transition-colors mb-2 line-clamp-2 leading-snug">
+                      <Link href={`/product/${product.id}`} target="_blank" rel="noopener noreferrer" className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 hover:text-indigo-600 transition-colors mb-2 line-clamp-2 leading-snug">
                         {product.name}
                       </Link>
                       

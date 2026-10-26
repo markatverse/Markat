@@ -35,7 +35,7 @@ export default function Navbar() {
         id: product.id,
         label: product.name,
         detail: [product.category, product.seller].filter(Boolean).join(' · '),
-        href: `/product/${product.id}`,
+        href: isServiceProduct(product) ? `/service/${product.id}` : `/product/${product.id}`,
         type: 'listing' as const,
       }));
     const matchingCategories = categories
@@ -66,7 +66,11 @@ export default function Navbar() {
   const openSuggestion = (suggestion: (typeof suggestions)[number]) => {
     setIsSearchFocused(false);
     setSearchQuery('');
-    router.push(suggestion.href);
+    if (suggestion.type === 'listing') {
+      window.open(suggestion.href, '_blank', 'noopener,noreferrer');
+    } else {
+      router.push(suggestion.href);
+    }
   };
 
   const handleSearch = (e: React.FormEvent) => {

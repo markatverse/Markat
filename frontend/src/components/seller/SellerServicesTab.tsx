@@ -142,8 +142,9 @@ export default function SellerServicesTab({
                 </div>
                 {/* Link to live public page */}
                 <Link 
-                  href={`/product/${service.id}`}
+                  href={`/service/${service.id}`}
                   target="_blank"
+                  rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg font-medium text-sm transition-colors">
                   🌐 View Service Page
                 </Link>

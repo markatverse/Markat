@@ -86,7 +86,12 @@ export default function AllCategoriesPage() {
 
               <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-5 relative z-10">
                 {section.items.map((item, i) => (
-                  <Link key={i} href={item.link} className="no-underline text-inherit outline-none focus:ring-2 focus:ring-blue-500 rounded-xl">
+                  <Link 
+                    key={i} 
+                    href={item.link} 
+                    {...(item.link.startsWith('/product') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                    className="no-underline text-inherit outline-none focus:ring-2 focus:ring-blue-500 rounded-xl"
+                  >
                     <div className={`bg-white p-5 rounded-2xl border ${t.border} shadow-sm hover:shadow-md flex items-center gap-[15px] hover:-translate-y-1 transition-all cursor-pointer h-full group`}>
                       <div className={`w-[64px] h-[64px] ${t.iconBg} ${t.iconText} rounded-2xl flex items-center justify-center text-3xl shrink-0 border ${t.border} ${t.groupHover} group-hover:text-white transition-colors shadow-sm`}>
                         {item.icon}

@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { Star } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useUserTrends } from '@/hooks/useUserTrends';
+import { useProducts } from '@/context/ProductContext';
 
 const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
 
@@ -10,6 +12,8 @@ export default function Recommendations() {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { trends, getTopCategories } = useUserTrends();
+  const { products: contextProducts } = useProducts();
   const router = useRouter();
 
   useEffect(() => {
@@ -49,8 +53,9 @@ export default function Recommendations() {
     } catch (e) {
       console.error('Failed to log interaction', e);
     }
-    // Navigate to unified item detail page
-    router.push(`/product/${item.id}`);
+    const isService = item.itemType === 'service' || item.type === 'SERVICE';
+    const targetRoute = isService ? `/service/${item.id}` : `/product/${item.id}`;
+    window.open(targetRoute, '_blank', 'noopener,noreferrer');
   };
 
   const handleMouseEnter = (item: any) => {
@@ -81,10 +86,45 @@ export default function Recommendations() {
     );
   }
 
-  if (recommendations.length === 0) return null;
+  // Filter out any items that the user has recently viewed
+  const recentIds = new Set(trends.recentlyViewed || []);
+  const unviewedRecs = recommendations.filter(
+    (item) => item.images?.[0] && !recentIds.has(item.id)
+  );
 
-  // Only show items that have a real image
-  const realItems = recommendations.filter((item) => item.images?.[0]);
+  let realItems = [...unviewedRecs];
+
+  // If there are fewer than 6 recommendations after excluding recent items,
+  // backfill with high-quality candidates from contextProducts that have NOT been recently viewed
+  if (realItems.length < 6 && contextProducts && contextProducts.length > 0) {
+    const existingIds = new Set(realItems.map((r) => r.id));
+    const topCategories = getTopCategories();
+
+    const candidates = contextProducts
+      .filter((p) => p.image && !recentIds.has(p.id) && !existingIds.has(p.id))
+      .sort((a, b) => {
+        const catA = topCategories.indexOf(a.category);
+        const catB = topCategories.indexOf(b.category);
+        const scoreA = catA !== -1 ? topCategories.length - catA : 0;
+        const scoreB = catB !== -1 ? topCategories.length - catB : 0;
+        if (scoreA !== scoreB) return scoreB - scoreA;
+        return Number(b.rating || 0) - Number(a.rating || 0);
+      })
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        images: [p.image],
+        category: p.category,
+        subcategory: p.subcategory,
+        seller: p.seller,
+        primaryType: p.primaryType,
+        parameters: p.parameters,
+        itemType: (p.primaryType === 'SERVICE' || (p.category && ['service', 'salon', 'spa', 'doctor', 'repair', 'cleaning'].some(s => p.category.toLowerCase().includes(s)))) ? 'service' : 'product'
+      }));
+
+    realItems = [...realItems, ...candidates].slice(0, 10);
+  }
 
   if (realItems.length === 0) return null;
 
@@ -121,6 +161,11 @@ export default function Recommendations() {
               className="w-[145px] sm:w-[170px] shrink-0 snap-start bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-md hover:border-indigo-300 transition-all group cursor-pointer"
               onMouseEnter={() => handleMouseEnter(item)}
               onClick={() => handleClick({ ...item, itemType: isService ? 'service' : 'product' })}
+              onAuxClick={(e) => {
+                if (e.button === 1) {
+                  handleClick({ ...item, itemType: isService ? 'service' : 'product' });
+                }
+              }}
             >
               <div className="h-24 sm:h-28 bg-slate-50 relative overflow-hidden flex items-center justify-center">
                 <img

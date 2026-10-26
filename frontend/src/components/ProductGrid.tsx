@@ -70,12 +70,24 @@ export default function ProductGrid({
     items.sort((a, b) => trends.recentlyViewed.indexOf(a.id) - trends.recentlyViewed.indexOf(b.id));
   }
   
-  const productsToRender = [...(items || [])].filter(p => {
+  let productsToRender = [...(items || [])].filter(p => {
     if (category && p.category !== category) return false;
     if (serviceOnly && !isServiceProduct(p)) return false;
     if (productOnly && isServiceProduct(p)) return false;
+    // Exclude recently viewed items from personalized recommendations
+    if (personalized && !recent && trends.recentlyViewed?.includes(p.id)) return false;
     return true;
   });
+
+  // Fallback if excluding recently viewed leaves fewer than 3 products
+  if (personalized && !recent && productsToRender.length < 3) {
+    productsToRender = [...(items || [])].filter(p => {
+      if (category && p.category !== category) return false;
+      if (serviceOnly && !isServiceProduct(p)) return false;
+      if (productOnly && isServiceProduct(p)) return false;
+      return true;
+    });
+  }
 
   if (!recent) {
     const topCategories = personalized ? getTopCategories() : [];
@@ -208,11 +220,22 @@ export default function ProductGrid({
         >
         {finalProducts.map(product => {
           const isService = !productOnly && (serviceOnly || isServiceProduct(product));
-          const route = `/product/${product.id}`;
+          const route = isService ? `/service/${product.id}` : `/product/${product.id}`;
           return (
           <div 
             key={product.id} 
-            onClick={() => router.push(route)} 
+            onClick={(e) => {
+              const target = e.target as HTMLElement;
+              if (target.closest('a') || target.closest('button')) return;
+              window.open(route, '_blank', 'noopener,noreferrer');
+            }} 
+            onAuxClick={(e) => {
+              if (e.button === 1) { // Middle click opens new tab
+                const target = e.target as HTMLElement;
+                if (target.closest('a') || target.closest('button')) return;
+                window.open(route, '_blank', 'noopener,noreferrer');
+              }
+            }}
             className={`${isHorizontal ? 'w-[185px] sm:w-[220px] shrink-0 snap-start' : ''} cursor-pointer no-underline text-inherit group`}
           >
           <div className="bg-white rounded-2xl p-2.5 sm:p-3.5 text-slate-900 relative h-full flex flex-col border border-slate-100 hover:border-blue-200 group-hover:-translate-y-1 transition-all duration-200 shadow-xs hover:shadow-md">
@@ -312,9 +335,17 @@ export default function ProductGrid({
             </div>
 
             {/* Product Title */}
-            <div className="font-semibold text-xs sm:text-sm text-slate-900 line-clamp-2 h-8 sm:h-10 leading-snug mb-1.5 group-hover:text-blue-600 transition-colors">
+            <a
+              href={route}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+              className="font-semibold text-xs sm:text-sm text-slate-900 line-clamp-2 h-8 sm:h-10 leading-snug mb-1.5 group-hover:text-blue-600 transition-colors block"
+            >
               {product.name}
-            </div>
+            </a>
 
             {/* Category / Subcategory Tag */}
             <div className="mb-2">
@@ -352,7 +383,7 @@ export default function ProductGrid({
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
-                      router.push(route);
+                      window.open(route, '_blank', 'noopener,noreferrer');
                     }}
                     className="px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-[10px] flex items-center gap-1 transition-colors"
                   >

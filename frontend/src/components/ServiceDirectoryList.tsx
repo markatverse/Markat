@@ -51,7 +51,18 @@ export default function ServiceDirectoryList({ products }: { products: Product[]
         {sortedProducts.map(product => (
         <div 
           key={product.id} 
-          onClick={() => router.push(`/product/${product.id}`)} 
+          onClick={(e) => {
+            const target = e.target as HTMLElement;
+            if (target.closest('a') || target.closest('button')) return;
+            window.open(`/service/${product.id}`, '_blank', 'noopener,noreferrer');
+          }} 
+          onAuxClick={(e) => {
+            if (e.button === 1) { // Middle click opens new tab
+              const target = e.target as HTMLElement;
+              if (target.closest('a') || target.closest('button')) return;
+              window.open(`/service/${product.id}`, '_blank', 'noopener,noreferrer');
+            }
+          }}
           className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-indigo-300 transition-all cursor-pointer flex flex-col gap-4 relative overflow-hidden group h-full"
         >
           {/* Status Bar for Premium */}
@@ -174,6 +185,10 @@ export default function ServiceDirectoryList({ products }: { products: Product[]
             </div>
             
             <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(`/service/${product.id}`, '_blank', 'noopener,noreferrer');
+              }}
               className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-sm text-sm"
             >
               {product.category === 'Home Services' ? 'Book Home Visit' : product.isPremium ? 'Book Token' : 'View Details'}

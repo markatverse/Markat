@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export interface UserTrends {
   categories: Record<string, number>;
@@ -17,7 +17,7 @@ export function useUserTrends() {
     } catch {}
   }, []);
 
-  const trackCategory = (category: string) => {
+  const trackCategory = useCallback((category: string) => {
     if (!category) return;
     setTrends(prev => {
       const newTrends = { ...prev };
@@ -26,9 +26,9 @@ export function useUserTrends() {
       localStorage.setItem('markatverse_trends', JSON.stringify(newTrends));
       return newTrends;
     });
-  };
+  }, []);
 
-  const trackProductView = (productId: string) => {
+  const trackProductView = useCallback((productId: string) => {
     if (!productId) return;
     setTrends(prev => {
       const newTrends = { ...prev };
@@ -37,13 +37,13 @@ export function useUserTrends() {
       localStorage.setItem('markatverse_trends', JSON.stringify(newTrends));
       return newTrends;
     });
-  };
+  }, []);
 
-  const getTopCategories = () => {
+  const getTopCategories = useCallback(() => {
     return Object.entries(trends.categories)
       .sort((a, b) => b[1] - a[1])
       .map(entry => entry[0]);
-  };
+  }, [trends.categories]);
 
   return { trends, trackCategory, trackProductView, getTopCategories };
 }

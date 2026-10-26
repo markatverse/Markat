@@ -330,7 +330,7 @@ export default function PublicShopPage({ params }: { params: Promise<{ id: strin
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                       {physicalProducts.map(p => (
-                        <Link href={`/product/${p.id}`} key={p.id}>
+                        <Link href={`/service/${p.id}`} key={p.id} target="_blank" rel="noopener noreferrer">
                           <div className="bg-white rounded-2xl border border-rose-200/80 shadow-xs hover:shadow-lg transition-all p-4 flex items-center gap-4 group cursor-pointer">
                             <div className="w-20 h-20 rounded-xl bg-slate-100 overflow-hidden shrink-0">
                               {p.image ? (
@@ -370,7 +370,7 @@ export default function PublicShopPage({ params }: { params: Promise<{ id: strin
                   
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                     {physicalProducts.map((product) => (
-                      <Link href={`/product/${product.id}`} key={product.id}>
+                      <Link href={`/product/${product.id}`} key={product.id} target="_blank" rel="noopener noreferrer">
                         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer h-full flex flex-col">
                           <div className="relative aspect-square w-full bg-slate-50 overflow-hidden">
                             {product.image ? (

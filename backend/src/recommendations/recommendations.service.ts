@@ -65,29 +65,30 @@ export class RecommendationsService {
         where: { userId }
       });
 
-      // Calculate scores per item based on interactions
-      const itemScores = new Map<string, number>();
+      const interactedIds = new Set<string>();
+      const categoryScores = new Map<string, number>();
+
       for (const interaction of userInteractions) {
-        if (interaction.productId) {
-          const current = itemScores.get(interaction.productId) || 0;
-          itemScores.set(interaction.productId, current + interaction.weight);
-        }
-        if (interaction.serviceId) {
-          const current = itemScores.get(interaction.serviceId) || 0;
-          itemScores.set(interaction.serviceId, current + interaction.weight);
+        if (interaction.productId) interactedIds.add(interaction.productId);
+        if (interaction.serviceId) interactedIds.add(interaction.serviceId);
+      }
+
+      // Learn user's preferred categories from their interactions
+      for (const item of allItems) {
+        if (interactedIds.has(item.id) && item.category) {
+          const current = categoryScores.get(item.category) || 0;
+          categoryScores.set(item.category, current + 1);
         }
       }
 
-      // Sort items based on their score (descending)
-      recommended = allItems.sort((a, b) => {
-        const scoreA = itemScores.get(a.id) || 0;
-        const scoreB = itemScores.get(b.id) || 0;
-        
-        // Also factor in global ratings (if we had a direct rating field, or we just rely on clicks here)
-        // For simplicity, we strictly sort by interaction score, then fallback to newest.
-        if (scoreA !== scoreB) {
-          return scoreB - scoreA;
-        }
+      // Recommend fresh items that user hasn't already interacted with
+      const unviewedItems = allItems.filter(item => !interactedIds.has(item.id));
+      const candidates = unviewedItems.length >= 5 ? unviewedItems : allItems;
+
+      recommended = candidates.sort((a, b) => {
+        const catA = categoryScores.get(a.category) || 0;
+        const catB = categoryScores.get(b.category) || 0;
+        if (catA !== catB) return catB - catA;
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
     }

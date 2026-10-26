@@ -1,11 +1,11 @@
 "use client";
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useCart } from '@/context/CartContext';
-import { useProducts, useCategoryRules } from '@/context/ProductContext';
+import { useProducts, useCategoryRules, Product } from '@/context/ProductContext';
 import { useAuth } from '@/context/AuthContext';
 import { useWishlist } from '@/context/WishlistContext';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, usePathname } from 'next/navigation';
 import { useUserTrends } from '@/hooks/useUserTrends';
 import { ShieldCheck, Camera, Ruler, ZoomIn, Package, Star, Building2, MapPin, PhoneCall, Calendar, CalendarClock, Heart, UtensilsCrossed, Users, Clock, Utensils, Sparkles, MessageCircle, Phone, Share2, ChevronDown, PartyPopper, CheckCircle2, FileText, Send, ArrowRight, Scale, Briefcase, Zap, ShoppingBag, Truck, RotateCcw, Layers, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -30,6 +30,7 @@ const API_URL = getApiUrl();
 export default function ProductDetails() {
   const params = useParams();
   const router = useRouter();
+  const pathname = usePathname() || '';
   const id = params?.id as string;
   const { trackCategory, trackProductView } = useUserTrends();
   const { addToCart } = useCart();
@@ -46,7 +47,20 @@ export default function ProductDetails() {
   const [rfqMessage, setRfqMessage] = useState('');
   const [isEliteExpanded, setIsEliteExpanded] = useState(false);
 
-  const product = products.find(p => p.id === id);
+  const [fetchedProduct, setFetchedProduct] = useState<Product | null>(null);
+  const product: Product | undefined = products.find(p => p.id === id) || fetchedProduct || undefined;
+
+  useEffect(() => {
+    if (!products.find(p => p.id === id) && id) {
+      fetch(`${API_URL}/products/${id}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data) setFetchedProduct(data);
+        })
+        .catch(() => {});
+    }
+  }, [id, products]);
+
   const serviceBadge = useMemo(() => getServiceBadge(product), [product]);
 
   // ── Category Rules — from Admin Relationship Manager ──
@@ -64,21 +78,31 @@ export default function ProductDetails() {
   const hasVehicleTestDrive = rules.allows('Vehicle Test Drive');
   const hasService = isPhysicalProduct ? false : (rules.allows('Service') || product?.primaryType === 'SERVICE' || (product ? isServiceProduct(product) : false));
 
-
   const requireAuth = (action: () => void) => {
     if (!user) {
-      router.push(`/login?redirect=/product/${id}`);
+      const currentPath = pathname || (product && (product.primaryType === 'SERVICE' || isServiceProduct(product)) ? `/service/${id}` : `/product/${id}`);
+      router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
     } else {
       action();
     }
   };
 
   useEffect(() => {
-    if (product) {
+    if (!product) return;
+    const isService = product.primaryType === 'SERVICE' || isServiceProduct(product);
+    if (isService && !pathname.startsWith('/service/')) {
+      router.replace(`/service/${product.id}`);
+    } else if (!isService && pathname.startsWith('/service/')) {
+      router.replace(`/product/${product.id}`);
+    }
+  }, [product?.id, product?.primaryType, pathname, router]);
+
+  useEffect(() => {
+    if (product?.id && product?.category) {
       trackCategory(product.category);
       trackProductView(product.id);
     }
-  }, [product?.id, product?.category]);
+  }, [product?.id, product?.category, trackCategory, trackProductView]);
 
   // Helper to parse parameter options whether array or comma/space separated strings
   const parseParamOptions = (val: any, paramName?: string): string[] => {
@@ -417,12 +441,15 @@ export default function ProductDetails() {
   }
 
   if (!product) {
+    const isServicePath = pathname.startsWith('/service/');
     return (
       <div className="flex flex-col items-center justify-center min-h-[500px] p-10 bg-slate-50">
-        <h1 className="text-2xl font-bold text-slate-800 mb-6">Product Not Found</h1>
-        <Link href="/">
+        <h1 className="text-2xl font-bold text-slate-800 mb-6">
+          {isServicePath ? 'Service Not Found' : 'Product Not Found'}
+        </h1>
+        <Link href={isServicePath ? '/services' : '/'}>
           <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
-            Go Back
+            {isServicePath ? 'Browse Services' : 'Go Back'}
           </button>
         </Link>
       </div>
@@ -2418,7 +2445,7 @@ export default function ProductDetails() {
 
         <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-6">
           {displayedRelated.map(relatedItem => (
-            <Link key={relatedItem.id} href={`/product/${relatedItem.id}`} className="no-underline group">
+            <Link key={relatedItem.id} href={`/product/${relatedItem.id}`} target="_blank" rel="noopener noreferrer" className="no-underline group">
               <div className="p-4 bg-white rounded-xl border border-slate-200 hover:border-blue-400 transition-colors shadow-sm group-hover:shadow-md">
                 <div className="h-48 bg-slate-50 rounded-lg flex items-center justify-center overflow-hidden mb-4 border border-slate-100">
                   {relatedItem.image ? (
