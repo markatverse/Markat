@@ -5,6 +5,9 @@ import { useProducts } from '@/context/ProductContext';
 import { ChevronRight, Filter, Search } from 'lucide-react';
 import SidebarBannerWidget from '@/components/SidebarBannerWidget';
 import CategoryIcon from '@/components/CategoryIcon';
+import { getApiUrl } from '@/utils/api';
+
+const API_URL = getApiUrl();
 
 export default function DynamicExplorePage({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { products, categories } = useProducts();
@@ -19,8 +22,6 @@ export default function DynamicExplorePage({ params }: { params: Promise<{ slug?
   const mainType = slug[0];
   const businessType = slug[1];
   const sector = slug[2];
-
-  const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
   
   const [hierarchy, setHierarchy] = useState<any>(null);
   const [listings, setListings] = useState<any[]>([]);

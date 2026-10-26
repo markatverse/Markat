@@ -17,14 +17,8 @@ import StarRating from '@/components/StarRating';
 import AdvertisementWidget from '@/components/AdvertisementWidget';
 import { isServiceProduct } from '@/utils/productSearch';
 import { getServiceBadge } from '@/utils/serviceBadges';
+import { getApiUrl, fastFetch } from '@/utils/api';
 
-const getApiUrl = () => {
-  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
-  if (typeof window !== 'undefined') {
-    return `http://${window.location.hostname}:3001`;
-  }
-  return 'http://localhost:3001';
-};
 const API_URL = getApiUrl();
 
 export default function ProductDetails() {
@@ -52,8 +46,7 @@ export default function ProductDetails() {
 
   useEffect(() => {
     if (!products.find(p => p.id === id) && id) {
-      fetch(`${API_URL}/products/${id}`)
-        .then(res => res.ok ? res.json() : null)
+      fastFetch<Product>(`/products/${id}`)
         .then(data => {
           if (data) setFetchedProduct(data);
         })

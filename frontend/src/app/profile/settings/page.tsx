@@ -26,8 +26,9 @@ type ProfileOrder = {
   total: number;
   items: { id: string; productName?: string | null; quantity: number; price: number }[];
 };
+import { getApiUrl } from '@/utils/api';
 
-const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
+const API_URL = getApiUrl();
 
 export default function ProfileSettings() {
   const [activeTab, setActiveTab] = useState('personal');

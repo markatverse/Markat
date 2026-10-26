@@ -21,8 +21,9 @@ import SellerStaffTab from '@/components/seller/SellerStaffTab';
 import SellerCustomersTab from '@/components/seller/SellerCustomersTab';
 import SellerBookingsTab from '@/components/seller/SellerBookingsTab';
 import SellerQueueTab from '@/components/seller/SellerQueueTab';
+import { getApiUrl } from '@/utils/api';
 
-const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
+const API_URL = getApiUrl();
 
 function DashboardContent() {
   const router = useRouter();

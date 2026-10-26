@@ -12,10 +12,18 @@ import { PrismaService } from '../prisma.service.js';
 import { calculateDistance } from '../utils/geo.js';
 let ProductsService = class ProductsService {
     prisma;
+    listCache = new Map();
+    itemCache = new Map();
+    settingsCache = null;
     constructor(prisma) {
         this.prisma = prisma;
     }
+    clearCache() {
+        this.listCache.clear();
+        this.itemCache.clear();
+    }
     async create(data) {
+        this.clearCache();
         let sellerId = null;
         if (data.sellerId && typeof data.sellerId === 'string' && /^[0-9a-fA-F]{24}$/.test(data.sellerId)) {
             sellerId = data.sellerId;
@@ -84,6 +92,11 @@ let ProductsService = class ProductsService {
         return this.mapProduct(product);
     }
     async findAll(location, lat, lng, radius, page = 1, limit = 50) {
+        const cacheKey = `${location || ''}:${lat ?? ''}:${lng ?? ''}:${radius ?? ''}:${page}:${limit}`;
+        const cached = this.listCache.get(cacheKey);
+        if (cached && Date.now() < cached.expiry) {
+            return cached.data;
+        }
         const skip = (page - 1) * limit;
         const useDbPagination = !(lat !== undefined && lng !== undefined && !isNaN(lat) && !isNaN(lng));
         let products = await this.prisma.product.findMany({
@@ -95,10 +108,17 @@ let ProductsService = class ProductsService {
         if (!useDbPagination && lat !== undefined && lng !== undefined) {
             let effectiveRadius = radius;
             let sectorRadiusMap = {};
-            const settings = await this.prisma.configuration.findFirst({
-                where: { type: 'SYSTEM_SETTINGS', name: 'global' },
-            });
-            const data = settings?.data;
+            let data = null;
+            if (this.settingsCache && Date.now() < this.settingsCache.expiry) {
+                data = this.settingsCache.data;
+            }
+            else {
+                const settings = await this.prisma.configuration.findFirst({
+                    where: { type: 'SYSTEM_SETTINGS', name: 'global' },
+                });
+                data = settings?.data;
+                this.settingsCache = { data, expiry: Date.now() + 60000 };
+            }
             const strictRadius = data?.strictRadius === true;
             const globalMaxRadius = data?.searchRadius ?? 50;
             if (effectiveRadius === undefined || isNaN(effectiveRadius)) {
@@ -198,17 +218,29 @@ let ProductsService = class ProductsService {
                 return 0;
             });
         }
-        return {
-            data: products.map(p => this.mapProduct(p)),
+        const mapped = products.map(p => this.mapProduct(p));
+        const result = {
+            data: mapped,
+            products: mapped,
             total,
             page,
             limit,
             totalPages: Math.ceil(total / limit)
         };
+        this.listCache.set(cacheKey, { data: result, expiry: Date.now() + 10000 });
+        return result;
     }
     async findOne(id) {
+        const cached = this.itemCache.get(id);
+        if (cached && Date.now() < cached.expiry) {
+            return cached.data;
+        }
         const p = await this.prisma.product.findUnique({ where: { id } });
-        return p ? this.mapProduct(p) : null;
+        const mapped = p ? this.mapProduct(p) : null;
+        if (mapped) {
+            this.itemCache.set(id, { data: mapped, expiry: Date.now() + 30000 });
+        }
+        return mapped;
     }
     async update(id, data) {
         let sellerId = undefined;
@@ -260,6 +292,7 @@ let ProductsService = class ProductsService {
                 stock: data.stock !== undefined && !isNaN(parseInt(data.stock)) ? parseInt(data.stock) : undefined,
             },
         });
+        this.clearCache();
         return this.mapProduct(p);
     }
     async updateAdminStatus(id, status) {
@@ -267,6 +300,7 @@ let ProductsService = class ProductsService {
             where: { id },
             data: { status }
         });
+        this.clearCache();
         return this.mapProduct(p);
     }
     async toggleDummyData(enable) {
@@ -279,6 +313,7 @@ let ProductsService = class ProductsService {
             where: { OR: [{ sellerId: null }, { sellerId: { isSet: false } }] },
             data: { status }
         });
+        this.clearCache();
         return { success: true, message: `Dummy data set to ${status}` };
     }
     async getDummyStatus() {
@@ -293,6 +328,7 @@ let ProductsService = class ProductsService {
     async remove(id) {
         await this.prisma.lead.deleteMany({ where: { productId: id } });
         await this.prisma.product.delete({ where: { id } });
+        this.clearCache();
         return { success: true };
     }
     mapProduct(p) {

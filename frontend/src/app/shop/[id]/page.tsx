@@ -5,6 +5,7 @@ import { MapPin, Star, Shield, Phone, Mail, Clock, CheckCircle, Ticket, Shopping
 import { useAuth } from '@/context/AuthContext';
 import ProductGridSkeleton from '@/components/ProductGridSkeleton';
 import { isServiceProduct } from '@/utils/productSearch';
+import { getApiUrl, fastFetch } from '@/utils/api';
 
 
 export default function PublicShopPage({ params }: { params: Promise<{ id: string }> }) {
@@ -17,11 +18,9 @@ export default function PublicShopPage({ params }: { params: Promise<{ id: strin
   const [diningMenu, setDiningMenu] = useState<any[]>([]);
 
   useEffect(() => {
-    const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
-    fetch(`${API_URL}/products`)
-      .then(res => res.json())
+    fastFetch<any>('/products', { ttlMs: 15000 })
       .then(data => {
-        const items: any[] = Array.isArray(data) ? data : (data && Array.isArray(data.data) ? data.data : []);
+        const items: any[] = Array.isArray(data) ? data : (data && Array.isArray(data.data) ? data.data : (data && Array.isArray(data.products) ? data.products : []));
         const normalizedShop = shopName.toLowerCase().trim();
         const shopProducts = items.filter((p: any) => {
           const seller = (p.sellerName || p.seller || '').toLowerCase().trim();

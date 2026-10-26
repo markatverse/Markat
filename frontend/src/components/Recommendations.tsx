@@ -5,8 +5,9 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useUserTrends } from '@/hooks/useUserTrends';
 import { useProducts } from '@/context/ProductContext';
+import { getApiUrl, fastFetch } from '@/utils/api';
 
-const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
+const API_URL = getApiUrl();
 
 export default function Recommendations() {
   const [recommendations, setRecommendations] = useState<any[]>([]);
@@ -20,12 +21,11 @@ export default function Recommendations() {
     const fetchRecommendations = async () => {
       try {
         setLoading(true);
-        const url = user?.id
-          ? `${API_URL}/recommendations?userId=${user.id}`
-          : `${API_URL}/recommendations`;
-        const res = await fetch(url);
-        if (res.ok) {
-          const data = await res.json();
+        const endpoint = user?.id
+          ? `/recommendations?userId=${user.id}`
+          : `/recommendations`;
+        const data = await fastFetch<any[]>(endpoint, { ttlMs: 30000 });
+        if (data && Array.isArray(data)) {
           setRecommendations(data);
         }
       } catch (e) {

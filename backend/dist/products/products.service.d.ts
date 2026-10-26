@@ -1,15 +1,13 @@
 import { PrismaService } from '../prisma.service.js';
 export declare class ProductsService {
     private prisma;
+    private listCache;
+    private itemCache;
+    private settingsCache;
     constructor(prisma: PrismaService);
+    private clearCache;
     create(data: any): Promise<any>;
-    findAll(location?: string, lat?: number, lng?: number, radius?: number, page?: number, limit?: number): Promise<{
-        data: any[];
-        total: number;
-        page: number;
-        limit: number;
-        totalPages: number;
-    }>;
+    findAll(location?: string, lat?: number, lng?: number, radius?: number, page?: number, limit?: number): Promise<any>;
     findOne(id: string): Promise<any>;
     update(id: string, data: any): Promise<any>;
     updateAdminStatus(id: string, status: string): Promise<any>;

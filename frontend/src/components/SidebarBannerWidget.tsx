@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 
-const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; };
+import { fastFetch, getApiUrl } from '@/utils/api';
 
 export default function SidebarBannerWidget() {
   const [banners, setBanners] = useState<any[]>([]);
@@ -12,11 +12,9 @@ export default function SidebarBannerWidget() {
     const fetchBanners = async () => {
       setIsLoading(true);
       try {
-        const API_URL = getApiUrl();
-        const res = await fetch(`${API_URL}/content/banners`);
-        if (res.ok) {
-          const data = await res.json();
-          const sidebarBanners = data.filter((b: any) => b.status === 'ACTIVE' && b.position === 'SIDEBAR');
+        const data = await fastFetch<any[]>('/content/banners', { ttlMs: 60000 });
+        if (data && Array.isArray(data)) {
+          const sidebarBanners = data.filter((b: any) => (b.status === 'ACTIVE' || b.active !== false) && (b.position === 'SIDEBAR' || b.placement === 'SIDEBAR'));
           setBanners(sidebarBanners);
         }
       } catch (e) {

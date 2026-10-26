@@ -7,8 +7,9 @@ import {
   Eye, EyeOff, Mail, Phone, Lock, ArrowRight, ArrowLeft,
   CheckCircle, Store, TrendingUp, Package, DollarSign
 } from 'lucide-react';
+import { getApiUrl } from '@/utils/api';
 
-const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
+const API_URL = getApiUrl();
 
 type View = 'signin' | 'forgot' | 'otp' | 'reset' | 'success';
 

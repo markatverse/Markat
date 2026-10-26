@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
+import { fastFetch } from '@/utils/api';
 import { X } from 'lucide-react';
 
 export default function TopBannerWidget() {
@@ -10,30 +11,16 @@ export default function TopBannerWidget() {
     let isMounted = true;
     const fetchBanners = async () => {
       try {
-        const getApiUrl = () => {
-          if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
-          if (typeof window !== 'undefined') {
-            return `${window.location.protocol}//${window.location.hostname}:3001`;
-          }
-          return 'http://127.0.0.1:3001';
-        };
-        const API_URL = getApiUrl();
-        const res = await fetch(`${API_URL}/content/banners`, {
-          headers: { 'Accept': 'application/json' },
-          cache: 'no-store',
-        }).catch(() => null);
-
-        if (res && res.ok && isMounted) {
-          const data = await res.json().catch(() => []);
-          if (Array.isArray(data)) {
-            const topBarBanners = data.filter((b: any) => b.status === 'ACTIVE' && b.position === 'TOP_BAR');
-            if (topBarBanners.length > 0) {
-              setBanner(topBarBanners[0]);
-            }
+        const data = await fastFetch<any[]>('/content/banners', { ttlMs: 60000 });
+        if (!isMounted) return;
+        if (data && Array.isArray(data)) {
+          const topBanners = data.filter((b: any) => (b.placement === 'TOP' || b.position === 'TOP_BAR') && b.active !== false && b.status !== 'INACTIVE');
+          if (topBanners.length > 0) {
+            setBanner(topBanners[0]);
           }
         }
       } catch {
-        // Silently handle network drops during server startup
+        // Silently catch error
       }
     };
     fetchBanners();

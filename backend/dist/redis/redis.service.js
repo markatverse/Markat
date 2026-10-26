@@ -17,11 +17,14 @@ let RedisService = RedisService_1 = class RedisService {
         if (redisUrl) {
             try {
                 this.client = new Redis(redisUrl, {
-                    maxRetriesPerRequest: 2,
+                    lazyConnect: true,
+                    enableOfflineQueue: false,
+                    connectTimeout: 1000,
+                    maxRetriesPerRequest: 1,
                     retryStrategy(times) {
-                        if (times > 3)
+                        if (times > 2)
                             return null;
-                        return Math.min(times * 200, 2000);
+                        return Math.min(times * 100, 1000);
                     },
                 });
                 this.client.on('connect', () => {
