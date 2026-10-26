@@ -451,7 +451,8 @@ function DashboardContent() {
           setDiningReservations(parsed);
         }
       } else {
-        setDiningReservations([]);
+        setDiningReservations(defaultDiningReservations);
+        localStorage.setItem('markat_table_reservations', JSON.stringify(defaultDiningReservations));
       }
 
       // 2. Sync Tables
@@ -1566,15 +1567,20 @@ function DashboardContent() {
                     ))}
 
                   {/* Real Dynamic Recent Reservation */}
-                  {diningReservations.slice(0, 2).map((res) => (
+                  {[...diningReservations]
+                    .sort((a, b) => (a.status === 'Pending' ? -1 : 1))
+                    .slice(0, 2)
+                    .map((res) => (
                     <div key={res.id} className="p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3 hover:bg-slate-50/60 transition-colors">
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-xl font-bold flex items-center justify-center text-xs ${
                           res.status === 'Confirmed' 
                             ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
-                            : (res.status === 'Pending' 
-                                ? 'bg-rose-50 text-rose-600 border border-rose-100' 
-                                : 'bg-slate-100 text-slate-600')
+                            : res.status === 'Pending' 
+                              ? 'bg-amber-50 text-amber-600 border border-amber-200' 
+                              : res.status === 'Cancelled' || res.status === 'Rejected'
+                                ? 'bg-rose-50 text-rose-600 border border-rose-100'
+                                : 'bg-slate-100 text-slate-600 border border-slate-200'
                         }`}>
                           RES
                         </div>
@@ -1592,25 +1598,33 @@ function DashboardContent() {
                           <>
                             <button
                               onClick={() => handleUpdateReservationStatus(res.id, 'Confirmed')}
-                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-2xs"
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-2xs cursor-pointer"
                             >
                               Accept
                             </button>
                             <button
                               onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); }}
-                              className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition-colors border border-rose-200"
+                              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors border border-slate-200 cursor-pointer"
                             >
                               Review
                             </button>
                           </>
                         ) : (
                           <div className="flex items-center gap-2">
-                            <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className={`px-2.5 py-1 rounded-md text-xs font-bold border ${
+                              res.status === 'Confirmed'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : res.status === 'Cancelled' || res.status === 'Rejected'
+                                  ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                  : res.status === 'Pending'
+                                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                    : 'bg-slate-100 text-slate-700 border-slate-200'
+                            }`}>
                               {res.status}
                             </span>
                             <button
                               onClick={() => { setFoodSubTab('reservations'); setActiveTab('sector_station'); }}
-                              className="px-2.5 py-1 text-slate-500 hover:text-slate-800 text-xs font-medium"
+                              className="px-2.5 py-1 text-slate-500 hover:text-slate-800 text-xs font-medium cursor-pointer"
                             >
                               Details →
                             </button>
