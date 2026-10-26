@@ -90,8 +90,19 @@ async function bootstrap() {
 
     app.enableCors({
       origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-        // Allow mobile apps, postman, and curl requests with no origin header in development
-        if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.markatverse.com')) {
+        // Allow mobile apps, postman, and curl requests with no origin header
+        if (!origin) {
+          return callback(null, true);
+        }
+
+        const cleanOrigin = origin.replace(/\/$/, '').toLowerCase();
+        const isAllowedOrigin = allowedOrigins.some(o => o.replace(/\/$/, '').toLowerCase() === cleanOrigin);
+        const isMarkatVerse = cleanOrigin === 'https://markatverse.com' ||
+                              cleanOrigin === 'http://markatverse.com' ||
+                              cleanOrigin.endsWith('.markatverse.com');
+        const isVercel = cleanOrigin.endsWith('.vercel.app');
+
+        if (isAllowedOrigin || isMarkatVerse || isVercel) {
           callback(null, true);
         } else {
           callback(new Error('Cross-Origin Request Blocked by MarkatVerse Security Policy'));

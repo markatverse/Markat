@@ -32,6 +32,8 @@ export type Product = {
   status?: string;
   parameters?: Record<string, string | string[]>;
   options?: { id: string; name: string; price: number; discountPercentage?: number }[];
+  contactPhone?: string;
+  sellerPhone?: string;
   _distance?: number;
   _outOfRange?: boolean;
 };
@@ -202,11 +204,45 @@ export const defaultProducts: Product[] = [
     reviews: '1.2K',
     seller: 'Urban Cool Services',
     location: 'Mumbai, Maharashtra',
+    primaryType: 'SERVICE',
     category: 'Home Services',
     subcategory: 'Repair',
     badge: 'Verified Expert',
     badgeColor: 'badge-gold',
     isPremium: true
+  },
+  {
+    id: 'urban-home-deep-cleaning',
+    name: 'Full Home Deep Cleaning & Sanitization',
+    price: 1999,
+    originalPrice: 3500,
+    discount: '43% OFF',
+    rating: '4.8',
+    reviews: '620',
+    seller: 'SparkleClean Pros',
+    location: 'Mumbai, Maharashtra',
+    primaryType: 'SERVICE',
+    category: 'Home Services',
+    subcategory: 'Cleaning',
+    badge: 'Popular',
+    badgeColor: 'badge-blue',
+    isPremium: true
+  },
+  {
+    id: 'express-plumbing-service',
+    name: 'Express Plumbing Repair & Leak Detection',
+    price: 349,
+    originalPrice: 599,
+    discount: '42% OFF',
+    rating: '4.7',
+    reviews: '410',
+    seller: 'City Plumbers Hub',
+    location: 'Delhi, NCR',
+    primaryType: 'SERVICE',
+    category: 'Home Services',
+    subcategory: 'Plumbing',
+    badge: 'Quick Service',
+    badgeColor: 'badge-gold'
   },
   {
     id: 'hair-cutting-styling',
@@ -218,6 +254,7 @@ export const defaultProducts: Product[] = [
     reviews: '3.4K',
     seller: 'Elite Salon & Spa',
     location: 'Mumbai, Maharashtra',
+    primaryType: 'SERVICE',
     category: 'Services',
     subcategory: 'Salon',
     badge: 'Trending',
@@ -234,6 +271,7 @@ export const defaultProducts: Product[] = [
     reviews: '890',
     seller: 'Elite Salon & Spa',
     location: 'Mumbai, Maharashtra',
+    primaryType: 'SERVICE',
     category: 'Services',
     subcategory: 'Spa'
   },
@@ -247,7 +285,9 @@ export const defaultProducts: Product[] = [
     reviews: '450',
     seller: 'Glamour Nails Studio',
     location: 'Delhi, NCR',
+    primaryType: 'SERVICE',
     category: 'Services',
+    subcategory: 'Salon',
     badge: 'Highly Rated',
     badgeColor: 'badge-gold'
   },
@@ -261,6 +301,7 @@ export const defaultProducts: Product[] = [
     reviews: '2.3K',
     seller: 'QuickRide Autos',
     location: 'Bangalore, Karnataka',
+    primaryType: 'SERVICE',
     category: 'Transport',
     badge: 'Trusted',
     badgeColor: 'badge-blue'
@@ -275,6 +316,8 @@ export const defaultProducts: Product[] = [
     reviews: '8.1K',
     seller: 'National Logistics Co.',
     location: 'Mumbai, Maharashtra',
+    primaryType: 'SERVICE',
+    isB2B: true,
     category: 'Transport',
     badge: 'Verified B2B',
     badgeColor: 'badge-gold'
@@ -289,7 +332,9 @@ export const defaultProducts: Product[] = [
     reviews: '340',
     seller: 'Dream Events Co.',
     location: 'Goa, India',
+    primaryType: 'SERVICE',
     category: 'Organizers',
+    subcategory: 'Weddings & Parties',
     badge: 'Premium Provider',
     badgeColor: 'badge-gold'
   },
@@ -303,7 +348,10 @@ export const defaultProducts: Product[] = [
     reviews: '125',
     seller: 'Prime Builders Ltd.',
     location: 'Pune, Maharashtra',
-    category: 'Organizers',
+    primaryType: 'SERVICE',
+    isB2B: true,
+    category: 'Construction Materials',
+    subcategory: 'Contractors',
     badge: 'Certified',
     badgeColor: 'badge-blue'
   },
@@ -403,7 +451,13 @@ export const defaultProducts: Product[] = [
     location: 'Surat, Gujarat',
     category: 'B2B',
     badge: 'Bulk Order Only',
-    badgeColor: 'badge-gold'
+    badgeColor: 'badge-gold',
+    isB2B: true,
+    moq: 50,
+    wholesaleTiers: [
+      { minQty: 50, margin: 15 },
+      { minQty: 100, margin: 25 }
+    ]
   },
   {
     id: 'enterprise-server-rack',
@@ -417,7 +471,13 @@ export const defaultProducts: Product[] = [
     location: 'Bangalore, Karnataka',
     category: 'B2B',
     badge: 'Verified B2B',
-    badgeColor: 'badge-blue'
+    badgeColor: 'badge-blue',
+    isB2B: true,
+    moq: 2,
+    wholesaleTiers: [
+      { minQty: 2, margin: 10 },
+      { minQty: 5, margin: 20 }
+    ]
   },
   {
     id: 'premium-suv-rental',

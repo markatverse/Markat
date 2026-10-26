@@ -344,7 +344,9 @@ export default function ProductGrid({
               }}
               className="font-semibold text-xs sm:text-sm text-slate-900 line-clamp-2 h-8 sm:h-10 leading-snug mb-1.5 group-hover:text-blue-600 transition-colors block"
             >
-              {product.name}
+              {(!product.name || product.name.trim() === '-' || product.name.trim() === '')
+                ? (product.subcategory || product.category || 'Specialized Offering')
+                : product.name}
             </a>
 
             {/* Category / Subcategory Tag */}
@@ -358,11 +360,19 @@ export default function ProductGrid({
             <div className="mt-auto pt-2 border-t border-slate-100 flex flex-col gap-1.5">
               <div className="flex items-baseline justify-between gap-1 flex-wrap">
                 <div className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center gap-1.5">
-                  <span>₹{(product.price ?? 0).toLocaleString('en-IN')}</span>
-                  {product.originalPrice != null && product.originalPrice > (product.price ?? 0) && (
-                    <span className="text-slate-400 line-through text-[10px] sm:text-xs font-normal">
-                      ₹{product.originalPrice.toLocaleString('en-IN')}
+                  {isService && (!product.price || product.price === 0) ? (
+                    <span className="text-[11px] sm:text-xs text-purple-700 font-bold bg-purple-50 border border-purple-200/80 px-2 py-0.5 rounded-md">
+                      Free / Custom Quote
                     </span>
+                  ) : (
+                    <>
+                      <span>₹{(product.price ?? 0).toLocaleString('en-IN')}</span>
+                      {product.originalPrice != null && product.originalPrice > (product.price ?? 0) && (
+                        <span className="text-slate-400 line-through text-[10px] sm:text-xs font-normal">
+                          ₹{product.originalPrice.toLocaleString('en-IN')}
+                        </span>
+                      )}
+                    </>
                   )}
                 </div>
 

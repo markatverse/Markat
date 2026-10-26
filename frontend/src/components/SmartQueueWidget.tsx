@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import {  useRouter } from 'next/navigation';
 import {
-  MapPin, Clock, Users, Ticket, ChevronRight, Loader2, RefreshCw, CalendarClock, Sparkles
+  MapPin, Clock, Users, Ticket, ChevronRight, Loader2, RefreshCw, CalendarClock, Sparkles, CheckCircle2, PhoneCall
 } from 'lucide-react';
 
 // ─── Dynamic Walk-in Services ───────────────────────────────────────────────────
@@ -336,9 +336,19 @@ export default function SmartQueueWidget({ service }: { service: any }) {
         )}
       </div>
 
-      <Link href={`/salon/token/${result.token.id}`} className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-2xl text-sm transition-all shadow-lg w-full">
-        <Clock className="w-4 h-4" /> Track Live Token
-      </Link>
+      <div className="flex items-center gap-2">
+        <Link href={`/salon/token/${result.token.id}`} className="flex-1 flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-2xl text-sm transition-all shadow-lg">
+          <Clock className="w-4 h-4" /> Track Live Token
+        </Link>
+        <a 
+          href={`tel:${service?.contactPhone || service?.sellerPhone || '+919876543210'}`}
+          className="py-3.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-2xl text-sm transition-all flex items-center justify-center gap-1.5 border border-slate-200 shrink-0 shadow-2xs"
+          title={`Call ${service?.seller || 'Service Desk'}`}
+        >
+          <PhoneCall className="w-4 h-4 text-emerald-600" />
+          <span>Call</span>
+        </a>
+      </div>
       <p className="text-center text-slate-400 text-xs">💡 You can leave and return when it&apos;s your turn</p>
     </div>
   );
@@ -346,13 +356,50 @@ export default function SmartQueueWidget({ service }: { service: any }) {
   // Join form (Compact & High Density)
   if (step === 'join') return (
     <div className="space-y-2.5 sm:space-y-3">
-      <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
-        <h4 className="font-extrabold text-xs sm:text-sm text-slate-900 flex items-center gap-1.5">
-          <Ticket className="w-3.5 h-3.5 text-violet-600" /> Get Your Token
-        </h4>
-        <button onClick={() => setStep('view')} className="text-violet-600 hover:text-violet-800 text-xs font-bold cursor-pointer">
-          ← Back
-        </button>
+      {/* Header with Segmented Switcher on the Right Side (matching Image 2) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-100">
+        <div className="flex items-center gap-2">
+          <button 
+            type="button"
+            onClick={() => setStep('view')} 
+            className="text-slate-500 hover:text-slate-900 font-bold text-xs p-1.5 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+            title="Back to status"
+          >
+            ← Back
+          </button>
+          <h4 className="font-extrabold text-xs sm:text-sm text-slate-900 flex items-center gap-1.5 leading-tight">
+            {bookingMode === 'TOKEN' ? <Ticket className="w-4 h-4 text-emerald-600" /> : <CalendarClock className="w-4 h-4 text-purple-600" />}
+            <span>{bookingMode === 'TOKEN' ? 'Get Your Live Token' : 'Book Appointment'}</span>
+          </h4>
+        </div>
+
+        {/* Compact Segmented Switcher on Right Side */}
+        <div className="inline-flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80 shrink-0 self-end sm:self-auto ml-auto">
+          <button 
+            type="button"
+            onClick={() => setBookingMode('TOKEN')}
+            className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              bookingMode === 'TOKEN' 
+                ? 'bg-white text-emerald-700 shadow-xs border border-slate-200/60 font-black' 
+                : 'text-slate-600 hover:text-slate-900 font-medium'
+            }`}
+          >
+            <Ticket className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Walk-in (Token)</span>
+          </button>
+          <button 
+            type="button"
+            onClick={() => setBookingMode('APPOINTMENT')}
+            className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              bookingMode === 'APPOINTMENT' 
+                ? 'bg-white text-purple-700 shadow-xs border border-slate-200/60 font-black' 
+                : 'text-slate-600 hover:text-slate-900 font-medium'
+            }`}
+          >
+            <CalendarClock className="w-3.5 h-3.5 text-amber-500" />
+            <span>Book Appointment</span>
+          </button>
+        </div>
       </div>
 
       {/* Multi-Service Selector */}
@@ -454,24 +501,6 @@ export default function SmartQueueWidget({ service }: { service: any }) {
         </div>
       )}
 
-      {/* Booking Mode Selector */}
-      <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-xl text-xs font-bold border border-slate-200/60">
-        <button 
-          type="button"
-          onClick={() => setBookingMode('TOKEN')}
-          className={`py-1.5 rounded-lg text-xs transition-all flex items-center justify-center gap-1 ${bookingMode === 'TOKEN' ? 'bg-white shadow-xs text-violet-700 font-black' : 'text-slate-500 hover:text-slate-700 font-semibold'}`}
-        >
-          Walk-in (Token)
-        </button>
-        <button 
-          type="button"
-          onClick={() => setBookingMode('APPOINTMENT')}
-          className={`py-1.5 rounded-lg text-xs transition-all flex items-center justify-center gap-1 ${bookingMode === 'APPOINTMENT' ? 'bg-white shadow-xs text-violet-700 font-black' : 'text-slate-500 hover:text-slate-700 font-semibold'}`}
-        >
-          Book Appointment
-        </button>
-      </div>
-
       {/* Name and Mobile aligned in one row side by side */}
       <div className="grid grid-cols-2 gap-2">
         <div className="min-w-0">
@@ -527,11 +556,26 @@ export default function SmartQueueWidget({ service }: { service: any }) {
       )}
 
       {err && <p className="text-red-500 text-xs bg-red-50 border border-red-100 px-3 py-2 rounded-xl font-bold">⚠️ {err}</p>}
-      <button onClick={join} disabled={joining || selectedServices.length === 0}
-        className="w-full h-11 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold text-xs sm:text-sm rounded-xl transition-all shadow-md shadow-violet-200 flex items-center justify-center gap-2 active:scale-98 cursor-pointer">
-        {joining ? <Loader2 className="w-4 h-4 animate-spin" /> : (bookingMode === 'TOKEN' ? <Ticket className="w-4 h-4" /> : <CalendarClock className="w-4 h-4" />)}
-        {joining ? 'Processing…' : (bookingMode === 'TOKEN' ? `Pay ₹${totalPrice} & Get Token 🎫` : `Pay ₹${totalPrice} & Book 📅`)}
-      </button>
+      
+      <div className="flex items-center gap-2 pt-0.5">
+        <button 
+          onClick={join} 
+          disabled={joining || selectedServices.length === 0}
+          className="flex-1 h-11 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold text-xs sm:text-sm rounded-xl transition-all shadow-md shadow-violet-200 flex items-center justify-center gap-2 active:scale-98 cursor-pointer"
+        >
+          {joining ? <Loader2 className="w-4 h-4 animate-spin" /> : (bookingMode === 'TOKEN' ? <Ticket className="w-4 h-4" /> : <CalendarClock className="w-4 h-4" />)}
+          <span>{joining ? 'Processing…' : (bookingMode === 'TOKEN' ? `Pay ₹${totalPrice} & Get Token 🎫` : `Pay ₹${totalPrice} & Book 📅`)}</span>
+        </button>
+
+        <a 
+          href={`tel:${service?.contactPhone || service?.sellerPhone || '+919876543210'}`}
+          className="h-11 px-4 sm:px-5 bg-slate-100 hover:bg-slate-200 text-slate-800 hover:text-slate-950 font-bold text-xs sm:text-sm rounded-xl transition-all flex items-center justify-center gap-1.5 border border-slate-200/90 shadow-2xs shrink-0 whitespace-nowrap cursor-pointer"
+          title={`Call ${service?.seller || 'Service Desk'}`}
+        >
+          <PhoneCall className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>Call</span>
+        </a>
+      </div>
     </div>
   );
 
@@ -548,59 +592,71 @@ export default function SmartQueueWidget({ service }: { service: any }) {
       <input type="tel" placeholder="Phone number (optional)" value={phone} onChange={e => setPhone(e.target.value)}
         className="w-full px-4 py-3.5 border-2 border-slate-100 focus:border-violet-400 rounded-2xl outline-none text-slate-900 font-medium bg-slate-50 transition-colors" />
       {err && <p className="text-red-500 text-sm bg-red-50 border border-red-100 px-4 py-3 rounded-xl">⚠️ {err}</p>}
-      <button
-        onClick={async () => {
-          if (!name.trim()) { setErr('Please enter your name'); return; }
-          try {
-            // First attempt to fetch the queue by sellerId or shopName
-            let queueId = null;
-            if (service.sellerId) {
-              const r = await fetch(`${API}/service-queue/seller/${service.sellerId}`);
-              const d = await r.json().catch(() => null);
-              if (Array.isArray(d) && d.length > 0) queueId = d[0].id;
-              else if (d && d.id) queueId = d.id;
-            }
-            if (!queueId) {
-              const targetShopName = service.seller || service.name || 'Walk-in Service';
-              const r = await fetch(`${API}/service-queue/queues`);
-              const all = await r.json().catch(() => []);
-              const matched = Array.isArray(all) ? all.find((q: any) => q.shopName === targetShopName) : null;
-              if (matched) queueId = matched.id;
-            }
+      <div className="flex items-center gap-2">
+        <button
+          onClick={async () => {
+            if (!name.trim()) { setErr('Please enter your name'); return; }
+            try {
+              // First attempt to fetch the queue by sellerId or shopName
+              let queueId = null;
+              if (service.sellerId) {
+                const r = await fetch(`${API}/service-queue/seller/${service.sellerId}`);
+                const d = await r.json().catch(() => null);
+                if (Array.isArray(d) && d.length > 0) queueId = d[0].id;
+                else if (d && d.id) queueId = d.id;
+              }
+              if (!queueId) {
+                const targetShopName = service.seller || service.name || 'Walk-in Service';
+                const r = await fetch(`${API}/service-queue/queues`);
+                const all = await r.json().catch(() => []);
+                const matched = Array.isArray(all) ? all.find((q: any) => q.shopName === targetShopName) : null;
+                if (matched) queueId = matched.id;
+              }
 
-            // If still no queue, try to create it
-            if (!queueId) {
-              const createRes = await fetch(`${API}/service-queue/queue`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  shopName: service.seller || service.name || 'Walk-in Service',
-                  sellerId: service.sellerId || null,
-                })
+              // If still no queue, try to create it
+              if (!queueId) {
+                const createRes = await fetch(`${API}/service-queue/queue`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    shopName: service.seller || service.name || 'Walk-in Service',
+                    sellerId: service.sellerId || null,
+                  })
+                });
+                const newQueue = await createRes.json();
+                queueId = newQueue.id;
+              }
+              
+              if (!queueId) throw new Error("Could not find or create a queue for this service.");
+              
+              // Join the queue
+              const joinRes = await fetch(`${API}/service-queue/${queueId}/join`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ customerName: name.trim(), phone: phone.trim() || undefined, service: service.name }),
               });
-              const newQueue = await createRes.json();
-              queueId = newQueue.id;
+              const d = await joinRes.json();
+              if (!joinRes.ok) throw new Error(d.message);
+              
+              setResult(d); 
+              setStep('done');
+            } catch (e: unknown) {
+               setErr(e instanceof Error ? e.message : 'Error joining queue'); 
             }
-            
-            if (!queueId) throw new Error("Could not find or create a queue for this service.");
-            
-            // Join the queue
-            const joinRes = await fetch(`${API}/service-queue/${queueId}/join`, {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ customerName: name.trim(), phone: phone.trim() || undefined, service: service.name }),
-            });
-            const d = await joinRes.json();
-            if (!joinRes.ok) throw new Error(d.message);
-            
-            setResult(d); 
-            setStep('done');
-          } catch (e: unknown) {
-             setErr(e instanceof Error ? e.message : 'Error joining queue'); 
-          }
-        }}
-        className="w-full py-4 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-black text-base rounded-2xl transition-all shadow-xl shadow-violet-200 flex items-center justify-center gap-2">
-        <Ticket className="w-4 h-4" /> Request a Token 🎫
-      </button>
+          }}
+          className="flex-1 py-3.5 sm:py-4 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-extrabold text-sm sm:text-base rounded-2xl transition-all shadow-md shadow-violet-200 flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <Ticket className="w-4 h-4" /> Request a Token 🎫
+        </button>
+
+        <a 
+          href={`tel:${service?.contactPhone || service?.sellerPhone || '+919876543210'}`}
+          className="py-3.5 sm:py-4 px-4 sm:px-5 bg-slate-100 hover:bg-slate-200 text-slate-800 hover:text-slate-950 font-bold text-xs sm:text-sm rounded-2xl transition-all flex items-center justify-center gap-1.5 border border-slate-200/90 shadow-2xs shrink-0 whitespace-nowrap cursor-pointer"
+          title={`Call ${service?.seller || 'Service Desk'}`}
+        >
+          <PhoneCall className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>Call</span>
+        </a>
+      </div>
     </div>
   );
 
@@ -608,52 +664,141 @@ export default function SmartQueueWidget({ service }: { service: any }) {
   const waiting = status?.waitingCount ?? 0;
   const isOpen = status?.queue.isOpen ?? openQueue?.isOpen ?? false;
   const serving = Array.isArray(status?.serving) ? status?.serving[0] : status?.serving;
-  const etaIfJoinNow = (waiting + 1) * (status?.queue.avgMinutes ?? selected?.avgMinutes ?? 20);
+  const avgMinutes = status?.queue.avgMinutes ?? selected?.avgMinutes ?? 15;
+  const estWaitMinutes = waiting === 0 
+    ? (serving ? Math.min(avgMinutes, 10) : 0) 
+    : (waiting * avgMinutes + (serving ? 5 : 0));
+  const estWaitText = estWaitMinutes === 0 ? '0m' : `${estWaitMinutes}m`;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3.5">
+      {/* Top Header with Segmented Switcher on the Right Side (matching Image 2) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-600 flex items-center justify-center shrink-0">
+            {bookingMode === 'TOKEN' ? <Ticket className="w-4 h-4" /> : <CalendarClock className="w-4 h-4 text-purple-600" />}
+          </div>
+          <div>
+            <h3 className="text-slate-900 font-extrabold text-sm sm:text-base leading-tight">
+              {bookingMode === 'TOKEN' ? 'Walk-in Live Queue' : 'Advance Appointment'}
+            </h3>
+            <p className="text-[11px] text-slate-500 font-medium">
+              {bookingMode === 'TOKEN' ? 'Real-time queue tracking & digital tokens' : 'Schedule your date & preferred time slot'}
+            </p>
+          </div>
+        </div>
+
+        {/* Compact Segmented Switcher on the Right Side */}
+        <div className="inline-flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80 shrink-0 self-end sm:self-auto ml-auto">
+          <button 
+            type="button"
+            onClick={() => setBookingMode('TOKEN')}
+            className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              bookingMode === 'TOKEN' 
+                ? 'bg-white text-emerald-700 shadow-xs border border-slate-200/60 font-black' 
+                : 'text-slate-600 hover:text-slate-900 font-medium'
+            }`}
+          >
+            <Ticket className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Walk-in (Token)</span>
+          </button>
+          <button 
+            type="button"
+            onClick={() => {
+              setBookingMode('APPOINTMENT');
+              setStep('join');
+            }}
+            className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              bookingMode === 'APPOINTMENT' 
+                ? 'bg-white text-purple-700 shadow-xs border border-slate-200/60 font-black' 
+                : 'text-slate-600 hover:text-slate-900 font-medium'
+            }`}
+          >
+            <CalendarClock className="w-3.5 h-3.5 text-amber-500" />
+            <span>Book Appointment</span>
+          </button>
+        </div>
+      </div>
+
       {/* Queue selector */}
       {queues.length > 1 && (
         <select value={selected?.id ?? ''} onChange={e => { const q = queues.find(x => x.id === e.target.value); if(q) { setSelected(q); setStatus(null); }}}
-          className="w-full px-4 py-3 border-2 border-slate-100 rounded-2xl text-slate-700 font-semibold outline-none bg-slate-50 text-sm">
+          className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-slate-700 font-semibold outline-none bg-slate-50 text-sm focus:border-emerald-500 focus:bg-white transition-all">
           {queues.map(q => <option key={q.id} value={q.id}>{q.shopName}</option>)}
         </select>
       )}
 
-      {/* Premium Live status card */}
-      <div className={`relative overflow-hidden rounded-2xl lg:rounded-3xl p-4 lg:p-6 ${isOpen ? 'bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 shadow-inner' : 'bg-gradient-to-br from-red-50 to-rose-50 border border-red-100 shadow-inner'}`}>
-        {isOpen && <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400 rounded-full blur-3xl opacity-10"></div>}
+      {/* Clean & Clear Live Status Card */}
+      <div className={`relative overflow-hidden rounded-2xl lg:rounded-3xl p-4 lg:p-5 transition-all ${
+        isOpen 
+          ? 'bg-gradient-to-b from-emerald-50/70 via-teal-50/30 to-white border border-emerald-200/90 shadow-xs' 
+          : 'bg-gradient-to-b from-red-50/70 via-rose-50/30 to-white border border-red-200/90 shadow-xs'
+      }`}>
+        {/* Soft background aura */}
+        {isOpen && <div className="absolute top-0 right-0 w-36 h-36 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none"></div>}
         
-        <div className="flex items-center justify-between mb-6 relative z-10">
-          <div className="flex items-center gap-3">
-            <div className="relative flex h-3 w-3">
+        {/* Card Header */}
+        <div className="flex items-center justify-between mb-3.5 relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100/90 border border-emerald-200 text-emerald-800 text-[11px] font-extrabold tracking-wider uppercase shadow-2xs">
+            <span className="relative flex h-2 w-2">
               <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isOpen ? 'bg-emerald-400' : 'hidden'}`}></span>
-              <span className={`relative inline-flex rounded-full h-3 w-3 ${isOpen ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
-            </div>
-            <span className={`text-xs font-black uppercase tracking-widest ${isOpen ? 'text-emerald-700' : 'text-red-700'}`}>
-              {isOpen ? 'Live Queue Active' : 'Queue Closed'}
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${isOpen ? 'bg-emerald-600' : 'bg-red-500'}`}></span>
             </span>
+            <span>{isOpen ? 'Live Queue Active' : 'Queue Closed'}</span>
           </div>
-          <button onClick={() => fetchStatus(true)} className="text-slate-400 hover:text-slate-700 transition-colors p-1 bg-white/50 rounded-full backdrop-blur">
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+
+          <button 
+            onClick={() => fetchStatus(true)} 
+            title="Refresh Live Status"
+            className="p-1.5 rounded-full bg-white/90 hover:bg-white text-slate-400 hover:text-emerald-700 border border-emerald-200/60 shadow-2xs transition-all hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
           </button>
         </div>
         
-        <div className="grid grid-cols-3 gap-2 relative z-10">
-          <div className="text-center bg-white/60 backdrop-blur rounded-xl lg:rounded-2xl py-2 lg:py-3 border border-white">
-            <div className="text-slate-900 font-black text-xl lg:text-2xl leading-none tracking-tight">{serving ? `#${serving.tokenNumber}` : '—'}</div>
-            <div className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Serving</div>
+        {/* 3 High-Definition Stat Tiles */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 relative z-10">
+          {/* SERVING */}
+          <div className="bg-white rounded-xl sm:rounded-2xl py-3 px-2 border border-slate-200/90 shadow-xs flex flex-col items-center justify-center text-center hover:border-emerald-300 transition-colors">
+            <div className="text-slate-900 font-black text-xl sm:text-2xl leading-none tracking-tight">
+              {serving ? `#${serving.tokenNumber}` : '—'}
+            </div>
+            <div className="text-slate-500 text-[10px] font-extrabold uppercase tracking-widest mt-1.5">
+              Serving
+            </div>
+            <div className="text-[10px] font-semibold text-emerald-600 mt-0.5">
+              {serving ? 'In Chair' : 'Counter Ready'}
+            </div>
           </div>
-          <div className="text-center bg-white/60 backdrop-blur rounded-xl lg:rounded-2xl py-2 lg:py-3 border border-white">
-            <div className="text-slate-900 font-black text-xl lg:text-2xl leading-none tracking-tight">{waiting}</div>
-            <div className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Waiting</div>
+
+          {/* WAITING */}
+          <div className="bg-white rounded-xl sm:rounded-2xl py-3 px-2 border border-slate-200/90 shadow-xs flex flex-col items-center justify-center text-center hover:border-emerald-300 transition-colors">
+            <div className="text-slate-900 font-black text-xl sm:text-2xl leading-none tracking-tight">
+              {waiting}
+            </div>
+            <div className="text-slate-500 text-[10px] font-extrabold uppercase tracking-widest mt-1.5">
+              Waiting
+            </div>
+            <div className={`text-[10px] font-semibold mt-0.5 ${waiting === 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+              {waiting === 0 ? 'No queue' : `${waiting} ahead`}
+            </div>
           </div>
-          <div className="text-center bg-white/60 backdrop-blur rounded-xl lg:rounded-2xl py-2 lg:py-3 border border-white">
-            <div className="text-slate-900 font-black text-xl lg:text-2xl leading-none tracking-tight">{etaIfJoinNow}m</div>
-            <div className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Est Wait</div>
+
+          {/* EST WAIT */}
+          <div className="bg-white rounded-xl sm:rounded-2xl py-3 px-2 border border-slate-200/90 shadow-xs flex flex-col items-center justify-center text-center hover:border-emerald-300 transition-colors">
+            <div className="text-slate-900 font-black text-xl sm:text-2xl leading-none tracking-tight">
+              {estWaitText}
+            </div>
+            <div className="text-slate-500 text-[10px] font-extrabold uppercase tracking-widest mt-1.5">
+              Est Wait
+            </div>
+            <div className={`text-[10px] font-semibold mt-0.5 ${estWaitMinutes === 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
+              {estWaitMinutes === 0 ? 'Instant Entry' : `~${estWaitMinutes} mins`}
+            </div>
           </div>
         </div>
       </div>
+
       {/* Up next list */}
       {status && status.waiting.slice(0, 3).length > 0 && (
         <div className="bg-slate-50 border border-slate-100 rounded-xl lg:rounded-2xl px-4 py-2 space-y-1.5 lg:space-y-2">
@@ -673,14 +818,41 @@ export default function SmartQueueWidget({ service }: { service: any }) {
 
       {/* Action buttons */}
       {isOpen ? (
-        <button onClick={() => setStep('join')}
-          className="w-full py-3 lg:py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-base lg:text-lg rounded-xl lg:rounded-2xl transition-all shadow-xl shadow-emerald-200 flex items-center justify-center gap-2 lg:gap-3 relative overflow-hidden group">
-          <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
-          <Ticket className="w-5 h-5 lg:w-6 lg:h-6 relative z-10" />
-          <span className="relative z-10 tracking-wide">Get Token Now</span>
-        </button>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setStep('join')}
+              className="flex-1 py-3.5 sm:py-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.99] text-white font-extrabold text-base sm:text-lg rounded-xl lg:rounded-2xl transition-all shadow-md shadow-emerald-600/25 hover:shadow-lg hover:shadow-emerald-600/35 flex items-center justify-center gap-2.5 relative overflow-hidden group cursor-pointer"
+            >
+              <div className="absolute inset-0 bg-white/15 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+              <Ticket className="w-5 h-5 sm:w-6 sm:h-6 relative z-10 group-hover:rotate-12 transition-transform duration-300" />
+              <span className="relative z-10 tracking-wide font-black">Get Token Now</span>
+            </button>
+
+            <a 
+              href={`tel:${service?.contactPhone || service?.sellerPhone || '+919876543210'}`}
+              className="py-3.5 sm:py-4 px-4 sm:px-5 bg-white hover:bg-slate-50 text-slate-800 hover:text-slate-950 font-bold text-sm sm:text-base rounded-xl lg:rounded-2xl transition-all flex items-center justify-center gap-2 border border-slate-200/90 shadow-xs shrink-0 whitespace-nowrap cursor-pointer"
+              title={`Call ${service?.seller || 'Service Desk'}`}
+            >
+              <PhoneCall className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Call</span>
+            </a>
+          </div>
+          
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-slate-500 font-medium pt-0.5">
+            <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Free Digital Token
+            </span>
+            <span className="text-slate-300">•</span>
+            <span>Live Queue Tracker</span>
+            <span className="text-slate-300">•</span>
+            <span>Zero Salon Wait</span>
+          </div>
+        </div>
       ) : (
-        <div className="w-full py-4 bg-slate-100 text-slate-400 font-bold text-base rounded-2xl text-center">Queue is Closed</div>
+        <div className="w-full py-4 bg-slate-100 text-slate-400 font-bold text-base rounded-2xl text-center">
+          Queue is Currently Closed
+        </div>
       )}
     </div>
   );

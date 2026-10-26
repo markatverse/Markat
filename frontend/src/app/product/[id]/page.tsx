@@ -1416,18 +1416,22 @@ export default function ProductDetails() {
                     <input type="date" className="flex-1 p-3 border border-blue-200 rounded-xl outline-none focus:border-blue-500 text-slate-700 bg-white shadow-sm font-medium" />
                     <input type="time" className="flex-1 p-3 border border-blue-200 rounded-xl outline-none focus:border-blue-500 text-slate-700 bg-white shadow-sm font-medium" />
                   </div>
-                  <button
-                    className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg transition-colors shadow-md shadow-blue-600/20 flex items-center justify-center gap-3 mt-1"
-                    onClick={() => requireAuth(() => alert(`Appointment request for "${activeOption ? activeOption.name : product.name}" sent to ${product.seller}! You will receive a confirmation shortly.`))}
-                  >
-                    <CalendarClock className="w-6 h-6" /> Book Appointment
-                  </button>
-                  <button
-                    className="w-full py-2 bg-transparent text-blue-700 hover:underline font-semibold text-sm transition-colors flex items-center justify-center gap-2"
-                    onClick={() => alert(`Calling ${product.seller} at +91-9876543210`)}
-                  >
-                    <PhoneCall className="w-4 h-4" /> Prefer to Call? (+91-9876543210)
-                  </button>
+                  <div className="flex items-center gap-2 mt-1">
+                    <button
+                      className="flex-1 py-3.5 sm:py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm sm:text-base transition-colors shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 cursor-pointer"
+                      onClick={() => requireAuth(() => alert(`Appointment request for "${activeOption ? activeOption.name : product.name}" sent to ${product.seller}! You will receive a confirmation shortly.`))}
+                    >
+                      <CalendarClock className="w-4 h-4" /> Book Appointment
+                    </button>
+                    <a
+                      href={`tel:${product.contactPhone || product.sellerPhone || '+919876543210'}`}
+                      className="py-3.5 sm:py-4 px-4 sm:px-5 bg-white hover:bg-blue-50 text-blue-900 font-bold text-sm sm:text-base rounded-xl transition-colors flex items-center justify-center gap-1.5 border border-blue-200 shrink-0 whitespace-nowrap cursor-pointer shadow-xs"
+                      title={`Call ${product.seller}`}
+                    >
+                      <PhoneCall className="w-4 h-4 text-blue-600 shrink-0" />
+                      <span>Call</span>
+                    </a>
+                  </div>
                 </div>
               )}
 
@@ -1632,54 +1636,61 @@ export default function ProductDetails() {
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        className="w-full py-3.5 bg-fuchsia-600 hover:bg-fuchsia-700 active:scale-[0.99] text-white rounded-xl font-bold text-sm sm:text-base transition-all shadow-md shadow-fuchsia-600/25 flex items-center justify-center gap-2 cursor-pointer mt-1"
-                        onClick={() => requireAuth(() => {
-                          if (!appointmentDate) {
-                            alert('Please choose your preferred appointment date.');
-                            return;
-                          }
+                      <div className="flex items-center gap-2 mt-1">
+                        <button
+                          type="button"
+                          className="flex-1 py-3.5 bg-fuchsia-600 hover:bg-fuchsia-700 active:scale-[0.99] text-white rounded-xl font-bold text-sm sm:text-base transition-all shadow-md shadow-fuchsia-600/25 flex items-center justify-center gap-2 cursor-pointer"
+                          onClick={() => requireAuth(() => {
+                            if (!appointmentDate) {
+                              alert('Please choose your preferred appointment date.');
+                              return;
+                            }
 
-                          const apptId = `APT-${Math.floor(1000 + Math.random() * 9000)}`;
-                          try {
-                            // Notification for seller
-                            const sellerNotifs = JSON.parse(localStorage.getItem('markat_seller_notifications') || '[]');
-                            sellerNotifs.unshift({
-                              id: `NOTIF-S-${Date.now()}`,
-                              type: 'NEW_APPOINTMENT_BOOKING',
-                              title: `New Appointment with ${user?.name || 'Customer'}`,
-                              message: `Booked for ${activeOption ? activeOption.name : product.name} on ${appointmentDate} at ${appointmentTime || 'Standard Hours'}. Ref: ${apptId}`,
-                              timestamp: new Date().toISOString(),
-                              read: false
-                            });
-                            localStorage.setItem('markat_seller_notifications', JSON.stringify(sellerNotifs));
+                            const apptId = `APT-${Math.floor(1000 + Math.random() * 9000)}`;
+                            try {
+                              // Notification for seller
+                              const sellerNotifs = JSON.parse(localStorage.getItem('markat_seller_notifications') || '[]');
+                              sellerNotifs.unshift({
+                                id: `NOTIF-S-${Date.now()}`,
+                                type: 'NEW_APPOINTMENT_BOOKING',
+                                title: `New Appointment with ${user?.name || 'Customer'}`,
+                                message: `Booked for ${activeOption ? activeOption.name : product.name} on ${appointmentDate} at ${appointmentTime || 'Standard Hours'}. Ref: ${apptId}`,
+                                timestamp: new Date().toISOString(),
+                                read: false
+                              });
+                              localStorage.setItem('markat_seller_notifications', JSON.stringify(sellerNotifs));
 
-                            // Notification for customer
-                            const customerNotifs = JSON.parse(localStorage.getItem(`markat_notifs_${user?.id || 'guest'}`) || '[]');
-                            customerNotifs.unshift({
-                              id: `NOTIF-${Date.now()}`,
-                              type: 'APPOINTMENT_CONFIRMED',
-                              title: `Appointment Booked with ${product.seller}`,
-                              message: `Your appointment on ${appointmentDate} at ${appointmentTime || 'Standard Hours'} has been scheduled. Ref: ${apptId}`,
-                              timestamp: new Date().toISOString(),
-                              read: false
-                            });
-                            localStorage.setItem(`markat_notifs_${user?.id || 'guest'}`, JSON.stringify(customerNotifs));
-                          } catch { }
+                              // Notification for customer
+                              const customerNotifs = JSON.parse(localStorage.getItem(`markat_notifs_${user?.id || 'guest'}`) || '[]');
+                              customerNotifs.unshift({
+                                id: `NOTIF-${Date.now()}`,
+                                type: 'APPOINTMENT_CONFIRMED',
+                                title: `Appointment Booked with ${product.seller}`,
+                                message: `Your appointment on ${appointmentDate} at ${appointmentTime || 'Standard Hours'} has been scheduled. Ref: ${apptId}`,
+                                timestamp: new Date().toISOString(),
+                                read: false
+                              });
+                              localStorage.setItem(`markat_notifs_${user?.id || 'guest'}`, JSON.stringify(customerNotifs));
+                            } catch { }
 
-                          alert(`🎉 Appointment Requested!\n\nOrganizer: ${product.seller}\nService: ${activeOption ? activeOption.name : product.name}\nDate: ${appointmentDate}\nTime: ${appointmentTime || 'Standard Business Hours'}\nRef: ${apptId}\n\n✓ The organizer has received your request and will call you to confirm.`);
-                        })}
-                      >
-                        <CalendarClock className="w-4 h-4" /> Book Appointment
-                      </button>
+                            alert(`🎉 Appointment Requested!\n\nOrganizer: ${product.seller}\nService: ${activeOption ? activeOption.name : product.name}\nDate: ${appointmentDate}\nTime: ${appointmentTime || 'Standard Business Hours'}\nRef: ${apptId}\n\n✓ The organizer has received your request and will call you to confirm.`);
+                          })}
+                        >
+                          <CalendarClock className="w-4 h-4" /> Book Appointment
+                        </button>
 
-                      <a
-                        href="tel:+919876543210"
-                        className="w-full py-1 text-center text-fuchsia-700 hover:underline font-semibold text-xs sm:text-sm transition-colors flex items-center justify-center gap-1.5"
-                      >
-                        <PhoneCall className="w-3.5 h-3.5" /> Prefer to Call? (+91-9876543210)
-                      </a>
+                        <a
+                          href={`tel:${product.contactPhone || product.sellerPhone || '+919876543210'}`}
+                          className="py-3.5 px-4 sm:px-5 bg-white hover:bg-fuchsia-50 active:scale-[0.99] text-fuchsia-900 font-bold text-sm sm:text-base rounded-xl transition-all flex items-center justify-center gap-2 border border-fuchsia-200/90 shadow-xs shrink-0 whitespace-nowrap cursor-pointer hover:border-fuchsia-300 hover:shadow-sm"
+                          title={`Direct Call: ${product.contactPhone || product.sellerPhone || '+91-9876543210'}`}
+                        >
+                          <PhoneCall className="w-4 h-4 text-fuchsia-600 shrink-0" />
+                          <span>Call</span>
+                          <span className="hidden sm:inline text-fuchsia-600/80 font-medium text-xs">
+                            ({product.contactPhone || product.sellerPhone || '+91-9876543210'})
+                          </span>
+                        </a>
+                      </div>
                     </div>
                   )}
 
@@ -1849,13 +1860,23 @@ export default function ProductDetails() {
                               <Send className="w-3.5 h-3.5" /> Request Custom Proposal & Quote
                             </button>
 
-                            <button
-                              type="button"
-                              className="w-full sm:w-auto py-3 px-4 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-xl font-bold text-xs sm:text-sm transition-colors flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
-                              onClick={() => setOrganizerBookingMode('appointment')}
-                            >
-                              <CalendarClock className="w-3.5 h-3.5 text-fuchsia-600" /> Book Consultation
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                className="flex-1 py-3 px-4 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-xl font-bold text-xs sm:text-sm transition-colors flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+                                onClick={() => setOrganizerBookingMode('appointment')}
+                              >
+                                <CalendarClock className="w-3.5 h-3.5 text-fuchsia-600" /> Book Consultation
+                              </button>
+                              <a
+                                href={`tel:${product.contactPhone || product.sellerPhone || '+919876543210'}`}
+                                className="py-3 px-4 bg-white hover:bg-fuchsia-50 text-fuchsia-900 font-bold text-xs sm:text-sm rounded-xl transition-all flex items-center justify-center gap-1.5 border border-fuchsia-200/90 shadow-2xs shrink-0 whitespace-nowrap cursor-pointer hover:border-fuchsia-300"
+                                title={`Direct Call: ${product.contactPhone || product.sellerPhone || '+91-9876543210'}`}
+                              >
+                                <PhoneCall className="w-3.5 h-3.5 text-fuchsia-600 shrink-0" />
+                                <span>Call</span>
+                              </a>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -1984,10 +2005,10 @@ export default function ProductDetails() {
                       <p className="text-xs text-teal-700 font-medium">Connect directly with {product.seller} for on-demand appointment and service quote.</p>
                     </div>
                   </div>
-                  <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
+                  <div className="flex items-center gap-2 pt-1">
                     <button
                       type="button"
-                      className="flex-1 w-full py-3 px-4 bg-teal-600 hover:bg-teal-700 active:scale-[0.99] text-white rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md shadow-teal-600/20 flex items-center justify-center gap-2 cursor-pointer"
+                      className="flex-1 py-3 px-4 bg-teal-600 hover:bg-teal-700 active:scale-[0.99] text-white rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md shadow-teal-600/20 flex items-center justify-center gap-2 cursor-pointer"
                       onClick={() => requireAuth(() => {
                         const inquiry = {
                           id: `SRV-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -2019,10 +2040,12 @@ export default function ProductDetails() {
                       <CalendarClock className="w-4 h-4" /> Book Service Now
                     </button>
                     <a
-                      href="tel:+919876543210"
-                      className="w-full sm:w-auto py-3 px-4 bg-white hover:bg-slate-50 text-teal-800 border border-teal-300 rounded-xl font-bold text-xs sm:text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
+                      href={`tel:${product.contactPhone || product.sellerPhone || '+919876543210'}`}
+                      className="py-3 px-4 bg-white hover:bg-slate-50 text-teal-800 border border-teal-300 rounded-xl font-bold text-xs sm:text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap shadow-xs"
+                      title={`Call ${product.seller}`}
                     >
-                      <PhoneCall className="w-4 h-4 text-teal-600 animate-pulse" /> Call Provider
+                      <PhoneCall className="w-4 h-4 text-teal-600" />
+                      <span>Call</span>
                     </a>
                   </div>
                 </div>

@@ -9,11 +9,53 @@ import { useState, useEffect, Suspense, useMemo } from 'react';
 import { SlidersHorizontal, MapPin } from 'lucide-react';
 import { isServiceProduct, matchesProductSearch } from '@/utils/productSearch';
 
+function matchCategory(pCategory: string = '', targetCategory: string = '', pSubcategory: string = '', pName: string = '') {
+  const pCat = pCategory.toLowerCase().trim();
+  const tCat = targetCategory.toLowerCase().trim();
+  const pSub = pSubcategory.toLowerCase().trim();
+  const name = pName.toLowerCase().trim();
+
+  if (!tCat) return true;
+  if (pCat === tCat) return true;
+
+  // 1. Business to Business / Wholesale
+  if (tCat === 'b2b' || tCat.includes('wholesale')) {
+    return pCat === 'b2b' || pCat.includes('b2b') || pCat.includes('wholesale') || pSub.includes('wholesale') || name.includes('wholesale');
+  }
+
+  // 2. Building & Infrastructure / Construction Materials
+  if (tCat === 'construction materials' || tCat === 'construction' || tCat.includes('infrastructure')) {
+    return pCat.includes('construction') || pCat.includes('building') || pCat.includes('raw material') || pSub.includes('contractor');
+  }
+
+  // 3. Direct to Consumer / Home Services
+  if (tCat === 'home services' || tCat.includes('retail & home') || tCat === 'repair') {
+    return pCat === 'home services' || pCat === 'plumber' || pCat === 'electrician' || pCat === 'carpenter' || pCat === 'cleaner' || pCat === 'mechanic' || pSub.includes('repair') || pSub.includes('cleaning') || pSub.includes('plumbing') || name.includes('repair') || name.includes('cleaning') || name.includes('plumbing');
+  }
+
+  // 4. Wellness & Care / Salon & Spa
+  if (tCat === 'salon & spa' || tCat === 'salon, spa & beauty' || tCat === 'salon & parlour' || tCat === 'salon' || tCat === 'spa' || tCat.includes('wellness')) {
+    return pCat === 'salon & parlour' || pCat === 'spa' || (pCat === 'services' && (pSub === 'salon' || pSub === 'spa' || name.includes('hair') || name.includes('salon') || name.includes('spa') || name.includes('pedicure') || name.includes('nail')));
+  }
+
+  // 5. Events & Planning / Top Organizers
+  if (tCat === 'events & planning' || tCat === 'top organizers' || tCat === 'organizers' || tCat === 'event planner') {
+    return pCat === 'organizers' || pCat === 'event planner' || pCat === 'events & planning' || name.includes('event') || name.includes('wedding') || name.includes('organizer') || pSub.includes('wedding');
+  }
+
+  // 6. Mobility & Freight / Transport Services
+  if (tCat === 'transport' || tCat === 'mobility & freight' || tCat === 'transport services' || tCat === 'logistics & transport') {
+    return pCat === 'transport' || pCat === 'logistics & transport' || pCat === 'rentals' || name.includes('transport') || name.includes('freight') || name.includes('logistics') || name.includes('auto rental') || name.includes('cargo') || name.includes('movers');
+  }
+
+  return pCat.includes(tCat) || tCat.includes(pCat);
+}
+
 function SearchContent() {
   const searchParams = useSearchParams();
   const initialQ = searchParams.get('q') || '';
   const initialLoc = searchParams.get('loc') || '';
-  const initialCat = searchParams.get('cat') || '';
+  const initialCat = searchParams.get('category') || searchParams.get('cat') || '';
   
   const { products, categories, isLoading } = useProducts();
   
@@ -70,7 +112,7 @@ function SearchContent() {
 
     // Category Filter
     if (selectedCategory) {
-      result = result.filter(p => (p.category || '').toLowerCase() === selectedCategory.toLowerCase());
+      result = result.filter(p => matchCategory(p.category, selectedCategory, p.subcategory, p.name));
       // Subcategory Filter
       if (selectedSubcategory) {
         result = result.filter(p => p.subcategory && (p.subcategory || '').toLowerCase() === selectedSubcategory.toLowerCase());
@@ -101,7 +143,18 @@ function SearchContent() {
     
     // Feature Toggles
     if (verifiedOnly) result = result.filter(p => !!p.badge);
-    if (b2bOnly) result = result.filter(p => p.isB2B);
+    if (b2bOnly) {
+      result = result.filter(p => 
+        p.isB2B || 
+        p.category === 'B2B' || 
+        (p.category || '').toLowerCase().includes('b2b') ||
+        (p.subcategory || '').toLowerCase().includes('wholesale') ||
+        (p.name || '').toLowerCase().includes('wholesale') ||
+        (p.name || '').toLowerCase().includes('bulk') ||
+        (p.badge || '').toLowerCase().includes('b2b') ||
+        (typeof p.moq === 'number' && p.moq > 1)
+      );
+    }
     if (premiumOnly) result = result.filter(p => p.isPremium);
 
     // Sorting
@@ -129,24 +182,31 @@ function SearchContent() {
     return result;
   }, [q, locationFilter, productType, selectedCategory, selectedSubcategory, dynamicFilters, priceRange, minRating, verifiedOnly, b2bOnly, premiumOnly, sortBy, products]);
 
-  // Get unique categories from products
-  const availableCategories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
+  // Get unique categories from products and configs
+  const availableCategories = useMemo(() => {
+    const set = new Set<string>();
+    if (selectedCategory) set.add(selectedCategory);
+    ['B2B', 'Construction Materials', 'Home Services', 'Salon & Spa', 'Events & Planning', 'Transport', 'Electronics', 'Fashion', 'Home'].forEach(c => set.add(c));
+    (categories || []).forEach(c => { if (c.name) set.add(c.name); });
+    products.forEach(p => { if (p.category) set.add(p.category); });
+    return Array.from(set);
+  }, [categories, products, selectedCategory]);
   
   // Get unique subcategories for the selected category
   const availableSubcategories = useMemo(() => {
     if (!selectedCategory) return [];
-    const catProducts = products.filter(p => (p.category || '').toLowerCase() === selectedCategory.toLowerCase());
+    const catProducts = products.filter(p => matchCategory(p.category, selectedCategory, p.subcategory, p.name));
     return Array.from(new Set(catProducts.map(p => p.subcategory).filter(Boolean))) as string[];
   }, [selectedCategory, products]);
   
   // Get available dynamic filters based on the selected category's parameters
   const availableDynamicFilters = useMemo(() => {
     if (!selectedCategory) return [];
-    const categoryConfig = categories?.find(c => c.name === selectedCategory);
+    const categoryConfig = categories?.find(c => c.name.toLowerCase() === selectedCategory.toLowerCase());
     
     // Fallback logic to extract keys from products directly if no global category config exists
     if (!categoryConfig || !categoryConfig.parameters) {
-       const catProducts = products.filter(p => (p.category || '').toLowerCase() === selectedCategory.toLowerCase());
+       const catProducts = products.filter(p => matchCategory(p.category, selectedCategory, p.subcategory, p.name));
        const filterKeys = new Set<string>();
        catProducts.forEach(p => {
          if (p.parameters) {
@@ -169,7 +229,7 @@ function SearchContent() {
     return categoryConfig.parameters.map(param => {
       // Extract unique values from products for this parameter
       const values = new Set<string>();
-      products.filter(p => p.category === selectedCategory).forEach(p => {
+      products.filter(p => matchCategory(p.category, selectedCategory, p.subcategory, p.name)).forEach(p => {
         if (p.parameters && p.parameters[param.name]) {
           const pVal = p.parameters[param.name];
           (Array.isArray(pVal) ? pVal : [pVal]).forEach(v => values.add(v));
@@ -335,10 +395,13 @@ function SearchContent() {
           <AdvertisementWidget position="SEARCH_PAGE" className="mb-6" />
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">Search Results</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
+              {b2bOnly ? 'B2B Wholesale & Enterprise' : selectedCategory ? selectedCategory : 'Search Results'}
+            </h1>
             <p className="text-slate-500 font-medium">
               {filteredProducts.length} results found
               {q && ` for "${q}"`}
+              {locationFilter && ` near "${locationFilter}"`}
             </p>
           </div>
           <div className="flex items-center gap-3 bg-white p-2 border border-slate-200 rounded-lg shadow-sm w-fit">
@@ -357,7 +420,10 @@ function SearchContent() {
         </div>
         {isLoading ? (
           <ProductGridSkeleton count={12} />
-        ) : productType === 'services' || categories.some(category => category.name === selectedCategory && category.primaryType === 'SERVICE') || selectedCategory === 'Services' || selectedCategory === 'Home Services' ? (
+        ) : productType === 'services' || 
+            ['services', 'home services', 'transport', 'organizers', 'salon & spa', 'events & planning', 'salon & parlour', 'spa'].includes(selectedCategory.toLowerCase()) || 
+            categories.some(category => category.name.toLowerCase() === selectedCategory.toLowerCase() && category.primaryType === 'SERVICE') ||
+            (filteredProducts.length > 0 && filteredProducts.every(p => isServiceProduct(p))) ? (
           <ServiceDirectoryList products={filteredProducts} />
         ) : (
           <ProductGrid products={filteredProducts} productOnly={productType === 'products'} />

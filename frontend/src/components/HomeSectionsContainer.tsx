@@ -521,6 +521,20 @@ export default function HomeSectionsContainer({
             <section className="mt-4">
               <div className="flex justify-between items-end border-b border-slate-200 pb-3 mb-6">
                 <h2 className="text-xl lg:text-2xl font-bold text-slate-900">Recently Viewed</h2>
+                <button
+                  onClick={() => {
+                    try {
+                      const t = JSON.parse(localStorage.getItem('markat_user_trends') || '{}');
+                      t.recentlyViewed = [];
+                      localStorage.setItem('markat_user_trends', JSON.stringify(t));
+                      window.dispatchEvent(new Event('storage'));
+                      window.location.reload();
+                    } catch {}
+                  }}
+                  className="text-slate-400 hover:text-rose-600 font-semibold text-xs transition-colors cursor-pointer"
+                >
+                  Clear History
+                </button>
               </div>
               <ProductGrid recent={true} />
             </section>
@@ -562,7 +576,7 @@ export default function HomeSectionsContainer({
                   </div>
                 </Link>
 
-                <Link href="/search?cat=Home Services" className="group rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
+                <Link href="/search?category=Home%20Services&type=services" className="group rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
                   <div className="h-24 sm:h-32 bg-gradient-to-br from-emerald-500 to-teal-600 relative p-3 sm:p-6 flex flex-col justify-end">
                     <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-7 h-7 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-sm sm:text-2xl shadow-inner border border-white/30">🔧</div>
                     <div className="text-white/80 text-[8px] sm:text-[10px] uppercase tracking-wider sm:tracking-widest font-bold mb-0.5 sm:mb-1 line-clamp-1">Direct to Consumer</div>
@@ -573,7 +587,7 @@ export default function HomeSectionsContainer({
                   </div>
                 </Link>
 
-                <Link href="/search?cat=Services" className="group rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
+                <Link href="/search?category=Salon%20%26%20Spa&type=services" className="group rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
                   <div className="h-24 sm:h-32 bg-gradient-to-br from-pink-500 to-rose-600 relative p-3 sm:p-6 flex flex-col justify-end">
                     <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-7 h-7 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-sm sm:text-2xl shadow-inner border border-white/30">💆‍♀️</div>
                     <div className="text-white/80 text-[8px] sm:text-[10px] uppercase tracking-wider sm:tracking-widest font-bold mb-0.5 sm:mb-1 line-clamp-1">Wellness & Care</div>
@@ -584,7 +598,7 @@ export default function HomeSectionsContainer({
                   </div>
                 </Link>
 
-                <Link href="/search?cat=Organizers" className="group rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
+                <Link href="/search?category=Events%20%26%20Planning&type=services" className="group rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
                   <div className="h-24 sm:h-32 bg-gradient-to-br from-violet-500 to-purple-700 relative p-3 sm:p-6 flex flex-col justify-end">
                     <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-7 h-7 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-sm sm:text-2xl shadow-inner border border-white/30">🎉</div>
                     <div className="text-white/80 text-[8px] sm:text-[10px] uppercase tracking-wider sm:tracking-widest font-bold mb-0.5 sm:mb-1 line-clamp-1">Events & Planning</div>
@@ -595,14 +609,14 @@ export default function HomeSectionsContainer({
                   </div>
                 </Link>
 
-                <Link href="/search?cat=Transport" className="group rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
+                <Link href="/search?category=Transport&type=services" className="group rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
                   <div className="h-24 sm:h-32 bg-gradient-to-br from-cyan-500 to-blue-600 relative p-3 sm:p-6 flex flex-col justify-end">
                     <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-7 h-7 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-sm sm:text-2xl shadow-inner border border-white/30">🚛</div>
                     <div className="text-white/80 text-[8px] sm:text-[10px] uppercase tracking-wider sm:tracking-widest font-bold mb-0.5 sm:mb-1 line-clamp-1">Mobility & Freight</div>
                     <h3 className="text-xs sm:text-xl font-bold text-white leading-tight line-clamp-2">Transport Services</h3>
                   </div>
-                  <div className="p-2.5 sm:p-5 text-[11px] sm:text-sm text-slate-600 font-medium bg-white group-hover:bg-emerald-50 transition-colors flex justify-between items-center gap-1">
-                    <span className="line-clamp-1">Movers & logistics</span> <span className="w-5 h-5 sm:w-8 sm:h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 group-hover:bg-emerald-500 group-hover:text-white transition-colors text-xs sm:text-base">›</span>
+                  <div className="p-2.5 sm:p-5 text-[11px] sm:text-sm text-slate-600 font-medium bg-white group-hover:bg-cyan-50 transition-colors flex justify-between items-center gap-1">
+                    <span className="line-clamp-1">Movers & logistics</span> <span className="w-5 h-5 sm:w-8 sm:h-8 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center shrink-0 group-hover:bg-cyan-500 group-hover:text-white transition-colors text-xs sm:text-base">›</span>
                   </div>
                 </Link>
               </div>

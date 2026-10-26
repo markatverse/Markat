@@ -49,7 +49,21 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'markatverse.com',
+          },
+        ],
+        destination: 'https://www.markatverse.com/:path*',
+        permanent: false,
+      },
+    ];
+  },
 };
-
 
 export default nextConfig;

@@ -580,43 +580,46 @@ export default function ProfessionalBookingWidget({ service }: { service: any })
           </div>
         )}
 
-        {/* Action Button & Rate Summary */}
-        <div className="pt-1.5">
+        {/* Action Buttons: Book Consultation + Inline Direct Call */}
+        <div className="flex items-center gap-2 pt-1.5">
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 sm:py-3.5 px-4 bg-slate-900 hover:bg-slate-950 text-white rounded-xl font-extrabold text-sm sm:text-base transition-all shadow-md shadow-slate-900/20 flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer active:scale-[0.99]"
+            className="flex-1 py-3 sm:py-3.5 px-4 bg-slate-900 hover:bg-slate-950 text-white rounded-xl font-extrabold text-xs sm:text-sm md:text-base transition-all shadow-md shadow-slate-900/20 flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer active:scale-[0.99] min-w-0"
           >
             <Lock className="w-4 h-4 text-amber-400 shrink-0" />
-            <span>
+            <span className="truncate">
               {loading
                 ? 'Securing Consultation...'
                 : `${isFreelancer ? 'Book Project Consultation' : isLawyer ? 'Schedule Legal Consultation' : isAccountant ? 'Schedule CA Consultation' : isArchitect ? 'Schedule Architect Consultation' : 'Schedule Consultation'} (${selectedPractice?.price > 0 ? `₹${selectedPractice.price.toLocaleString('en-IN')}` : 'Free / Inquiry'})`}
             </span>
           </button>
+
+          <a
+            href={`tel:${service?.contactPhone || service?.sellerPhone || '+919876543210'}`}
+            className="py-3 sm:py-3.5 px-4 sm:px-5 bg-white hover:bg-slate-50 active:scale-[0.99] text-slate-800 hover:text-slate-950 font-bold text-xs sm:text-sm rounded-xl transition-all flex items-center justify-center gap-1.5 border border-slate-300 shadow-xs shrink-0 whitespace-nowrap cursor-pointer hover:border-slate-400 hover:shadow-sm"
+            title={`Direct Call: ${service?.contactPhone || service?.sellerPhone || '+91-9876543210'}`}
+          >
+            <PhoneCall className="w-4 h-4 text-indigo-600 shrink-0" />
+            <span>Call</span>
+            <span className="hidden md:inline text-slate-500 font-semibold text-xs">
+              ({service?.contactPhone || service?.sellerPhone || '+91-9876543210'})
+            </span>
+          </a>
         </div>
 
-        {/* Footer: Direct Chamber Call & Confidentiality Guarantee */}
-        <div className="pt-2 border-t border-slate-100 flex flex-col xs:flex-row items-center justify-between gap-2 text-[11px] text-slate-500">
-          <div className="flex items-center gap-1.5 font-semibold text-slate-600">
-            <Lock className="w-3 h-3 text-emerald-600" />
-            <span>
-              {isLawyer 
-                ? 'Strict Attorney-Client Confidentiality' 
-                : isAccountant 
-                ? 'Strict Financial & Audit Confidentiality' 
-                : isFreelancer 
-                ? 'NDA & Client IP Rights Protected' 
-                : 'Strict Professional Confidentiality'}
-            </span>
-          </div>
-          <a
-            href={`tel:${service?.contactPhone || '+919876543210'}`}
-            className="text-slate-800 hover:text-slate-950 font-bold inline-flex items-center gap-1 hover:underline"
-          >
-            <PhoneCall className="w-3 h-3 text-indigo-600" />
-            <span>Prefer Call? (+91-9876543210)</span>
-          </a>
+        {/* Footer: Confidentiality Guarantee */}
+        <div className="pt-2 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-500 font-semibold">
+          <Lock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+          <span>
+            {isLawyer 
+              ? 'Strict Attorney-Client Confidentiality' 
+              : isAccountant 
+              ? 'Strict Financial & Audit Confidentiality' 
+              : isFreelancer 
+              ? 'NDA & Client IP Rights Protected' 
+              : 'Strict Professional Confidentiality'}
+          </span>
         </div>
       </form>
     </div>

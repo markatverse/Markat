@@ -68,7 +68,16 @@ async function bootstrap() {
             : ['http://localhost:3000', 'http://127.0.0.1:3000'];
         app.enableCors({
             origin: (origin, callback) => {
-                if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.markatverse.com')) {
+                if (!origin) {
+                    return callback(null, true);
+                }
+                const cleanOrigin = origin.replace(/\/$/, '').toLowerCase();
+                const isAllowedOrigin = allowedOrigins.some(o => o.replace(/\/$/, '').toLowerCase() === cleanOrigin);
+                const isMarkatVerse = cleanOrigin === 'https://markatverse.com' ||
+                    cleanOrigin === 'http://markatverse.com' ||
+                    cleanOrigin.endsWith('.markatverse.com');
+                const isVercel = cleanOrigin.endsWith('.vercel.app');
+                if (isAllowedOrigin || isMarkatVerse || isVercel) {
                     callback(null, true);
                 }
                 else {
