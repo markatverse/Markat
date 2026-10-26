@@ -15,7 +15,20 @@ const legacyServiceCategories = [
   'Automobile Service',
   'Doctor & Clinic',
   'Health & Wellness',
-  'Event Services'
+  'Event Services',
+  'Food & Dining',
+  'Restaurants',
+  'Restaurant',
+  'Dining',
+  'Food & Beverages',
+  'Cafes',
+  'Cafe',
+  'Bistro',
+  'Catering',
+  'Hotel & Hospitality',
+  'Professional Services',
+  'Legal Services',
+  'Consulting'
 ];
 
 const physicalProductCategories = [
@@ -68,7 +81,9 @@ export function isServiceProduct(product?: (Product & { type?: string }) | null)
   if (
     cat === 'salon' || cat === 'spa' || cat === 'car wash' || cat === 'services' ||
     cat === 'home services' || cat === 'event services' || cat === 'freelancer' ||
-    subcat.includes('salon service') || subcat.includes('spa service') ||
+    cat.includes('food & dining') || cat.includes('restaurant') || cat.includes('dining') ||
+    subcat.includes('restaurant') || subcat.includes('dining') || subcat.includes('bistro') ||
+    subcat.includes('cafe') || subcat.includes('salon service') || subcat.includes('spa service') ||
     subcat.includes('haircut') || subcat.includes('facial & clean-up') ||
     subcat.includes('car wash service') || subcat.includes('detailing package') ||
     subcat.includes('repair service') || subcat.includes('consultation') ||

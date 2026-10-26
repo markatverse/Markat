@@ -7,7 +7,8 @@ import { useWishlist } from '@/context/WishlistContext';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useUserTrends } from '@/hooks/useUserTrends';
-import { ShieldCheck, Camera, Ruler, ZoomIn, Package, Star, Building2, MapPin, PhoneCall, Calendar, CalendarClock, Heart, UtensilsCrossed, Users, Clock, Utensils, Sparkles, MessageCircle, Phone, Share2, ChevronDown, PartyPopper, CheckCircle2, FileText, Send, ArrowRight, Scale, Briefcase } from 'lucide-react';
+import { ShieldCheck, Camera, Ruler, ZoomIn, Package, Star, Building2, MapPin, PhoneCall, Calendar, CalendarClock, Heart, UtensilsCrossed, Users, Clock, Utensils, Sparkles, MessageCircle, Phone, Share2, ChevronDown, PartyPopper, CheckCircle2, FileText, Send, ArrowRight, Scale, Briefcase, Zap, ShoppingBag, Truck, RotateCcw, Layers, Info } from 'lucide-react';
+import toast from 'react-hot-toast';
 import SmartQueueWidget from '@/components/SmartQueueWidget';
 import CarWashBookingWidget from '@/components/CarWashBookingWidget';
 import ProfessionalBookingWidget from '@/components/ProfessionalBookingWidget';
@@ -38,8 +39,10 @@ export default function ProductDetails() {
   const [activeImage, setActiveImage] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [rfqQuantity, setRfqQuantity] = useState<number | ''>(1);
+  const [retailQuantity, setRetailQuantity] = useState<number>(1);
   const [bundleMultiplier, setBundleMultiplier] = useState(1);
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
+  const [activeDetailsTab, setActiveDetailsTab] = useState<'specs' | 'overview' | 'box' | 'warranty'>('specs');
   const [rfqMessage, setRfqMessage] = useState('');
   const [isEliteExpanded, setIsEliteExpanded] = useState(false);
 
@@ -225,6 +228,24 @@ export default function ProductDetails() {
       (!isFoodDining && !isOrganizer && !isAutoWash)
     )
   ) : false;
+
+  const isServiceProviderItem = Boolean(
+    isActualService ||
+    isFoodDining ||
+    isOrganizer ||
+    isProfessional ||
+    isAutoWash ||
+    isServiceQueue ||
+    hasService ||
+    serviceBadge !== null ||
+    product?.primaryType === 'SERVICE' ||
+    (product?.category || '').toLowerCase().includes('dining') ||
+    (product?.category || '').toLowerCase().includes('food') ||
+    (product?.category || '').toLowerCase().includes('service') ||
+    (product?.category || '').toLowerCase().includes('restaurant') ||
+    (product?.subcategory || '').toLowerCase().includes('restaurant') ||
+    (product?.subcategory || '').toLowerCase().includes('dining')
+  );
 
   // Event & Organizer Customer Booking States
   const [organizerBookingMode, setOrganizerBookingMode] = useState<'appointment' | 'proposal'>('appointment');
@@ -462,11 +483,11 @@ export default function ProductDetails() {
 
       <AdvertisementWidget position="PRODUCT_PAGE" className="mb-4 sm:mb-8" />
 
-      {/* Top Section: Images and Details */}
-      <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
+      {/* Top Section: Images and Details (Flipkart-style sticky left gallery, scrolling right details) */}
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 items-start relative">
 
-        {/* Left: Product Image Gallery */}
-        <div className="flex-1 lg:max-w-[50%]">
+        {/* Left: Product Image Gallery (Sticky on Desktop) */}
+        <div className="w-full lg:w-[46%] lg:max-w-[500px] shrink-0 lg:sticky lg:top-24 lg:self-start">
           {/* Main Image */}
           <div className="w-full h-[260px] sm:h-[400px] lg:h-[480px] bg-slate-100 rounded-2xl flex flex-col items-center justify-center text-slate-500 border border-slate-200 overflow-hidden shadow-sm relative">
             {productImages[activeImage]?.url ? (
@@ -598,8 +619,8 @@ export default function ProductDetails() {
 
         </div>
 
-        {/* Right: Product Info & Actions */}
-        <div className="flex-1">
+        {/* Right: Product Info & Actions (Right side scrolling details) */}
+        <div className="flex-1 min-w-0 w-full">
           {/* Top Category and Badges Lockup (matching card design) */}
           <div className="flex flex-wrap items-center gap-2 mb-3">
             {product.badge && (
@@ -896,7 +917,7 @@ export default function ProductDetails() {
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <span className="font-bold text-slate-800 text-sm uppercase tracking-wider">
-                      Booking Option: <span className="text-blue-600 font-extrabold">{activeOption?.name || 'Standard'}</span>
+                      {isPhysicalProduct ? 'Selected Edition / Option:' : 'Booking Option:'} <span className="text-blue-600 font-extrabold">{activeOption?.name || 'Standard'}</span>
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-3">
@@ -1839,22 +1860,91 @@ export default function ProductDetails() {
 
               {/* ── PRODUCT STOCK / RETAIL (Buy Now + Add to Cart - Horizontal both on mobile & desktop) ── */}
               {isRetail && !isOrganizer && !hasService && !isFoodDining && !hasToken && !hasAppointment && !hasVehicleTestDrive && !isWholesaleConfig && !isAutoWash && (
-                <div className="flex flex-row items-center gap-2.5 sm:gap-4 w-full">
-                  <button
-                    className="flex-1 py-3 px-3 sm:px-6 sm:py-4 bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-white rounded-xl font-bold text-sm sm:text-base transition-all shadow-md shadow-amber-500/20 text-center cursor-pointer"
-                    onClick={() => requireAuth(() => {
-                      addToCart(product);
-                      router.push('/checkout');
-                    })}
-                  >
-                    Buy Now
-                  </button>
-                  <button
-                    className="flex-1 py-3 px-3 sm:px-6 sm:py-4 bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white rounded-xl font-bold text-sm sm:text-base transition-all shadow-md text-center cursor-pointer"
-                    onClick={() => requireAuth(() => { addToCart(product); alert(`Added ${product.name} to cart!`); })}
-                  >
-                    Add to Cart
-                  </button>
+                <div className="flex flex-col gap-3.5 w-full pt-1">
+                  {/* Quantity selector and In-Stock indicator */}
+                  <div className="flex items-center justify-between pb-0.5 flex-wrap gap-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">Quantity:</span>
+                      <div className="flex items-center border border-slate-300 rounded-xl bg-white overflow-hidden shadow-2xs">
+                        <button
+                          type="button"
+                          onClick={() => setRetailQuantity(prev => Math.max(1, prev - 1))}
+                          className="w-8 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-100 font-extrabold text-base transition-colors cursor-pointer"
+                        >
+                          −
+                        </button>
+                        <span className="w-10 text-center font-black text-sm text-slate-900">{retailQuantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => setRetailQuantity(prev => Math.min(10, prev + 1))}
+                          className="w-8 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-100 font-extrabold text-base transition-colors cursor-pointer"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200/80">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <span>In Stock • Ready to Dispatch</span>
+                    </div>
+                  </div>
+
+                  {/* Delivery Location Pill */}
+                  <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5">
+                    <Truck className="w-4 h-4 text-blue-600 shrink-0" />
+                    <span>Free Delivery to <strong className="text-slate-900">{product.location || 'Your Location'}</strong> by <strong className="text-emerald-700">Tomorrow</strong></span>
+                  </div>
+
+                  {/* Buy Now & Add to Cart Buttons */}
+                  <div className="flex flex-row items-center gap-2.5 sm:gap-4 w-full">
+                    <button
+                      className="flex-1 py-3 px-3 sm:px-6 sm:py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 active:scale-[0.99] text-white rounded-xl font-black text-sm sm:text-base transition-all shadow-md shadow-amber-500/20 text-center cursor-pointer flex items-center justify-center gap-2"
+                      onClick={() => requireAuth(() => {
+                        for (let i = 0; i < retailQuantity; i++) {
+                          addToCart({
+                            id: product.id,
+                            name: product.name,
+                            price: currentActivePrice,
+                            image: productImages[0]?.url || product.image,
+                            category: product.category,
+                            subcategory: product.subcategory,
+                            sellerId: product.sellerId,
+                            seller: product.seller,
+                            location: product.location,
+                            parameters: selectedVariants
+                          });
+                        }
+                        router.push('/checkout');
+                      })}
+                    >
+                      <Zap className="w-4 h-4 fill-white" /> Buy Now
+                    </button>
+                    <button
+                      className="flex-1 py-3 px-3 sm:px-6 sm:py-3.5 bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white rounded-xl font-black text-sm sm:text-base transition-all shadow-md text-center cursor-pointer flex items-center justify-center gap-2"
+                      onClick={() => requireAuth(() => {
+                        for (let i = 0; i < retailQuantity; i++) {
+                          addToCart({
+                            id: product.id,
+                            name: product.name,
+                            price: currentActivePrice,
+                            image: productImages[0]?.url || product.image,
+                            category: product.category,
+                            subcategory: product.subcategory,
+                            sellerId: product.sellerId,
+                            seller: product.seller,
+                            location: product.location,
+                            parameters: selectedVariants
+                          });
+                        }
+                        toast.success(`Added ${retailQuantity > 1 ? `${retailQuantity}x ` : ''}${product.name} to cart!`, {
+                          icon: '🛍️',
+                          duration: 2500
+                        });
+                      })}
+                    >
+                      <ShoppingBag className="w-4 h-4" /> Add to Cart
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -1915,51 +2005,74 @@ export default function ProductDetails() {
           </div>
 
           <div className="mb-8">
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-3 sm:mb-4">
-              {isFoodDining ? 'Dining & Table Guidelines' : isProfessional ? 'Professional Consultation Guidelines' : 'Important Details'}
+            <h3 className="text-base sm:text-lg font-extrabold text-slate-900 mb-3 sm:mb-4">
+              {isFoodDining ? 'Dining & Table Guidelines' : isProfessional ? 'Professional Consultation Guidelines' : 'Quality & Service Assurance'}
             </h3>
-            <ul className="pl-5 text-xs sm:text-sm text-slate-600 leading-relaxed sm:leading-loose list-disc space-y-1.5 sm:space-y-0">
-              {isOrganizer ? (
-                <>
-                  <li>Custom package estimate tailored to your venue, theme, and guest scale.</li>
-                  <li>Portfolio catalog, previous stage designs & reference videos shared upon inquiry.</li>
-                  <li>In-person or virtual consultation with senior event director included.</li>
-                  <li>Transparent milestone-based contracts with no hidden surcharges.</li>
-                  <li>Dedicated on-ground operations crew & sound/decor management on event day.</li>
-                </>
-              ) : isFoodDining ? (
-                <>
-                  <li>Please arrive within 15 minutes of your reserved dining slot.</li>
-                  <li>Special dietary requests or seating preferences can be communicated at arrival.</li>
-                  <li>Dress code: Smart Casual / Formal as per restaurant policy.</li>
-                  <li>Cancellation or rescheduling available up to 2 hours in advance.</li>
-                  <li>Fresh ingredients prepared live by certified culinary chefs.</li>
-                </>
-              ) : isProfessional ? (
-                <>
-                  <li>Strict Attorney-Client & Professional Privilege confidentiality maintained.</li>
-                  <li>In-Chamber appointments require bringing relevant case files or documentation.</li>
-                  <li>Video consultations are held over end-to-end encrypted Google Meet / Zoom links.</li>
-                  <li>Rescheduling is accommodated up to 2 hours prior to the booked slot.</li>
-                  <li>Professional advice is provided in accordance with applicable Bar & regulatory guidelines.</li>
-                </>
-              ) : (isServiceQueue || product?.primaryType === 'SERVICE') ? (
-                <>
-                  <li>Please arrive 5 minutes prior to your booking.</li>
-                  <li>Rescheduling is allowed up to 1 hour before the time.</li>
-                  <li>Cancellations are subject to standard policies.</li>
-                  <li>Ensure you provide the correct contact details while booking.</li>
-                </>
-              ) : (
-                <>
-                  <li>Premium build quality with durable materials</li>
-                  <li>1 Year International Warranty included</li>
-                  <li>7 Days Replacement Policy available</li>
-                  <li>Free Express Shipping for Prime Members</li>
-                  <li>Cash on Delivery eligible in your location</li>
-                </>
-              )}
-            </ul>
+            {isOrganizer ? (
+              <ul className="pl-5 text-xs sm:text-sm text-slate-600 leading-relaxed sm:leading-loose list-disc space-y-1.5 sm:space-y-0">
+                <li>Custom package estimate tailored to your venue, theme, and guest scale.</li>
+                <li>Portfolio catalog, previous stage designs & reference videos shared upon inquiry.</li>
+                <li>In-person or virtual consultation with senior event director included.</li>
+                <li>Transparent milestone-based contracts with no hidden surcharges.</li>
+                <li>Dedicated on-ground operations crew & sound/decor management on event day.</li>
+              </ul>
+            ) : isFoodDining ? (
+              <ul className="pl-5 text-xs sm:text-sm text-slate-600 leading-relaxed sm:leading-loose list-disc space-y-1.5 sm:space-y-0">
+                <li>Please arrive within 15 minutes of your reserved dining slot.</li>
+                <li>Special dietary requests or seating preferences can be communicated at arrival.</li>
+                <li>Dress code: Smart Casual / Formal as per restaurant policy.</li>
+                <li>Cancellation or rescheduling available up to 2 hours in advance.</li>
+                <li>Fresh ingredients prepared live by certified culinary chefs.</li>
+              </ul>
+            ) : isProfessional ? (
+              <ul className="pl-5 text-xs sm:text-sm text-slate-600 leading-relaxed sm:leading-loose list-disc space-y-1.5 sm:space-y-0">
+                <li>Strict Attorney-Client & Professional Privilege confidentiality maintained.</li>
+                <li>In-Chamber appointments require bringing relevant case files or documentation.</li>
+                <li>Video consultations are held over end-to-end encrypted Google Meet / Zoom links.</li>
+                <li>Rescheduling is accommodated up to 2 hours prior to the booked slot.</li>
+                <li>Professional advice is provided in accordance with applicable Bar & regulatory guidelines.</li>
+              </ul>
+            ) : (isServiceQueue || product?.primaryType === 'SERVICE') ? (
+              <ul className="pl-5 text-xs sm:text-sm text-slate-600 leading-relaxed sm:leading-loose list-disc space-y-1.5 sm:space-y-0">
+                <li>Please arrive 5 minutes prior to your booking.</li>
+                <li>Rescheduling is allowed up to 1 hour before the time.</li>
+                <li>Cancellations are subject to standard policies.</li>
+                <li>Ensure you provide the correct contact details while booking.</li>
+              </ul>
+            ) : (
+              <div className="space-y-4">
+                {/* 4 Feature Trust Cards (One Line on Mobile & Desktop) */}
+                <div className="grid grid-cols-4 gap-1.5 sm:gap-3">
+                  <div className="p-2 sm:p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col items-center text-center gap-1 sm:gap-1.5 shadow-2xs">
+                    <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 shrink-0" />
+                    <span className="text-[9.5px] sm:text-[11px] font-bold text-slate-800 leading-tight">1 Year Warranty</span>
+                    <span className="text-[8px] sm:text-[10px] text-slate-500 leading-tight line-clamp-1">Official Brand Coverage</span>
+                  </div>
+                  <div className="p-2 sm:p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col items-center text-center gap-1 sm:gap-1.5 shadow-2xs">
+                    <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 shrink-0" />
+                    <span className="text-[9.5px] sm:text-[11px] font-bold text-slate-800 leading-tight">7-Day Return</span>
+                    <span className="text-[8px] sm:text-[10px] text-slate-500 leading-tight line-clamp-1">Hassle-free Returns</span>
+                  </div>
+                  <div className="p-2 sm:p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col items-center text-center gap-1 sm:gap-1.5 shadow-2xs">
+                    <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 shrink-0" />
+                    <span className="text-[9.5px] sm:text-[11px] font-bold text-slate-800 leading-tight">Fast Delivery</span>
+                    <span className="text-[8px] sm:text-[10px] text-slate-500 leading-tight line-clamp-1">Doorstep Shipping</span>
+                  </div>
+                  <div className="p-2 sm:p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col items-center text-center gap-1 sm:gap-1.5 shadow-2xs">
+                    <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 shrink-0" />
+                    <span className="text-[9.5px] sm:text-[11px] font-bold text-slate-800 leading-tight">Cash on Delivery</span>
+                    <span className="text-[8px] sm:text-[10px] text-slate-500 leading-tight line-clamp-1">Pay at Doorstep</span>
+                  </div>
+                </div>
+
+                <ul className="pl-5 text-xs sm:text-sm text-slate-600 leading-relaxed list-disc space-y-1">
+                  <li>100% Genuine product directly sourced and fulfilled by verified merchant <strong>{product.seller}</strong></li>
+                  <li>Tamper-proof protective packaging ensuring your items arrive in sealed factory condition</li>
+                  <li>Original manufacturer warranty card and documentation enclosed inside retail packaging</li>
+                  <li>Multiple payment methods accepted: UPI, Debit/Credit Card, NetBanking & Cash on Delivery</li>
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Sold By / Restaurant Venue Details Card (Mobile Flow) */}
@@ -2027,11 +2140,277 @@ export default function ProductDetails() {
               </div>
             </div>
           </div>
+
+          {/* ── PRODUCT SPECIFICATIONS & ALL DETAILS SEGMENT (Only for Retail/Physical Products, Removed for Service Providers) ── */}
+          {!isServiceProviderItem && (
+            <div className="mt-8 bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-6 lg:p-8">
+            
+            {/* Header: Full-width Title & Subtitle */}
+            <div className="pb-2">
+              <div className="flex items-center gap-1.5 text-[11px] font-black text-blue-600 uppercase tracking-widest mb-1">
+                <Layers className="w-3.5 h-3.5" /> Product Specifications
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                Specifications & Details
+              </h2>
+            </div>
+
+            {/* Flipkart-Style Tab Navigation */}
+            <div className="flex items-center gap-2 sm:gap-6 border-b border-slate-200 mt-3 overflow-x-auto no-scrollbar">
+              <button
+                type="button"
+                onClick={() => setActiveDetailsTab('specs')}
+                className={`pb-3 text-xs sm:text-sm font-bold border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                  activeDetailsTab === 'specs'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <FileText className="w-4 h-4" />
+                <span>Specifications</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveDetailsTab('overview')}
+                className={`pb-3 text-xs sm:text-sm font-bold border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                  activeDetailsTab === 'overview'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Info className="w-4 h-4" />
+                <span>Highlights & Description</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveDetailsTab('box')}
+                className={`pb-3 text-xs sm:text-sm font-bold border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                  activeDetailsTab === 'box'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Package className="w-4 h-4" />
+                <span>In The Box</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveDetailsTab('warranty')}
+                className={`pb-3 text-xs sm:text-sm font-bold border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                  activeDetailsTab === 'warranty'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>Warranty & Policy</span>
+              </button>
+            </div>
+
+            {/* Tab 1: Specifications (Flipkart Aligned Table Layout) */}
+            {activeDetailsTab === 'specs' && (
+              <div className="pt-5 space-y-6 animate-in fade-in duration-200">
+                {/* General Information */}
+                <div>
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider pb-2 border-b border-slate-200 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span> General
+                  </h3>
+                  <div className="divide-y divide-slate-100">
+                    <div className="py-2.5 flex flex-col sm:flex-row sm:items-baseline text-xs sm:text-sm">
+                      <span className="sm:w-2/5 text-slate-500 font-medium shrink-0">Model Name</span>
+                      <span className="sm:w-3/5 text-slate-900 font-semibold">{product.name}</span>
+                    </div>
+                    <div className="py-2.5 flex flex-col sm:flex-row sm:items-baseline text-xs sm:text-sm">
+                      <span className="sm:w-2/5 text-slate-500 font-medium shrink-0">Brand</span>
+                      <span className="sm:w-3/5 text-slate-900 font-semibold">{product.brand || product.seller}</span>
+                    </div>
+                    <div className="py-2.5 flex flex-col sm:flex-row sm:items-baseline text-xs sm:text-sm">
+                      <span className="sm:w-2/5 text-slate-500 font-medium shrink-0">Category</span>
+                      <span className="sm:w-3/5 text-slate-900 font-semibold">{product.category}</span>
+                    </div>
+                    {product.subcategory && (
+                      <div className="py-2.5 flex flex-col sm:flex-row sm:items-baseline text-xs sm:text-sm">
+                        <span className="sm:w-2/5 text-slate-500 font-medium shrink-0">Subcategory</span>
+                        <span className="sm:w-3/5 text-slate-900 font-semibold">{product.subcategory}</span>
+                      </div>
+                    )}
+                    <div className="py-2.5 flex flex-col sm:flex-row sm:items-baseline text-xs sm:text-sm">
+                      <span className="sm:w-2/5 text-slate-500 font-medium shrink-0">Condition</span>
+                      <span className="sm:w-3/5 text-emerald-700 font-bold">Brand New • Sealed</span>
+                    </div>
+                    <div className="py-2.5 flex flex-col sm:flex-row sm:items-baseline text-xs sm:text-sm">
+                      <span className="sm:w-2/5 text-slate-500 font-medium shrink-0">Sold By</span>
+                      <span className="sm:w-3/5 text-blue-700 font-bold">{product.seller}</span>
+                    </div>
+                    {(product as any).stock != null && (
+                      <div className="py-2.5 flex flex-col sm:flex-row sm:items-baseline text-xs sm:text-sm">
+                        <span className="sm:w-2/5 text-slate-500 font-medium shrink-0">Stock Availability</span>
+                        <span className="sm:w-3/5 text-slate-900 font-semibold">{(product as any).stock} units ready to dispatch</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Technical / Parameters */}
+                {product.parameters && Object.keys(product.parameters).length > 0 && (() => {
+                  const excludedKeys = ['bookingmodel', 'bookingoptions', 'bookingoption', 'servicetype', 'flow', 'allowedfeatures', 'queueenabled'];
+                  const publicSpecs = Object.entries(product.parameters).filter(([key]) => {
+                    const cleaned = key.toLowerCase().replace(/[\s_-]/g, '');
+                    return !excludedKeys.some(k => cleaned.includes(k) || k.includes(cleaned));
+                  });
+
+                  if (publicSpecs.length === 0) return null;
+
+                  return (
+                    <div>
+                      <h3 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider pb-2 border-b border-slate-200 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span> Product Details & Performance
+                      </h3>
+                      <div className="divide-y divide-slate-100">
+                        {publicSpecs.map(([paramKey, paramVal]) => {
+                          const displayVal = Array.isArray(paramVal)
+                            ? paramVal.join(', ')
+                            : typeof paramVal === 'object' && paramVal !== null
+                              ? JSON.stringify(paramVal)
+                              : String(paramVal);
+
+                          return (
+                            <div key={paramKey} className="py-2.5 flex flex-col sm:flex-row sm:items-baseline text-xs sm:text-sm">
+                              <span className="sm:w-2/5 text-slate-500 font-medium shrink-0">{paramKey}</span>
+                              <span className="sm:w-3/5 text-slate-900 font-semibold break-words">{displayVal}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* Tab 2: Overview & Highlights */}
+            {activeDetailsTab === 'overview' && (
+              <div className="pt-5 space-y-5 animate-in fade-in duration-200">
+                {product.description ? (
+                  <div className="p-4 sm:p-5 rounded-xl bg-slate-50/80 border border-slate-200/80">
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-blue-600" /> Description
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-normal">
+                      {product.description}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-xs sm:text-sm text-slate-500 italic">No additional description text provided.</p>
+                )}
+
+                <div>
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">Highlights</h4>
+                  <ul className="space-y-2 text-xs sm:text-sm text-slate-800">
+                    <li className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 shrink-0"></span>
+                      <span>Original Brand Certified Product with nationwide service warranty</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 shrink-0"></span>
+                      <span>Rigorous multi-point quality inspection prior to packaging</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 shrink-0"></span>
+                      <span>Quick doorstep dispatch with real-time transit tracking</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 shrink-0"></span>
+                      <span>Secure payment support including UPI, Net Banking, and Cash on Delivery</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 3: What's in the Box */}
+            {activeDetailsTab === 'box' && (
+              <div className="pt-5 animate-in fade-in duration-200">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider pb-2 border-b border-slate-200 mb-3 flex items-center gap-2">
+                  <Package className="w-4 h-4 text-amber-600" /> Package Contents
+                </h3>
+                <div className="divide-y divide-slate-100">
+                  <div className="py-2.5 flex items-center gap-3 text-xs sm:text-sm text-slate-800 font-medium">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>1x {product.name}</span>
+                  </div>
+                  <div className="py-2.5 flex items-center gap-3 text-xs sm:text-sm text-slate-800 font-medium">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Original Power Adapter & Charging / Connection Cable</span>
+                  </div>
+                  <div className="py-2.5 flex items-center gap-3 text-xs sm:text-sm text-slate-800 font-medium">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Quick Start Guide & User Documentation</span>
+                  </div>
+                  <div className="py-2.5 flex items-center gap-3 text-xs sm:text-sm text-slate-800 font-medium">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Official Manufacturer Warranty Card & Tax Invoice</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 4: Warranty & Policies (Flipkart Clean Table Layout) */}
+            {activeDetailsTab === 'warranty' && (
+              <div className="pt-5 space-y-4 animate-in fade-in duration-200">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider pb-2 border-b border-slate-200 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-blue-600" /> Warranty Details & Return Policy
+                </h3>
+                <div className="divide-y divide-slate-100">
+                  <div className="py-2.5 flex flex-col sm:flex-row sm:items-baseline text-xs sm:text-sm">
+                    <span className="sm:w-2/5 text-slate-500 font-medium shrink-0">Warranty Summary</span>
+                    <span className="sm:w-3/5 text-slate-900 font-semibold">
+                      {(product.parameters as any)?.Warranty || (product.parameters as any)?.['Warranty Period'] || '1 Year Standard Manufacturer Warranty'}
+                    </span>
+                  </div>
+                  <div className="py-2.5 flex flex-col sm:flex-row sm:items-baseline text-xs sm:text-sm">
+                    <span className="sm:w-2/5 text-slate-500 font-medium shrink-0">Warranty Service Type</span>
+                    <span className="sm:w-3/5 text-slate-900 font-semibold">
+                      Authorized Brand Service Centers nationwide or Carry-in Service.
+                    </span>
+                  </div>
+                  <div className="py-2.5 flex flex-col sm:flex-row sm:items-baseline text-xs sm:text-sm">
+                    <span className="sm:w-2/5 text-slate-500 font-medium shrink-0">Covered in Warranty</span>
+                    <span className="sm:w-3/5 text-slate-900 font-semibold">
+                      Manufacturing defects, internal hardware failure, and components malfunction.
+                    </span>
+                  </div>
+                  <div className="py-2.5 flex flex-col sm:flex-row sm:items-baseline text-xs sm:text-sm">
+                    <span className="sm:w-2/5 text-slate-500 font-medium shrink-0">Not Covered in Warranty</span>
+                    <span className="sm:w-3/5 text-slate-900 font-semibold">
+                      Physical damage, liquid ingress, unauthorized tampering or electrical surge.
+                    </span>
+                  </div>
+                  <div className="py-2.5 flex flex-col sm:flex-row sm:items-baseline text-xs sm:text-sm">
+                    <span className="sm:w-2/5 text-slate-500 font-medium shrink-0">Return & Replacement</span>
+                    <span className="sm:w-3/5 text-emerald-700 font-bold flex items-center gap-1.5">
+                      <RotateCcw className="w-4 h-4 text-emerald-600 shrink-0" />
+                      7 Days Replacement Policy (Quick doorstep reverse pickup)
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          )}
+
+          {/* REVIEWS SECTION (Inside Right Column) */}
+          <div className="mt-8">
+            <ReviewsSection 
+              entityId={product.id} 
+              entityType={isServiceProviderItem ? "SERVICE" : "PRODUCT"} 
+              initialRating={product.rating}
+              initialReviewCount={product.reviews}
+            />
+          </div>
+
         </div>
       </div>
-
-      {/* REVIEWS SECTION */}
-      <ReviewsSection entityId={product.id} entityType="PRODUCT" />
 
       {/* Bottom Section: Related Products */}
       <div className="mt-20 pt-10 border-t border-slate-200">
