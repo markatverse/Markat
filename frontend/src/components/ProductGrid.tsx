@@ -157,7 +157,7 @@ export default function ProductGrid({
   if (!mounted || isLoading) {
     if (isHorizontal) {
       return (
-        <div className="flex gap-3 sm:gap-4 overflow-hidden py-1">
+        <div suppressHydrationWarning className="flex gap-3 sm:gap-4 overflow-hidden py-1">
           {Array.from({ length: Math.min(targetLimit, 8) }).map((_, i) => (
             <div key={i} className="w-[185px] sm:w-[220px] shrink-0 bg-slate-100 animate-pulse rounded-2xl h-[280px]" />
           ))}
