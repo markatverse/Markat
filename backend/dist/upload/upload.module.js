@@ -7,6 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import { UploadController } from './upload.controller.js';
+import { MediaGridFSService } from './media-gridfs.service.js';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { existsSync, mkdirSync } from 'fs';
@@ -40,11 +41,13 @@ UploadModule = __decorate([
                     },
                 }),
                 limits: {
-                    fileSize: 10 * 1024 * 1024,
+                    fileSize: 50 * 1024 * 1024,
                 },
             }),
         ],
         controllers: [UploadController],
+        providers: [MediaGridFSService],
+        exports: [MediaGridFSService],
     })
 ], UploadModule);
 export { UploadModule };

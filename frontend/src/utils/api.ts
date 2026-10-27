@@ -73,20 +73,27 @@ export const fastFetch = async <T = any>(
   return fetchPromise;
 };
 
+export const getCdnUrl = (): string => {
+  if (process.env.NEXT_PUBLIC_CDN_URL) {
+    return process.env.NEXT_PUBLIC_CDN_URL.replace(/\/$/, '');
+  }
+  return getApiUrl();
+};
+
 export const resolveMediaUrl = (url?: string): string => {
   if (!url) return '';
-  // If it's already a full remote URL that is NOT a local backend origin
+  const cdn = getCdnUrl();
+  // If it's already a full remote URL that is a local backend origin
   if (url.startsWith('http://localhost') || url.startsWith('http://127.0.0.1')) {
-    const api = getApiUrl();
     const path = url.replace(/^http:\/\/(localhost|127\.0\.0\.1):[0-9]+/, '');
-    return `${api}${path.startsWith('/') ? '' : '/'}${path}`;
+    return `${cdn}${path.startsWith('/') ? '' : '/'}${path}`;
   }
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return url;
   }
-  // Relative path e.g. /uploads/files-xxx.png or public/uploads/...
+  // Relative path e.g. /media/xxx or /uploads/files-xxx.png or public/uploads/...
   const cleanPath = url.startsWith('/') ? url : `/${url}`;
-  return `${getApiUrl()}${cleanPath}`;
+  return `${cdn}${cleanPath}`;
 };
 
 export const API_URL = getApiUrl();

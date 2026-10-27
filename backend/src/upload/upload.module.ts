@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import { UploadController } from './upload.controller.js';
+import { MediaGridFSService } from './media-gridfs.service.js';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { existsSync, mkdirSync } from 'fs';
@@ -29,10 +30,12 @@ if (!existsSync(uploadDir)) {
         },
       }),
       limits: {
-        fileSize: 10 * 1024 * 1024, // 10MB limit
+        fileSize: 50 * 1024 * 1024, // 50MB limit for high-res images and video clips
       },
     }),
   ],
   controllers: [UploadController],
+  providers: [MediaGridFSService],
+  exports: [MediaGridFSService],
 })
 export class UploadModule {}
