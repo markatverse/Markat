@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function ProductGridSkeleton({ count = 8 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 sm:gap-4 w-full">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 w-full">
       {[...Array(count)].map((_, i) => (
         <div key={i} className="bg-white rounded-xl p-3 sm:p-4 shadow-sm h-full flex flex-col border border-slate-100">
           {/* Image placeholder */}

@@ -33,9 +33,15 @@ function DashboardContent() {
   const querySubTab = searchParams.get('subtab') as 'tables' | 'reservations' | 'kot' | 'menu' | null;
 
   const [activeTab, setActiveTab] = useState<string>(() => {
+    if (queryTab === 'staff' || queryTab === 'customers') return 'customers_staff';
     if (queryTab) return queryTab;
     if (isAdding) return 'add_service';
     return 'overview';
+  });
+
+  const [peopleSubTab, setPeopleSubTab] = useState<'customers' | 'staff'>(() => {
+    if (queryTab === 'staff') return 'staff';
+    return 'customers';
   });
 
   const [foodSubTab, setFoodSubTab] = useState<'tables' | 'reservations' | 'kot' | 'menu'>(() => {
@@ -46,10 +52,22 @@ function DashboardContent() {
   });
 
   // Dynamic Routing Helper: updates state and syncs query params in URL with history push
-  const navigateTab = React.useCallback((newTab: string, newSubTab?: 'tables' | 'reservations' | 'kot' | 'menu') => {
-    setActiveTab(newTab);
-    if (newSubTab) {
+  const navigateTab = React.useCallback((newTab: string, newSubTab?: any) => {
+    if (newTab === 'staff') {
+      setActiveTab('customers_staff');
+      setPeopleSubTab('staff');
+    } else if (newTab === 'customers') {
+      setActiveTab('customers_staff');
+      setPeopleSubTab('customers');
+    } else {
+      setActiveTab(newTab);
+    }
+
+    if (newSubTab && ['tables', 'reservations', 'kot', 'menu'].includes(newSubTab)) {
       setFoodSubTab(newSubTab);
+    }
+    if (newSubTab && ['customers', 'staff'].includes(newSubTab)) {
+      setPeopleSubTab(newSubTab);
     }
     setIsMobileMenuOpen(false);
 
@@ -58,7 +76,7 @@ function DashboardContent() {
       url.searchParams.set('tab', newTab);
       if (newSubTab) {
         url.searchParams.set('subtab', newSubTab);
-      } else if (newTab !== 'sector_station') {
+      } else if (newTab !== 'sector_station' && newTab !== 'customers_staff') {
         url.searchParams.delete('subtab');
       }
       url.searchParams.delete('action');
@@ -71,7 +89,13 @@ function DashboardContent() {
     const handlePopState = () => {
       const url = new URL(window.location.href);
       const tabFromUrl = url.searchParams.get('tab');
-      if (tabFromUrl) {
+      if (tabFromUrl === 'staff') {
+        setActiveTab('customers_staff');
+        setPeopleSubTab('staff');
+      } else if (tabFromUrl === 'customers') {
+        setActiveTab('customers_staff');
+        setPeopleSubTab('customers');
+      } else if (tabFromUrl) {
         setActiveTab(tabFromUrl);
       } else {
         setActiveTab('overview');
@@ -88,7 +112,13 @@ function DashboardContent() {
   // React to searchParams change if router.push was used
   useEffect(() => {
     const currentTab = searchParams.get('tab');
-    if (currentTab && currentTab !== activeTab) {
+    if (currentTab === 'staff') {
+      setActiveTab('customers_staff');
+      setPeopleSubTab('staff');
+    } else if (currentTab === 'customers') {
+      setActiveTab('customers_staff');
+      setPeopleSubTab('customers');
+    } else if (currentTab && currentTab !== activeTab) {
       setActiveTab(currentTab);
     }
     const currentSubTab = searchParams.get('subtab') as 'tables' | 'reservations' | 'kot' | 'menu' | null;
@@ -1239,17 +1269,25 @@ function DashboardContent() {
               )}
 
               <button 
-                onClick={() => navigateTab('customers')} 
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'customers' ? 'bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                onClick={() => navigateTab('customers_staff')} 
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
+                  ['customers_staff', 'customers', 'staff'].includes(activeTab) 
+                    ? 'bg-emerald-50 text-emerald-800 font-bold border border-emerald-200 shadow-xs' 
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
               >
-                <Users className="w-5 h-5" /> Customers
-              </button>
-
-              <button 
-                onClick={() => navigateTab('staff')} 
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'staff' ? 'bg-rose-50 text-rose-700 font-bold border border-rose-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-              >
-                <UserPlus className="w-5 h-5" /> {activeVertical === 'DOCTOR' ? 'Doctors & Staff' : (activeVertical === 'FOOD' ? 'Kitchen & Waiters' : (activeVertical === 'EVENT' ? 'Crew & Coordinators' : 'Stylists & Staff'))}
+                <Users className="w-5 h-5 text-emerald-600 shrink-0" />
+                <span className="truncate">
+                  {activeVertical === 'DOCTOR' 
+                    ? 'Patients, Doctors & Staff' 
+                    : (activeVertical === 'FOOD' 
+                      ? 'Guests, Kitchen & Staff' 
+                      : (activeVertical === 'EVENT' 
+                        ? 'Clients, Crew & Staff' 
+                        : (activeVertical === 'AUTOWASH' 
+                          ? 'Clients, Bay Crew & Staff' 
+                          : 'Customers, Stylists & Staff')))}
+                </span>
               </button>
 
               <button 
@@ -2289,17 +2327,68 @@ function DashboardContent() {
           />
         )}
 
-        {/* CUSTOMERS MANAGEMENT TAB */}
-        {activeTab === 'customers' && (
-          <SellerCustomersTab activeVertical={activeVertical} />
-        )}
+        {/* COMBINED CUSTOMERS & STAFF TAB */}
+        {['customers_staff', 'customers', 'staff'].includes(activeTab) && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            {/* Top Sub-navigation Segmented Controller */}
+            <div className="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-slate-200">
+              <div className="flex items-center gap-2 p-1.5 bg-slate-100 rounded-2xl border border-slate-200/80">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPeopleSubTab('customers');
+                    navigateTab('customers_staff');
+                  }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                    peopleSubTab === 'customers'
+                      ? 'bg-white text-emerald-700 shadow-xs border border-slate-200/80'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Users className="w-4 h-4 text-emerald-600" />
+                  <span>Customers</span>
+                </button>
 
-        {/* STAFF & PERSONNEL ROSTER TAB */}
-        {activeTab === 'staff' && (
-          <SellerStaffTab 
-            activeVertical={activeVertical} 
-            onOpenStaffModal={() => setShowStaffModal(true)} 
-          />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPeopleSubTab('staff');
+                    navigateTab('customers_staff');
+                  }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                    peopleSubTab === 'staff'
+                      ? 'bg-white text-rose-700 shadow-xs border border-slate-200/80'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <UserPlus className="w-4 h-4 text-rose-600" />
+                  <span>
+                    {activeVertical === 'DOCTOR' ? 'Doctors & Staff' : (activeVertical === 'FOOD' ? 'Kitchen & Waiters' : (activeVertical === 'EVENT' ? 'Crew & Coordinators' : (activeVertical === 'AUTOWASH' ? 'Bay Technicians & Crew' : 'Stylists & Staff')))}
+                  </span>
+                </button>
+              </div>
+
+              {peopleSubTab === 'staff' && (
+                <button
+                  type="button"
+                  onClick={() => setShowStaffModal(true)}
+                  className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-xs flex items-center gap-2 transition-all cursor-pointer"
+                >
+                  <UserPlus className="w-4 h-4" /> Add Team Member
+                </button>
+              )}
+            </div>
+
+            {/* Active Sub-tab View */}
+            {peopleSubTab === 'customers' ? (
+              <SellerCustomersTab activeVertical={activeVertical} />
+            ) : (
+              <SellerStaffTab
+                activeVertical={activeVertical}
+                onOpenStaffModal={() => setShowStaffModal(true)}
+              />
+            )}
+          </div>
         )}
 
         {/* EVENT & PARTY ORGANIZER WORKFLOW STATION */}

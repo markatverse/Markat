@@ -495,7 +495,7 @@ export default function HomeSectionsContainer({
                 <h2 className="text-xl lg:text-2xl font-bold text-slate-900">Services For You</h2>
                 <Link href="/search?type=services" className="text-blue-600 font-bold hover:underline text-sm flex items-center gap-1">View All <span className="text-lg leading-none">›</span></Link>
               </div>
-              <ProductGrid serviceOnly={true} personalized={true} horizontal={true} limit={12} />
+              <ProductGrid serviceOnly={true} personalized={true} limit={10} />
             </section>
           </ScrollReveal>
         );
@@ -509,7 +509,7 @@ export default function HomeSectionsContainer({
                 <h2 className="text-xl lg:text-2xl font-bold text-slate-900">Products For You</h2>
                 <Link href="/search?type=products" className="text-blue-600 font-bold hover:underline text-sm flex items-center gap-1">View All <span className="text-lg leading-none">›</span></Link>
               </div>
-              <ProductGrid productOnly={true} personalized={true} horizontal={true} limit={12} />
+              <ProductGrid productOnly={true} personalized={true} limit={10} />
             </section>
           </ScrollReveal>
         );
