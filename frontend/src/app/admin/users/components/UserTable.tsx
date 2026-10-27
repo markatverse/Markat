@@ -297,12 +297,12 @@ export default function UserTable({ title, subtitle, allowedRoles }: { title: st
                       </div>
                     </div>
                   </td>
-                  <td className="p-4">
-                    <div className="text-sm text-slate-300">{user.email || 'No email provided'}</div>
+                  <td className="p-4 max-w-xs">
+                    <div className="text-sm text-slate-300 truncate" title={user.email}>{user.email || 'No email provided'}</div>
                     <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
-                      <Phone className="w-3 h-3 text-emerald-400" />
+                      <Phone className="w-3 h-3 text-emerald-400 shrink-0" />
                       {user.phone && !user.phone.startsWith('missing-phone') ? (
-                        <a href={`tel:${user.phone}`} className="hover:underline hover:text-white">
+                        <a href={`tel:${user.phone}`} className="hover:underline hover:text-white truncate" title={user.phone}>
                           +91-{user.phone}
                         </a>
                       ) : 'No phone provided'}
