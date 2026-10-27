@@ -52,6 +52,11 @@ export async function generateMetadata(): Promise<Metadata> {
     description,
     keywords: [
       "MarkatVerse",
+      "MaratVerse",
+      "MarketVerse",
+      "Markat Verse",
+      "Market Verse",
+      "Marat Verse",
       "hyperlocal marketplace",
       "online shopping India",
       "B2B wholesale",
@@ -122,6 +127,15 @@ const jsonLdData = {
       "@type": "Organization",
       "@id": "https://markatverse.com/#organization",
       name: "MarkatVerse",
+      alternateName: [
+        "MaratVerse",
+        "MarketVerse",
+        "Markat Verse",
+        "Market Verse",
+        "Marat Verse",
+        "Marcatverse",
+        "Markatvers"
+      ],
       url: "https://markatverse.com",
       logo: "https://markatverse.com/logo.png",
       description: "India's next-generation hyperlocal marketplace, wholesale B2B trade, and live appointment booking platform.",

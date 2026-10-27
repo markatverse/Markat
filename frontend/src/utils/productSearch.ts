@@ -56,6 +56,71 @@ const physicalProductCategories = [
   'power tools'
 ];
 
+export const BRAND_SYNONYMS = [
+  'markatverse',
+  'maratverse',
+  'marketverse',
+  'markat verse',
+  'market verse',
+  'marat verse',
+  'marcatverse',
+  'markatvers',
+  'markat',
+  'mkv',
+];
+
+/**
+ * Fast Levenshtein distance calculation for typo tolerance
+ */
+export function levenshteinDistance(a: string, b: string): number {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  const matrix: number[][] = [];
+
+  for (let i = 0; i <= b.length; i++) {
+    matrix[i] = [i];
+  }
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0][j] = j;
+  }
+
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1, // substitution
+          matrix[i][j - 1] + 1,     // insertion
+          matrix[i - 1][j] + 1      // deletion
+        );
+      }
+    }
+  }
+
+  return matrix[b.length][a.length];
+}
+
+/**
+ * Checks for phonetic or typo match (e.g., 'lapotp' -> 'laptop', 'maratverse' -> 'markatverse')
+ */
+export function isFuzzyMatch(target: string, query: string): boolean {
+  const t = target.toLowerCase();
+  const q = query.toLowerCase();
+  if (t.includes(q) || q.includes(t)) return true;
+
+  const words = t.split(/[\s,.-]+/);
+  for (const w of words) {
+    if (w.length >= 4 && q.length >= 4) {
+      const maxDistance = q.length > 6 ? 2 : 1;
+      if (levenshteinDistance(w, q) <= maxDistance) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 export function isServiceProduct(product?: (Product & { type?: string }) | null): boolean {
   if (!product) return false;
   
@@ -100,6 +165,11 @@ export function matchesProductSearch(product: Product, query: string) {
   const normalizedQuery = query.trim().toLocaleLowerCase();
   if (!normalizedQuery) return true;
 
+  // 1. Brand / Platform search matching (maratverse, marketverse, markat verse, etc.)
+  if (BRAND_SYNONYMS.includes(normalizedQuery)) {
+    return true;
+  }
+
   const searchableValues = [
     product.name,
     product.seller,
@@ -115,7 +185,14 @@ export function matchesProductSearch(product: Product, query: string) {
     ]),
   ];
 
-  return searchableValues.some(value =>
+  // 2. Exact or Substring match
+  const hasSubstringMatch = searchableValues.some(value =>
     String(value || '').toLocaleLowerCase().includes(normalizedQuery),
+  );
+  if (hasSubstringMatch) return true;
+
+  // 3. Typo-tolerant Fuzzy Match
+  return searchableValues.some(value =>
+    isFuzzyMatch(String(value || ''), normalizedQuery)
   );
 }
