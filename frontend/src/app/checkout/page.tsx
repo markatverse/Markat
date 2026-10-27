@@ -235,16 +235,13 @@ export default function CheckoutPage() {
           
           {/* Brand & Security Badge */}
           <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center group overflow-visible py-1 mr-2 sm:mr-5 shrink-0" title="Return to Marketplace">
+            <Link href="/" className="flex items-center group" title="Return to Marketplace">
               <picture>
                 <source srcSet="/logo-optimized.webp" type="image/webp" />
                 <img 
-                  src="/logo-optimized.webp" 
+                  src="/logo.png" 
                   alt="MarkatVerse" 
-                  loading="eager"
-                  fetchPriority="high"
-                  decoding="sync"
-                  className="h-10 sm:h-12 w-auto object-contain scale-[1.7] sm:scale-[2] origin-left hover:opacity-95 transition-opacity" 
+                  className="h-9 sm:h-11 w-auto object-contain hover:opacity-95 transition-opacity" 
                 />
               </picture>
             </Link>
@@ -258,60 +255,44 @@ export default function CheckoutPage() {
           </div>
 
           {/* Stepper (Desktop View) */}
-          <div className="hidden md:flex items-center gap-2.5 lg:gap-3">
-            {/* Step 1: Cart */}
-            <Link 
-              href="/cart"
-              className="flex items-center gap-2 group cursor-pointer"
-              title="Return to Cart"
-            >
-              <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-xs group-hover:bg-emerald-700 transition-colors">
-                <CheckCircle2 className="w-4 h-4" />
-              </div>
-              <span className="text-xs font-bold text-slate-700 group-hover:text-blue-600 transition-colors">
-                Cart
-              </span>
-            </Link>
-
-            <div className="w-6 lg:w-10 h-0.5 rounded bg-emerald-500"></div>
-
-            {/* Step 2: Delivery */}
+          <div className="hidden md:flex items-center gap-3">
+            {/* Step 1 */}
             <div 
               onClick={() => step > 1 && setStep(1)}
               className={`flex items-center gap-2 ${step > 1 ? 'cursor-pointer hover:opacity-80' : ''}`}
             >
               <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
-                step > 1 ? 'bg-emerald-600 text-white shadow-xs' : step === 1 ? 'bg-blue-600 text-white ring-4 ring-blue-100 shadow-xs' : 'bg-slate-100 text-slate-400'
+                step > 1 ? 'bg-emerald-600 text-white' : step === 1 ? 'bg-blue-600 text-white ring-4 ring-blue-100' : 'bg-slate-100 text-slate-400'
               }`}>
-                {step > 1 ? <CheckCircle2 className="w-4 h-4" /> : '2'}
+                {step > 1 ? <CheckCircle2 className="w-4 h-4" /> : '1'}
               </div>
               <span className={`text-xs font-bold ${step === 1 ? 'text-blue-600' : step > 1 ? 'text-slate-700' : 'text-slate-400'}`}>
                 Delivery
               </span>
             </div>
 
-            <div className={`w-6 lg:w-10 h-0.5 rounded transition-colors ${step >= 2 ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
+            <div className={`w-8 lg:w-12 h-0.5 rounded transition-colors ${step >= 2 ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
 
-            {/* Step 3: Payment */}
+            {/* Step 2 */}
             <div className="flex items-center gap-2">
               <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
-                step > 2 ? 'bg-emerald-600 text-white shadow-xs' : step === 2 ? 'bg-blue-600 text-white ring-4 ring-blue-100 shadow-xs' : 'bg-slate-100 text-slate-400'
+                step > 2 ? 'bg-emerald-600 text-white' : step === 2 ? 'bg-blue-600 text-white ring-4 ring-blue-100' : 'bg-slate-100 text-slate-400'
               }`}>
-                {step > 2 ? <CheckCircle2 className="w-4 h-4" /> : '3'}
+                {step > 2 ? <CheckCircle2 className="w-4 h-4" /> : '2'}
               </div>
               <span className={`text-xs font-bold ${step === 2 ? 'text-blue-600' : step > 2 ? 'text-slate-700' : 'text-slate-400'}`}>
                 Payment
               </span>
             </div>
 
-            <div className={`w-6 lg:w-10 h-0.5 rounded transition-colors ${step >= 3 ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
+            <div className={`w-8 lg:w-12 h-0.5 rounded transition-colors ${step >= 3 ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
 
-            {/* Step 4: Confirmation */}
+            {/* Step 3 */}
             <div className="flex items-center gap-2">
               <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
-                step === 3 ? 'bg-emerald-600 text-white ring-4 ring-emerald-100 shadow-xs' : 'bg-slate-100 text-slate-400'
+                step === 3 ? 'bg-emerald-600 text-white ring-4 ring-emerald-100' : 'bg-slate-100 text-slate-400'
               }`}>
-                {step === 3 ? <CheckCircle2 className="w-4 h-4" /> : '4'}
+                3
               </div>
               <span className={`text-xs font-bold ${step === 3 ? 'text-emerald-600' : 'text-slate-400'}`}>
                 Confirmation
@@ -346,17 +327,6 @@ export default function CheckoutPage() {
 
         {/* Mobile Stepper Banner */}
         <div className="md:hidden bg-slate-50 border-t border-slate-200 px-4 py-2 flex items-center justify-between text-xs font-bold text-slate-600">
-          <Link 
-            href="/cart"
-            className="flex items-center gap-1.5 text-slate-700 hover:text-blue-600 cursor-pointer"
-          >
-            <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold">
-              ✓
-            </span>
-            <span>Cart</span>
-          </Link>
-          <div className="w-4 sm:w-6 h-0.5 bg-emerald-500"></div>
-
           <div 
             onClick={() => step > 1 && setStep(1)}
             className={`flex items-center gap-1.5 ${step === 1 ? 'text-blue-600' : step > 1 ? 'text-slate-700 cursor-pointer' : 'text-slate-400'}`}
@@ -364,27 +334,25 @@ export default function CheckoutPage() {
             <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
               step > 1 ? 'bg-emerald-600 text-white' : step === 1 ? 'bg-blue-600 text-white' : 'bg-slate-200'
             }`}>
-              {step > 1 ? '✓' : '2'}
+              {step > 1 ? '✓' : '1'}
             </span>
             <span>Delivery</span>
           </div>
-          <div className={`w-4 sm:w-6 h-0.5 ${step >= 2 ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
-
+          <div className={`w-6 h-0.5 ${step >= 2 ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
           <div className={`flex items-center gap-1.5 ${step === 2 ? 'text-blue-600' : step > 2 ? 'text-slate-700' : 'text-slate-400'}`}>
             <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
               step > 2 ? 'bg-emerald-600 text-white' : step === 2 ? 'bg-blue-600 text-white' : 'bg-slate-200'
             }`}>
-              {step > 2 ? '✓' : '3'}
+              {step > 2 ? '✓' : '2'}
             </span>
             <span>Payment</span>
           </div>
-          <div className={`w-4 sm:w-6 h-0.5 ${step >= 3 ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
-
+          <div className={`w-6 h-0.5 ${step >= 3 ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
           <div className={`flex items-center gap-1.5 ${step === 3 ? 'text-emerald-600' : 'text-slate-400'}`}>
             <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
               step === 3 ? 'bg-emerald-600 text-white' : 'bg-slate-200'
             }`}>
-              4
+              3
             </span>
             <span>Confirm</span>
           </div>
