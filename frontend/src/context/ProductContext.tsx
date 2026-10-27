@@ -1782,11 +1782,14 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
 
   const activeCategories = useMemo(() => {
     return categories.filter(c => {
-      if (c.name === 'Construction' || c.name === 'Agriculture') return isSectorActive('b2b');
-      if (c.name === 'Beauty') return isSectorActive('salon');
-      if (c.name === 'Home') return isSectorActive('home');
-      if (c.name === 'Professional') return isSectorActive('events');
-      if (c.name === 'Sales & Rentals') return isSectorActive('transport');
+      const cLower = (c.name || '').toLowerCase();
+      if ((cLower === 'construction' || cLower === 'agriculture' || cLower === 'b2b') && !isSectorActive('b2b')) return false;
+      if ((cLower === 'beauty' || cLower === 'salon' || cLower === 'spa') && !isSectorActive('salon')) return false;
+      if ((cLower === 'home' || cLower === 'home services') && !isSectorActive('home')) return false;
+      if ((cLower === 'professional' || cLower === 'events' || cLower === 'organizers') && !isSectorActive('events')) return false;
+      if ((cLower === 'sales & rentals' || cLower === 'rentals' || cLower === 'transport') && !isSectorActive('transport')) return false;
+      if ((cLower.includes('car wash') || cLower.includes('automobile')) && !isSectorActive('automobile & car wash')) return false;
+      if ((cLower === 'food' || cLower === 'restaurant' || cLower.includes('dining')) && !isSectorActive('food')) return false;
       return true;
     });
   }, [categories, isSectorActive]);
@@ -1795,12 +1798,16 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     return products.filter(p => {
       if (p.status === 'SUSPENDED') return false;
       if (p.isB2B && !isSectorActive('b2b')) return false;
-      if (p.category === 'Beauty' && !isSectorActive('salon')) return false;
-      if (p.category === 'Home' && !isSectorActive('home')) return false;
-      if (p.category === 'Professional' && !isSectorActive('events')) return false;
-      if (p.category === 'Rentals' && !isSectorActive('transport')) return false;
-      if (p.category === 'B2B' && !isSectorActive('b2b')) return false;
-      if (p.category === 'Construction Materials' && !isSectorActive('b2b')) return false;
+      if (!p.isB2B && !isSectorActive('b2c')) return false;
+
+      const catLower = (p.category || '').toLowerCase();
+      if ((catLower === 'beauty' || catLower === 'salon' || catLower === 'spa') && !isSectorActive('salon')) return false;
+      if ((catLower === 'home' || catLower === 'home services') && !isSectorActive('home')) return false;
+      if ((catLower === 'professional' || catLower === 'events' || catLower === 'organizers') && !isSectorActive('events')) return false;
+      if ((catLower === 'rentals' || catLower === 'transport' || catLower === 'sales & rentals') && !isSectorActive('transport')) return false;
+      if ((catLower === 'b2b' || catLower === 'construction' || catLower === 'construction materials' || catLower === 'agriculture') && !isSectorActive('b2b')) return false;
+      if ((catLower.includes('car wash') || catLower.includes('automobile')) && !isSectorActive('automobile & car wash')) return false;
+      if ((catLower === 'food' || catLower === 'restaurant' || catLower.includes('dining')) && !isSectorActive('food')) return false;
       return true;
     });
   }, [products, isSectorActive]);

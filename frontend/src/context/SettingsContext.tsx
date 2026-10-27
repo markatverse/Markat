@@ -58,8 +58,18 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const isSectorActive = (sectorName: string) => {
-    const sector = sectors.find(s => s.name.toLowerCase() === sectorName.toLowerCase());
-    return sector ? sector.isActive : true; // Default to true if not found or not configured yet
+    if (!sectors || sectors.length === 0) return true;
+    const query = sectorName.toLowerCase().trim();
+    const sector = sectors.find(s => {
+      const name = s.name.toLowerCase().trim();
+      if (name === query) return true;
+      if (name.replace(/^product\s+/, '') === query) return true;
+      if (`product ${name}` === query) return true;
+      if (query === 'car wash' && name.includes('car wash')) return true;
+      if (query === 'automobile & car wash' && name.includes('car wash')) return true;
+      return false;
+    });
+    return sector ? sector.isActive : true;
   };
 
   const toggleSector = async (id: string, isActive: boolean) => {
