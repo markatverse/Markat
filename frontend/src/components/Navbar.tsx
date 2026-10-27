@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useProducts } from "@/context/ProductContext";
-import { Search, MapPin, Headphones, Store, ShoppingCart, User, ChevronDown, Package } from "lucide-react";
+import { Search, MapPin, Headphones, Store, ShoppingCart, User, ChevronDown, Package, Loader2 } from "lucide-react";
 import LiveTokenToggle from "@/components/LiveTokenToggle";
 import { isServiceProduct, matchesProductSearch } from '@/utils/productSearch';
 import { LOGO_DATA_URI } from '@/utils/logoDataUri';
@@ -18,6 +18,108 @@ export default function Navbar() {
 
   const [isLocationPopupOpen, setIsLocationPopupOpen] = useState(false);
   const [locationInput, setLocationInput] = useState("");
+  const [isApplyingLocation, setIsApplyingLocation] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  const handleApplyLocation = async () => {
+    const rawInput = locationInput.trim();
+    if (!rawInput) return;
+
+    setIsApplyingLocation(true);
+    setLocationError(null);
+
+    const cleanPin = rawInput.replace(/\D/g, '');
+    const isPincode = cleanPin.length === 6;
+
+    try {
+      if (isPincode) {
+        let district = '';
+        let state = '';
+        let locality = '';
+
+        try {
+          const pinRes = await fetch(`https://api.postalpincode.in/pincode/${cleanPin}`).then(r => r.json());
+          if (pinRes && pinRes[0] && pinRes[0].Status === 'Success' && Array.isArray(pinRes[0].PostOffice) && pinRes[0].PostOffice.length > 0) {
+            const po = pinRes[0].PostOffice[0];
+            district = po.District || '';
+            state = po.State || '';
+            locality = (po.Block && po.Block !== 'NA') ? po.Block : (po.Name || '');
+          }
+        } catch (e) {
+          console.warn('Pincode lookup error:', e);
+        }
+
+        let lat: number | null = null;
+        let lng: number | null = null;
+
+        try {
+          const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?postalcode=${cleanPin}&country=India&format=json`, {
+            headers: { 'User-Agent': 'MarkatVerse/1.0' }
+          }).then(r => r.json());
+
+          if (Array.isArray(geoRes) && geoRes.length > 0) {
+            lat = parseFloat(geoRes[0].lat);
+            lng = parseFloat(geoRes[0].lon);
+          } else if (district) {
+            const districtRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(`${district}, ${state}, India`)}&format=json&limit=1`, {
+              headers: { 'User-Agent': 'MarkatVerse/1.0' }
+            }).then(r => r.json());
+            if (Array.isArray(districtRes) && districtRes.length > 0) {
+              lat = parseFloat(districtRes[0].lat);
+              lng = parseFloat(districtRes[0].lon);
+            }
+          }
+        } catch (e) {
+          console.warn('Nominatim lookup error:', e);
+        }
+
+        let displayLocation = cleanPin;
+        if (locality && district && locality !== district) {
+          displayLocation = `${locality}, ${district} (${cleanPin})`;
+        } else if (district) {
+          displayLocation = `${district}, ${cleanPin}`;
+        } else if (state) {
+          displayLocation = `${state}, ${cleanPin}`;
+        }
+
+        setUserLocation(displayLocation);
+        setUserLat(lat);
+        setUserLng(lng);
+        setLocationInput(displayLocation);
+        setIsLocationPopupOpen(false);
+      } else {
+        // City or text query
+        const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(rawInput)}&countrycodes=in&format=json&limit=1`, {
+          headers: { 'User-Agent': 'MarkatVerse/1.0' }
+        }).then(r => r.json());
+
+        if (Array.isArray(geoRes) && geoRes.length > 0) {
+          const lat = parseFloat(geoRes[0].lat);
+          const lng = parseFloat(geoRes[0].lon);
+          const parts = (geoRes[0].display_name || '').split(',').map((s: string) => s.trim());
+          const cleanName = parts.slice(0, 2).join(', ');
+
+          setUserLocation(cleanName || rawInput);
+          setUserLat(lat);
+          setUserLng(lng);
+          setLocationInput(cleanName || rawInput);
+        } else {
+          setUserLocation(rawInput);
+          setUserLat(null);
+          setUserLng(null);
+        }
+        setIsLocationPopupOpen(false);
+      }
+    } catch (err) {
+      console.error('Failed to resolve location:', err);
+      setUserLocation(rawInput);
+      setUserLat(null);
+      setUserLng(null);
+      setIsLocationPopupOpen(false);
+    } finally {
+      setIsApplyingLocation(false);
+    }
+  };
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -157,24 +259,36 @@ export default function Navbar() {
                   <input
                     type="text"
                     placeholder="Enter pincode or city"
-                    className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                    className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 disabled:bg-slate-50"
                     value={locationInput}
-                    onChange={(e) => setLocationInput(e.target.value)}
+                    disabled={isApplyingLocation}
+                    onChange={(e) => {
+                      setLocationInput(e.target.value);
+                      if (locationError) setLocationError(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleApplyLocation();
+                      }
+                    }}
                   />
                   <button
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors"
-                    onClick={() => {
-                      if (locationInput.trim()) {
-                        setUserLocation(locationInput.trim());
-                        setUserLat(null);
-                        setUserLng(null);
-                      }
-                      setIsLocationPopupOpen(false);
-                    }}
+                    type="button"
+                    disabled={isApplyingLocation || !locationInput.trim()}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center justify-center min-w-[72px] cursor-pointer"
+                    onClick={handleApplyLocation}
                   >
-                    Apply
+                    {isApplyingLocation ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    ) : (
+                      'Apply'
+                    )}
                   </button>
                 </div>
+                {locationError && (
+                  <p className="text-[11px] text-rose-500 mb-2 font-medium">{locationError}</p>
+                )}
                 <button
                   onClick={() => {
                     if (!navigator.geolocation) {
