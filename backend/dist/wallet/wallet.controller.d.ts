@@ -4,36 +4,36 @@ export declare class WalletController {
     constructor(walletService: WalletService);
     getWallet(businessId: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         businessId: string;
         totalEarnings: number;
         pendingBalance: number;
         availableBalance: number;
         withdrawn: number;
         owedToPlatform: number;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     getTransactions(walletId: string): Promise<{
+        commission: number;
         id: string;
+        status: string;
         createdAt: Date;
-        walletId: string;
+        type: string;
         referenceId: string | null;
         referenceType: string | null;
+        walletId: string;
         paymentRef: string | null;
         grossAmount: number;
         platformFee: number;
-        commission: number;
         tax: number;
         netAmount: number;
-        type: string;
-        status: string;
         settledAt: Date | null;
     }[]>;
     getBankAccounts(businessId: string): Promise<{
         id: string;
-        businessId: string;
         createdAt: Date;
         updatedAt: Date;
+        businessId: string;
         accountName: string;
         accountNumber: string;
         ifscCode: string | null;
@@ -48,9 +48,9 @@ export declare class WalletController {
         bankName: string;
     }): Promise<{
         id: string;
-        businessId: string;
         createdAt: Date;
         updatedAt: Date;
+        businessId: string;
         accountName: string;
         accountNumber: string;
         ifscCode: string | null;

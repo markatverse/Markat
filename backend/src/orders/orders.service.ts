@@ -92,9 +92,12 @@ export class OrdersService {
     }));
   }
 
-  findByBuyer(buyerId: string) {
+  async findByBuyer(buyerId: string, alternateIds: string[] = []) {
+    const ids = Array.from(new Set([buyerId, ...alternateIds].filter(Boolean)));
     return this.prisma.order.findMany({
-      where: { buyerId },
+      where: {
+        OR: ids.map(id => ({ buyerId: id })),
+      },
       include: { items: true },
       orderBy: { createdAt: 'desc' },
     });

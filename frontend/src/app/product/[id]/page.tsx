@@ -210,29 +210,40 @@ export default function ProductDetails() {
     (product.parameters as any)?.bookingModel === 'PROPOSAL'
   ) : false;
 
-  const isProfessional = product && isActualService ? (
-    (product.category || '').toLowerCase().includes('professional') ||
-    (product.category || '').toLowerCase().includes('lawyer') ||
-    (product.category || '').toLowerCase().includes('legal') ||
-    (product.category || '').toLowerCase().includes('advocate') ||
-    (product.category || '').toLowerCase().includes('consultant') ||
-    (product.category || '').toLowerCase().includes('consultancy') ||
-    (product.category || '').toLowerCase().includes('accountant') ||
-    (product.category || '').toLowerCase().includes('ca') ||
-    (product.category || '').toLowerCase().includes('architect') ||
-    (product.category || '').toLowerCase().includes('financial advisor') ||
-    (product.subcategory || '').toLowerCase().includes('lawyer') ||
-    (product.subcategory || '').toLowerCase().includes('legal') ||
-    (product.subcategory || '').toLowerCase().includes('advocate') ||
-    (product.subcategory || '').toLowerCase().includes('consultant') ||
-    (product.subcategory || '').toLowerCase().includes('chartered') ||
-    (product.subcategory || '').toLowerCase().includes('tax') ||
-    (product.subcategory || '').toLowerCase().includes('ca') ||
-    (product.subcategory || '').toLowerCase().includes('architect') ||
-    (product.name || '').toLowerCase().includes('advocate') ||
-    (product.name || '').toLowerCase().includes('lawyer') ||
-    (product.name || '').toLowerCase().includes('legal counsel')
-  ) : false;
+  const isProfessional = product && isActualService ? (() => {
+    const text = `${product.category || ''} ${product.subcategory || ''} ${product.name || ''}`.toLowerCase();
+    // Strictly exclude manual trades and home maintenance (carpentry, cabinetry, plumbing, electrical, cleaning, repair)
+    if (
+      text.includes('carpenter') ||
+      text.includes('carpentry') ||
+      text.includes('cabinet') ||
+      text.includes('plumber') ||
+      text.includes('plumbing') ||
+      text.includes('electrician') ||
+      text.includes('furniture') ||
+      text.includes('cleaning') ||
+      text.includes('repair') ||
+      text.includes('mechanic')
+    ) {
+      return false;
+    }
+
+    return (
+      text.includes('professional') ||
+      text.includes('lawyer') ||
+      text.includes('legal') ||
+      text.includes('advocate') ||
+      text.includes('consultant') ||
+      text.includes('consultancy') ||
+      text.includes('accountant') ||
+      text.includes('chartered accountant') ||
+      /\bca\b/i.test(text) ||
+      text.includes('tax consultant') ||
+      text.includes('tax advisory') ||
+      text.includes('architect') ||
+      text.includes('financial advisor')
+    );
+  })() : false;
 
   const WALK_IN_CATEGORIES = ['salon', 'saloon', 'beauty', 'hair', 'barber', 'spa', 'nail', 'massage', 'pedicure', 'doctor', 'clinic', 'medical', 'hospital', 'dentist'];
   const isServiceQueue = product && isActualService ? (

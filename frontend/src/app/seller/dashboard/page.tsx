@@ -2424,6 +2424,7 @@ function DashboardContent() {
           <SellerOrdersTab 
             orders={orders}
             onMarkShipped={(orderId) => setOrders(orders.map(o => o.id === orderId ? {...o, status: 'Shipped'} : o))}
+            apiUrl={API_URL}
           />
         )}
 

@@ -40,15 +40,17 @@ let NotificationsController = class NotificationsController {
             throw new UnauthorizedException('Authentication required');
         let authenticatedUserId;
         try {
-            authenticatedUserId = this.jwtService.verify(token).sub;
+            const decoded = this.jwtService.verify(token);
+            authenticatedUserId = decoded.sub || decoded.id;
         }
         catch {
             throw new UnauthorizedException('Invalid or expired session');
         }
-        if (authenticatedUserId !== userId) {
+        const targetId = (userId === 'me' || !userId) ? authenticatedUserId : userId;
+        if (authenticatedUserId !== targetId) {
             throw new ForbiddenException('Access denied');
         }
-        return this.notificationsService.findHistoryForUser(userId);
+        return this.notificationsService.findHistoryForUser(targetId);
     }
     async getSmsTemplates() {
         return this.notificationsService.getSmsTemplates();

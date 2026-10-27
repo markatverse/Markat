@@ -18,7 +18,7 @@ interface ReviewsSectionProps {
   initialRating?: number | string;
   initialReviewCount?: number | string;
 }
-import { getApiUrl } from '@/utils/api';
+import { getApiUrl, fastFetch } from '@/utils/api';
 
 const API_URL = getApiUrl();
 
@@ -39,21 +39,35 @@ export default function ReviewsSection({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchReviews = async () => {
+    if (!entityId || entityId === 'undefined') {
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const res = await fetch(`${API_URL}/reviews/${entityType}/${entityId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setReviews(Array.isArray(data) ? data : []);
+      const data = await fastFetch<Review[]>(`/reviews/${entityType}/${entityId}`, {
+        timeoutMs: 4000,
+        ttlMs: 30000,
+      });
+
+      if (Array.isArray(data)) {
+        setReviews(data);
+      } else {
+        setReviews([]);
       }
-    } catch (err) {
-      console.error("Failed to fetch reviews", err);
+    } catch {
+      setReviews([]);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchReviews();
+    if (entityId && entityId !== 'undefined') {
+      fetchReviews();
+    } else {
+      setIsLoading(false);
+    }
   }, [entityId, entityType]);
 
   const handleSubmit = async (e: React.FormEvent) => {

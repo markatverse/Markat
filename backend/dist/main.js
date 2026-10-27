@@ -1,8 +1,16 @@
+import 'dotenv/config';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, resolve, join } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+dotenv.config({ path: resolve(__dirname, '../.env') });
+dotenv.config({ path: resolve(process.cwd(), '.env') });
+dotenv.config({ path: resolve(process.cwd(), 'backend/.env') });
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
-import { join } from 'path';
 import compression from 'compression';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';

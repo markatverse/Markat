@@ -37,16 +37,23 @@ let OrdersController = class OrdersController {
             : undefined;
         if (!token)
             throw new UnauthorizedException('Authentication required');
-        let userId;
+        let decoded;
         try {
-            userId = this.jwtService.verify(token).sub;
+            decoded = this.jwtService.verify(token);
         }
         catch {
             throw new UnauthorizedException('Invalid or expired session');
         }
-        if (userId !== buyerId)
+        const authenticatedUserId = decoded.sub || decoded.id;
+        const targetId = (buyerId === 'me' || !buyerId) ? authenticatedUserId : buyerId;
+        if (authenticatedUserId !== targetId && decoded.role !== 'ADMIN' && decoded.role !== 'SUPER_ADMIN') {
             throw new ForbiddenException('Access denied');
-        return this.ordersService.findByBuyer(userId);
+        }
+        return this.ordersService.findByBuyer(targetId, [
+            decoded.phone,
+            decoded.email,
+            decoded.markatId,
+        ].filter(Boolean));
     }
     findOne(id) {
         return this.ordersService.findOne(id);

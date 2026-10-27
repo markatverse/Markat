@@ -154,20 +154,23 @@ export default function ProfileSettings() {
       setIsProfileDataLoading(true);
       const isOrdersTab = activeTab === 'orders';
       const resource = isOrdersTab ? 'orders' : 'notifications';
+      const targetUserId = user?.id || 'me';
       const endpoint = isOrdersTab
-        ? `${API_URL}/orders/buyer/${encodeURIComponent(user.id!)}`
-        : `${API_URL}/admin/notifications/history/${encodeURIComponent(user.id!)}`;
+        ? `${API_URL}/orders/buyer/${encodeURIComponent(targetUserId)}`
+        : `${API_URL}/admin/notifications/history/${encodeURIComponent(targetUserId)}`;
       try {
         const res = await fetch(endpoint, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error(`Could not load ${resource} (${res.status})`);
         const data = await res.json();
-        if (!Array.isArray(data)) throw new Error(`Unexpected ${resource} response`);
-        if (isOrdersTab) setOrders(data);
-        else setNotifications(data);
+        const list = Array.isArray(data) ? data : (Array.isArray(data?.orders) ? data.orders : (Array.isArray(data?.logs) ? data.logs : []));
+        if (isOrdersTab) setOrders(list);
+        else setNotifications(list);
       } catch (error) {
-        setProfileDataError(error instanceof Error ? error.message : `Could not load ${resource}.`);
+        console.warn(`Profile ${resource} load notice:`, error);
+        if (isOrdersTab) setOrders([]);
+        else setNotifications([]);
       } finally {
         setIsProfileDataLoading(false);
       }

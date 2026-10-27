@@ -72,9 +72,9 @@ export default function ProfessionalBookingWidget({ service }: { service: any })
   const subLower = ((service?.subcategory || '') + ' ' + (service?.category || '') + ' ' + (service?.name || '')).toLowerCase();
 
   const isLawyer = subLower.includes('lawyer') || subLower.includes('legal') || subLower.includes('advocate');
-  const isAccountant = subLower.includes('accountant') || subLower.includes('ca') || subLower.includes('tax') || subLower.includes('chartered') || subLower.includes('audit');
-  const isArchitect = subLower.includes('architect') || subLower.includes('interior') || subLower.includes('civil') || subLower.includes('structural');
-  const isFreelancer = subLower.includes('freelance') || subLower.includes('editor') || subLower.includes('developer') || subLower.includes('designer') || subLower.includes('writer') || subLower.includes('software') || subLower.includes('it');
+  const isAccountant = subLower.includes('accountant') || subLower.includes('chartered') || subLower.includes('tax') || subLower.includes('audit') || /\bca\b/i.test(subLower);
+  const isArchitect = subLower.includes('architect') || subLower.includes('interior design') || subLower.includes('civil engineer') || subLower.includes('structural');
+  const isFreelancer = subLower.includes('freelance') || subLower.includes('developer') || subLower.includes('designer') || subLower.includes('writer') || subLower.includes('software engineer');
 
   // Consultation Mode
   const [mode, setMode] = useState<ConsultationMode>(isFreelancer ? 'VIDEO' : 'CHAMBER');

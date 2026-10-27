@@ -36,15 +36,25 @@ export class OrdersController {
       : undefined;
     if (!token) throw new UnauthorizedException('Authentication required');
 
-    let userId: string;
+    let decoded: any;
     try {
-      userId = this.jwtService.verify<{ sub: string }>(token).sub;
+      decoded = this.jwtService.verify(token);
     } catch {
       throw new UnauthorizedException('Invalid or expired session');
     }
-    if (userId !== buyerId) throw new ForbiddenException('Access denied');
 
-    return this.ordersService.findByBuyer(userId);
+    const authenticatedUserId = decoded.sub || decoded.id;
+    const targetId = (buyerId === 'me' || !buyerId) ? authenticatedUserId : buyerId;
+
+    if (authenticatedUserId !== targetId && decoded.role !== 'ADMIN' && decoded.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Access denied');
+    }
+
+    return this.ordersService.findByBuyer(targetId, [
+      decoded.phone,
+      decoded.email,
+      decoded.markatId,
+    ].filter(Boolean));
   }
 
   @Get(':id')

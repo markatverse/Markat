@@ -90,9 +90,12 @@ let OrdersService = class OrdersService {
             customerId: o.buyerId
         }));
     }
-    findByBuyer(buyerId) {
+    async findByBuyer(buyerId, alternateIds = []) {
+        const ids = Array.from(new Set([buyerId, ...alternateIds].filter(Boolean)));
         return this.prisma.order.findMany({
-            where: { buyerId },
+            where: {
+                OR: ids.map(id => ({ buyerId: id })),
+            },
             include: { items: true },
             orderBy: { createdAt: 'desc' },
         });

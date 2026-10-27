@@ -21,6 +21,7 @@ export declare class OrdersService {
             orderId: string;
         }[];
     } & {
+        shippingAddress: import("@prisma/client/runtime/library").JsonValue | null;
         id: string;
         status: string;
         createdAt: Date;
@@ -28,6 +29,11 @@ export declare class OrdersService {
         buyerId: string | null;
         orderNumber: string | null;
         total: number;
+        orderType: string | null;
+        trackingNumber: string | null;
+        courierPartner: string | null;
+        shippingLabelUrl: string | null;
+        estimatedDelivery: string | null;
     }>;
     findAll(): Promise<{
         id: string;
@@ -48,7 +54,7 @@ export declare class OrdersService {
         status: string;
         customerId: string | null;
     }[]>;
-    findByBuyer(buyerId: string): import(".prisma/client").Prisma.PrismaPromise<({
+    findByBuyer(buyerId: string, alternateIds?: string[]): Promise<({
         items: {
             id: string;
             createdAt: Date;
@@ -61,6 +67,7 @@ export declare class OrdersService {
             orderId: string;
         }[];
     } & {
+        shippingAddress: import("@prisma/client/runtime/library").JsonValue | null;
         id: string;
         status: string;
         createdAt: Date;
@@ -68,8 +75,14 @@ export declare class OrdersService {
         buyerId: string | null;
         orderNumber: string | null;
         total: number;
+        orderType: string | null;
+        trackingNumber: string | null;
+        courierPartner: string | null;
+        shippingLabelUrl: string | null;
+        estimatedDelivery: string | null;
     })[]>;
     findOne(id: string): import(".prisma/client").Prisma.Prisma__OrderClient<{
+        shippingAddress: import("@prisma/client/runtime/library").JsonValue | null;
         id: string;
         status: string;
         createdAt: Date;
@@ -77,8 +90,14 @@ export declare class OrdersService {
         buyerId: string | null;
         orderNumber: string | null;
         total: number;
+        orderType: string | null;
+        trackingNumber: string | null;
+        courierPartner: string | null;
+        shippingLabelUrl: string | null;
+        estimatedDelivery: string | null;
     } | null, null, import("@prisma/client/runtime/library").DefaultArgs>;
     update(id: string, updateOrderDto: UpdateOrderDto): Promise<{
+        shippingAddress: import("@prisma/client/runtime/library").JsonValue | null;
         id: string;
         status: string;
         createdAt: Date;
@@ -86,8 +105,14 @@ export declare class OrdersService {
         buyerId: string | null;
         orderNumber: string | null;
         total: number;
+        orderType: string | null;
+        trackingNumber: string | null;
+        courierPartner: string | null;
+        shippingLabelUrl: string | null;
+        estimatedDelivery: string | null;
     }>;
     remove(id: string): import(".prisma/client").Prisma.Prisma__OrderClient<{
+        shippingAddress: import("@prisma/client/runtime/library").JsonValue | null;
         id: string;
         status: string;
         createdAt: Date;
@@ -95,5 +120,10 @@ export declare class OrdersService {
         buyerId: string | null;
         orderNumber: string | null;
         total: number;
+        orderType: string | null;
+        trackingNumber: string | null;
+        courierPartner: string | null;
+        shippingLabelUrl: string | null;
+        estimatedDelivery: string | null;
     }, never, import("@prisma/client/runtime/library").DefaultArgs>;
 }

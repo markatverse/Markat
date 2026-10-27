@@ -42,15 +42,18 @@ export class NotificationsController {
 
     let authenticatedUserId: string;
     try {
-      authenticatedUserId = this.jwtService.verify<{ sub: string }>(token).sub;
+      const decoded: any = this.jwtService.verify(token);
+      authenticatedUserId = decoded.sub || decoded.id;
     } catch {
       throw new UnauthorizedException('Invalid or expired session');
     }
-    if (authenticatedUserId !== userId) {
+
+    const targetId = (userId === 'me' || !userId) ? authenticatedUserId : userId;
+    if (authenticatedUserId !== targetId) {
       throw new ForbiddenException('Access denied');
     }
 
-    return this.notificationsService.findHistoryForUser(userId);
+    return this.notificationsService.findHistoryForUser(targetId);
   }
 
   @Get('sms')

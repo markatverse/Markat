@@ -192,7 +192,7 @@ export default function CheckoutPage() {
 
     try {
       const apiUrl = getApiUrl();
-      await fetch(`${apiUrl}/orders`, {
+      const res = await fetch(`${apiUrl}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -217,8 +217,15 @@ export default function CheckoutPage() {
           }))
         })
       });
+
+      if (res.ok) {
+        const created = await res.json();
+        if (created?.orderNumber) {
+          orderData.id = created.orderNumber;
+        }
+      }
     } catch (e) {
-      console.error('Failed to create order', e);
+      console.warn('Backend order sync warning:', e);
     }
     
     setConfirmedOrder(orderData);
