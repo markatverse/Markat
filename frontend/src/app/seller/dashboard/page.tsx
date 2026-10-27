@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useProducts } from '@/context/ProductContext';
-import { Store, BarChart3, Package, PlusCircle, ArrowLeft, Trash2, Edit2, CheckCircle2, CalendarClock, Settings, Menu, X, Users, TrendingUp, Ticket, Clock, Ban, Search, Phone, Mail, FileText, MapPin, ChevronDown, Activity, Scissors, User, UserPlus, Sparkles, Palette, Droplet, Briefcase, Eye, ShieldCheck, Utensils, UtensilsCrossed, Stethoscope, HeartPulse, ChefHat, MessageSquare, Lock, Check, Info, Bell, Key, PartyPopper, Car, Wrench } from 'lucide-react';
+import { Store, BarChart3, Package, PlusCircle, ArrowLeft, Trash2, Edit2, CheckCircle2, CalendarClock, Settings, Menu, X, Users, TrendingUp, Ticket, Clock, Ban, Search, Phone, Mail, FileText, MapPin, ChevronDown, Activity, Scissors, User, UserPlus, Sparkles, Palette, Droplet, Briefcase, Eye, ShieldCheck, Utensils, UtensilsCrossed, Stethoscope, HeartPulse, ChefHat, MessageSquare, Lock, Check, Info, Bell, Key, PartyPopper, Car, Wrench, Wallet } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Suspense } from 'react';
 import StaffResourceManagementModal from '@/components/StaffResourceManagementModal';
@@ -21,6 +21,7 @@ import SellerStaffTab from '@/components/seller/SellerStaffTab';
 import SellerCustomersTab from '@/components/seller/SellerCustomersTab';
 import SellerBookingsTab from '@/components/seller/SellerBookingsTab';
 import SellerQueueTab from '@/components/seller/SellerQueueTab';
+import SellerWalletTab from '@/components/seller/SellerWalletTab';
 import { getApiUrl } from '@/utils/api';
 
 const API_URL = getApiUrl();
@@ -1021,7 +1022,7 @@ function DashboardContent() {
       {/* Sidebar */}
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-50
-        w-[85vw] max-w-[320px] lg:w-[280px] bg-white border-r border-slate-200 flex flex-col shrink-0 overflow-y-auto
+        w-[85vw] max-w-[320px] lg:w-[290px] bg-white border-r border-slate-200 flex flex-col shrink-0 overflow-y-auto
         transform transition-transform duration-300 ease-in-out
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
@@ -1087,28 +1088,39 @@ function DashboardContent() {
           </div>
         </div>
         
-        <nav className="flex-1 px-4 py-2 space-y-1">
+        <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
+          {/* Main Dashboard Overview */}
           <button 
             onClick={() => navigateTab('overview')} 
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'overview' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+              activeTab === 'overview' 
+                ? 'bg-blue-50 text-blue-700 border border-blue-200/80 shadow-xs' 
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
           >
-            <BarChart3 className="w-5 h-5" /> Dashboard
+            <BarChart3 className="w-5 h-5 text-blue-600 shrink-0" />
+            <span className="truncate">Dashboard</span>
           </button>
           
           {(!isService && !isServiceProvider) && (
             <button 
               onClick={() => navigateTab('listings')} 
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'listings' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                activeTab === 'listings' 
+                  ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200/80 shadow-xs' 
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              }`}
             >
-              <Store className="w-5 h-5" /> My Shop
+              <Store className="w-5 h-5 text-blue-600 shrink-0" />
+              <span className="truncate">My Shop Catalog</span>
             </button>
           )}
 
-          {/* Dynamic Sector Workflow Switcher - only shown if services are listed */}
+          {/* Dynamic Sector Workflow Switcher - only shown if multiple verticals */}
           {availableVerticals.length > 1 && (
-            <div className="mx-2 mb-3 p-2.5 bg-slate-50 rounded-2xl border border-slate-200/80">
+            <div className="mx-1 my-2 p-2 bg-slate-50 rounded-xl border border-slate-200/80">
               <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5 flex items-center justify-between">
-                <span>Listed Verticals</span>
+                <span>Switch Vertical</span>
                 <span className="text-indigo-600 font-bold">{activeVertical}</span>
               </div>
               <div className={`grid gap-1 ${availableVerticals.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
@@ -1139,7 +1151,7 @@ function DashboardContent() {
           )}
 
           {/* Sector Badge Indicator */}
-          <div className="mx-2 mb-3 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200/70 flex items-center justify-between">
+          <div className="mx-1 my-2 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200/70 flex items-center justify-between">
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Sector</span>
             <span className="text-xs font-bold flex items-center gap-1.5 text-indigo-700">
               {activeVertical === 'EVENT' && <PartyPopper className="w-3.5 h-3.5 text-fuchsia-600" />}
@@ -1153,23 +1165,34 @@ function DashboardContent() {
                     ? 'Dining & Food' 
                     : (activeVertical === 'DOCTOR' 
                       ? 'Clinic & Doctor' 
-                      : (sellerSector || 'Events & Parties')))}
+                      : (sellerSector || 'Salon & Parlor')))}
               </span>
             </span>
           </div>
 
-          {/* SERVICE PROVIDER FLOW (Phase 1 MVP) */}
+          {/* SERVICE PROVIDER OPERATIONS */}
           {(isService || isServiceProvider) && (
             <>
+              <div className="px-3 pt-2 pb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Operations
+                </span>
+              </div>
+
               {/* FOOD & DINING: Clean, unified single sidebar menu item */}
               {activeVertical === 'FOOD' ? (
                 <>
                   <button 
                     onClick={() => navigateTab('sector_station', foodSubTab)} 
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' ? 'bg-orange-50 text-orange-700 font-bold border border-orange-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                      activeTab === 'sector_station' 
+                        ? 'bg-orange-50 text-orange-700 font-bold border border-orange-200 shadow-xs' 
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
                   >
                     <div className="flex items-center gap-3">
-                      <Utensils className="w-5 h-5 text-orange-500" /> Dining & Kitchen
+                      <Utensils className="w-5 h-5 text-orange-500 shrink-0" />
+                      <span className="truncate">Dining & Kitchen</span>
                     </div>
                     <span className="px-2 py-0.5 bg-orange-100 text-orange-800 rounded text-[10px] font-bold capitalize">
                       {foodSubTab === 'tables' ? 'Floor' : (foodSubTab === 'reservations' ? 'Bookings' : (foodSubTab === 'kot' ? 'KOT' : 'Menu'))}
@@ -1178,10 +1201,15 @@ function DashboardContent() {
 
                   <button 
                     onClick={() => navigateTab('services')} 
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'services' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                      activeTab === 'services' 
+                        ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-xs' 
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
                   >
                     <div className="flex items-center gap-3">
-                      <Store className="w-5 h-5 text-blue-600" /> Restaurant Profile
+                      <Store className="w-5 h-5 text-blue-600 shrink-0" />
+                      <span className="truncate">Restaurant Profile</span>
                     </div>
                     <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-[10px] font-bold">Store</span>
                   </button>
@@ -1189,38 +1217,47 @@ function DashboardContent() {
               ) : (
                 /* CLINIC, SALON & OTHER SERVICE SECTORS */
                 <>
-                  {/* Primary Sector Workspace Station */}
-                  {activeVertical === 'DOCTOR' && (
-                    <button 
-                      onClick={() => navigateTab('sector_station')} 
-                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' ? 'bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Stethoscope className="w-5 h-5 text-emerald-600" /> OPD & Consults
-                      </div>
-                      <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">Clinic</span>
-                    </button>
-                  )}
-
+                  {/* Primary Station / Workstation */}
                   {activeVertical === 'SALON' && (
                     <button 
                       onClick={() => navigateTab('sector_station')} 
-                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'sector_station' ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                        activeTab === 'sector_station' 
+                          ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200 shadow-xs' 
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <Scissors className="w-5 h-5 text-indigo-600" /> Chairs & Stylists
-                      </div>
-                      <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded text-[10px] font-bold">Salon</span>
+                      <Scissors className="w-5 h-5 text-indigo-600 shrink-0" />
+                      <span className="truncate">Chairs & Stylists</span>
+                    </button>
+                  )}
+
+                  {activeVertical === 'DOCTOR' && (
+                    <button 
+                      onClick={() => navigateTab('sector_station')} 
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                        activeTab === 'sector_station' 
+                          ? 'bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 shadow-xs' 
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      }`}
+                    >
+                      <Stethoscope className="w-5 h-5 text-emerald-600 shrink-0" />
+                      <span className="truncate">OPD & Consults</span>
                     </button>
                   )}
 
                   {activeVertical === 'EVENT' && (
                     <button 
                       onClick={() => navigateTab('events_station')} 
-                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'events_station' ? 'bg-fuchsia-50 text-fuchsia-700 font-bold border border-fuchsia-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                        activeTab === 'events_station' 
+                          ? 'bg-fuchsia-50 text-fuchsia-700 font-bold border border-fuchsia-200 shadow-xs' 
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      }`}
                     >
                       <div className="flex items-center gap-3">
-                        <PartyPopper className="w-5 h-5 text-fuchsia-600" /> Event Inquiries & Quotes
+                        <PartyPopper className="w-5 h-5 text-fuchsia-600 shrink-0" />
+                        <span className="truncate">Event Quotes</span>
                       </div>
                       {eventInquiries.length > 0 && (
                         <span className="px-2 py-0.5 bg-fuchsia-600 text-white rounded-full text-[10px] font-bold">
@@ -1233,44 +1270,62 @@ function DashboardContent() {
                   {activeVertical === 'AUTOWASH' && (
                     <button 
                       onClick={() => navigateTab('bookings')} 
-                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'bookings' ? 'bg-cyan-50 text-cyan-800 font-bold border border-cyan-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                        activeTab === 'bookings' 
+                          ? 'bg-cyan-50 text-cyan-800 font-bold border border-cyan-200 shadow-xs' 
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <Car className="w-5 h-5 text-cyan-600" /> Wash & Service Bays
-                      </div>
-                      <span className="px-2 py-0.5 bg-cyan-100 text-cyan-800 rounded text-[10px] font-bold">Auto</span>
+                      <Car className="w-5 h-5 text-cyan-600 shrink-0" />
+                      <span className="truncate">Wash & Service Bays</span>
                     </button>
                   )}
 
-                  {/* Appointments, Live Queue & Service Catalog */}
+                  {/* Appointments */}
                   <button 
                     onClick={() => navigateTab('bookings')} 
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'bookings' ? 'bg-amber-50 text-amber-700 font-bold border border-amber-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                      activeTab === 'bookings' 
+                        ? 'bg-amber-50 text-amber-700 font-bold border border-amber-200 shadow-xs' 
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <CalendarClock className="w-5 h-5 text-amber-600" /> Bookings & Appointments
-                    </div>
+                    <CalendarClock className="w-5 h-5 text-amber-600 shrink-0" />
+                    <span className="truncate">Appointments</span>
                   </button>
 
+                  {/* Live Tokens & Queue */}
                   <button 
                     onClick={() => navigateTab('queue')} 
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'queue' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                      activeTab === 'queue' 
+                        ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-xs' 
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
                   >
-                    <span className="w-5 h-5 flex items-center justify-center text-lg">🎟️</span> Live Tokens & Walk-ins
+                    <Ticket className="w-5 h-5 text-blue-600 shrink-0" />
+                    <span className="truncate">Live Tokens & Walk-ins</span>
                   </button>
 
+                  {/* Services & Packages */}
                   <button 
                     onClick={() => navigateTab('services')} 
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'services' ? 'bg-purple-50 text-purple-700 font-bold border border-purple-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                      activeTab === 'services' 
+                        ? 'bg-purple-50 text-purple-700 font-bold border border-purple-200 shadow-xs' 
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
                   >
-                    <Briefcase className="w-5 h-5 text-purple-600" /> Services & Packages
+                    <Briefcase className="w-5 h-5 text-purple-600 shrink-0" />
+                    <span className="truncate">Services & Packages</span>
                   </button>
                 </>
               )}
 
+              {/* Customers & Staff */}
               <button 
                 onClick={() => navigateTab('customers_staff')} 
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   ['customers_staff', 'customers', 'staff'].includes(activeTab) 
                     ? 'bg-emerald-50 text-emerald-800 font-bold border border-emerald-200 shadow-xs' 
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -1279,86 +1334,134 @@ function DashboardContent() {
                 <Users className="w-5 h-5 text-emerald-600 shrink-0" />
                 <span className="truncate">
                   {activeVertical === 'DOCTOR' 
-                    ? 'Patients, Doctors & Staff' 
+                    ? 'Patients & Staff' 
                     : (activeVertical === 'FOOD' 
-                      ? 'Guests, Kitchen & Staff' 
+                      ? 'Guests & Staff' 
                       : (activeVertical === 'EVENT' 
-                        ? 'Clients, Crew & Staff' 
+                        ? 'Clients & Crew' 
                         : (activeVertical === 'AUTOWASH' 
-                          ? 'Clients, Bay Crew & Staff' 
-                          : 'Customers, Stylists & Staff')))}
+                          ? 'Clients & Bay Crew' 
+                          : 'Customers & Staff')))}
                 </span>
-              </button>
-
-              <button 
-                onClick={() => navigateTab('earnings')} 
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'earnings' ? 'bg-green-50 text-green-700 font-bold border border-green-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-              >
-                <TrendingUp className="w-5 h-5" /> Earnings
               </button>
             </>
           )}
 
           {/* PRODUCT SPECIFIC TABS */}
-          {(!isService && !isServiceProvider) && isCartFlow && (
-            <button 
-              onClick={() => navigateTab('orders')} 
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'orders' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-            >
-              <Package className="w-5 h-5" /> Orders
-            </button>
-          )}
-
-          {(!isService && !isServiceProvider) && isRfqFlow && (
-            <button 
-              onClick={() => navigateTab('leads')} 
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'leads' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-            >
-              <span className="w-5 h-5 flex items-center justify-center text-lg">💬</span> Leads / RFQ
-            </button>
-          )}
-
-          {(!isService && !isServiceProvider) && isProjectFlow && (
-            <button 
-              onClick={() => navigateTab('projects')} 
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'projects' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-            >
-              <span className="w-5 h-5 flex items-center justify-center text-lg">🏗️</span> Projects
-            </button>
-          )}
-
-          {isAssetFlow && (
+          {(!isService && !isServiceProvider) && (
             <>
-              <button 
-                onClick={() => navigateTab('enquiries')} 
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'enquiries' ? 'bg-rose-50 text-rose-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-              >
-                <span className="w-5 h-5 flex items-center justify-center text-lg">🔑</span> Enquiries
-              </button>
+              <div className="px-3 pt-2 pb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Sales & Orders
+                </span>
+              </div>
+
+              {isCartFlow && (
+                <button 
+                  onClick={() => navigateTab('orders')} 
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${activeTab === 'orders' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                >
+                  <Package className="w-5 h-5 text-blue-600 shrink-0" />
+                  <span className="truncate">Orders</span>
+                </button>
+              )}
+
+              {isRfqFlow && (
+                <button 
+                  onClick={() => navigateTab('leads')} 
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${activeTab === 'leads' ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                >
+                  <span className="w-5 h-5 flex items-center justify-center text-lg shrink-0">💬</span>
+                  <span className="truncate">Leads / RFQ</span>
+                </button>
+              )}
+
+              {isProjectFlow && (
+                <button 
+                  onClick={() => navigateTab('projects')} 
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${activeTab === 'projects' ? 'bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                >
+                  <span className="w-5 h-5 flex items-center justify-center text-lg shrink-0">🏗️</span>
+                  <span className="truncate">Projects</span>
+                </button>
+              )}
+
+              {isAssetFlow && (
+                <button 
+                  onClick={() => navigateTab('enquiries')} 
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${activeTab === 'enquiries' ? 'bg-rose-50 text-rose-700 font-bold border border-rose-200 shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                >
+                  <span className="w-5 h-5 flex items-center justify-center text-lg shrink-0">🔑</span>
+                  <span className="truncate">Enquiries</span>
+                </button>
+              )}
             </>
           )}
+
+          {/* ACCOUNT & FINANCE SECTION */}
+          <div className="px-3 pt-3 pb-1 border-t border-slate-100 mt-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              Account & Finance
+            </span>
+          </div>
+
+          {/* SINGLE UNIFIED WALLET & PAYOUTS TAB */}
+          <button 
+            onClick={() => navigateTab('wallet')} 
+            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+              (activeTab === 'wallet' || activeTab === 'earnings') 
+                ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-xs' 
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <Wallet className="w-5 h-5 text-blue-600 shrink-0" />
+              <span className="truncate">Wallet & Payouts</span>
+            </div>
+            {(user?.business?.wallet?.owedToPlatform ?? 0) > 0 ? (
+              <span className="text-[10px] font-extrabold bg-amber-500 text-white px-2 py-0.5 rounded-full animate-pulse shadow-xs shrink-0">
+                Dues: ₹{(user?.business?.wallet?.owedToPlatform ?? 0).toLocaleString('en-IN')}
+              </span>
+            ) : (
+              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/50 shrink-0">
+                Active
+              </span>
+            )}
+          </button>
+
           <button 
             onClick={() => navigateTab('profile')} 
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'profile' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+              activeTab === 'profile' 
+                ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-xs' 
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
           >
-            <User className="w-5 h-5" /> Profile
+            <User className="w-5 h-5 text-slate-500 shrink-0" />
+            <span className="truncate">Profile</span>
           </button>
+
           <button 
             onClick={() => navigateTab('settings')} 
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'settings' ? 'bg-red-50 text-red-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+              activeTab === 'settings' 
+                ? 'bg-red-50 text-red-700 font-bold border border-red-200 shadow-xs' 
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
           >
-            <Settings className="w-5 h-5" /> Settings
+            <Settings className="w-5 h-5 text-slate-500 shrink-0" />
+            <span className="truncate">Settings</span>
           </button>
           
-          <div className="pt-4 mt-2 border-t border-slate-100">
+          <div className="pt-3 mt-2 border-t border-slate-100">
             <button 
               onClick={() => logout()} 
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-colors"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
-              Log Out
+              <span>Log Out</span>
             </button>
           </div>
         </nav>
@@ -1864,32 +1967,37 @@ function DashboardContent() {
                   </div>
 
                   {/* Card 4: Platform Settlement / Wallet */}
-                  <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3.5 sm:p-5 shadow-2xs relative overflow-hidden group hover:border-purple-300 transition-all">
-                    <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-                      Platform Wallet
+                  <div 
+                    onClick={() => navigateTab('wallet')}
+                    className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-3.5 sm:p-5 shadow-2xs relative overflow-hidden group hover:border-purple-300 transition-all cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between text-slate-400 mb-1">
+                      <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        Wallet & Commission
+                      </span>
+                      <div className="w-6 h-6 rounded-md bg-purple-50 text-purple-600 flex items-center justify-center">
+                        <Wallet className="w-3.5 h-3.5" />
+                      </div>
                     </div>
                     <div className="text-2xl sm:text-3xl font-black text-slate-900 flex items-center justify-between">
                       <span>₹{(user?.business?.wallet?.owedToPlatform ?? 0).toLocaleString('en-IN')}</span>
-                      {(user?.business?.wallet?.owedToPlatform ?? 0) > 0 && (
-                        <button 
-                          onClick={async () => {
-                            if (confirm('Proceed to pay platform fees?')) {
-                              try {
-                                await fetch(`${API_URL}/wallet/business/${user?.business?.id}/pay-platform`, { method: 'POST' });
-                                alert('Payment successful!');
-                              } catch (e) {
-                                console.error(e);
-                              }
-                            }
-                          }}
-                          className="text-[10px] bg-orange-500 hover:bg-orange-600 text-white px-2 py-1 rounded-md font-bold"
-                        >
-                          Pay
-                        </button>
-                      )}
+                      <button 
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigateTab('wallet');
+                        }}
+                        className={`text-[10px] px-2.5 py-1 rounded-md font-bold transition-all shadow-xs cursor-pointer ${
+                          (user?.business?.wallet?.owedToPlatform ?? 0) > 0
+                            ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                            : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                        }`}
+                      >
+                        {(user?.business?.wallet?.owedToPlatform ?? 0) > 0 ? 'Settle Fee →' : 'View Wallet →'}
+                      </button>
                     </div>
                     <div className="text-[11px] sm:text-xs font-semibold text-slate-400 mt-1">
-                      {(user?.business?.wallet?.owedToPlatform ?? 0) > 0 ? 'Pending dues' : 'All clear (0 dues)'}
+                      {(user?.business?.wallet?.owedToPlatform ?? 0) > 0 ? '● Unsettled commission dues' : '✓ All clear (0 dues)'}
                     </div>
                   </div>
                 </div>
@@ -2409,6 +2517,15 @@ function DashboardContent() {
             <h2 className="text-3xl font-bold text-slate-800 mb-4 capitalize">{activeTab} Management</h2>
             <p className="text-slate-500">This feature is part of your sector&apos;s advanced workflow and is currently being built.</p>
           </div>
+        )}
+
+        {/* SELLER WALLET & SETTLEMENTS TAB */}
+        {(activeTab === 'wallet' || activeTab === 'earnings') && (
+          <SellerWalletTab 
+            businessId={user?.business?.id || user?.id || ''} 
+            businessName={user?.business?.name || user?.name || 'Seller Business'} 
+            commissionRate={user?.business?.commissionRate ?? 5} 
+          />
         )}
 
         {activeTab === 'profile' && (

@@ -88,20 +88,63 @@ export class WalletService {
     });
   }
 
-  async payPlatform(businessId: string) {
+  async payPlatform(businessId: string, fromBalance: boolean = false) {
     const wallet = await this.getWallet(businessId);
     if (!wallet) throw new NotFoundException('Wallet not found');
 
     const amountOwed = wallet.owedToPlatform;
     if (amountOwed <= 0) return wallet;
 
-    // Reset owedToPlatform
-    const updatedWallet = await this.prisma.wallet.update({
-      where: { id: wallet.id },
-      data: { owedToPlatform: 0 }
-    });
+    if (fromBalance) {
+      if (wallet.availableBalance < amountOwed) {
+        throw new BadRequestException('Insufficient available balance to settle commission');
+      }
 
-    return updatedWallet;
+      return this.prisma.$transaction(async (tx: any) => {
+        const updatedWallet = await tx.wallet.update({
+          where: { id: wallet.id },
+          data: {
+            owedToPlatform: 0,
+            availableBalance: { decrement: amountOwed }
+          }
+        });
+
+        await tx.ledgerTransaction.create({
+          data: {
+            walletId: wallet.id,
+            referenceType: 'COMMISSION_SETTLEMENT',
+            grossAmount: amountOwed,
+            platformFee: amountOwed,
+            netAmount: amountOwed,
+            type: 'SETTLEMENT',
+            status: 'COMPLETED'
+          }
+        });
+
+        return updatedWallet;
+      });
+    }
+
+    return this.prisma.$transaction(async (tx: any) => {
+      const updatedWallet = await tx.wallet.update({
+        where: { id: wallet.id },
+        data: { owedToPlatform: 0 }
+      });
+
+      await tx.ledgerTransaction.create({
+        data: {
+          walletId: wallet.id,
+          referenceType: 'COMMISSION_SETTLEMENT',
+          grossAmount: amountOwed,
+          platformFee: amountOwed,
+          netAmount: amountOwed,
+          type: 'SETTLEMENT',
+          status: 'COMPLETED'
+        }
+      });
+
+      return updatedWallet;
+    });
   }
 }
 

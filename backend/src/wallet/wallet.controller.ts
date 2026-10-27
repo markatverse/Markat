@@ -38,8 +38,9 @@ export class WalletController {
   @Post('business/:businessId/pay-platform')
   async payPlatform(
     @Param('businessId') businessId: string,
+    @Body() body?: { fromBalance?: boolean }
   ) {
-    return this.walletService.payPlatform(businessId);
+    return this.walletService.payPlatform(businessId, body?.fromBalance ?? false);
   }
 }
 

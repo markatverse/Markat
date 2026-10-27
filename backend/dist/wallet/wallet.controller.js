@@ -32,8 +32,8 @@ let WalletController = class WalletController {
     async requestWithdrawal(businessId, body) {
         return this.walletService.requestWithdrawal(businessId, body.amount, body.bankAccountId);
     }
-    async payPlatform(businessId) {
-        return this.walletService.payPlatform(businessId);
+    async payPlatform(businessId, body) {
+        return this.walletService.payPlatform(businessId, body?.fromBalance ?? false);
     }
 };
 __decorate([
@@ -76,8 +76,9 @@ __decorate([
 __decorate([
     Post('business/:businessId/pay-platform'),
     __param(0, Param('businessId')),
+    __param(1, Body()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], WalletController.prototype, "payPlatform", null);
 WalletController = __decorate([

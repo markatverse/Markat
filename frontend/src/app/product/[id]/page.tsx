@@ -1940,7 +1940,7 @@ export default function ProductDetails() {
                   <div className="flex flex-row items-center gap-2.5 sm:gap-4 w-full">
                     <button
                       className="flex-1 py-3 px-3 sm:px-6 sm:py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 active:scale-[0.99] text-white rounded-xl font-black text-sm sm:text-base transition-all shadow-md shadow-amber-500/20 text-center cursor-pointer flex items-center justify-center gap-2"
-                      onClick={() => requireAuth(() => {
+                      onClick={() => {
                         for (let i = 0; i < retailQuantity; i++) {
                           addToCart({
                             id: product.id,
@@ -1956,13 +1956,13 @@ export default function ProductDetails() {
                           });
                         }
                         router.push('/checkout');
-                      })}
+                      }}
                     >
                       <Zap className="w-4 h-4 fill-white" /> Buy Now
                     </button>
                     <button
                       className="flex-1 py-3 px-3 sm:px-6 sm:py-3.5 bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white rounded-xl font-black text-sm sm:text-base transition-all shadow-md text-center cursor-pointer flex items-center justify-center gap-2"
-                      onClick={() => requireAuth(() => {
+                      onClick={() => {
                         for (let i = 0; i < retailQuantity; i++) {
                           addToCart({
                             id: product.id,
@@ -1981,7 +1981,7 @@ export default function ProductDetails() {
                           icon: '🛍️',
                           duration: 2500
                         });
-                      })}
+                      }}
                     >
                       <ShoppingBag className="w-4 h-4" /> Add to Cart
                     </button>
