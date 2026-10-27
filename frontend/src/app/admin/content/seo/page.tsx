@@ -192,8 +192,7 @@ export default function ContentSeoPage() {
             <table className="w-full text-left border-collapse">
               <thead className="bg-slate-900/90 border-b border-slate-700 text-slate-400 text-[10px] uppercase tracking-widest font-black">
                 <tr>
-                  <th className="p-4 pl-6">ID</th>
-                  <th className="p-4">Page URL</th>
+                  <th className="p-4 pl-6">Page URL</th>
                   <th className="p-4">Meta Title & Description</th>
                   <th className="p-4">Keywords</th>
                   <th className="p-4">Status</th>
@@ -203,8 +202,7 @@ export default function ContentSeoPage() {
               <tbody className="divide-y divide-slate-700/50">
                 {filteredSeoData.map((seo) => (
                   <tr key={seo.id} className="hover:bg-slate-700/40 transition-colors">
-                    <td className="p-4 pl-6 font-mono text-xs text-slate-500">{seo.id.substring(0, 8)}...</td>
-                    <td className="p-4">
+                    <td className="p-4 pl-6">
                       <span className="font-bold text-white font-mono text-sm bg-slate-900 px-2.5 py-1 rounded-md border border-slate-700">
                         {seo.pageUrl}
                       </span>
