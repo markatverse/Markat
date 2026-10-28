@@ -26,6 +26,7 @@ export type Product = {
   badgeColor?: string;
   isPremium?: boolean;
   isB2B?: boolean;
+  isBoth?: boolean;
   moq?: number;
   wholesaleTiers?: { minQty: number, margin: number }[];
   brand?: string;

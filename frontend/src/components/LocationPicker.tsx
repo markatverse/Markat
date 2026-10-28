@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import 'leaflet/dist/leaflet.css';
 
 // Use dynamic import so MapContainer and TileLayer don't crash on SSR
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
