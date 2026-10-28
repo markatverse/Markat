@@ -1495,50 +1495,24 @@ export const defaultCategories: Category[] = [
 
 import { useAuth } from './AuthContext';
 import { useSettings } from './SettingsContext';
+import { isServiceProduct } from '@/utils/productSearch';
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export function ProductProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const { isSectorActive } = useSettings();
+
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>(defaultCategories);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [userLocation, setUserLocation] = useState<string>('');
   const [userLat, setUserLat] = useState<number | null>(null);
   const [userLng, setUserLng] = useState<number | null>(null);
   const [radiusFilter, setRadiusFilter] = useState<number | null>(null);
 
+  // Restore client-side cache immediately post-hydration (prevents SSR hydration mismatch)
   useEffect(() => {
-    if (typeof window !== 'undefined' && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-          setUserLat(latitude);
-          setUserLng(longitude);
-          
-          const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
-          const data = await res.json();
-          
-          if (data) {
-            const city = data.city || data.locality || data.principalSubdivision;
-            const pincode = data.postcode || '';
-            
-            if (city) {
-              setUserLocation(city + (pincode ? `, ${pincode}` : ''));
-            }
-          }
-        } catch (error) {
-          console.error("Auto-location fetch failed", error);
-        }
-      }, (err) => {
-        console.log("Auto-location permission denied or failed:", err.message);
-      }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-    }
-  }, []);
-
-  useEffect(() => {
-    // 1. Instant cache load from localStorage
     try {
       const cached = localStorage.getItem('mv_cache_products');
       if (cached) {
@@ -1548,9 +1522,135 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
           setIsLoading(false);
         }
       }
+      const cachedLoc = localStorage.getItem('mv_user_location');
+      if (cachedLoc) setUserLocation(cachedLoc);
+      const lat = localStorage.getItem('mv_user_lat');
+      if (lat) {
+        const parsed = parseFloat(lat);
+        if (!isNaN(parsed)) setUserLat(parsed);
+      }
+      const lng = localStorage.getItem('mv_user_lng');
+      if (lng) {
+        const parsed = parseFloat(lng);
+        if (!isNaN(parsed)) setUserLng(parsed);
+      }
     } catch {}
+  }, []);
 
-    // 2. Fetch fresh products
+    // Fast Geolocation with cache & 3.5s timeout
+  useEffect(() => {
+    if (typeof window !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            const prevLatStr = localStorage.getItem('mv_user_lat');
+            const prevLngStr = localStorage.getItem('mv_user_lng');
+            const cachedLoc = localStorage.getItem('mv_user_location');
+
+            // If coordinates haven't changed substantially (< ~1km) and location is already cached, reuse
+            if (prevLatStr && prevLngStr && cachedLoc) {
+              const prevLat = parseFloat(prevLatStr);
+              const prevLng = parseFloat(prevLngStr);
+              const distApprox = Math.abs(latitude - prevLat) + Math.abs(longitude - prevLng);
+              if (distApprox < 0.015) {
+                setUserLat(latitude);
+                setUserLng(longitude);
+                if (!userLocation) setUserLocation(cachedLoc);
+                return;
+              }
+            }
+
+            setUserLat(latitude);
+            setUserLng(longitude);
+            try {
+              localStorage.setItem('mv_user_lat', String(latitude));
+              localStorage.setItem('mv_user_lng', String(longitude));
+            } catch {}
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3500);
+            try {
+              const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`, { signal: controller.signal });
+              clearTimeout(timeoutId);
+              if (res.ok) {
+                const data = await res.json();
+                const city = data.city || data.locality || data.principalSubdivision;
+                const pincode = data.postcode || '';
+                if (city) {
+                  const locStr = city + (pincode ? `, ${pincode}` : '');
+                  setUserLocation(locStr);
+                  try {
+                    localStorage.setItem('mv_user_location', locStr);
+                  } catch {}
+                }
+              }
+            } catch {
+              clearTimeout(timeoutId);
+            }
+          } catch (error) {
+            console.error("Auto-location fetch failed", error);
+          }
+        },
+        (err) => {
+          console.log("Auto-location permission note:", err.message);
+        },
+        { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
+      );
+    }
+  }, []);
+
+  // Fetch categories once on mount with caching
+  useEffect(() => {
+    const normalizeCategoryKey = (name: string) => {
+      const k = (name || '').toLowerCase().trim();
+      if (k === 'freelance' || k === 'freelancer') return 'freelancer';
+      return k;
+    };
+
+    const mergeWithDefaults = (fetched: Category[]): Category[] => {
+      const mergedMap = new Map<string, Category>();
+      defaultCategories.forEach(c => {
+        const key = normalizeCategoryKey(c.name);
+        mergedMap.set(key, { ...c, name: key === 'freelancer' ? 'Freelancer' : c.name });
+      });
+      fetched.forEach(c => {
+        const key = normalizeCategoryKey(c.name);
+        const canonicalName = key === 'freelancer' ? 'Freelancer' : c.name;
+        const existing = mergedMap.get(key);
+        if (existing) {
+          mergedMap.set(key, {
+            ...existing,
+            ...c,
+            name: canonicalName,
+            subcategories: (c.subcategories && c.subcategories.length >= (existing.subcategories?.length || 0))
+              ? c.subcategories
+              : existing.subcategories
+          });
+        } else {
+          mergedMap.set(key, { ...c, name: canonicalName });
+        }
+      });
+      return Array.from(mergedMap.values());
+    };
+
+    fastFetch<any[]>(`${API_URL}/categories`, { ttlMs: 60000 })
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          const merged = mergeWithDefaults(data);
+          setCategories(merged);
+          try {
+            localStorage.setItem('mv_cache_categories', JSON.stringify(merged));
+          } catch {}
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch categories:', err);
+      });
+  }, []);
+
+  // Fetch products when location or radius filter changes
+  useEffect(() => {
     let url = `/products?location=${encodeURIComponent(userLocation)}`;
     if (userLat !== null && userLng !== null) {
       url += `&lat=${userLat}&lng=${userLng}`;
@@ -1558,7 +1658,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     if (radiusFilter !== null) {
       url += `&radius=${radiusFilter}`;
     }
-    
+
     fastFetch<any>(url, { ttlMs: 15000 })
       .then(data => {
         let rawItems: any[] = [];
@@ -1594,70 +1694,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         console.error('Failed to fetch products:', err);
       })
       .finally(() => setIsLoading(false));
-
-    // Fetch categories with instant local cache + fastFetch
-    const normalizeCategoryKey = (name: string) => {
-      const k = (name || '').toLowerCase().trim();
-      if (k === 'freelance' || k === 'freelancer') return 'freelancer';
-      return k;
-    };
-
-    const mergeWithDefaults = (fetched: Category[]): Category[] => {
-      const mergedMap = new Map<string, Category>();
-      // 1. Put all defaultCategories first
-      defaultCategories.forEach(c => {
-        const key = normalizeCategoryKey(c.name);
-        mergedMap.set(key, { ...c, name: key === 'freelancer' ? 'Freelancer' : c.name });
-      });
-      // 2. Overlay server data
-      fetched.forEach(c => {
-        const key = normalizeCategoryKey(c.name);
-        const canonicalName = key === 'freelancer' ? 'Freelancer' : c.name;
-        const existing = mergedMap.get(key);
-        if (existing) {
-          mergedMap.set(key, {
-            ...existing,
-            ...c,
-            name: canonicalName,
-            // If server has empty or fewer subcategories, keep the richer subcategories
-            subcategories: (c.subcategories && c.subcategories.length >= (existing.subcategories?.length || 0))
-              ? c.subcategories
-              : existing.subcategories
-          });
-        } else {
-          mergedMap.set(key, { ...c, name: canonicalName });
-        }
-      });
-      return Array.from(mergedMap.values());
-    };
-
-    try {
-      const cachedCat = localStorage.getItem('mv_cache_categories');
-      if (cachedCat) {
-        const parsedCat = JSON.parse(cachedCat);
-        if (Array.isArray(parsedCat) && parsedCat.length > 0) {
-          setCategories(mergeWithDefaults(parsedCat));
-        }
-      }
-    } catch {}
-
-    fastFetch<any[]>(`${API_URL}/categories`, { ttlMs: 60000 })
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          const merged = mergeWithDefaults(data);
-          setCategories(merged);
-          try {
-            localStorage.setItem('mv_cache_categories', JSON.stringify(merged));
-          } catch {}
-        } else {
-          setCategories(defaultCategories);
-        }
-      })
-      .catch(err => {
-        console.error('Failed to fetch categories:', err);
-        setCategories(defaultCategories);
-      });
-  }, [user?.id, userLocation, userLat, userLng, radiusFilter]);
+  }, [userLocation, userLat, userLng, radiusFilter]);
 
   const addProduct = async (product: Omit<Product, 'id'>) => {
     try {
@@ -1783,13 +1820,21 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   const activeCategories = useMemo(() => {
     return categories.filter(c => {
       const cLower = (c.name || '').toLowerCase();
+
+      // Service categories are strictly controlled by their respective Service Sectors
+      if (c.primaryType === 'SERVICE') {
+        if ((cLower.includes('salon') || cLower.includes('beauty') || cLower.includes('spa')) && !isSectorActive('salon')) return false;
+        if ((cLower === 'home' || cLower === 'home services' || cLower === 'cleaner' || cLower === 'repair') && !isSectorActive('home')) return false;
+        if ((cLower === 'professional' || cLower === 'events' || cLower === 'organizers' || cLower === 'event planner') && !isSectorActive('events')) return false;
+        if ((cLower === 'sales & rentals' || cLower === 'rentals' || cLower === 'transport' || cLower === 'logistics') && !isSectorActive('transport')) return false;
+        if ((cLower.includes('car wash') || cLower.includes('automobile')) && !isSectorActive('automobile & car wash')) return false;
+        if ((cLower === 'food' || cLower === 'restaurant' || cLower.includes('dining')) && !isSectorActive('food')) return false;
+        return true;
+      }
+
+      // Product categories are governed by Product Sectors (B2B, B2C, Both)
       if ((cLower === 'construction' || cLower === 'agriculture' || cLower === 'b2b') && !isSectorActive('b2b')) return false;
-      if ((cLower === 'beauty' || cLower === 'salon' || cLower === 'spa') && !isSectorActive('salon')) return false;
-      if ((cLower === 'home' || cLower === 'home services') && !isSectorActive('home')) return false;
-      if ((cLower === 'professional' || cLower === 'events' || cLower === 'organizers') && !isSectorActive('events')) return false;
-      if ((cLower === 'sales & rentals' || cLower === 'rentals' || cLower === 'transport') && !isSectorActive('transport')) return false;
-      if ((cLower.includes('car wash') || cLower.includes('automobile')) && !isSectorActive('automobile & car wash')) return false;
-      if ((cLower === 'food' || cLower === 'restaurant' || cLower.includes('dining')) && !isSectorActive('food')) return false;
+      if (!isSectorActive('b2c') && !isSectorActive('b2b') && !isSectorActive('both')) return false;
       return true;
     });
   }, [categories, isSectorActive]);
@@ -1797,17 +1842,90 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   const activeProducts = useMemo(() => {
     return products.filter(p => {
       if (p.status === 'SUSPENDED') return false;
+
+      const isService = isServiceProduct(p);
+
+      if (isService) {
+        // Services are strictly governed by Service Sectors (NOT Product Sectors like B2B/B2C)
+        const catLower = (p.category || '').toLowerCase();
+        const subLower = (p.subcategory || '').toLowerCase();
+
+        // 1. Salon & Spa & Beauty
+        if (
+          (catLower.includes('salon') || catLower.includes('spa') || catLower === 'beauty' ||
+           subLower.includes('salon') || subLower.includes('spa') || subLower.includes('hair') ||
+           subLower.includes('facial')) &&
+          !isSectorActive('salon')
+        ) {
+          return false;
+        }
+
+        // 2. Home Services (Cleaners, Painters, Plumbers, Electricians, Carpenters)
+        if (
+          (catLower === 'home' || catLower === 'home services' || catLower === 'cleaner' ||
+           catLower === 'painter' || catLower === 'plumber' || catLower === 'electrician' ||
+           catLower === 'carpenter' || subLower.includes('repair') || subLower.includes('cleaning') ||
+           subLower.includes('plumbing') || subLower.includes('electrical') || subLower.includes('sanitization')) &&
+          !isSectorActive('home')
+        ) {
+          return false;
+        }
+
+        // 3. Events & Professional Organizers / Photographers / Doctors / Tutors
+        if (
+          (catLower === 'events' || catLower === 'event planner' || catLower === 'organizers' ||
+           catLower === 'photographer' || catLower === 'tutor' || catLower === 'professional' ||
+           catLower === 'freelancer' || catLower === 'doctor' || catLower === 'consulting') &&
+          !isSectorActive('events')
+        ) {
+          return false;
+        }
+
+        // 4. Transport & Logistics / Rentals
+        if (
+          (catLower === 'transport' || catLower === 'rentals' || catLower === 'sales & rentals' ||
+           catLower === 'logistics' || catLower === 'delivery') &&
+          !isSectorActive('transport')
+        ) {
+          return false;
+        }
+
+        // 5. Automobile & Car Wash
+        if (
+          (catLower.includes('car wash') || catLower.includes('automobile') || catLower === 'mechanic' ||
+           subLower.includes('car wash') || subLower.includes('automobile') || subLower.includes('breakdown')) &&
+          !isSectorActive('automobile & car wash')
+        ) {
+          return false;
+        }
+
+        // 6. Food & Dining
+        if (
+          (catLower === 'food' || catLower === 'restaurant' || catLower.includes('dining') ||
+           subLower.includes('restaurant') || subLower.includes('dining') || subLower.includes('cafe') ||
+           subLower.includes('bistro')) &&
+          !isSectorActive('food')
+        ) {
+          return false;
+        }
+
+        return true;
+      }
+
+      // Physical Products: governed by Product Sectors (B2B wholesale, B2C retail, Both)
+      const isDualMode = Boolean(p.isBoth || (p as any).businessModel === 'BOTH');
+      if (isDualMode && !isSectorActive('both') && !isSectorActive('both b2b & b2c')) {
+        return false;
+      }
+
       if (p.isB2B && !isSectorActive('b2b')) return false;
-      if (!p.isB2B && !isSectorActive('b2c')) return false;
+      if (!p.isB2B && !isDualMode && !isSectorActive('b2c')) return false;
 
       const catLower = (p.category || '').toLowerCase();
-      if ((catLower === 'beauty' || catLower === 'salon' || catLower === 'spa') && !isSectorActive('salon')) return false;
-      if ((catLower === 'home' || catLower === 'home services') && !isSectorActive('home')) return false;
-      if ((catLower === 'professional' || catLower === 'events' || catLower === 'organizers') && !isSectorActive('events')) return false;
-      if ((catLower === 'rentals' || catLower === 'transport' || catLower === 'sales & rentals') && !isSectorActive('transport')) return false;
-      if ((catLower === 'b2b' || catLower === 'construction' || catLower === 'construction materials' || catLower === 'agriculture') && !isSectorActive('b2b')) return false;
-      if ((catLower.includes('car wash') || catLower.includes('automobile')) && !isSectorActive('automobile & car wash')) return false;
-      if ((catLower === 'food' || catLower === 'restaurant' || catLower.includes('dining')) && !isSectorActive('food')) return false;
+      if ((catLower === 'b2b' || catLower === 'construction' || catLower === 'construction materials' || catLower === 'agriculture') && !isSectorActive('b2b')) {
+        return false;
+      }
+
       return true;
     });
   }, [products, isSectorActive]);

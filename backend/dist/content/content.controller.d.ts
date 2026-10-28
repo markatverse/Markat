@@ -47,16 +47,7 @@ export declare class ContentController {
         createdAt: Date;
         updatedAt: Date;
     }>;
-    getBanners(): Promise<{
-        id: string;
-        title: string;
-        status: string;
-        createdAt: Date;
-        updatedAt: Date;
-        imageUrl: string;
-        linkUrl: string | null;
-        position: string;
-    }[]>;
+    getBanners(): Promise<any>;
     getBanner(id: string): Promise<{
         id: string;
         title: string;
@@ -97,16 +88,7 @@ export declare class ContentController {
         linkUrl: string | null;
         position: string;
     }>;
-    getAdvertisements(): Promise<{
-        id: string;
-        title: string;
-        status: string;
-        createdAt: Date;
-        updatedAt: Date;
-        linkUrl: string | null;
-        position: string;
-        mediaUrl: string | null;
-    }[]>;
+    getAdvertisements(): Promise<any>;
     getAdvertisement(id: string): Promise<{
         id: string;
         title: string;
@@ -147,18 +129,7 @@ export declare class ContentController {
         position: string;
         mediaUrl: string | null;
     }>;
-    getBlogPosts(): Promise<{
-        id: string;
-        title: string;
-        slug: string;
-        content: string;
-        status: string;
-        createdAt: Date;
-        updatedAt: Date;
-        author: string | null;
-        featuredImage: string | null;
-        tags: string[];
-    }[]>;
+    getBlogPosts(): Promise<any>;
     getBlogPost(id: string): Promise<{
         id: string;
         title: string;
@@ -257,6 +228,6 @@ export declare class ContentController {
         description: string;
         keywords: string | null;
     }>;
-    getHomepageLayout(): Promise<any[]>;
+    getHomepageLayout(): Promise<any>;
     updateHomepageLayout(data: any): Promise<any[]>;
 }

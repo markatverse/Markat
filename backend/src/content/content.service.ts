@@ -3,6 +3,11 @@ import { PrismaService } from '../prisma.service.js';
 
 @Injectable()
 export class ContentService {
+  private bannersCache: { data: any; expiry: number } | null = null;
+  private adsCache: { data: any; expiry: number } | null = null;
+  private blogCache: { data: any; expiry: number } | null = null;
+  private layoutCache: { data: any; expiry: number } | null = null;
+
   constructor(private prisma: PrismaService) {}
 
   // --- CMS Pages ---
@@ -28,9 +33,14 @@ export class ContentService {
 
   // --- Banners ---
   async getBanners() {
+    if (this.bannersCache && Date.now() < this.bannersCache.expiry) {
+      return this.bannersCache.data;
+    }
     try {
       const banners = await this.prisma.banner.findMany({ take: 100 });
-      return (banners || []).sort((a: any, b: any) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime());
+      const sorted = (banners || []).sort((a: any, b: any) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime());
+      this.bannersCache = { data: sorted, expiry: Date.now() + 30000 };
+      return sorted;
     } catch (err: any) {
       console.error('Error in getBanners:', err?.message || err);
       return [];
@@ -47,6 +57,7 @@ export class ContentService {
   }
 
   async createBanner(data: any) {
+    this.bannersCache = null;
     try {
       return await this.prisma.banner.create({ data });
     } catch (err: any) {
@@ -56,18 +67,25 @@ export class ContentService {
   }
 
   async updateBanner(id: string, data: any) {
+    this.bannersCache = null;
     return this.prisma.banner.update({ where: { id }, data });
   }
 
   async deleteBanner(id: string) {
+    this.bannersCache = null;
     return this.prisma.banner.delete({ where: { id } });
   }
 
   // --- Advertisements ---
   async getAdvertisements() {
+    if (this.adsCache && Date.now() < this.adsCache.expiry) {
+      return this.adsCache.data;
+    }
     try {
       const ads = await this.prisma.advertisement.findMany({ take: 100 });
-      return (ads || []).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      const sorted = (ads || []).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      this.adsCache = { data: sorted, expiry: Date.now() + 30000 };
+      return sorted;
     } catch (err: any) {
       console.error('Error in ContentService.getAdvertisements:', err?.message || err);
       return [];
@@ -84,6 +102,7 @@ export class ContentService {
   }
 
   async createAdvertisement(data: any) {
+    this.adsCache = null;
     try {
       return await this.prisma.advertisement.create({ data });
     } catch (err: any) {
@@ -93,16 +112,23 @@ export class ContentService {
   }
 
   async updateAdvertisement(id: string, data: any) {
+    this.adsCache = null;
     return this.prisma.advertisement.update({ where: { id }, data });
   }
 
   async deleteAdvertisement(id: string) {
+    this.adsCache = null;
     return this.prisma.advertisement.delete({ where: { id } });
   }
 
   // --- Blog Posts ---
   async getBlogPosts() {
-    return this.prisma.blogPost.findMany({ orderBy: { updatedAt: 'desc' }, take: 100 });
+    if (this.blogCache && Date.now() < this.blogCache.expiry) {
+      return this.blogCache.data;
+    }
+    const posts = await this.prisma.blogPost.findMany({ orderBy: { updatedAt: 'desc' }, take: 100 });
+    this.blogCache = { data: posts, expiry: Date.now() + 30000 };
+    return posts;
   }
 
   async getBlogPostById(id: string) {
@@ -110,14 +136,17 @@ export class ContentService {
   }
 
   async createBlogPost(data: any) {
+    this.blogCache = null;
     return this.prisma.blogPost.create({ data });
   }
 
   async updateBlogPost(id: string, data: any) {
+    this.blogCache = null;
     return this.prisma.blogPost.update({ where: { id }, data });
   }
 
   async deleteBlogPost(id: string) {
+    this.blogCache = null;
     return this.prisma.blogPost.delete({ where: { id } });
   }
 
@@ -144,6 +173,9 @@ export class ContentService {
 
   // --- Homepage Layout Configuration ---
   async getHomepageLayout() {
+    if (this.layoutCache && Date.now() < this.layoutCache.expiry) {
+      return this.layoutCache.data;
+    }
     try {
       const config = await this.prisma.systemConfig.findUnique({
         where: { key: 'HOMEPAGE_LAYOUT' },
@@ -154,6 +186,7 @@ export class ContentService {
           if (Array.isArray(parsed) && parsed.length > 0) {
             const existingIds = new Set(parsed.map((s: any) => s.id));
             const missing = DEFAULT_HOMEPAGE_SECTIONS.filter((s: any) => !existingIds.has(s.id));
+            let result = parsed;
             if (missing.length > 0) {
               const merged = [...parsed];
               for (const m of missing) {
@@ -164,19 +197,22 @@ export class ContentService {
                   merged.push(m);
                 }
               }
-              return merged.map((s: any, idx: number) => ({ ...s, order: idx + 1 }));
+              result = merged.map((s: any, idx: number) => ({ ...s, order: idx + 1 }));
             }
-            return parsed;
+            this.layoutCache = { data: result, expiry: Date.now() + 30000 };
+            return result;
           }
         } catch { }
       }
     } catch (err: any) {
       console.error('Error fetching homepage layout config:', err?.message || err);
     }
+    this.layoutCache = { data: DEFAULT_HOMEPAGE_SECTIONS, expiry: Date.now() + 30000 };
     return DEFAULT_HOMEPAGE_SECTIONS;
   }
 
   async updateHomepageLayout(sections: any[]) {
+    this.layoutCache = null;
     try {
       const serialized = JSON.stringify(sections);
       await this.prisma.systemConfig.upsert({

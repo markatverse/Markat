@@ -24,7 +24,8 @@ export default function ProductGrid({
   recent, 
   serviceOnly,
   productOnly,
-  horizontal 
+  horizontal,
+  hideIfEmpty
 }: { 
   products?: Product[], 
   limit?: number, 
@@ -33,12 +34,13 @@ export default function ProductGrid({
   recent?: boolean, 
   serviceOnly?: boolean,
   productOnly?: boolean,
-  horizontal?: boolean 
+  horizontal?: boolean,
+  hideIfEmpty?: boolean
 }) {
   const { products: contextProducts, isLoading, userLocation, userLat, userLng, radiusFilter, setRadiusFilter } = useProducts();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { addToCart } = useCart();
-  const { systemConfig } = useSettings();
+  const { systemConfig, isSectorActive } = useSettings();
   const { getTopCategories, trends } = useUserTrends();
   const router = useRouter();
   const [showLocationToast, setShowLocationToast] = useState(false);
@@ -169,6 +171,9 @@ export default function ProductGrid({
   }
 
   if (finalProducts.length === 0) {
+    if (hideIfEmpty) {
+      return null;
+    }
     if (recent) {
       return (
         <div className="py-8 px-4 text-center text-slate-400 text-xs sm:text-sm bg-slate-50/70 border border-dashed border-slate-200 rounded-2xl">
@@ -176,6 +181,17 @@ export default function ProductGrid({
         </div>
       );
     }
+
+    // When a section or category is closed by admin, it is NOT an error - do not show mascot error card
+    const isSectorClosedByAdmin = 
+      (productOnly && !isSectorActive('b2c') && !isSectorActive('b2b')) ||
+      (serviceOnly && !isSectorActive('salon') && !isSectorActive('home') && !isSectorActive('events') && !isSectorActive('transport') && !isSectorActive('food') && !isSectorActive('automobile & car wash')) ||
+      (category && !isSectorActive(category));
+
+    if (isSectorClosedByAdmin) {
+      return null;
+    }
+
     return (
       <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8 my-6">
         <MascotState

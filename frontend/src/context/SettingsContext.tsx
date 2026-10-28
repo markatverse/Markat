@@ -34,10 +34,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [systemConfig, setSystemConfig] = useState<any>({});
 
-  const refreshSectors = async () => {
+    const refreshSectors = async () => {
     try {
       const data = await fastFetch<Sector[]>('/configuration/sectors', { ttlMs: 60000 });
-      if (Array.isArray(data)) setSectors(data);
+      if (Array.isArray(data)) {
+        setSectors(data);
+        try {
+          localStorage.setItem('mv_cache_sectors', JSON.stringify(data));
+        } catch {}
+      }
     } catch {
       // Graceful fallback
     }
@@ -46,13 +51,31 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const refreshSystemConfig = async () => {
     try {
       const data = await fastFetch<any>('/configuration/system-settings', { ttlMs: 60000 });
-      if (data && typeof data === 'object') setSystemConfig(data);
+      if (data && typeof data === 'object') {
+        setSystemConfig(data);
+        try {
+          localStorage.setItem('mv_cache_system_config', JSON.stringify(data));
+        } catch {}
+      }
     } catch {
       // Graceful fallback
     }
   };
 
   useEffect(() => {
+    try {
+      const cachedSectors = localStorage.getItem('mv_cache_sectors');
+      if (cachedSectors) {
+        const parsed = JSON.parse(cachedSectors);
+        if (Array.isArray(parsed) && parsed.length > 0) setSectors(parsed);
+      }
+      const cachedCfg = localStorage.getItem('mv_cache_system_config');
+      if (cachedCfg) {
+        const parsed = JSON.parse(cachedCfg);
+        if (parsed && typeof parsed === 'object') setSystemConfig(parsed);
+      }
+    } catch {}
+
     refreshSectors();
     refreshSystemConfig();
   }, []);
@@ -62,11 +85,40 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const query = sectorName.toLowerCase().trim();
     const sector = sectors.find(s => {
       const name = s.name.toLowerCase().trim();
+      const mainType = (s.businessType?.mainType || '').toLowerCase().trim();
+
       if (name === query) return true;
+      if (mainType && mainType === query) return true;
       if (name.replace(/^product\s+/, '') === query) return true;
       if (`product ${name}` === query) return true;
-      if (query === 'car wash' && name.includes('car wash')) return true;
-      if (query === 'automobile & car wash' && name.includes('car wash')) return true;
+
+      // Both B2B & B2C product sector
+      if ((query === 'both' || query === 'both b2b & b2c') && (name.includes('both') || mainType === 'both')) return true;
+
+      // Automobile & Car Wash service sector
+      if ((query === 'car wash' || query === 'automobile' || query === 'automobile & car wash' || query === 'auto') &&
+          (name.includes('car wash') || name.includes('automobile'))) return true;
+
+      // Salon & Spa & Beauty service sector
+      if ((query === 'salon' || query === 'spa' || query === 'beauty') &&
+          (name.includes('salon') || name.includes('beauty') || name.includes('spa'))) return true;
+
+      // Home Services sector
+      if ((query === 'home' || query === 'home services') &&
+          (name === 'home' || name.includes('home'))) return true;
+
+      // Events & Planning / Professional sector
+      if ((query === 'events' || query === 'event' || query === 'organizers' || query === 'professional') &&
+          (name === 'events' || name.includes('event'))) return true;
+
+      // Transport & Logistics sector
+      if ((query === 'transport' || query === 'logistics' || query === 'rentals') &&
+          (name === 'transport' || name.includes('transport'))) return true;
+
+      // Food & Dining sector
+      if ((query === 'food' || query === 'dining' || query === 'restaurant') &&
+          (name === 'food' || name.includes('food'))) return true;
+
       return false;
     });
     return sector ? sector.isActive : true;
@@ -81,7 +133,13 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       });
       if (!res.ok) throw new Error('Failed to update sector status');
       
-      setSectors(prev => prev.map(s => s.id === id ? { ...s, isActive } : s));
+      setSectors(prev => {
+        const next = prev.map(s => s.id === id ? { ...s, isActive } : s);
+        try {
+          localStorage.setItem('mv_cache_sectors', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
     } catch (err) {
       console.error(err);
       refreshSectors();
@@ -98,7 +156,13 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       });
       if (!res.ok) throw new Error('Failed to update sector details');
       
-      setSectors(prev => prev.map(s => s.id === id ? { ...s, ...data } : s));
+      setSectors(prev => {
+        const next = prev.map(s => s.id === id ? { ...s, ...data } : s);
+        try {
+          localStorage.setItem('mv_cache_sectors', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
     } catch (err) {
       console.error(err);
       refreshSectors();
@@ -115,7 +179,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       });
       if (!res.ok) throw new Error('Failed to update system config');
       const updated = await res.json();
-      setSystemConfig(updated.data || updated);
+      const cfg = updated.data || updated;
+      setSystemConfig(cfg);
+      try {
+        localStorage.setItem('mv_cache_system_config', JSON.stringify(cfg));
+      } catch {}
     } catch (err) {
       console.error(err);
       throw err;

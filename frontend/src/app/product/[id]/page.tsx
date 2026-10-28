@@ -43,15 +43,18 @@ export default function ProductDetails() {
   const [isEliteExpanded, setIsEliteExpanded] = useState(false);
 
   const [fetchedProduct, setFetchedProduct] = useState<Product | null>(null);
+  const [isFetchingSingle, setIsFetchingSingle] = useState(false);
   const product: Product | undefined = products.find(p => p.id === id) || fetchedProduct || undefined;
 
   useEffect(() => {
     if (!products.find(p => p.id === id) && id) {
+      setIsFetchingSingle(true);
       fastFetch<Product>(`/products/${id}`)
         .then(data => {
           if (data) setFetchedProduct(data);
         })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => setIsFetchingSingle(false));
     }
   }, [id, products]);
 
@@ -424,7 +427,7 @@ export default function ProductDetails() {
     }
   }
 
-  if (isLoading) {
+  if (isLoading || (isFetchingSingle && !product)) {
     return (
       <div className="max-w-[1400px] mx-auto p-6 lg:p-10 bg-white relative animate-pulse">
         <div className="w-full h-32 bg-slate-200 rounded-2xl mb-8"></div>

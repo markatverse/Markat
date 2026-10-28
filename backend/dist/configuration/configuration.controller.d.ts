@@ -3,81 +3,21 @@ import { MainType } from '@prisma/client';
 export declare class ConfigurationController {
     private readonly configService;
     constructor(configService: ConfigurationService);
-    getBusinessTypes(mainType?: MainType): Promise<({
-        sectors: {
-            id: string;
-            name: string;
-            createdAt: Date;
-            updatedAt: Date;
-            description: string | null;
-            parameters: import("@prisma/client/runtime/library").JsonValue | null;
-            isActive: boolean;
-            businessTypeId: string;
-        }[];
-    } & {
-        id: string;
-        name: string;
-        createdAt: Date;
-        updatedAt: Date;
-        description: string | null;
-        mainType: import(".prisma/client").$Enums.MainType;
-        isActive: boolean;
-    })[]>;
+    getBusinessTypes(mainType?: MainType): Promise<any>;
     createBusinessType(data: {
         mainType: MainType;
         name: string;
         description?: string;
     }): Promise<{
         id: string;
-        name: string;
-        createdAt: Date;
-        updatedAt: Date;
-        description: string | null;
         mainType: import(".prisma/client").$Enums.MainType;
-        isActive: boolean;
-    }>;
-    getSectors(businessTypeId?: string): Promise<({
-        businessType: {
-            id: string;
-            name: string;
-            createdAt: Date;
-            updatedAt: Date;
-            description: string | null;
-            mainType: import(".prisma/client").$Enums.MainType;
-            isActive: boolean;
-        };
-        categories: {
-            workflow: string | null;
-            id: string;
-            name: string;
-            createdAt: Date;
-            updatedAt: Date;
-            parameters: import("@prisma/client/runtime/library").JsonValue | null;
-            theme: string | null;
-            icon: string | null;
-            primaryType: string | null;
-            allowedListingTypes: string[];
-            businessModels: string[];
-            workflowId: string | null;
-            allowedFeatures: string[];
-            notApplicable: string[];
-            optionalFeatures: string[];
-            subcategories: import("@prisma/client/runtime/library").JsonValue | null;
-            defaultCommissionRate: number | null;
-            defaultFlatRate: number | null;
-            parentId: string | null;
-            sectorId: string | null;
-        }[];
-    } & {
-        id: string;
         name: string;
+        description: string | null;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        parameters: import("@prisma/client/runtime/library").JsonValue | null;
-        isActive: boolean;
-        businessTypeId: string;
-    })[]>;
+    }>;
+    getSectors(businessTypeId?: string): Promise<any>;
     createSector(data: {
         businessTypeId: string;
         name: string;
@@ -85,12 +25,12 @@ export declare class ConfigurationController {
     }): Promise<{
         id: string;
         name: string;
+        description: string | null;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        parameters: import("@prisma/client/runtime/library").JsonValue | null;
-        isActive: boolean;
         businessTypeId: string;
+        parameters: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     updateSector(id: string, data: {
         isActive?: boolean;
@@ -99,15 +39,14 @@ export declare class ConfigurationController {
     }): Promise<{
         id: string;
         name: string;
+        description: string | null;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        parameters: import("@prisma/client/runtime/library").JsonValue | null;
-        isActive: boolean;
         businessTypeId: string;
+        parameters: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     getCategories(sectorId?: string): Promise<{
-        workflow: string | null;
         id: string;
         name: string;
         createdAt: Date;
@@ -118,6 +57,7 @@ export declare class ConfigurationController {
         primaryType: string | null;
         allowedListingTypes: string[];
         businessModels: string[];
+        workflow: string | null;
         workflowId: string | null;
         allowedFeatures: string[];
         notApplicable: string[];
@@ -133,7 +73,6 @@ export declare class ConfigurationController {
         name: string;
         parentId?: string;
     }): Promise<{
-        workflow: string | null;
         id: string;
         name: string;
         createdAt: Date;
@@ -144,6 +83,7 @@ export declare class ConfigurationController {
         primaryType: string | null;
         allowedListingTypes: string[];
         businessModels: string[];
+        workflow: string | null;
         workflowId: string | null;
         allowedFeatures: string[];
         notApplicable: string[];
@@ -157,9 +97,9 @@ export declare class ConfigurationController {
     getWorkflows(): Promise<{
         id: string;
         name: string;
+        description: string | null;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
         version: number;
         steps: import("@prisma/client/runtime/library").JsonValue;
     }[]>;
@@ -170,19 +110,19 @@ export declare class ConfigurationController {
     }): Promise<{
         id: string;
         name: string;
+        description: string | null;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
         version: number;
         steps: import("@prisma/client/runtime/library").JsonValue;
     }>;
-    getSystemSettings(): Promise<import("@prisma/client/runtime/library").JsonValue>;
+    getSystemSettings(): Promise<any>;
     updateSystemSettings(data: any): Promise<{
         id: string;
         name: string;
-        data: import("@prisma/client/runtime/library").JsonValue;
         createdAt: Date;
-        type: string;
         updatedAt: Date;
+        data: import("@prisma/client/runtime/library").JsonValue;
+        type: string;
     }>;
 }

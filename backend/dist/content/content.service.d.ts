@@ -1,6 +1,10 @@
 import { PrismaService } from '../prisma.service.js';
 export declare class ContentService {
     private prisma;
+    private bannersCache;
+    private adsCache;
+    private blogCache;
+    private layoutCache;
     constructor(prisma: PrismaService);
     getCmsPages(): Promise<{
         id: string;
@@ -47,16 +51,7 @@ export declare class ContentService {
         createdAt: Date;
         updatedAt: Date;
     }>;
-    getBanners(): Promise<{
-        id: string;
-        title: string;
-        status: string;
-        createdAt: Date;
-        updatedAt: Date;
-        imageUrl: string;
-        linkUrl: string | null;
-        position: string;
-    }[]>;
+    getBanners(): Promise<any>;
     getBannerById(id: string): Promise<{
         id: string;
         title: string;
@@ -97,16 +92,7 @@ export declare class ContentService {
         linkUrl: string | null;
         position: string;
     }>;
-    getAdvertisements(): Promise<{
-        id: string;
-        title: string;
-        status: string;
-        createdAt: Date;
-        updatedAt: Date;
-        linkUrl: string | null;
-        position: string;
-        mediaUrl: string | null;
-    }[]>;
+    getAdvertisements(): Promise<any>;
     getAdvertisementById(id: string): Promise<{
         id: string;
         title: string;
@@ -147,18 +133,7 @@ export declare class ContentService {
         position: string;
         mediaUrl: string | null;
     }>;
-    getBlogPosts(): Promise<{
-        id: string;
-        title: string;
-        slug: string;
-        content: string;
-        status: string;
-        createdAt: Date;
-        updatedAt: Date;
-        author: string | null;
-        featuredImage: string | null;
-        tags: string[];
-    }[]>;
+    getBlogPosts(): Promise<any>;
     getBlogPostById(id: string): Promise<{
         id: string;
         title: string;
@@ -257,7 +232,7 @@ export declare class ContentService {
         description: string;
         keywords: string | null;
     }>;
-    getHomepageLayout(): Promise<any[]>;
+    getHomepageLayout(): Promise<any>;
     updateHomepageLayout(sections: any[]): Promise<any[]>;
 }
 export declare const DEFAULT_HOMEPAGE_SECTIONS: {

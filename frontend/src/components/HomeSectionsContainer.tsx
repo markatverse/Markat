@@ -11,6 +11,9 @@ import Recommendations from "@/components/Recommendations";
 import BannerSlideshow from "@/components/BannerSlideshow";
 import AdSlideshow from "@/components/AdSlideshow";
 import { INITIAL_HOMEPAGE_SECTIONS, HomepageSection } from '@/app/admin/content/homepage/page';
+import { useProducts } from '@/context/ProductContext';
+import { useSettings } from '@/context/SettingsContext';
+import { isServiceProduct } from '@/utils/productSearch';
 
 const ProductGrid = nextDynamic(() => import('@/components/ProductGrid'), { ssr: false });
 
@@ -47,6 +50,17 @@ export default function HomeSectionsContainer({
   serverAds,
   blogPosts,
 }: HomeSectionsContainerProps) {
+  const { products } = useProducts();
+  const { isSectorActive } = useSettings();
+
+  const hasActiveProducts = useMemo(() => {
+    return products.some(p => !isServiceProduct(p));
+  }, [products]);
+
+  const hasActiveServices = useMemo(() => {
+    return products.some(p => isServiceProduct(p));
+  }, [products]);
+
   const [layout, setLayout] = useState<HomepageSection[]>(() => {
     return mergeLayoutWithDefaults(initialLayout);
   });
@@ -111,18 +125,18 @@ export default function HomeSectionsContainer({
           <section key="quick_shortcuts" className="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 lg:p-5 flex items-center justify-between overflow-x-auto gap-4 lg:gap-8 w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {[
               { name: "Top Deals", icon: "🔥", style: "bg-red-50 text-[24px]", link: "/search?filter=top_deals" },
-              { name: "Services", icon: "🛠️", style: "bg-emerald-50 border border-emerald-200 text-[24px] shadow-sm relative", badge: "Live", link: "/search?type=services" },
-              { name: "Food & Dining", icon: "🍔", style: "bg-amber-50 border border-amber-200 text-[24px] shadow-sm", link: "/search?category=Food%20%26%20Dining" },
-              { name: "Salon & Spa", icon: "💇‍♀️", style: "bg-pink-50 border border-pink-200 text-[24px] shadow-sm", link: "/search?service=Salon" },
-              { name: "Mobiles", icon: "📱", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Mobiles" },
-              { name: "Electronics", icon: "💻", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Electronics" },
-              { name: "Fashion", icon: "👕", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Fashion" },
-              { name: "Home", icon: "🏠", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Home" },
-              { name: "Beauty", icon: "💄", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Beauty" },
-              { name: "Auto", icon: "🚗", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Auto" },
-              { name: "Sports", icon: "⚽", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Sports" },
+              { name: "Services", icon: "🛠️", style: "bg-emerald-50 border border-emerald-200 text-[24px] shadow-sm relative", badge: "Live", link: "/search?type=services", show: hasActiveServices },
+              { name: "Food & Dining", icon: "🍔", style: "bg-amber-50 border border-amber-200 text-[24px] shadow-sm", link: "/search?category=Food%20%26%20Dining", show: isSectorActive('food') },
+              { name: "Salon & Spa", icon: "💇‍♀️", style: "bg-pink-50 border border-pink-200 text-[24px] shadow-sm", link: "/search?service=Salon", show: isSectorActive('salon') },
+              { name: "Mobiles", icon: "📱", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Mobiles", show: hasActiveProducts },
+              { name: "Electronics", icon: "💻", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Electronics", show: hasActiveProducts },
+              { name: "Fashion", icon: "👕", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Fashion", show: hasActiveProducts },
+              { name: "Home", icon: "🏠", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Home", show: hasActiveProducts || isSectorActive('home') },
+              { name: "Beauty", icon: "💄", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Beauty", show: hasActiveProducts || isSectorActive('salon') },
+              { name: "Auto", icon: "🚗", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Auto", show: hasActiveProducts || isSectorActive('automobile & car wash') },
+              { name: "Sports", icon: "⚽", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Sports", show: hasActiveProducts },
               { name: "View All", icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>, style: "bg-[#0f1928] text-white", link: "/explore" }
-            ].map((cat: any, idx) => (
+            ].filter((cat: any) => cat.show !== false).map((cat: any, idx) => (
               <Link href={cat.link} key={idx} className="flex flex-col items-center gap-2 min-w-[65px] cursor-pointer group no-underline relative">
                 <div className={`w-[52px] h-[52px] rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-105 ${cat.style.includes('text-') ? cat.style : cat.style + ' text-2xl'}`}>
                   {cat.icon}
@@ -162,33 +176,39 @@ export default function HomeSectionsContainer({
                 </div>
                 
                 <div className="flex flex-row flex-nowrap gap-1 sm:gap-3 mb-1 sm:mb-6 relative z-20 w-auto max-w-full sm:pb-2">
-                  <Link href="/b2b" className="no-underline">
-                    <div className="flex items-center gap-1 sm:gap-2.5 bg-white/95 hover:bg-blue-50/60 backdrop-blur shadow-xs border border-slate-200/90 hover:border-blue-300 rounded-lg sm:rounded-2xl py-0.5 px-1.5 sm:py-2.5 sm:px-4 transition-all cursor-pointer">
-                      <div className="text-blue-600 shrink-0"><svg className="w-3 h-3 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></div>
-                      <div className="flex flex-col">
-                        <span className="text-[9px] sm:text-xs font-black text-slate-900 leading-none">B2B</span>
-                        <span className="text-[6px] sm:text-[9.5px] text-slate-500 font-medium leading-tight mt-0.5">Business to<br className="sm:hidden" /> Business</span>
+                  {isSectorActive('b2b') && (
+                    <Link href="/b2b" className="no-underline">
+                      <div className="flex items-center gap-1 sm:gap-2.5 bg-white/95 hover:bg-blue-50/60 backdrop-blur shadow-xs border border-slate-200/90 hover:border-blue-300 rounded-lg sm:rounded-2xl py-0.5 px-1.5 sm:py-2.5 sm:px-4 transition-all cursor-pointer">
+                        <div className="text-blue-600 shrink-0"><svg className="w-3 h-3 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></div>
+                        <div className="flex flex-col">
+                          <span className="text-[9px] sm:text-xs font-black text-slate-900 leading-none">B2B</span>
+                          <span className="text-[6px] sm:text-[9.5px] text-slate-500 font-medium leading-tight mt-0.5">Business to<br className="sm:hidden" /> Business</span>
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                  <Link href="/search" className="no-underline">
-                    <div className="flex items-center gap-1 sm:gap-2.5 bg-white/95 hover:bg-orange-50/60 backdrop-blur shadow-xs border border-slate-200/90 hover:border-orange-300 rounded-lg sm:rounded-2xl py-0.5 px-1.5 sm:py-2.5 sm:px-4 transition-all cursor-pointer">
-                      <div className="text-orange-500 shrink-0"><svg className="w-3 h-3 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg></div>
-                      <div className="flex flex-col">
-                        <span className="text-[9px] sm:text-xs font-black text-slate-900 leading-none">B2C</span>
-                        <span className="text-[6px] sm:text-[9.5px] text-slate-500 font-medium leading-tight mt-0.5">Business to<br className="sm:hidden" /> Consumer</span>
+                    </Link>
+                  )}
+                  {isSectorActive('b2c') && (
+                    <Link href="/search" className="no-underline">
+                      <div className="flex items-center gap-1 sm:gap-2.5 bg-white/95 hover:bg-orange-50/60 backdrop-blur shadow-xs border border-slate-200/90 hover:border-orange-300 rounded-lg sm:rounded-2xl py-0.5 px-1.5 sm:py-2.5 sm:px-4 transition-all cursor-pointer">
+                        <div className="text-orange-500 shrink-0"><svg className="w-3 h-3 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg></div>
+                        <div className="flex flex-col">
+                          <span className="text-[9px] sm:text-xs font-black text-slate-900 leading-none">B2C</span>
+                          <span className="text-[6px] sm:text-[9.5px] text-slate-500 font-medium leading-tight mt-0.5">Business to<br className="sm:hidden" /> Consumer</span>
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                  <Link href="/search?type=services" className="no-underline">
-                    <div className="flex items-center gap-1 sm:gap-2.5 bg-white/95 hover:bg-emerald-50/60 backdrop-blur shadow-xs border border-slate-200/90 hover:border-emerald-300 rounded-lg sm:rounded-2xl py-0.5 px-1.5 sm:py-2.5 sm:px-4 transition-all cursor-pointer">
-                      <div className="text-emerald-500 shrink-0"><svg className="w-3 h-3 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg></div>
-                      <div className="flex flex-col">
-                        <span className="text-[9px] sm:text-xs font-black text-slate-900 leading-none">Services</span>
-                        <span className="text-[6px] sm:text-[9.5px] text-slate-500 font-medium leading-tight mt-0.5">Solutions for<br className="sm:hidden" /> Every Need</span>
+                    </Link>
+                  )}
+                  {hasActiveServices && (
+                    <Link href="/search?type=services" className="no-underline">
+                      <div className="flex items-center gap-1 sm:gap-2.5 bg-white/95 hover:bg-emerald-50/60 backdrop-blur shadow-xs border border-slate-200/90 hover:border-emerald-300 rounded-lg sm:rounded-2xl py-0.5 px-1.5 sm:py-2.5 sm:px-4 transition-all cursor-pointer">
+                        <div className="text-emerald-500 shrink-0"><svg className="w-3 h-3 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg></div>
+                        <div className="flex flex-col">
+                          <span className="text-[9px] sm:text-xs font-black text-slate-900 leading-none">Services</span>
+                          <span className="text-[6px] sm:text-[9.5px] text-slate-500 font-medium leading-tight mt-0.5">Solutions for<br className="sm:hidden" /> Every Need</span>
+                        </div>
                       </div>
-                    </div>
-                  </Link>
+                    </Link>
+                  )}
                 </div>
 
                 <div className="hidden sm:flex flex-row flex-nowrap gap-2 sm:gap-3 relative z-20 mt-auto w-[95%] sm:w-full">
@@ -256,6 +276,7 @@ export default function HomeSectionsContainer({
 
       // 6. Categories & Services (The panel featured in user's request screenshot)
       case 'categories_services':
+        if (!hasActiveProducts && !hasActiveServices) return null;
         return (
           <ScrollReveal key="categories_services" delay={100}>
             <section className="mt-2 w-full">
@@ -263,6 +284,7 @@ export default function HomeSectionsContainer({
               <div className="flex flex-row md:hidden gap-2 sm:gap-3 w-full items-stretch">
                 <div className="w-[65%] flex flex-col gap-2">
                   {/* Compact Categories Card */}
+                  {hasActiveProducts && (
                   <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-3 flex flex-col justify-between">
                     <div className="flex justify-between items-center mb-2">
                       <div>
@@ -297,7 +319,10 @@ export default function HomeSectionsContainer({
                     </div>
                   </div>
 
+                  )}
+
                   {/* Compact Services Card */}
+                  {hasActiveServices && (
                   <div className="bg-[#f0fdf4] rounded-2xl border border-emerald-100 shadow-xs p-3 flex flex-col justify-between relative overflow-hidden">
                     <div className="flex justify-between items-center mb-2 relative z-10">
                       <div>
@@ -331,6 +356,7 @@ export default function HomeSectionsContainer({
                       ))}
                     </div>
                   </div>
+                  )}
                 </div>
 
                 {/* 35% Right Column: Vertical Graphic Image Card */}
@@ -387,8 +413,9 @@ export default function HomeSectionsContainer({
               </div>
 
               {/* Desktop/Tablet View (2-column layout matching screenshot) */}
-              <div className="hidden md:grid md:grid-cols-2 gap-4 w-full">
+              <div className={`hidden md:grid ${hasActiveProducts && hasActiveServices ? 'md:grid-cols-2' : 'grid-cols-1'} gap-4 w-full`}>
                 {/* Categories Panel */}
+                {hasActiveProducts && (
                 <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 lg:p-8 flex flex-col md:flex-row justify-between items-center md:items-start gap-6 lg:gap-8">
                   <div className="flex flex-col justify-between items-start text-left gap-4 min-w-[200px] shrink-0">
                     <div>
@@ -423,7 +450,10 @@ export default function HomeSectionsContainer({
                   </div>
                 </div>
 
+                )}
+
                 {/* Services Panel */}
+                {hasActiveServices && (
                 <div className="bg-[#f0fdf4] rounded-3xl border border-emerald-100 shadow-sm p-6 lg:p-8 flex flex-col md:flex-row justify-between items-center md:items-start gap-6 lg:gap-8 relative overflow-hidden">
                   <div className="absolute right-0 top-0 bottom-0 w-48 bg-[radial-gradient(#a7f3d0_2px,transparent_2px)] [background-size:16px_16px] opacity-40 z-0 mask-image-linear-gradient"></div>
                   
@@ -459,6 +489,7 @@ export default function HomeSectionsContainer({
                     ))}
                   </div>
                 </div>
+                )}
               </div>
             </section>
           </ScrollReveal>
@@ -474,6 +505,7 @@ export default function HomeSectionsContainer({
 
       // 8. Top Picks For You
       case 'top_picks':
+        if (products.length === 0) return null;
         return (
           <ScrollReveal key="top_picks" delay={250}>
             <section className="mt-4">
@@ -481,13 +513,14 @@ export default function HomeSectionsContainer({
                 <h2 className="text-xl lg:text-2xl font-bold text-slate-900">Top Picks For You</h2>
                 <Link href="/search?filter=top_picks" className="text-blue-600 font-bold hover:underline text-sm flex items-center gap-1">View All <span className="text-lg leading-none">›</span></Link>
               </div>
-              <ProductGrid personalized={true} horizontal={true} limit={12} />
+              <ProductGrid personalized={true} horizontal={true} limit={12} hideIfEmpty={true} />
             </section>
           </ScrollReveal>
         );
 
       // 9. Services For You
       case 'services_for_you':
+        if (!hasActiveServices) return null;
         return (
           <ScrollReveal key="services_for_you" delay={300}>
             <section className="mt-4">
@@ -495,13 +528,14 @@ export default function HomeSectionsContainer({
                 <h2 className="text-xl lg:text-2xl font-bold text-slate-900">Services For You</h2>
                 <Link href="/search?type=services" className="text-blue-600 font-bold hover:underline text-sm flex items-center gap-1">View All <span className="text-lg leading-none">›</span></Link>
               </div>
-              <ProductGrid serviceOnly={true} personalized={true} limit={10} />
+              <ProductGrid serviceOnly={true} personalized={true} limit={10} hideIfEmpty={true} />
             </section>
           </ScrollReveal>
         );
 
       // 10. Products For You (Physical retail items)
       case 'products_for_you':
+        if (!hasActiveProducts) return null;
         return (
           <ScrollReveal key="products_for_you" delay={350}>
             <section className="mt-4">
@@ -509,13 +543,14 @@ export default function HomeSectionsContainer({
                 <h2 className="text-xl lg:text-2xl font-bold text-slate-900">Products For You</h2>
                 <Link href="/search?type=products" className="text-blue-600 font-bold hover:underline text-sm flex items-center gap-1">View All <span className="text-lg leading-none">›</span></Link>
               </div>
-              <ProductGrid productOnly={true} personalized={true} limit={10} />
+              <ProductGrid productOnly={true} personalized={true} limit={10} hideIfEmpty={true} />
             </section>
           </ScrollReveal>
         );
 
       // 11. Recently Viewed
       case 'recently_viewed':
+        if (products.length === 0) return null;
         return (
           <ScrollReveal key="recently_viewed" delay={400}>
             <section className="mt-4">
@@ -536,7 +571,7 @@ export default function HomeSectionsContainer({
                   Clear History
                 </button>
               </div>
-              <ProductGrid recent={true} limit={12} />
+              <ProductGrid recent={true} limit={12} hideIfEmpty={true} />
             </section>
           </ScrollReveal>
         );
