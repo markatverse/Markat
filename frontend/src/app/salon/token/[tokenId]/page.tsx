@@ -7,7 +7,9 @@ import {
   AlertCircle, Scissors, Users, Car
 } from "lucide-react";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+import { getApiUrl } from "@/utils/api";
+
+const API = getApiUrl();
 
 interface QueueToken {
   id: string;

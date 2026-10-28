@@ -672,17 +672,42 @@ export default function HomeSectionsContainer({
                   <div className="text-[10px] font-bold text-slate-500 tracking-widest uppercase mb-1">Latest News</div>
                   <h2 className="text-xl lg:text-2xl font-bold text-slate-900">From Our Blog</h2>
                 </div>
+                <Link href="/blog" className="text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-700 hover:underline">
+                  View All Articles &rarr;
+                </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {blogPosts.map((post: any) => (
-                  <div key={post.id} className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-all group">
-                    <div className="p-6">
-                      <div className="text-xs font-bold text-emerald-600 mb-2 uppercase tracking-wide">Article</div>
-                      <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">{post.title}</h3>
-                      <p className="text-sm text-slate-500 mb-4 line-clamp-3">{post.content}</p>
-                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+                  <div key={post.id} className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-all group flex flex-col justify-between">
+                    <div>
+                      {post.featuredImage && (
+                        <div className="w-full h-44 overflow-hidden bg-slate-100">
+                          <img 
+                            src={post.featuredImage} 
+                            alt={post.title} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                          />
+                        </div>
+                      )}
+                      <div className="p-6">
+                        <div className="text-xs font-bold text-emerald-600 mb-2 uppercase tracking-wide">Article</div>
+                        <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+                          <Link href={`/blog/${post.slug}`}>
+                            {post.title}
+                          </Link>
+                        </h3>
+                        <p className="text-sm text-slate-500 line-clamp-3 leading-relaxed">
+                          {post.excerpt || post.content}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="px-6 pb-6 pt-2">
+                      <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                         <div className="text-xs font-medium text-slate-400">By {post.author || 'MarkatVerse Team'}</div>
-                        <a href={`/blog/${post.slug}`} className="text-sm font-bold text-blue-600 hover:underline">Read More &rarr;</a>
+                        <Link href={`/blog/${post.slug}`} className="text-sm font-bold text-blue-600 hover:underline">
+                          Read More &rarr;
+                        </Link>
                       </div>
                     </div>
                   </div>

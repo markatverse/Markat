@@ -13,6 +13,7 @@ export default function ContentLayout({ children }: { children: React.ReactNode 
     { name: 'Advertisements', href: '/admin/content/advertisements' },
     { name: 'Blog', href: '/admin/content/blog' },
     { name: 'SEO', href: '/admin/content/seo' },
+    { name: 'Mascot & Error States', href: '/admin/content/mascot' },
   ];
 
   return (

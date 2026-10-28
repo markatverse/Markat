@@ -116,7 +116,6 @@ export default function BannerSlideshow({ banners: initialBanners }: { banners: 
                 src={fullImgUrl} 
                 alt={banner.title || 'MarkatVerse'} 
                 loading={idx === 0 ? "eager" : "lazy"}
-                // @ts-ignore
                 fetchPriority={idx === 0 ? "high" : "auto"}
                 onError={() => {
                   // Mark this banner as broken so it does not render as an empty blue box

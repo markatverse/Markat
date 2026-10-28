@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { ChevronRight, ArrowLeft, ShieldCheck, Users, Store, Box, Network, Settings, ListTree, LogOut, Receipt, Briefcase, BarChart3, Bell, LayoutDashboard, Headset, LayoutTemplate } from 'lucide-react';
+import { ChevronRight, ArrowLeft, ShieldCheck, Users, Store, Box, Network, Settings, ListTree, LogOut, Receipt, Briefcase, BarChart3, Bell, LayoutDashboard, Headset, LayoutTemplate, Smile } from 'lucide-react';
 
 type NavItem = {
   name: string;
@@ -73,6 +73,11 @@ export default function Sidebar({ currentAdminRole, setCurrentAdminRole, isMobil
       href: '/admin/content/homepage',
     },
     {
+      name: 'Mascot & UX States',
+      icon: <Smile className="w-5 h-5" />,
+      href: '/admin/content/mascot',
+    },
+    {
       name: 'Analytics',
       icon: <BarChart3 className="w-5 h-5" />,
       href: '/admin/analytics',
@@ -99,7 +104,7 @@ export default function Sidebar({ currentAdminRole, setCurrentAdminRole, isMobil
     if (currentAdminRole === 'super_admin') return true;
     
     if (currentAdminRole === 'catalog_admin') {
-      return ['Dashboard Overview', 'Marketplace', 'Content', 'Homepage Layout'].includes(item.name);
+      return ['Dashboard Overview', 'Marketplace', 'Content', 'Homepage Layout', 'Mascot & UX States'].includes(item.name);
     }
     
     if (currentAdminRole === 'onboarding_admin') {

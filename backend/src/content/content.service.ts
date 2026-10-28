@@ -102,7 +102,7 @@ export class ContentService {
 
   // --- Blog Posts ---
   async getBlogPosts() {
-    return this.prisma.blogPost.findMany({ orderBy: { updatedAt: 'desc' }, take: 5 });
+    return this.prisma.blogPost.findMany({ orderBy: { updatedAt: 'desc' }, take: 100 });
   }
 
   async getBlogPostById(id: string) {

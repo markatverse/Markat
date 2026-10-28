@@ -8,7 +8,9 @@ import {
   ShieldCheck, AlertCircle, Sparkles, MapPin, Laptop, Calculator, Ruler
 } from 'lucide-react';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { getApiUrl } from '@/utils/api';
+
+const API = getApiUrl();
 
 export type ConsultationMode = 'CHAMBER' | 'VIDEO' | 'PHONE';
 

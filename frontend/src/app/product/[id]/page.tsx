@@ -18,6 +18,7 @@ import AdvertisementWidget from '@/components/AdvertisementWidget';
 import { isServiceProduct } from '@/utils/productSearch';
 import { getServiceBadge } from '@/utils/serviceBadges';
 import { getApiUrl, fastFetch } from '@/utils/api';
+import MascotState from '@/components/MascotState';
 
 const API_URL = getApiUrl();
 
@@ -447,15 +448,22 @@ export default function ProductDetails() {
   if (!product) {
     const isServicePath = pathname.startsWith('/service/');
     return (
-      <div className="flex flex-col items-center justify-center min-h-[500px] p-10 bg-slate-50">
-        <h1 className="text-2xl font-bold text-slate-800 mb-6">
-          {isServicePath ? 'Service Not Found' : 'Product Not Found'}
-        </h1>
-        <Link href={isServicePath ? '/services' : '/'}>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
-            {isServicePath ? 'Browse Services' : 'Go Back'}
-          </button>
-        </Link>
+      <div className="flex flex-col items-center justify-center min-h-[600px] p-6 bg-slate-50/60">
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-10 w-full max-w-lg">
+          <MascotState
+            state="404"
+            title={isServicePath ? 'Service Not Found' : 'Product Not Found'}
+            description={
+              isServicePath
+                ? "This service may have been moved, updated, or is no longer listed. Let's get you back on track."
+                : "Oops! This item seems to have gone on a different journey. Let's get you back."
+            }
+            actionText={isServicePath ? 'Browse All Services' : 'Go to Home'}
+            actionHref={isServicePath ? '/services' : '/'}
+            secondaryText="Search Marketplace"
+            secondaryHref="/search"
+          />
+        </div>
       </div>
     );
   }

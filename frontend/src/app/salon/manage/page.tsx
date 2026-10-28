@@ -8,7 +8,9 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import StaffResourceManagementModal from "@/components/StaffResourceManagementModal";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+import { getApiUrl } from "@/utils/api";
+
+const API = getApiUrl();
 
 interface TokenItem {
   id: string;

@@ -23,6 +23,7 @@ import {
   Zap
 } from 'lucide-react';
 import { loadRazorpayScript } from '@/utils/loadRazorpay';
+import MascotState from '@/components/MascotState';
 
 interface MockPaymentGatewayProps {
   amount: number;
@@ -373,6 +374,25 @@ export default function MockPaymentGateway({
           <div className="text-xs text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1.5">
             <ShieldCheck className="w-4 h-4 text-emerald-600" /> 256-bit Bank Grade Encryption
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Payment Failed Screen
+  if (status === 'failed') {
+    return (
+      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-300 p-4">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center max-w-md w-full shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-300">
+          <MascotState
+            state="payment-failed"
+            title="Payment Failed"
+            description="Uh-oh! Your payment couldn't be completed. Please try again or use a different method."
+            actionText="Try Again"
+            onAction={() => setStatus('idle')}
+            secondaryText="Cancel"
+            onSecondaryAction={onCancel}
+          />
         </div>
       </div>
     );

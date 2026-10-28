@@ -2,7 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2, Plus, Edit2, Trash2, X } from 'lucide-react';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { getApiUrl } from '@/utils/api';
+
+const API = getApiUrl();
 
 interface Commission {
   id: string;

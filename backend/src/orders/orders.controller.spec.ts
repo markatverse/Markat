@@ -22,7 +22,7 @@ describe('OrdersController buyer history', () => {
     vi.mocked(ordersService.findByBuyer).mockResolvedValue(orders as never);
 
     await expect(controller.findByBuyer('buyer-1', 'Bearer valid-token')).resolves.toEqual(orders);
-    expect(ordersService.findByBuyer).toHaveBeenCalledWith('buyer-1');
+    expect(ordersService.findByBuyer).toHaveBeenCalledWith('buyer-1', []);
   });
 
   it('rejects requests without a token', async () => {

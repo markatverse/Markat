@@ -391,7 +391,7 @@ export default function HelpCenterPage() {
     if (!Array.isArray(chats)) chats = [];
     
     const myChatIndex = chats.findIndex((c: any) => c.id === 'CH-ME');
-    let currentMessages = myChatIndex >= 0 ? (chats[myChatIndex].messages || []) : chatMessages;
+    const currentMessages = myChatIndex >= 0 ? (chats[myChatIndex].messages || []) : chatMessages;
     
     const newMessages = [...currentMessages, newMessage];
     setChatMessages(newMessages);

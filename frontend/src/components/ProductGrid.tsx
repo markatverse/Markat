@@ -14,6 +14,7 @@ import StarRating from './StarRating';
 import ProductGridSkeleton from './ProductGridSkeleton';
 import { isServiceProduct } from '@/utils/productSearch';
 import { getServiceBadge } from '@/utils/serviceBadges';
+import MascotState from './MascotState';
 
 export default function ProductGrid({ 
   products: propProducts, 
@@ -175,7 +176,18 @@ export default function ProductGrid({
         </div>
       );
     }
-    return <div className="text-center p-10 text-slate-400">No {serviceOnly ? 'services' : 'products'} found.</div>;
+    return (
+      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8 my-6">
+        <MascotState
+          state="no-search"
+          title={`No ${serviceOnly ? 'Services' : 'Products'} Found`}
+          description={`We couldn't find any ${serviceOnly ? 'services' : 'products'} matching this criteria.`}
+          actionText="Explore Categories"
+          actionHref="/categories"
+          compact
+        />
+      </div>
+    );
   }
 
   return (

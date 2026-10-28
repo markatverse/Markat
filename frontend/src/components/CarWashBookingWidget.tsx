@@ -7,7 +7,9 @@ import {
   Car, Clock, Ticket, CheckCircle2, Calendar, ShieldCheck, AlertCircle
 } from 'lucide-react';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { getApiUrl } from '@/utils/api';
+
+const API = getApiUrl();
 
 export interface VehicleOption {
   id: string;

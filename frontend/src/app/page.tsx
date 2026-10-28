@@ -65,6 +65,36 @@ async function getBanners() {
   return [];
 }
 
+const FALLBACK_BLOG_POSTS = [
+  {
+    id: 'post-1',
+    title: 'Top 10 Hyperlocal Shopping Secrets Across India',
+    slug: 'top-10-hyperlocal-shopping-secrets-india',
+    content: 'Discover how MarkatVerse connects buyers directly to trusted neighborhood merchants with same-day delivery and live token tracking.',
+    author: 'MarkatVerse Editorial',
+    featuredImage: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1200&q=80',
+    status: 'PUBLISHED',
+  },
+  {
+    id: 'post-2',
+    title: 'How Live Token Queue Tracking is Transforming Local Salons',
+    slug: 'live-token-queue-salon-transformation',
+    content: 'Salons and barbers are saving hours of waiting time with real-time token queues and instant slot notifications.',
+    author: 'Services Team',
+    featuredImage: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1200&q=80',
+    status: 'PUBLISHED',
+  },
+  {
+    id: 'post-3',
+    title: 'B2B Trade & Wholesale: Unlocking Margin Growth for MSMEs',
+    slug: 'b2b-trade-wholesale-msme-growth',
+    content: 'How small businesses are procuring raw materials and bulk products at manufacturer prices with transparent RFQs.',
+    author: 'Trade Desk',
+    featuredImage: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80',
+    status: 'PUBLISHED',
+  },
+];
+
 async function getBlogPosts() {
   try {
     const apiUrl = getApiUrl();
@@ -78,18 +108,18 @@ async function getBlogPosts() {
       clearTimeout(timeoutId);
       if (res && res.ok) {
         const data = await res.json().catch(() => []);
-        return Array.isArray(data)
-          ? data.filter((post: any) => post.status === 'PUBLISHED').slice(0, 3)
-          : [];
+        if (Array.isArray(data)) {
+          const published = data.filter((post: any) => post.status === 'PUBLISHED').slice(0, 3);
+          if (published.length > 0) return published;
+        }
       }
     } catch {
       clearTimeout(timeoutId);
-      return [];
     }
   } catch {
     // Graceful fallback
   }
-  return [];
+  return FALLBACK_BLOG_POSTS;
 }
 
 async function getHomepageLayout() {

@@ -2,7 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Edit2, Trash2, Plus, GitMerge } from 'lucide-react';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { getApiUrl } from '@/utils/api';
+
+const API = getApiUrl();
 
 interface Workflow {
   id: string;

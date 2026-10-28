@@ -2,7 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Loader2, CheckCircle2 } from 'lucide-react';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { getApiUrl } from '@/utils/api';
+
+const API = getApiUrl();
 
 export default function SettingsBookingPage() {
   const [config, setConfig] = useState({ travelSpeedKmh: 30, notificationBufferMin: 5 });

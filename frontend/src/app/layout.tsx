@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Providers } from "@/context/Providers";
 import ConditionalNavbar from "@/components/ConditionalNavbar";
 import ConditionalFooter from "@/components/ConditionalFooter";
+import OfflineIndicator from "@/components/OfflineIndicator";
 import { Toaster } from 'react-hot-toast';
 import "./globals.css";
 
@@ -186,6 +187,7 @@ export default function RootLayout({
       <body className="antialiased">
         <Providers>
           <Toaster position="top-right" />
+          <OfflineIndicator />
           <ConditionalNavbar />
           {children}
           <ConditionalFooter />

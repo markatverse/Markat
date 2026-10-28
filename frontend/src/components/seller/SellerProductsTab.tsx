@@ -123,11 +123,11 @@ export default function SellerProductsTab({
                 </div>
                 {/* Link to live public page */}
                 <Link 
-                  href={`/product/${product.id}`}
+                  href={product.primaryType === 'SERVICE' || (product.category && ['services', 'salon', 'spa', 'car wash', 'food & dining', 'organizers', 'transport'].some(c => product.category?.toLowerCase().includes(c))) ? `/service/${product.id}` : `/product/${product.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg font-medium text-sm transition-colors">
-                  🌐 View Product Page
+                  {product.primaryType === 'SERVICE' || (product.category && ['services', 'salon', 'spa', 'car wash', 'food & dining', 'organizers', 'transport'].some(c => product.category?.toLowerCase().includes(c))) ? '🌐 View Service Page' : '🌐 View Product Page'}
                 </Link>
               </div>
             </div>

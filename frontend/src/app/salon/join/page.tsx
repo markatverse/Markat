@@ -3,7 +3,9 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Scissors, User, Phone, ChevronRight, Clock, Users, Star, ArrowLeft, Loader2 } from "lucide-react";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+import { getApiUrl } from "@/utils/api";
+
+const API = getApiUrl();
 
 const SERVICES = [
   { name: "Haircut", icon: "✂️", time: "20 min" },

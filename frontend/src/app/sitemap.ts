@@ -68,7 +68,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // Dynamically fetch published categories and products if API is reachable
-  let dynamicRoutes: MetadataRoute.Sitemap = [];
+  const dynamicRoutes: MetadataRoute.Sitemap = [];
   try {
     const apiUrl = getApiUrl();
     const [catRes, prodRes] = await Promise.allSettled([

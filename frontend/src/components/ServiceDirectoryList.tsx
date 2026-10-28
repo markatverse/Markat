@@ -6,6 +6,7 @@ import { Product, useProducts } from '@/context/ProductContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { Heart, Share2 } from 'lucide-react';
 import { getServiceBadge } from '@/utils/serviceBadges';
+import MascotState from '@/components/MascotState';
 
 export default function ServiceDirectoryList({ products }: { products: Product[] }) {
   const router = useRouter();
@@ -13,7 +14,18 @@ export default function ServiceDirectoryList({ products }: { products: Product[]
   const { toggleWishlist, isInWishlist } = useWishlist();
 
   if (products.length === 0) {
-    return <div className="text-center p-10 text-slate-400">No service providers found.</div>;
+    return (
+      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-10 my-6">
+        <MascotState
+          state="no-search"
+          title="No Service Providers Found"
+          description="We couldn't find any service providers matching your current location or filters."
+          actionText="Explore All Categories"
+          actionHref="/categories"
+          compact
+        />
+      </div>
+    );
   }
 
   // Sort by nearest

@@ -3,7 +3,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Ticket, Clock, Users, ChevronRight, Loader2, RefreshCw } from 'lucide-react';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { getApiUrl } from '@/utils/api';
+
+const API = getApiUrl();
 
 // ─── Inline Live Queue Mini-Widget ───────────────────────────────────────────
 interface QueueSummary {

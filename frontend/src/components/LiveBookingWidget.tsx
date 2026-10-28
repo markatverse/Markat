@@ -3,7 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { Clock, ChevronRight, X } from 'lucide-react';
 import Link from 'next/link';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+import { getApiUrl } from '@/utils/api';
+
+const API = getApiUrl();
 
 interface LiveBookingWidgetProps {
   compact?: boolean;

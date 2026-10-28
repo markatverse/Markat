@@ -89,6 +89,7 @@ export default function Footer() {
             <h4 className="text-white font-bold mb-4">Company</h4>
             <ul className="flex flex-col gap-3 text-sm">
               <li><Link href="/about" className="hover:text-blue-400 transition-colors">About Us</Link></li>
+              <li><Link href="/blog" className="hover:text-blue-400 transition-colors">Blog & Guides</Link></li>
               <li><Link href="/contact" className="hover:text-blue-400 transition-colors">Contact Support</Link></li>
               <li><Link href="/terms" className="hover:text-blue-400 transition-colors">Terms of Service</Link></li>
               <li><Link href="/privacy" className="hover:text-blue-400 transition-colors">Privacy Policy</Link></li>

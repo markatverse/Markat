@@ -98,7 +98,7 @@ let ContentService = class ContentService {
         return this.prisma.advertisement.delete({ where: { id } });
     }
     async getBlogPosts() {
-        return this.prisma.blogPost.findMany({ orderBy: { updatedAt: 'desc' }, take: 5 });
+        return this.prisma.blogPost.findMany({ orderBy: { updatedAt: 'desc' }, take: 100 });
     }
     async getBlogPostById(id) {
         return this.prisma.blogPost.findUnique({ where: { id } });

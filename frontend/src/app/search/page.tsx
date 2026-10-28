@@ -5,6 +5,7 @@ import ProductGrid from '@/components/ProductGrid';
 import ServiceDirectoryList from '@/components/ServiceDirectoryList';
 import SidebarBannerWidget from '@/components/SidebarBannerWidget';
 import AdvertisementWidget from '@/components/AdvertisementWidget';
+import MascotState from '@/components/MascotState';
 import { useState, useEffect, Suspense, useMemo } from 'react';
 import { SlidersHorizontal, MapPin } from 'lucide-react';
 import { isServiceProduct, matchesProductSearch } from '@/utils/productSearch';
@@ -72,6 +73,19 @@ function SearchContent() {
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [b2bOnly, setB2BOnly] = useState(false);
   const [premiumOnly, setPremiumOnly] = useState(false);
+
+  const handleResetFilters = () => {
+    setProductType('all');
+    setSelectedCategory('');
+    setSelectedSubcategory('');
+    setPriceRange('all');
+    setMinRating(0);
+    setLocationFilter('');
+    setVerifiedOnly(false);
+    setB2BOnly(false);
+    setPremiumOnly(false);
+    setSortBy('recommended');
+  };
 
   // Sync with URL if it changes
   useEffect(() => {
@@ -363,19 +377,8 @@ function SearchContent() {
         {/* Clear Filters */}
         {(productType !== 'all' || selectedCategory || locationFilter || priceRange !== 'all' || minRating > 0 || verifiedOnly || b2bOnly || premiumOnly) && (
           <button 
-            onClick={() => {
-              setProductType('all');
-              setSelectedCategory('');
-              setSelectedSubcategory('');
-              setPriceRange('all');
-              setMinRating(0);
-              setLocationFilter('');
-              setVerifiedOnly(false);
-              setB2BOnly(false);
-              setPremiumOnly(false);
-              setSortBy('recommended');
-            }}
-            className="text-sm text-red-500 hover:text-red-600 font-bold whitespace-nowrap ml-4 shrink-0 px-2"
+            onClick={handleResetFilters}
+            className="text-sm text-red-500 hover:text-red-600 font-bold whitespace-nowrap ml-4 shrink-0 px-2 cursor-pointer"
           >
             Clear All
           </button>
@@ -420,6 +423,26 @@ function SearchContent() {
         </div>
         {isLoading ? (
           <ProductGridSkeleton count={12} />
+        ) : filteredProducts.length === 0 ? (
+          <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-12 my-4">
+            <MascotState
+              state="no-search"
+              title="No Search Results"
+              description={`We couldn't find anything matching ${q ? `"${q}"` : 'your filters'}. Try different keywords or reset your filters.`}
+              actionText="Try Different Keywords"
+              onAction={() => {
+                const searchInput = document.querySelector('input[type="search"], input[placeholder*="Search"]') as HTMLInputElement;
+                if (searchInput) {
+                  searchInput.focus();
+                  searchInput.select();
+                } else {
+                  window.location.href = '/search';
+                }
+              }}
+              secondaryText="Clear All Filters"
+              onSecondaryAction={handleResetFilters}
+            />
+          </div>
         ) : productType === 'services' || 
             ['services', 'home services', 'transport', 'organizers', 'salon & spa', 'events & planning', 'salon & parlour', 'spa'].includes(selectedCategory.toLowerCase()) || 
             categories.some(category => category.name.toLowerCase() === selectedCategory.toLowerCase() && category.primaryType === 'SERVICE') ||

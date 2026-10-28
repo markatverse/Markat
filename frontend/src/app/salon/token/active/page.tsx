@@ -7,6 +7,7 @@ import {
   XCircle, ExternalLink
 } from 'lucide-react';
 import Link from 'next/link';
+import { getApiUrl } from '@/utils/api';
 
 export interface TokenItem {
   id: string;
@@ -67,7 +68,7 @@ export default function CustomerBookingsDashboard() {
         }
 
         // Fetch live data for all tokens
-        const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+        const API = getApiUrl();
         
         const tokenPromises = activeTokenMeta.map(async (meta) => {
           try {

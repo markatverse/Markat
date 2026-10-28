@@ -332,18 +332,23 @@ let AuthService = AuthService_1 = class AuthService {
         return this.generateToken(user);
     }
     async phoneLogin(phone) {
-        if (!phone) {
+        if (!phone || typeof phone !== 'string') {
             throw new BadRequestException('Phone is required');
         }
-        let user = await this.prisma.user.findUnique({ where: { phone } });
+        const cleanedPhone = phone.trim().replace(/[\s-]/g, '');
+        const phoneRegex = /^\+?[0-9]{10,15}$/;
+        if (!phoneRegex.test(cleanedPhone)) {
+            throw new BadRequestException('Invalid phone number format. Please provide a valid 10-15 digit phone number.');
+        }
+        let user = await this.prisma.user.findUnique({ where: { phone: cleanedPhone } });
         if (!user) {
             const markatId = await this.idGenerator.generateUserId();
             user = await this.prisma.user.create({
                 data: {
                     markatId,
                     name: 'New User',
-                    phone: phone,
-                    email: `${phone}@temporary.markatverse.com`,
+                    phone: cleanedPhone,
+                    email: `${cleanedPhone}@temporary.markatverse.com`,
                     password: await bcrypt.hash(Math.random().toString(36).slice(-8), 10),
                     role: 'CONSUMER',
                 },

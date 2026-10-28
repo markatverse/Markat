@@ -22,6 +22,7 @@ import SellerCustomersTab from '@/components/seller/SellerCustomersTab';
 import SellerBookingsTab from '@/components/seller/SellerBookingsTab';
 import SellerQueueTab from '@/components/seller/SellerQueueTab';
 import SellerWalletTab from '@/components/seller/SellerWalletTab';
+import MascotState from '@/components/MascotState';
 import { getApiUrl } from '@/utils/api';
 
 const API_URL = getApiUrl();
@@ -941,6 +942,28 @@ function DashboardContent() {
       setIsSubmitting(false);
     }
   };
+
+  // Guard: user is not logged in
+  if (!isLoading && !user) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 relative">
+        <Link href="/" className="absolute top-6 left-6 text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-2 font-semibold">
+          <ArrowLeft className="w-5 h-5" /> Back to Home
+        </Link>
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 sm:p-10 max-w-md w-full">
+          <MascotState
+            state="access-denied"
+            title="Access Denied"
+            description="You don't have permission to access the Seller Dashboard. Please log in with an authorized seller account."
+            actionText="Seller Login"
+            actionHref="/seller/login"
+            secondaryText="Go to Home"
+            secondaryHref="/"
+          />
+        </div>
+      </div>
+    );
+  }
 
   // Guard: seller has no business record yet — redirect to complete onboarding
   if (!isLoading && user && !user.business) {

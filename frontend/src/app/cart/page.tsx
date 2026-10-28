@@ -4,6 +4,7 @@ import { useCart } from '@/context/CartContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Trash2, ShoppingBag, ArrowRight, ShieldCheck, CreditCard, Camera, Star, Bookmark, BookmarkCheck, Zap } from 'lucide-react';
+import MascotState from '@/components/MascotState';
 
 export default function CartPage() {
   const router = useRouter();
@@ -19,17 +20,18 @@ export default function CartPage() {
 
   if (items.length === 0 && savedItems.length === 0) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center p-10 bg-slate-50">
-        <div className="w-32 h-32 bg-slate-200 rounded-full flex items-center justify-center mb-8 shadow-inner">
-          <ShoppingBag className="w-16 h-16 text-slate-400" strokeWidth={1.5} />
+      <div className="min-h-[75vh] flex items-center justify-center p-6 bg-slate-50/60">
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-10 w-full max-w-lg">
+          <MascotState
+            state="cart-empty"
+            title="Your Cart is Empty"
+            description="Looks like you haven't added anything yet. Discover amazing products and services in our global marketplace."
+            actionText="Start Shopping"
+            actionHref="/"
+            secondaryText="Explore Categories"
+            secondaryHref="/categories"
+          />
         </div>
-        <h2 className="text-3xl font-bold text-slate-800 mb-4">Your Shopping Cart is Empty</h2>
-        <p className="text-slate-500 mb-8 max-w-md text-center text-lg">Discover amazing products and services in our global marketplace. There&apos;s so much to explore!</p>
-        <Link href="/">
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-colors shadow-lg shadow-blue-600/20 flex items-center gap-2">
-            Start Shopping <ArrowRight className="w-5 h-5" />
-          </button>
-        </Link>
       </div>
     );
   }
