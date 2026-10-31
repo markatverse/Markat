@@ -17,46 +17,86 @@ export default function AdsPlatformDashboard() {
   const isAdmin = user?.role === 'ADMIN';
 
   // State for live interactive campaigns on the authenticated dashboard
-  const [campaigns, setCampaigns] = useState([
-    {
-      id: 'CMP-101',
-      name: 'Diwali Festive Apparel Sale ??',
-      placement: 'Homepage Top Hero Carousel',
-      dailyBudget: 1500,
-      spent: 8450,
-      impressions: 184500,
-      clicks: 6240,
-      ctr: '3.38%',
-      status: 'ACTIVE',
-      mediaUrl: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200&auto=format&fit=crop&q=80',
-    },
-    {
-      id: 'CMP-102',
-      name: 'Local Organic Grocery Express ??',
-      placement: 'Search Sponsored First Spot',
-      dailyBudget: 800,
-      spent: 3200,
-      impressions: 92400,
-      clicks: 2150,
-      ctr: '2.32%',
-      status: 'ACTIVE',
-      mediaUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&auto=format&fit=crop&q=80',
-    },
-    {
-      id: 'CMP-103',
-      name: 'Salon & Spa Weekend Pass ??',
-      placement: 'Product Page Related Rail',
-      dailyBudget: 1200,
-      spent: 4800,
-      impressions: 74200,
-      clicks: 3120,
-      ctr: '4.20%',
-      status: 'PAUSED',
-      mediaUrl: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1200&auto=format&fit=crop&q=80',
+  const [campaigns, setCampaigns] = useState<any[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('mv_advertiser_campaigns');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
     }
-  ]);
+    return [
+      {
+        id: 'CMP-801',
+        name: 'Super Smart TV Mega Cashback 📺',
+        placement: 'Homepage Top Hero Carousel',
+        dailyBudget: 2500,
+        spent: 18450,
+        impressions: 48200,
+        clicks: 1840,
+        ctr: '3.82%',
+        status: 'ACTIVE',
+        mediaUrl: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=1200&auto=format&fit=crop&q=80',
+      },
+      {
+        id: 'CMP-802',
+        name: 'Flat 50% Off Lunch Combos 🍛',
+        placement: 'Homepage Middle Featured Banner',
+        dailyBudget: 1200,
+        spent: 7004,
+        impressions: 82400,
+        clicks: 2890,
+        ctr: '3.51%',
+        status: 'ACTIVE',
+        mediaUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1200&auto=format&fit=crop&q=80',
+      },
+      {
+        id: 'CMP-803',
+        name: '1-Hour Screen Replacement at Home 📱',
+        placement: 'Search Sponsored Top Product',
+        dailyBudget: 1800,
+        spent: 14200,
+        impressions: 62400,
+        clicks: 2950,
+        ctr: '4.73%',
+        status: 'ACTIVE',
+        mediaUrl: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1200&auto=format&fit=crop&q=80',
+      },
+      {
+        id: 'CMP-804',
+        name: 'Pure Organic Immunity Kadha 🌿',
+        placement: 'Product Page Related Rail',
+        dailyBudget: 800,
+        spent: 6850,
+        impressions: 18900,
+        clicks: 890,
+        ctr: '4.71%',
+        status: 'PAUSED',
+        mediaUrl: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=1200&auto=format&fit=crop&q=80',
+      }
+    ];
+  });
 
-  const [walletBalance] = useState<number>(14500);
+  const [walletBalance, setWalletBalance] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('mv_advertiser_wallet');
+        if (saved) return Number(saved) || 12500;
+      } catch {}
+    }
+    return 12500;
+  });
+
+  // Listen for real-time wallet and campaign updates
+  React.useEffect(() => {
+    const handleWalletUpdate = (e: any) => {
+      if (e.detail?.balance !== undefined) setWalletBalance(e.detail.balance);
+    };
+    window.addEventListener('mv_advertiser_wallet_updated', handleWalletUpdate);
+    return () => window.removeEventListener('mv_advertiser_wallet_updated', handleWalletUpdate);
+  }, []);
 
   // Instant 1-Click Demo Login to experience full advertiser functionality
   const handleQuickDemoLogin = () => {

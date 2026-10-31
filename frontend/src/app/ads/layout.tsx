@@ -15,7 +15,24 @@ import { getApiUrl } from '@/utils/api';
 export default function AdsPlatformLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
-  const [walletBalance, setWalletBalance] = useState<number>(14500);
+  const [walletBalance, setWalletBalance] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('mv_advertiser_wallet');
+      if (saved) return Number(saved) || 12500;
+    }
+    return 12500;
+  });
+
+  // Listen for real-time wallet updates from advertiser portal and top-ups
+  useEffect(() => {
+    const handleWalletUpdate = (e: any) => {
+      if (e.detail?.balance !== undefined) {
+        setWalletBalance(e.detail.balance);
+      }
+    };
+    window.addEventListener('mv_advertiser_wallet_updated', handleWalletUpdate);
+    return () => window.removeEventListener('mv_advertiser_wallet_updated', handleWalletUpdate);
+  }, []);
 
   // Fetch real advertiser wallet balance if logged in
   useEffect(() => {
@@ -26,6 +43,9 @@ export default function AdsPlatformLayout({ children }: { children: React.ReactN
         .then(data => {
           if (data && typeof data.walletBalance === 'number') {
             setWalletBalance(data.walletBalance);
+            try {
+              localStorage.setItem('mv_advertiser_wallet', String(data.walletBalance));
+            } catch {}
           }
         })
         .catch(() => {});
