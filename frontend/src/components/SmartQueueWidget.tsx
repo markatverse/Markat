@@ -52,6 +52,9 @@ export default function SmartQueueWidget({ service }: { service: any }) {
   const [selectedStaff, setSelectedStaff] = useState<string | null>(null);
   const [selectedResource, setSelectedResource] = useState<string | null>(null);
   const [joining, setJoining] = useState(false);
+  const [showDirectPayModal, setShowDirectPayModal] = useState(false);
+  const [paymentUtr, setPaymentUtr] = useState('');
+  const [copiedUpi, setCopiedUpi] = useState(false);
 
   useEffect(() => {
     if (user && !name) {
@@ -243,7 +246,7 @@ export default function SmartQueueWidget({ service }: { service: any }) {
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.message ?? 'Failed');
-      setResult(d); setStep('done'); fetchStatus();
+      setResult(d); setStep('done'); setShowDirectPayModal(false); fetchStatus();
       
       // Save active token to local storage for global widget
       if (d?.token?.id) {
@@ -856,6 +859,120 @@ export default function SmartQueueWidget({ service }: { service: any }) {
           Queue is Currently Closed
         </div>
       )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          DIRECT-TO-SELLER UPI & QR PAYMENT MODAL
+      ───────────────────────────────────────────────────────────── */}
+      {showDirectPayModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-200 overflow-hidden text-center animate-in zoom-in-95 duration-150">
+            
+            {/* Modal Header */}
+            <div className="p-5 bg-gradient-to-r from-emerald-600 to-teal-700 text-white relative">
+              <button 
+                type="button"
+                onClick={() => setShowDirectPayModal(false)}
+                className="absolute top-4 right-4 text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-black uppercase tracking-wider mb-2">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-200" />
+                <span>Direct Provider Payment</span>
+              </div>
+              <h3 className="text-lg font-black">{effectiveShopName}</h3>
+              <p className="text-xs text-emerald-100 font-medium mt-0.5">
+                Pay directly to seller account · Zero platform escrow
+              </p>
+              <div className="mt-3 bg-white/15 border border-white/20 rounded-2xl py-2 px-4 inline-block">
+                <span className="text-[10px] text-emerald-200 font-bold uppercase block">Amount Due</span>
+                <span className="text-2xl font-black text-white">₹{totalPrice}</span>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4 text-left">
+              
+              {/* QR Barcode Box */}
+              <div className="flex flex-col items-center justify-center bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <div className="w-44 h-44 bg-white p-2.5 rounded-2xl border-2 border-slate-200 shadow-sm flex items-center justify-center">
+                  {sellerUpiQr ? (
+                    <img src={sellerUpiQr} alt="Seller Shop QR" className="w-full h-full object-contain rounded-xl" />
+                  ) : dynamicQrUrl ? (
+                    <img src={dynamicQrUrl} alt="UPI QR Code" className="w-full h-full object-contain rounded-xl" />
+                  ) : (
+                    <div className="text-center p-3 text-slate-400">
+                      <QrCode className="w-12 h-12 mx-auto mb-1 text-slate-300" />
+                      <span className="text-[11px] font-semibold block text-slate-600">Scan at Shop Counter or Pay Cash</span>
+                    </div>
+                  )}
+                </div>
+
+                {sellerUpiId && (
+                  <div className="mt-3 flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs max-w-full">
+                    <span className="text-xs font-bold text-slate-800 truncate">{sellerUpiId}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(sellerUpiId);
+                        setCopiedUpi(true);
+                        toast.success('UPI ID copied!');
+                        setTimeout(() => setCopiedUpi(false), 2000);
+                      }}
+                      className="text-slate-400 hover:text-emerald-600 p-1"
+                      title="Copy UPI ID"
+                    >
+                      {copiedUpi ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Quick UPI App Button on Mobile */}
+              {sellerUpiId && (
+                <a
+                  href={`upi://pay?pa=${sellerUpiId}&pn=${encodeURIComponent(effectiveShopName)}&am=${totalPrice}&cu=INR`}
+                  className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs flex items-center justify-center gap-2 border border-slate-200 transition-colors cursor-pointer"
+                >
+                  <ExternalLink className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Open GPay / PhonePe / Paytm / BHIM</span>
+                </a>
+              )}
+
+              {/* UTR Input */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                  12-digit UPI UTR / Transaction Ref (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 423456789012"
+                  value={paymentUtr}
+                  onChange={(e) => setPaymentUtr(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 focus:bg-white focus:border-emerald-600 outline-none transition-all shadow-2xs"
+                />
+              </div>
+
+              {/* Confirm Button */}
+              <button
+                type="button"
+                onClick={join}
+                disabled={joining}
+                className="w-full h-12 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-sm rounded-xl shadow-md shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 active:scale-98 cursor-pointer disabled:opacity-50"
+              >
+                {joining ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                <span>{joining ? 'Generating Token…' : `I Have Paid ₹${totalPrice} — Confirm Booking`}</span>
+              </button>
+
+              <p className="text-[10px] text-center text-slate-400">
+                By confirming, you verify payment was sent directly to {effectiveShopName}.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -10,10 +10,10 @@ export declare class RecommendationsController {
         type: string;
     }): Promise<{
         id: string;
-        userId: string | null;
         createdAt: Date;
-        type: string;
+        userId: string | null;
         productId: string | null;
+        type: string;
         serviceId: string | null;
         weight: number;
     }>;

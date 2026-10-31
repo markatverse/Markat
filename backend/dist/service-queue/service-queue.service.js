@@ -61,6 +61,27 @@ let ServiceQueueService = class ServiceQueueService {
         });
         if (!queue)
             throw new NotFoundException('Queue not found');
+        if (queue.sellerId && (!queue.sellerUpiId || !queue.sellerUpiQr)) {
+            try {
+                const business = await this.prisma.business.findFirst({
+                    where: { OR: [{ userId: queue.sellerId }, { id: queue.sellerId }] },
+                    include: { wallet: true }
+                });
+                if (business) {
+                    if (!queue.sellerUpiId && business.sellerUpiId)
+                        queue.sellerUpiId = business.sellerUpiId;
+                    if (!queue.sellerUpiQr && business.sellerUpiQr)
+                        queue.sellerUpiQr = business.sellerUpiQr;
+                    if (business.commissionSuspended)
+                        queue.commissionSuspended = true;
+                    if (business.wallet && business.wallet.owedToPlatform >= (business.commissionThreshold || 1000)) {
+                        queue.commissionSuspended = true;
+                    }
+                }
+            }
+            catch (e) {
+            }
+        }
         const waiting = await this.prisma.serviceBooking.findMany({
             where: { queueId, status: { in: ['WAITING', 'CHECKED_IN', 'PENDING'] } },
             orderBy: [
@@ -442,6 +463,97 @@ let ServiceQueueService = class ServiceQueueService {
             staffPerformance: staffStats
         };
     }
+    async getSellerPaymentSettings(sellerId) {
+        let business = null;
+        if (this.isValidObjectId(sellerId)) {
+            business = await this.prisma.business.findFirst({
+                where: {
+                    OR: [{ userId: sellerId }, { id: sellerId }]
+                },
+                include: { wallet: true }
+            });
+        }
+        const queue = await this.prisma.serviceQueue.findFirst({
+            where: { sellerId }
+        });
+        const owedToPlatform = business?.wallet?.owedToPlatform ?? 0;
+        const threshold = business?.commissionThreshold ?? queue?.commissionThreshold ?? 1000;
+        const isSuspended = business?.commissionSuspended || queue?.commissionSuspended || (owedToPlatform >= threshold);
+        return {
+            sellerUpiId: business?.sellerUpiId || queue?.sellerUpiId || '',
+            sellerUpiQr: business?.sellerUpiQr || queue?.sellerUpiQr || '',
+            commissionThreshold: threshold,
+            commissionSuspended: Boolean(isSuspended),
+            owedToPlatform,
+            commissionRate: business?.commissionRate ?? 5.0,
+            commissionType: business?.commissionType ?? 'PERCENTAGE',
+            isServiceActive: queue ? queue.status === 'ACTIVE' && queue.isOpen && !isSuspended : !isSuspended,
+            shopName: queue?.shopName || business?.name || 'Service Partner',
+        };
+    }
+    async updateSellerPaymentSettings(sellerId, data) {
+        await this.prisma.serviceQueue.updateMany({
+            where: { sellerId },
+            data: {
+                ...(data.sellerUpiId !== undefined ? { sellerUpiId: data.sellerUpiId } : {}),
+                ...(data.sellerUpiQr !== undefined ? { sellerUpiQr: data.sellerUpiQr } : {}),
+                ...(data.commissionThreshold !== undefined ? { commissionThreshold: Number(data.commissionThreshold) } : {}),
+            }
+        });
+        if (this.isValidObjectId(sellerId)) {
+            const b = await this.prisma.business.findFirst({
+                where: { OR: [{ userId: sellerId }, { id: sellerId }] }
+            });
+            if (b) {
+                await this.prisma.business.update({
+                    where: { id: b.id },
+                    data: {
+                        ...(data.sellerUpiId !== undefined ? { sellerUpiId: data.sellerUpiId } : {}),
+                        ...(data.sellerUpiQr !== undefined ? { sellerUpiQr: data.sellerUpiQr } : {}),
+                        ...(data.commissionThreshold !== undefined ? { commissionThreshold: Number(data.commissionThreshold) } : {}),
+                    }
+                });
+            }
+        }
+        return this.getSellerPaymentSettings(sellerId);
+    }
+    async paySellerCommission(sellerId, data) {
+        let business = null;
+        if (this.isValidObjectId(sellerId)) {
+            business = await this.prisma.business.findFirst({
+                where: { OR: [{ userId: sellerId }, { id: sellerId }] },
+                include: { wallet: true }
+            });
+        }
+        if (business?.wallet) {
+            await this.prisma.wallet.update({
+                where: { id: business.wallet.id },
+                data: { owedToPlatform: 0 }
+            });
+        }
+        if (business) {
+            await this.prisma.business.update({
+                where: { id: business.id },
+                data: { commissionSuspended: false }
+            });
+        }
+        await this.prisma.serviceQueue.updateMany({
+            where: { sellerId },
+            data: {
+                status: 'ACTIVE',
+                isOpen: true,
+                commissionSuspended: false,
+            }
+        });
+        const ref = data?.paymentRef || `UTR-COMM-${Date.now().toString().slice(-8)}`;
+        return {
+            success: true,
+            message: 'Platform commission settled successfully! Services and live appointments have resumed.',
+            isServiceActive: true,
+            owedToPlatform: 0,
+            paymentRef: ref
+        };
+    }
     async applyCommission(bookingId, sellerId) {
         if (!sellerId)
             return;
@@ -464,21 +576,39 @@ let ServiceQueueService = class ServiceQueueService {
             }
             const commissionGst = Math.round(baseCommission * 0.18 * 100) / 100;
             const amountOwed = Math.round((baseCommission + commissionGst) * 100) / 100;
+            let totalOwed = amountOwed;
             if (amountOwed > 0) {
                 if (business.wallet) {
-                    await this.prisma.wallet.update({
+                    const w = await this.prisma.wallet.update({
                         where: { id: business.wallet.id },
                         data: { owedToPlatform: { increment: amountOwed } }
                     });
+                    totalOwed = w.owedToPlatform;
                 }
                 else {
-                    await this.prisma.wallet.create({
+                    const w = await this.prisma.wallet.create({
                         data: {
                             businessId: business.id,
                             owedToPlatform: amountOwed
                         }
                     });
+                    totalOwed = w.owedToPlatform;
                 }
+            }
+            const threshold = business.commissionThreshold || 1000;
+            if (totalOwed >= threshold) {
+                await this.prisma.serviceQueue.updateMany({
+                    where: { sellerId },
+                    data: {
+                        status: 'SUSPENDED',
+                        isOpen: false,
+                        commissionSuspended: true,
+                    }
+                });
+                await this.prisma.business.update({
+                    where: { id: business.id },
+                    data: { commissionSuspended: true }
+                });
             }
         }
         catch (err) {

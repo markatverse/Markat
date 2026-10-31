@@ -7,6 +7,7 @@ export declare class SecurityService {
     getAuditLogs(): Promise<{
         userMarkatId: string | null | undefined;
         id: string;
+        createdAt: Date;
         logId: string | null;
         action: string;
         resource: string | null;
@@ -18,7 +19,6 @@ export declare class SecurityService {
         actorRole: string | null;
         ipAddress: string | null;
         status: string;
-        createdAt: Date;
     }[]>;
     createAuditLog(data: {
         action: string;
@@ -28,6 +28,7 @@ export declare class SecurityService {
         ipAddress?: string;
     }): Promise<{
         id: string;
+        createdAt: Date;
         logId: string | null;
         action: string;
         resource: string | null;
@@ -39,13 +40,12 @@ export declare class SecurityService {
         actorRole: string | null;
         ipAddress: string | null;
         status: string;
-        createdAt: Date;
     }>;
     getAlerts(): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         description: string | null;
         title: string;
     }[]>;
@@ -55,25 +55,25 @@ export declare class SecurityService {
         status?: string;
     }): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         description: string | null;
         title: string;
     }>;
     updateAlert(id: string, data: any): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         description: string | null;
         title: string;
     }>;
     deleteAlert(id: string): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         description: string | null;
         title: string;
     }>;

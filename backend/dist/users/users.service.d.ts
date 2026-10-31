@@ -11,11 +11,11 @@ export declare class UsersService {
     constructor(prisma: PrismaService, idGenerator: IdGeneratorService, events: EventsService);
     create(createUserDto: any): Promise<{
         id: string;
+        name: string;
         markatId: string | null;
         email: string | null;
         phone: string | null;
         password: string;
-        name: string;
         role: string;
         createdAt: Date;
         updatedAt: Date;
@@ -23,30 +23,26 @@ export declare class UsersService {
         resetCodeExpires: Date | null;
     }>;
     findAll(): import(".prisma/client").Prisma.PrismaPromise<{
-        id: string;
-        markatId: string | null;
-        email: string | null;
-        phone: string | null;
-        name: string;
-        role: string;
-        createdAt: Date;
-        updatedAt: Date;
         business: {
+            businessType: string;
+            sector: string | null;
             id: string;
             name: string;
             createdAt: Date;
             updatedAt: Date;
-            businessCode: string | null;
             userId: string;
-            logo: string | null;
-            description: string | null;
-            businessModel: import(".prisma/client").$Enums.MainType;
-            businessType: string;
-            sector: string | null;
-            address: string | null;
             pincode: string | null;
             latitude: number | null;
             longitude: number | null;
+            sellerUpiId: string | null;
+            sellerUpiQr: string | null;
+            commissionThreshold: number;
+            commissionSuspended: boolean;
+            businessCode: string | null;
+            logo: string | null;
+            description: string | null;
+            businessModel: import(".prisma/client").$Enums.MainType;
+            address: string | null;
             gstNumber: string | null;
             panNumber: string | null;
             aadharNumber: string | null;
@@ -71,33 +67,38 @@ export declare class UsersService {
             registrationFeeStatus: string;
             registrationPaymentId: string | null;
             registrationFeeDate: Date | null;
+            commissionDueDate: Date | null;
         } | null;
+        id: string;
+        name: string;
+        markatId: string | null;
+        email: string | null;
+        phone: string | null;
+        role: string;
+        createdAt: Date;
+        updatedAt: Date;
     }[]>;
     findOne(id: string): import(".prisma/client").Prisma.Prisma__UserClient<{
-        id: string;
-        markatId: string | null;
-        email: string | null;
-        phone: string | null;
-        name: string;
-        role: string;
-        createdAt: Date;
-        updatedAt: Date;
         business: {
+            businessType: string;
+            sector: string | null;
             id: string;
             name: string;
             createdAt: Date;
             updatedAt: Date;
-            businessCode: string | null;
             userId: string;
-            logo: string | null;
-            description: string | null;
-            businessModel: import(".prisma/client").$Enums.MainType;
-            businessType: string;
-            sector: string | null;
-            address: string | null;
             pincode: string | null;
             latitude: number | null;
             longitude: number | null;
+            sellerUpiId: string | null;
+            sellerUpiQr: string | null;
+            commissionThreshold: number;
+            commissionSuspended: boolean;
+            businessCode: string | null;
+            logo: string | null;
+            description: string | null;
+            businessModel: import(".prisma/client").$Enums.MainType;
+            address: string | null;
             gstNumber: string | null;
             panNumber: string | null;
             aadharNumber: string | null;
@@ -122,16 +123,25 @@ export declare class UsersService {
             registrationFeeStatus: string;
             registrationPaymentId: string | null;
             registrationFeeDate: Date | null;
+            commissionDueDate: Date | null;
         } | null;
+        id: string;
+        name: string;
+        markatId: string | null;
+        email: string | null;
+        phone: string | null;
+        role: string;
+        createdAt: Date;
+        updatedAt: Date;
     } | null, null, import("@prisma/client/runtime/library").DefaultArgs>;
     findRole(id: string): Promise<string | null>;
     update(id: string, updateUserDto: any): Promise<{
         id: string;
+        name: string;
         markatId: string | null;
         email: string | null;
         phone: string | null;
         password: string;
-        name: string;
         role: string;
         createdAt: Date;
         updatedAt: Date;
@@ -143,11 +153,11 @@ export declare class UsersService {
     }>;
     remove(id: string): Promise<{
         id: string;
+        name: string;
         markatId: string | null;
         email: string | null;
         phone: string | null;
         password: string;
-        name: string;
         role: string;
         createdAt: Date;
         updatedAt: Date;
@@ -156,8 +166,8 @@ export declare class UsersService {
     }>;
     getAddresses(userId: string): Promise<{
         id: string;
-        phone: string;
         name: string;
+        phone: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;
@@ -171,8 +181,8 @@ export declare class UsersService {
     }[]>;
     addAddress(userId: string, data: any): Promise<{
         id: string;
-        phone: string;
         name: string;
+        phone: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;
@@ -186,8 +196,8 @@ export declare class UsersService {
     }>;
     updateAddress(userId: string, addressId: string, data: any): Promise<{
         id: string;
-        phone: string;
         name: string;
+        phone: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;
@@ -201,8 +211,8 @@ export declare class UsersService {
     }>;
     deleteAddress(userId: string, addressId: string): Promise<{
         id: string;
-        phone: string;
         name: string;
+        phone: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;

@@ -7,36 +7,36 @@ export declare class WalletController {
     private verifyWalletAccess;
     getWallet(businessId: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         businessId: string;
         totalEarnings: number;
         pendingBalance: number;
         availableBalance: number;
         withdrawn: number;
         owedToPlatform: number;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     getTransactions(walletId: string): Promise<{
+        commission: number;
         id: string;
         createdAt: Date;
-        walletId: string;
+        status: string;
+        type: string;
+        paymentRef: string | null;
         referenceId: string | null;
         referenceType: string | null;
-        paymentRef: string | null;
+        walletId: string;
         grossAmount: number;
         platformFee: number;
-        commission: number;
         tax: number;
         netAmount: number;
-        type: string;
-        status: string;
         settledAt: Date | null;
     }[]>;
     getBankAccounts(businessId: string): Promise<{
         id: string;
-        businessId: string;
         createdAt: Date;
         updatedAt: Date;
+        businessId: string;
         accountName: string;
         accountNumber: string;
         ifscCode: string | null;
@@ -51,9 +51,9 @@ export declare class WalletController {
         bankName: string;
     }, authHeader?: string): Promise<{
         id: string;
-        businessId: string;
         createdAt: Date;
         updatedAt: Date;
+        businessId: string;
         accountName: string;
         accountNumber: string;
         ifscCode: string | null;

@@ -35,8 +35,8 @@ export declare class ListingsService {
             createdAt: Date;
             updatedAt: Date;
             description: string | null;
-            mainType: import(".prisma/client").$Enums.MainType;
             isActive: boolean;
+            mainType: import(".prisma/client").$Enums.MainType;
         };
         sector: {
             id: string;
@@ -54,9 +54,9 @@ export declare class ListingsService {
         };
     } & {
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         sellerId: string;
         description: string | null;
         title: string;
@@ -97,8 +97,8 @@ export declare class ListingsService {
             createdAt: Date;
             updatedAt: Date;
             description: string | null;
-            mainType: import(".prisma/client").$Enums.MainType;
             isActive: boolean;
+            mainType: import(".prisma/client").$Enums.MainType;
         };
         sector: {
             id: string;
@@ -116,9 +116,9 @@ export declare class ListingsService {
         };
     } & {
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         sellerId: string;
         description: string | null;
         title: string;
@@ -132,9 +132,9 @@ export declare class ListingsService {
     }>;
     createListing(data: any): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         sellerId: string;
         description: string | null;
         title: string;
@@ -148,9 +148,9 @@ export declare class ListingsService {
     }>;
     updateListing(id: string, data: any): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         sellerId: string;
         description: string | null;
         title: string;
@@ -164,9 +164,9 @@ export declare class ListingsService {
     }>;
     deleteListing(id: string): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         sellerId: string;
         description: string | null;
         title: string;

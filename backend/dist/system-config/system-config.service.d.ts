@@ -51,17 +51,17 @@ export declare class SystemConfigService {
     getTaxRules(): Promise<{
         id: string;
         name: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         rate: number;
     }[]>;
     seedStatutoryGstRules(): Promise<{
         id: string;
         name: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         rate: number;
     }[]>;
     addTaxRule(data: {
@@ -71,9 +71,9 @@ export declare class SystemConfigService {
     }): Promise<{
         id: string;
         name: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         rate: number;
     }>;
     updateTaxRule(id: string, data: {
@@ -83,17 +83,17 @@ export declare class SystemConfigService {
     }): Promise<{
         id: string;
         name: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         rate: number;
     }>;
     deleteTaxRule(id: string): Promise<{
         id: string;
         name: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         rate: number;
     }>;
 }

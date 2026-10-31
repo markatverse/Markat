@@ -12,10 +12,10 @@ export declare class NotificationsService {
     };
     getSmsTemplates(): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }[]>;
     createSmsTemplate(data: {
@@ -24,34 +24,34 @@ export declare class NotificationsService {
         status?: string;
     }): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }>;
     updateSmsTemplate(id: string, data: any): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }>;
     deleteSmsTemplate(id: string): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }>;
     getPushTemplates(): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }[]>;
     createPushTemplate(data: {
@@ -60,41 +60,41 @@ export declare class NotificationsService {
         status?: string;
     }): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }>;
     updatePushTemplate(id: string, data: any): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }>;
     deletePushTemplate(id: string): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }>;
     getEmailTemplates(): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }[]>;
     findHistoryForUser(userId: string): import(".prisma/client").Prisma.PrismaPromise<{
         id: string;
+        createdAt: Date;
         userId: string | null;
         status: string;
-        createdAt: Date;
         message: string;
         title: string | null;
         userType: string | null;
@@ -104,9 +104,9 @@ export declare class NotificationsService {
     }[]>;
     getAllLogs(limit?: number): Promise<{
         id: string;
+        createdAt: Date;
         userId: string | null;
         status: string;
-        createdAt: Date;
         message: string;
         title: string | null;
         userType: string | null;
@@ -120,26 +120,26 @@ export declare class NotificationsService {
         status?: string;
     }): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }>;
     updateEmailTemplate(id: string, data: any): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }>;
     deleteEmailTemplate(id: string): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }>;
     sendNotification(payload: {

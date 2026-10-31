@@ -2254,6 +2254,7 @@ function DashboardContent() {
               onQueueAction={handleQueueAction}
               onOpenWalkIn={() => setShowWalkInForm(true)}
               onOpenStaffModal={() => setShowStaffModal(true)}
+              sellerId={user?.business?.id || user?.id || ''}
             />
 
             {showWalkInForm && (

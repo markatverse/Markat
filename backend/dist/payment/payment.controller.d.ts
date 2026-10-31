@@ -47,13 +47,13 @@ export declare class PaymentController {
             items: import("razorpay/dist/types/transfers.js").Transfers.RazorpayTransfer[];
         } | import("razorpay/dist/types/transfers.js").Transfers.RazorpayTransfer[];
         amount: number | string;
+        method?: "netbanking" | "upi" | "card" | "emandate" | "nach" | undefined;
         currency: string;
         offer_id?: string | null | undefined;
         bank_account?: import("razorpay/dist/types/orders.js").Orders.RazorpayOrderBankDetailsCreateRequestBody | undefined;
         partial_payment?: boolean | undefined;
         first_payment_min_amount?: number | undefined;
         receipt?: string | undefined;
-        method?: "netbanking" | "upi" | "card" | "emandate" | "nach" | undefined;
         notes?: import("razorpay/dist/types/api.js").IMap<string | number> | undefined;
         rto_review?: boolean | undefined;
         line_items?: import("razorpay/dist/types/orders.js").Orders.LineItems[] | undefined;

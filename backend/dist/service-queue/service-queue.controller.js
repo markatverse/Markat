@@ -84,6 +84,15 @@ let ServiceQueueController = class ServiceQueueController {
     deleteResource(queueId, resourceId) {
         return this.serviceQueueService.deleteResource(queueId, resourceId);
     }
+    getSellerPaymentSettings(sellerId) {
+        return this.serviceQueueService.getSellerPaymentSettings(sellerId);
+    }
+    updateSellerPaymentSettings(sellerId, body) {
+        return this.serviceQueueService.updateSellerPaymentSettings(sellerId, body);
+    }
+    paySellerCommission(sellerId, body) {
+        return this.serviceQueueService.paySellerCommission(sellerId, body);
+    }
 };
 __decorate([
     Post('queue'),
@@ -247,6 +256,29 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], ServiceQueueController.prototype, "deleteResource", null);
+__decorate([
+    Get('seller/:sellerId/payment-settings'),
+    __param(0, Param('sellerId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ServiceQueueController.prototype, "getSellerPaymentSettings", null);
+__decorate([
+    Post('seller/:sellerId/payment-settings'),
+    __param(0, Param('sellerId')),
+    __param(1, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], ServiceQueueController.prototype, "updateSellerPaymentSettings", null);
+__decorate([
+    Post('seller/:sellerId/pay-commission'),
+    __param(0, Param('sellerId')),
+    __param(1, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], ServiceQueueController.prototype, "paySellerCommission", null);
 ServiceQueueController = __decorate([
     Controller('service-queue'),
     __metadata("design:paramtypes", [ServiceQueueService])

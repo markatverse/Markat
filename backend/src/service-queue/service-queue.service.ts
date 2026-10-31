@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
 import { IdGeneratorService } from '../id-generator/id-generator.service.js';
 
@@ -69,6 +69,26 @@ export class ServiceQueueService {
       }
     });
     if (!queue) throw new NotFoundException('Queue not found');
+
+    // Enrich with business UPI/QR if sellerId exists and not set on queue
+    if (queue.sellerId && (!queue.sellerUpiId || !queue.sellerUpiQr)) {
+      try {
+        const business = await this.prisma.business.findFirst({
+          where: { OR: [{ userId: queue.sellerId }, { id: queue.sellerId }] },
+          include: { wallet: true }
+        });
+        if (business) {
+          if (!queue.sellerUpiId && business.sellerUpiId) queue.sellerUpiId = business.sellerUpiId;
+          if (!queue.sellerUpiQr && business.sellerUpiQr) queue.sellerUpiQr = business.sellerUpiQr;
+          if (business.commissionSuspended) queue.commissionSuspended = true;
+          if (business.wallet && business.wallet.owedToPlatform >= (business.commissionThreshold || 1000)) {
+            queue.commissionSuspended = true;
+          }
+        }
+      } catch (e) {
+        // Continue with queue defaults
+      }
+    }
 
     // Fetch all waitings, both tokens and appointments that are checked in or pending
     // We treat CHECKED_IN appointments as part of the live waiting queue
@@ -560,6 +580,126 @@ export class ServiceQueueService {
     };
   }
 
+    /** Get seller direct payment settings (UPI ID, QR Barcode, Commission Threshold & Status) */
+  async getSellerPaymentSettings(sellerId: string) {
+    let business: any = null;
+    if (this.isValidObjectId(sellerId)) {
+      business = await this.prisma.business.findFirst({
+        where: {
+          OR: [{ userId: sellerId }, { id: sellerId }]
+        },
+        include: { wallet: true }
+      });
+    }
+
+    const queue: any = await this.prisma.serviceQueue.findFirst({
+      where: { sellerId }
+    });
+
+    const owedToPlatform = business?.wallet?.owedToPlatform ?? 0;
+    const threshold = business?.commissionThreshold ?? queue?.commissionThreshold ?? 1000;
+    const isSuspended = business?.commissionSuspended || queue?.commissionSuspended || (owedToPlatform >= threshold);
+
+    return {
+      sellerUpiId: business?.sellerUpiId || queue?.sellerUpiId || '',
+      sellerUpiQr: business?.sellerUpiQr || queue?.sellerUpiQr || '',
+      commissionThreshold: threshold,
+      commissionSuspended: Boolean(isSuspended),
+      owedToPlatform,
+      commissionRate: business?.commissionRate ?? 5.0,
+      commissionType: business?.commissionType ?? 'PERCENTAGE',
+      isServiceActive: queue ? queue.status === 'ACTIVE' && queue.isOpen && !isSuspended : !isSuspended,
+      shopName: queue?.shopName || business?.name || 'Service Partner',
+    };
+  }
+
+  /** Update seller direct payment settings (Upload UPI ID, Upload QR Barcode, Set Threshold) */
+  async updateSellerPaymentSettings(
+    sellerId: string,
+    data: {
+      sellerUpiId?: string;
+      sellerUpiQr?: string;
+      commissionThreshold?: number;
+    }
+  ) {
+    // Update all queues for this seller
+    await this.prisma.serviceQueue.updateMany({
+      where: { sellerId },
+      data: {
+        ...(data.sellerUpiId !== undefined ? { sellerUpiId: data.sellerUpiId } : {}),
+        ...(data.sellerUpiQr !== undefined ? { sellerUpiQr: data.sellerUpiQr } : {}),
+        ...(data.commissionThreshold !== undefined ? { commissionThreshold: Number(data.commissionThreshold) } : {}),
+      }
+    });
+
+    // Update business if exists
+    if (this.isValidObjectId(sellerId)) {
+      const b = await this.prisma.business.findFirst({
+        where: { OR: [{ userId: sellerId }, { id: sellerId }] }
+      });
+      if (b) {
+        await this.prisma.business.update({
+          where: { id: b.id },
+          data: {
+            ...(data.sellerUpiId !== undefined ? { sellerUpiId: data.sellerUpiId } : {}),
+            ...(data.sellerUpiQr !== undefined ? { sellerUpiQr: data.sellerUpiQr } : {}),
+            ...(data.commissionThreshold !== undefined ? { commissionThreshold: Number(data.commissionThreshold) } : {}),
+          }
+        });
+      }
+    }
+
+    return this.getSellerPaymentSettings(sellerId);
+  }
+
+  /** Settle platform commission and automatically RESUME services */
+  async paySellerCommission(
+    sellerId: string,
+    data: { amount?: number; paymentRef?: string; settleMethod?: string }
+  ) {
+    let business: any = null;
+    if (this.isValidObjectId(sellerId)) {
+      business = await this.prisma.business.findFirst({
+        where: { OR: [{ userId: sellerId }, { id: sellerId }] },
+        include: { wallet: true }
+      });
+    }
+
+    if (business?.wallet) {
+      await this.prisma.wallet.update({
+        where: { id: business.wallet.id },
+        data: { owedToPlatform: 0 }
+      });
+    }
+
+    if (business) {
+      await this.prisma.business.update({
+        where: { id: business.id },
+        data: { commissionSuspended: false }
+      });
+    }
+
+    // Automatically RESUME all queues and mark ACTIVE & OPEN!
+    await this.prisma.serviceQueue.updateMany({
+      where: { sellerId },
+      data: {
+        status: 'ACTIVE',
+        isOpen: true,
+        commissionSuspended: false,
+      }
+    });
+
+    const ref = data?.paymentRef || `UTR-COMM-${Date.now().toString().slice(-8)}`;
+
+    return {
+      success: true,
+      message: 'Platform commission settled successfully! Services and live appointments have resumed.',
+      isServiceActive: true,
+      owedToPlatform: 0,
+      paymentRef: ref
+    };
+  }
+
   private async applyCommission(bookingId: string, sellerId: string | null) {
     if (!sellerId) return;
 
@@ -567,7 +707,7 @@ export class ServiceQueueService {
       const booking = await this.prisma.serviceBooking.findUnique({ where: { id: bookingId } });
       if (!booking || booking.price <= 0) return;
 
-      const business = await this.prisma.business.findUnique({
+      const business: any = await this.prisma.business.findUnique({
         where: { userId: sellerId },
         include: { wallet: true }
       });
@@ -577,7 +717,6 @@ export class ServiceQueueService {
       if (business.commissionType === 'PERCENTAGE') {
         baseCommission = booking.price * (business.commissionRate / 100);
       } else if (business.commissionType === 'FIXED') {
-        // Fixed fee per transaction
         baseCommission = business.commissionRate;
       }
 
@@ -585,20 +724,40 @@ export class ServiceQueueService {
       const commissionGst = Math.round(baseCommission * 0.18 * 100) / 100;
       const amountOwed = Math.round((baseCommission + commissionGst) * 100) / 100;
 
+      let totalOwed = amountOwed;
       if (amountOwed > 0) {
         if (business.wallet) {
-          await this.prisma.wallet.update({
+          const w = await this.prisma.wallet.update({
             where: { id: business.wallet.id },
             data: { owedToPlatform: { increment: amountOwed } }
           });
+          totalOwed = w.owedToPlatform;
         } else {
-          await this.prisma.wallet.create({
+          const w = await this.prisma.wallet.create({
             data: {
               businessId: business.id,
               owedToPlatform: amountOwed
             }
           });
+          totalOwed = w.owedToPlatform;
         }
+      }
+
+      // Threshold check: Automatically SUSPEND services if owed commission reaches limit
+      const threshold = business.commissionThreshold || 1000;
+      if (totalOwed >= threshold) {
+        await this.prisma.serviceQueue.updateMany({
+          where: { sellerId },
+          data: {
+            status: 'SUSPENDED',
+            isOpen: false,
+            commissionSuspended: true,
+          }
+        });
+        await this.prisma.business.update({
+          where: { id: business.id },
+          data: { commissionSuspended: true }
+        });
       }
     } catch (err) {
       console.error('Failed to apply commission', err);

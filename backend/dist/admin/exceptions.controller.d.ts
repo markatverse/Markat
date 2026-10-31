@@ -4,34 +4,35 @@ export declare class ExceptionsController {
     constructor(exceptionsService: ExceptionsService);
     getExceptions(status: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         details: import("@prisma/client/runtime/library").JsonValue | null;
         status: string;
-        createdAt: Date;
+        message: string;
         type: string;
         severity: string;
         referenceId: string | null;
         referenceType: string | null;
-        message: string;
         assignedTo: string | null;
-        updatedAt: Date;
     }[]>;
     resolveException(id: string, body: {
         notes?: string;
     }): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         details: import("@prisma/client/runtime/library").JsonValue | null;
         status: string;
-        createdAt: Date;
+        message: string;
         type: string;
         severity: string;
         referenceId: string | null;
         referenceType: string | null;
-        message: string;
         assignedTo: string | null;
-        updatedAt: Date;
     }>;
     getAuditLogs(entityType?: string, entityId?: string): Promise<{
         id: string;
+        createdAt: Date;
         logId: string | null;
         action: string;
         resource: string | null;
@@ -43,6 +44,5 @@ export declare class ExceptionsController {
         actorRole: string | null;
         ipAddress: string | null;
         status: string;
-        createdAt: Date;
     }[]>;
 }

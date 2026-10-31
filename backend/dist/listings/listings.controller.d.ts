@@ -31,8 +31,8 @@ export declare class ListingsController {
             createdAt: Date;
             updatedAt: Date;
             description: string | null;
-            mainType: import(".prisma/client").$Enums.MainType;
             isActive: boolean;
+            mainType: import(".prisma/client").$Enums.MainType;
         };
         sector: {
             id: string;
@@ -50,9 +50,9 @@ export declare class ListingsController {
         };
     } & {
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         sellerId: string;
         description: string | null;
         title: string;
@@ -93,8 +93,8 @@ export declare class ListingsController {
             createdAt: Date;
             updatedAt: Date;
             description: string | null;
-            mainType: import(".prisma/client").$Enums.MainType;
             isActive: boolean;
+            mainType: import(".prisma/client").$Enums.MainType;
         };
         sector: {
             id: string;
@@ -112,9 +112,9 @@ export declare class ListingsController {
         };
     } & {
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         sellerId: string;
         description: string | null;
         title: string;
@@ -128,9 +128,9 @@ export declare class ListingsController {
     }>;
     createListing(data: any): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         sellerId: string;
         description: string | null;
         title: string;
@@ -144,9 +144,9 @@ export declare class ListingsController {
     }>;
     updateListing(id: string, data: any): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         sellerId: string;
         description: string | null;
         title: string;
@@ -160,9 +160,9 @@ export declare class ListingsController {
     }>;
     deleteListing(id: string): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         sellerId: string;
         description: string | null;
         title: string;

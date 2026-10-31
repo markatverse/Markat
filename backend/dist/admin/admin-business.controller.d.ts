@@ -16,8 +16,8 @@ export declare class AdminBusinessController {
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        businessId: string;
         status: string;
+        businessId: string;
     }>;
     updateBranch(id: string, body: {
         name?: string;
@@ -28,35 +28,41 @@ export declare class AdminBusinessController {
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        businessId: string;
         status: string;
+        businessId: string;
     }>;
     deleteBranch(id: string, authHeader?: string): Promise<{
         id: string;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        businessId: string;
         status: string;
+        businessId: string;
     }>;
     updateSubscription(id: string, body: {
         subscriptionStatus: string;
         subscriptionStartDate: string | null;
         subscriptionEndDate: string | null;
     }, authHeader?: string): Promise<{
-        id: string;
-        businessCode: string | null;
-        userId: string;
-        name: string;
-        logo: string | null;
-        description: string | null;
-        businessModel: import(".prisma/client").$Enums.MainType;
         businessType: string;
         sector: string | null;
-        address: string | null;
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
         pincode: string | null;
         latitude: number | null;
         longitude: number | null;
+        sellerUpiId: string | null;
+        sellerUpiQr: string | null;
+        commissionThreshold: number;
+        commissionSuspended: boolean;
+        businessCode: string | null;
+        logo: string | null;
+        description: string | null;
+        businessModel: import(".prisma/client").$Enums.MainType;
+        address: string | null;
         gstNumber: string | null;
         panNumber: string | null;
         aadharNumber: string | null;
@@ -69,8 +75,6 @@ export declare class AdminBusinessController {
         verificationNotes: string | null;
         kycCallStatus: string | null;
         kycNotes: string | null;
-        createdAt: Date;
-        updatedAt: Date;
         capabilities: string[];
         maxListings: number;
         commissionType: string;
@@ -83,6 +87,7 @@ export declare class AdminBusinessController {
         registrationFeeStatus: string;
         registrationPaymentId: string | null;
         registrationFeeDate: Date | null;
+        commissionDueDate: Date | null;
     }>;
     updateBilling(id: string, body: {
         commissionType: string;
@@ -91,19 +96,25 @@ export declare class AdminBusinessController {
         subscriptionStartDate: string | null;
         subscriptionEndDate: string | null;
     }, authHeader?: string): Promise<{
-        id: string;
-        businessCode: string | null;
-        userId: string;
-        name: string;
-        logo: string | null;
-        description: string | null;
-        businessModel: import(".prisma/client").$Enums.MainType;
         businessType: string;
         sector: string | null;
-        address: string | null;
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
         pincode: string | null;
         latitude: number | null;
         longitude: number | null;
+        sellerUpiId: string | null;
+        sellerUpiQr: string | null;
+        commissionThreshold: number;
+        commissionSuspended: boolean;
+        businessCode: string | null;
+        logo: string | null;
+        description: string | null;
+        businessModel: import(".prisma/client").$Enums.MainType;
+        address: string | null;
         gstNumber: string | null;
         panNumber: string | null;
         aadharNumber: string | null;
@@ -116,8 +127,6 @@ export declare class AdminBusinessController {
         verificationNotes: string | null;
         kycCallStatus: string | null;
         kycNotes: string | null;
-        createdAt: Date;
-        updatedAt: Date;
         capabilities: string[];
         maxListings: number;
         commissionType: string;
@@ -130,5 +139,6 @@ export declare class AdminBusinessController {
         registrationFeeStatus: string;
         registrationPaymentId: string | null;
         registrationFeeDate: Date | null;
+        commissionDueDate: Date | null;
     }>;
 }

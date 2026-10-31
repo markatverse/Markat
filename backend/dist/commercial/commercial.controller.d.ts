@@ -5,49 +5,53 @@ export declare class CommercialController {
     getAdvertisements(): Promise<any>;
     getAdvertisement(id: string): Promise<{
         id: string;
-        title: string;
-        mediaUrl: string | null;
-        linkUrl: string | null;
-        position: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
+        title: string;
+        linkUrl: string | null;
+        position: string;
+        mediaUrl: string | null;
+        source: string | null;
     }>;
     createAdvertisement(data: any): Promise<{
         id: string;
-        title: string;
-        mediaUrl: string | null;
-        linkUrl: string | null;
-        position: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
+        title: string;
+        linkUrl: string | null;
+        position: string;
+        mediaUrl: string | null;
+        source: string | null;
     }>;
     updateAdvertisement(id: string, data: any): Promise<{
         id: string;
-        title: string;
-        mediaUrl: string | null;
-        linkUrl: string | null;
-        position: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
+        title: string;
+        linkUrl: string | null;
+        position: string;
+        mediaUrl: string | null;
+        source: string | null;
     }>;
     deleteAdvertisement(id: string): Promise<{
         id: string;
-        title: string;
-        mediaUrl: string | null;
-        linkUrl: string | null;
-        position: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
+        title: string;
+        linkUrl: string | null;
+        position: string;
+        mediaUrl: string | null;
+        source: string | null;
     }>;
     getCoupons(): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         code: string;
         discount: number;
         type: string;
@@ -55,9 +59,9 @@ export declare class CommercialController {
     }[]>;
     getCoupon(id: string): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         code: string;
         discount: number;
         type: string;
@@ -65,9 +69,9 @@ export declare class CommercialController {
     }>;
     createCoupon(data: any): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         code: string;
         discount: number;
         type: string;
@@ -75,9 +79,9 @@ export declare class CommercialController {
     }>;
     updateCoupon(id: string, data: any): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         code: string;
         discount: number;
         type: string;
@@ -85,9 +89,9 @@ export declare class CommercialController {
     }>;
     deleteCoupon(id: string): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         code: string;
         discount: number;
         type: string;
@@ -100,15 +104,15 @@ export declare class CommercialController {
     updateSubscription(id: string, data: any): Promise<any>;
     deleteSubscription(id: string): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
-        planName: string;
+        status: string;
+        features: string[];
         price: number;
+        planName: string;
         billingCycle: string | null;
         taxPercent: number | null;
         sacCode: string | null;
-        features: string[];
     }>;
     getCommissions(): Promise<{
         id: string;

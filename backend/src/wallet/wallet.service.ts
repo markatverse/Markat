@@ -132,6 +132,20 @@ export class WalletService {
           }
         });
 
+        
+        // Automatically resume business and any suspended service queues
+        await tx.business.update({
+          where: { id: businessId },
+          data: { commissionSuspended: false }
+        });
+        const bus = await tx.business.findUnique({ where: { id: businessId } });
+        if (bus && bus.userId) {
+          await tx.serviceQueue.updateMany({
+            where: { sellerId: bus.userId },
+            data: { status: 'ACTIVE', isOpen: true, commissionSuspended: false }
+          });
+        }
+
         return updatedWallet;
       });
     }

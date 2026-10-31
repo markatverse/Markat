@@ -5,8 +5,9 @@ import {
   Maximize2, Clock, CheckCircle2, AlertCircle, Play, Check,
   Phone, Search, ChevronRight, X, Sparkles, Scissors, Car,
   Stethoscope, Utensils, Building2, Flame, ShieldCheck, UserCheck,
-  Radio, ArrowRight
+  Radio, ArrowRight, QrCode, AlertTriangle
 } from 'lucide-react';
+import SellerDirectUpiModal from '@/components/seller/SellerDirectUpiModal';
 
 interface SellerQueueTabProps {
   queueData: any;
@@ -19,6 +20,7 @@ interface SellerQueueTabProps {
   onQueueAction: (actionId: string, endpoint: string, method?: string, body?: any) => Promise<void>;
   onOpenWalkIn: () => void;
   onOpenStaffModal: () => void;
+  sellerId?: string;
 }
 
 // Web Audio API Chime Synthesizer (Works 100% offline with zero assets)
@@ -79,7 +81,11 @@ export default function SellerQueueTab({
   onQueueAction,
   onOpenWalkIn,
   onOpenStaffModal,
+  sellerId,
 }: SellerQueueTabProps) {
+  // Direct UPI & Barcode Setup Modal
+  const [showUpiModal, setShowUpiModal] = useState(false);
+
   // Sound announcement toggle
   const [soundEnabled, setSoundEnabled] = useState(true);
   
@@ -252,6 +258,34 @@ export default function SellerQueueTab({
 
   return (
     <div className="max-w-6xl mx-auto space-y-3.5 animate-in fade-in duration-300">
+
+      {/* Commission Suspension Warning Alert Banner */}
+      {(queueData?.queue?.commissionSuspended || queueData?.queue?.status === 'SUSPENDED') && (
+        <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-red-950 shadow-md ring-2 ring-red-400/20">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-red-500/30">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-black text-sm sm:text-base leading-tight text-red-900">
+                Services Suspended (Commission Threshold Reached)
+              </h4>
+              <p className="text-xs text-red-700/90 mt-0.5 leading-relaxed">
+                Customer bookings &amp; digital tokens are paused because platform commission dues exceeded your limit. Settle dues to resume live operations immediately.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowUpiModal(true)}
+            className="px-4 py-2.5 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md shadow-red-600/30 transition-all flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
+          >
+            <QrCode className="w-4 h-4" />
+            <span>Settle &amp; Resume Services</span>
+          </button>
+        </div>
+      )}
+
       {/* ─────────────────────────────────────────────────────────────
           1. HEADER & LIVE COMMAND CONTROLLER (COMPACT)
       ───────────────────────────────────────────────────────────── */}
@@ -334,6 +368,24 @@ export default function SellerQueueTab({
             >
               <Users className="w-3.5 h-3.5 text-indigo-600" />
               <span>Staff & Stations</span>
+            </button>
+
+            {/* Direct UPI & Shop QR Barcode Settings */}
+            <button
+              type="button"
+              onClick={() => setShowUpiModal(true)}
+              className={`py-1.5 px-2.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer ${
+                queueData?.queue?.commissionSuspended
+                  ? 'bg-red-100 hover:bg-red-200 text-red-900 border border-red-300 ring-2 ring-red-400/40 animate-pulse'
+                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200'
+              }`}
+              title="Configure Seller UPI ID & Shop Standee QR Barcode"
+            >
+              <QrCode className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Direct UPI &amp; QR</span>
+              {queueData?.queue?.commissionSuspended && (
+                <span className="w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
+              )}
             </button>
 
             {/* Add Walk-in */}
@@ -1049,6 +1101,15 @@ export default function SellerQueueTab({
           </div>
         </div>
       )}
+
+      {/* Direct UPI ID & QR Barcode Setup Modal */}
+      <SellerDirectUpiModal
+        isOpen={showUpiModal}
+        onClose={() => setShowUpiModal(false)}
+        sellerId={sellerId || queueData?.queue?.sellerId || ''}
+        shopName={queueData?.queue?.shopName || 'Service Desk'}
+        onUpdated={() => onFetchQueue()}
+      />
     </div>
   );
 }

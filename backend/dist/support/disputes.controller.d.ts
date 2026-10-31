@@ -4,9 +4,9 @@ export declare class DisputesController {
     constructor(disputesService: DisputesService);
     findAll(): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         description: string | null;
         title: string;
     }[]>;
@@ -15,9 +15,9 @@ export declare class DisputesController {
         description?: string;
     }): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         description: string | null;
         title: string;
     }>;
@@ -25,17 +25,17 @@ export declare class DisputesController {
         status: string;
     }): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         description: string | null;
         title: string;
     }>;
     remove(id: string): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         description: string | null;
         title: string;
     }>;

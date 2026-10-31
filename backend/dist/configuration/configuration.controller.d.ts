@@ -14,8 +14,8 @@ export declare class ConfigurationController {
         createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        mainType: import(".prisma/client").$Enums.MainType;
         isActive: boolean;
+        mainType: import(".prisma/client").$Enums.MainType;
     }>;
     getSectors(businessTypeId?: string): Promise<any>;
     createSector(data: {
@@ -122,7 +122,7 @@ export declare class ConfigurationController {
         name: string;
         data: import("@prisma/client/runtime/library").JsonValue;
         createdAt: Date;
-        type: string;
         updatedAt: Date;
+        type: string;
     }>;
 }

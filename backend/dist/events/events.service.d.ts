@@ -25,6 +25,7 @@ export declare class EventsService {
     emit(event: string, payload: any): void;
     logAction(data: AuditLogDto): Promise<{
         id: string;
+        createdAt: Date;
         logId: string | null;
         action: string;
         resource: string | null;
@@ -36,19 +37,18 @@ export declare class EventsService {
         actorRole: string | null;
         ipAddress: string | null;
         status: string;
-        createdAt: Date;
     } | undefined>;
     logException(data: ExceptionDto): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         details: import("@prisma/client/runtime/library").JsonValue | null;
         status: string;
-        createdAt: Date;
+        message: string;
         type: string;
         severity: string;
         referenceId: string | null;
         referenceType: string | null;
-        message: string;
         assignedTo: string | null;
-        updatedAt: Date;
     } | undefined>;
 }

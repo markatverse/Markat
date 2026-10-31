@@ -9,11 +9,11 @@ export declare class UsersController {
     private authenticateToken;
     create(createUserDto: CreateUserDto): Promise<{
         id: string;
+        name: string;
         markatId: string | null;
         email: string | null;
         phone: string | null;
         password: string;
-        name: string;
         role: string;
         createdAt: Date;
         updatedAt: Date;
@@ -21,30 +21,26 @@ export declare class UsersController {
         resetCodeExpires: Date | null;
     }>;
     findAll(authorization?: string): import(".prisma/client").Prisma.PrismaPromise<{
-        id: string;
-        markatId: string | null;
-        email: string | null;
-        phone: string | null;
-        name: string;
-        role: string;
-        createdAt: Date;
-        updatedAt: Date;
         business: {
+            businessType: string;
+            sector: string | null;
             id: string;
             name: string;
             createdAt: Date;
             updatedAt: Date;
-            businessCode: string | null;
             userId: string;
-            logo: string | null;
-            description: string | null;
-            businessModel: import(".prisma/client").$Enums.MainType;
-            businessType: string;
-            sector: string | null;
-            address: string | null;
             pincode: string | null;
             latitude: number | null;
             longitude: number | null;
+            sellerUpiId: string | null;
+            sellerUpiQr: string | null;
+            commissionThreshold: number;
+            commissionSuspended: boolean;
+            businessCode: string | null;
+            logo: string | null;
+            description: string | null;
+            businessModel: import(".prisma/client").$Enums.MainType;
+            address: string | null;
             gstNumber: string | null;
             panNumber: string | null;
             aadharNumber: string | null;
@@ -69,33 +65,38 @@ export declare class UsersController {
             registrationFeeStatus: string;
             registrationPaymentId: string | null;
             registrationFeeDate: Date | null;
+            commissionDueDate: Date | null;
         } | null;
+        id: string;
+        name: string;
+        markatId: string | null;
+        email: string | null;
+        phone: string | null;
+        role: string;
+        createdAt: Date;
+        updatedAt: Date;
     }[]>;
     findOne(id: string, authorization?: string): import(".prisma/client").Prisma.Prisma__UserClient<{
-        id: string;
-        markatId: string | null;
-        email: string | null;
-        phone: string | null;
-        name: string;
-        role: string;
-        createdAt: Date;
-        updatedAt: Date;
         business: {
+            businessType: string;
+            sector: string | null;
             id: string;
             name: string;
             createdAt: Date;
             updatedAt: Date;
-            businessCode: string | null;
             userId: string;
-            logo: string | null;
-            description: string | null;
-            businessModel: import(".prisma/client").$Enums.MainType;
-            businessType: string;
-            sector: string | null;
-            address: string | null;
             pincode: string | null;
             latitude: number | null;
             longitude: number | null;
+            sellerUpiId: string | null;
+            sellerUpiQr: string | null;
+            commissionThreshold: number;
+            commissionSuspended: boolean;
+            businessCode: string | null;
+            logo: string | null;
+            description: string | null;
+            businessModel: import(".prisma/client").$Enums.MainType;
+            address: string | null;
             gstNumber: string | null;
             panNumber: string | null;
             aadharNumber: string | null;
@@ -120,15 +121,24 @@ export declare class UsersController {
             registrationFeeStatus: string;
             registrationPaymentId: string | null;
             registrationFeeDate: Date | null;
+            commissionDueDate: Date | null;
         } | null;
+        id: string;
+        name: string;
+        markatId: string | null;
+        email: string | null;
+        phone: string | null;
+        role: string;
+        createdAt: Date;
+        updatedAt: Date;
     } | null, null, import("@prisma/client/runtime/library").DefaultArgs>;
     update(id: string, updateUserDto: Record<string, unknown>, authorization?: string): Promise<{
         id: string;
+        name: string;
         markatId: string | null;
         email: string | null;
         phone: string | null;
         password: string;
-        name: string;
         role: string;
         createdAt: Date;
         updatedAt: Date;
@@ -140,11 +150,11 @@ export declare class UsersController {
     }>;
     remove(id: string, authorization?: string): Promise<{
         id: string;
+        name: string;
         markatId: string | null;
         email: string | null;
         phone: string | null;
         password: string;
-        name: string;
         role: string;
         createdAt: Date;
         updatedAt: Date;
@@ -153,8 +163,8 @@ export declare class UsersController {
     }>;
     getAddresses(id: string, authorization?: string): Promise<{
         id: string;
-        phone: string;
         name: string;
+        phone: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;
@@ -168,8 +178,8 @@ export declare class UsersController {
     }[]>;
     addAddress(id: string, body: any, authorization?: string): Promise<{
         id: string;
-        phone: string;
         name: string;
+        phone: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;
@@ -183,8 +193,8 @@ export declare class UsersController {
     }>;
     updateAddress(addressId: string, body: any, authorization?: string): Promise<{
         id: string;
-        phone: string;
         name: string;
+        phone: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;
@@ -198,8 +208,8 @@ export declare class UsersController {
     }>;
     deleteAddress(addressId: string, authorization?: string): Promise<{
         id: string;
-        phone: string;
         name: string;
+        phone: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;

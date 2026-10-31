@@ -11,22 +11,22 @@ export declare class ReviewsService {
         userName?: string;
     }): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         entityType: string;
         entityId: string;
         userId: string;
-        createdAt: Date;
-        updatedAt: Date;
         rating: number;
         comment: string | null;
         userName: string | null;
     }>;
     getReviews(entityType: string, entityId: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         entityType: string;
         entityId: string;
         userId: string;
-        createdAt: Date;
-        updatedAt: Date;
         rating: number;
         comment: string | null;
         userName: string | null;

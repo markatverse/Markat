@@ -18,9 +18,9 @@ export declare class NotificationsController {
     };
     getAllLogs(): Promise<{
         id: string;
+        createdAt: Date;
         userId: string | null;
         status: string;
-        createdAt: Date;
         message: string;
         title: string | null;
         userType: string | null;
@@ -30,9 +30,9 @@ export declare class NotificationsController {
     }[]>;
     getHistory(userId: string, authorization?: string): Promise<{
         id: string;
+        createdAt: Date;
         userId: string | null;
         status: string;
-        createdAt: Date;
         message: string;
         title: string | null;
         userType: string | null;
@@ -42,10 +42,10 @@ export declare class NotificationsController {
     }[]>;
     getSmsTemplates(): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }[]>;
     createSmsTemplate(data: {
@@ -54,34 +54,34 @@ export declare class NotificationsController {
         status?: string;
     }): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }>;
     updateSmsTemplate(id: string, data: any): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }>;
     deleteSmsTemplate(id: string): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }>;
     getPushTemplates(): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }[]>;
     createPushTemplate(data: {
@@ -90,34 +90,34 @@ export declare class NotificationsController {
         status?: string;
     }): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }>;
     updatePushTemplate(id: string, data: any): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }>;
     deletePushTemplate(id: string): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }>;
     getEmailTemplates(): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }[]>;
     createEmailTemplate(data: {
@@ -126,26 +126,26 @@ export declare class NotificationsController {
         status?: string;
     }): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }>;
     updateEmailTemplate(id: string, data: any): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }>;
     deleteEmailTemplate(id: string): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         title: string;
     }>;
 }

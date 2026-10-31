@@ -22,8 +22,8 @@ export declare class OrdersController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        buyerId: string | null;
         status: string;
+        buyerId: string | null;
         orderNumber: string | null;
         total: number;
     }>;
@@ -62,8 +62,8 @@ export declare class OrdersController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        buyerId: string | null;
         status: string;
+        buyerId: string | null;
         orderNumber: string | null;
         total: number;
     })[]>;
@@ -71,8 +71,8 @@ export declare class OrdersController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        buyerId: string | null;
         status: string;
+        buyerId: string | null;
         orderNumber: string | null;
         total: number;
     } | null, null, import("@prisma/client/runtime/library").DefaultArgs>;
@@ -80,8 +80,8 @@ export declare class OrdersController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        buyerId: string | null;
         status: string;
+        buyerId: string | null;
         orderNumber: string | null;
         total: number;
     }>;
@@ -89,8 +89,8 @@ export declare class OrdersController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        buyerId: string | null;
         status: string;
+        buyerId: string | null;
         orderNumber: string | null;
         total: number;
     }, never, import("@prisma/client/runtime/library").DefaultArgs>;

@@ -176,4 +176,35 @@ export class ServiceQueueController {
   deleteResource(@Param('queueId') queueId: string, @Param('resourceId') resourceId: string) {
     return this.serviceQueueService.deleteResource(queueId, resourceId);
   }
+
+  // ─── Direct UPI & Commission Settings ───────────────────────────────────────
+
+  /** Get seller direct payment settings (UPI ID, QR Barcode, Commission Threshold & Status) */
+  @Get('seller/:sellerId/payment-settings')
+  getSellerPaymentSettings(@Param('sellerId') sellerId: string) {
+    return this.serviceQueueService.getSellerPaymentSettings(sellerId);
+  }
+
+  /** Update seller direct payment settings (Upload UPI ID, Upload QR Barcode, Set Threshold) */
+  @Post('seller/:sellerId/payment-settings')
+  updateSellerPaymentSettings(
+    @Param('sellerId') sellerId: string,
+    @Body()
+    body: {
+      sellerUpiId?: string;
+      sellerUpiQr?: string;
+      commissionThreshold?: number;
+    },
+  ) {
+    return this.serviceQueueService.updateSellerPaymentSettings(sellerId, body);
+  }
+
+  /** Pay platform commission and automatically RESUME services */
+  @Post('seller/:sellerId/pay-commission')
+  paySellerCommission(
+    @Param('sellerId') sellerId: string,
+    @Body() body: { amount?: number; paymentRef?: string; settleMethod?: string },
+  ) {
+    return this.serviceQueueService.paySellerCommission(sellerId, body);
+  }
 }

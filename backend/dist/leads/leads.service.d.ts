@@ -4,10 +4,10 @@ export declare class LeadsService {
     constructor(prisma: PrismaService);
     create(data: any): import(".prisma/client").Prisma.Prisma__LeadClient<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         sellerId: string;
         buyerId: string;
         productId: string;
@@ -26,10 +26,10 @@ export declare class LeadsService {
         };
     } & {
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         sellerId: string;
         buyerId: string;
         productId: string;
@@ -49,10 +49,10 @@ export declare class LeadsService {
         };
     } & {
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         sellerId: string;
         buyerId: string;
         productId: string;
@@ -60,10 +60,10 @@ export declare class LeadsService {
     })[]>;
     updateStatus(id: string, status: string): import(".prisma/client").Prisma.Prisma__LeadClient<{
         id: string;
-        status: string;
         createdAt: Date;
-        message: string;
         updatedAt: Date;
+        status: string;
+        message: string;
         sellerId: string;
         buyerId: string;
         productId: string;

@@ -4,9 +4,9 @@ export declare class DisputesService {
     constructor(prisma: PrismaService);
     findAll(): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         description: string | null;
         title: string;
     }[]>;
@@ -15,25 +15,25 @@ export declare class DisputesService {
         description?: string;
     }): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         description: string | null;
         title: string;
     }>;
     updateStatus(id: string, status: string): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         description: string | null;
         title: string;
     }>;
     remove(id: string): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         description: string | null;
         title: string;
     }>;

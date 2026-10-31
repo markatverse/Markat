@@ -5,6 +5,7 @@ export declare class SecurityController {
     getAuditLogs(): Promise<{
         userMarkatId: string | null | undefined;
         id: string;
+        createdAt: Date;
         logId: string | null;
         action: string;
         resource: string | null;
@@ -16,10 +17,10 @@ export declare class SecurityController {
         actorRole: string | null;
         ipAddress: string | null;
         status: string;
-        createdAt: Date;
     }[]>;
     createAuditLog(body: any): Promise<{
         id: string;
+        createdAt: Date;
         logId: string | null;
         action: string;
         resource: string | null;
@@ -31,37 +32,36 @@ export declare class SecurityController {
         actorRole: string | null;
         ipAddress: string | null;
         status: string;
-        createdAt: Date;
     }>;
     getAlerts(): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         description: string | null;
         title: string;
     }[]>;
     createAlert(body: any): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         description: string | null;
         title: string;
     }>;
     updateAlert(id: string, body: any): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         description: string | null;
         title: string;
     }>;
     deleteAlert(id: string): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         description: string | null;
         title: string;
     }>;

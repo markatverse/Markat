@@ -14,17 +14,17 @@ export declare class OrdersService {
             createdAt: Date;
             updatedAt: Date;
             sellerId: string | null;
-            price: number;
             productId: string;
             productName: string | null;
             quantity: number;
+            price: number;
             orderId: string;
         }[];
     } & {
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         buyerId: string | null;
         orderNumber: string | null;
         total: number;
@@ -54,44 +54,44 @@ export declare class OrdersService {
             createdAt: Date;
             updatedAt: Date;
             sellerId: string | null;
-            price: number;
             productId: string;
             productName: string | null;
             quantity: number;
+            price: number;
             orderId: string;
         }[];
     } & {
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         buyerId: string | null;
         orderNumber: string | null;
         total: number;
     })[]>;
     findOne(id: string): import(".prisma/client").Prisma.Prisma__OrderClient<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         buyerId: string | null;
         orderNumber: string | null;
         total: number;
     } | null, null, import("@prisma/client/runtime/library").DefaultArgs>;
     update(id: string, updateOrderDto: UpdateOrderDto): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         buyerId: string | null;
         orderNumber: string | null;
         total: number;
     }>;
     remove(id: string): import(".prisma/client").Prisma.Prisma__OrderClient<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         buyerId: string | null;
         orderNumber: string | null;
         total: number;

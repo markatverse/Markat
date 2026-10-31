@@ -15,12 +15,16 @@ export declare class AdminBusinessService {
         sector: string | null;
         id: string;
         name: string;
-        userId: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
         pincode: string | null;
         latitude: number | null;
         longitude: number | null;
+        sellerUpiId: string | null;
+        sellerUpiQr: string | null;
+        commissionThreshold: number;
+        commissionSuspended: boolean;
         businessCode: string | null;
         logo: string | null;
         description: string | null;
@@ -50,6 +54,7 @@ export declare class AdminBusinessService {
         registrationFeeStatus: string;
         registrationPaymentId: string | null;
         registrationFeeDate: Date | null;
+        commissionDueDate: Date | null;
     }>;
     updateBilling(id: string, data: {
         commissionType: string;
@@ -62,12 +67,16 @@ export declare class AdminBusinessService {
         sector: string | null;
         id: string;
         name: string;
-        userId: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
         pincode: string | null;
         latitude: number | null;
         longitude: number | null;
+        sellerUpiId: string | null;
+        sellerUpiQr: string | null;
+        commissionThreshold: number;
+        commissionSuspended: boolean;
         businessCode: string | null;
         logo: string | null;
         description: string | null;
@@ -97,6 +106,7 @@ export declare class AdminBusinessService {
         registrationFeeStatus: string;
         registrationPaymentId: string | null;
         registrationFeeDate: Date | null;
+        commissionDueDate: Date | null;
     }>;
     getAllBranches(): Promise<any>;
     createBranch(data: {
@@ -106,9 +116,9 @@ export declare class AdminBusinessService {
     }): Promise<{
         id: string;
         name: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         businessId: string;
     }>;
     updateBranch(id: string, data: {
@@ -118,17 +128,17 @@ export declare class AdminBusinessService {
     }): Promise<{
         id: string;
         name: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         businessId: string;
     }>;
     deleteBranch(id: string): Promise<{
         id: string;
         name: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         businessId: string;
     }>;
 }

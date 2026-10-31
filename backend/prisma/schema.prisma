@@ -79,6 +79,13 @@ model Business {
   registrationPaymentId String?
   registrationFeeDate   DateTime?
 
+  // Direct UPI & Barcode Payment Fields (Services Direct-to-Seller)
+  sellerUpiId           String?
+  sellerUpiQr           String?
+  commissionThreshold   Float     @default(1000)
+  commissionSuspended   Boolean   @default(false)
+  commissionDueDate     DateTime?
+
   user       User               @relation(fields: [userId], references: [id])
   wallet     Wallet?
   features   BusinessFeature[]
@@ -263,6 +270,12 @@ model ServiceQueue {
   queuePolicy        String       @default("FIFO") // FIFO, APPOINTMENT_PRIORITY, MIXED
   status             String       @default("ACTIVE") // ACTIVE, SUSPENDED
   
+  // Direct UPI & Barcode Payment Fields
+  sellerUpiId        String?
+  sellerUpiQr        String?
+  commissionThreshold Float       @default(1000)
+  commissionSuspended Boolean     @default(false)
+  
   rating             String?      @default("0.0")
   reviews            String?      @default("0")
   
@@ -289,6 +302,7 @@ model ServiceBooking {
   phone            String?
   service          String       @default("General")
   price            Float        @default(0)
+  paymentRef       String?
   staffName        String?
   
   // Status tracking
