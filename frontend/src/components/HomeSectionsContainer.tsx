@@ -10,7 +10,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 import Recommendations from "@/components/Recommendations";
 import BannerSlideshow from "@/components/BannerSlideshow";
 import AdSlideshow from "@/components/AdSlideshow";
-import { INITIAL_HOMEPAGE_SECTIONS, HomepageSection } from '@/app/admin/content/homepage/page';
+import { INITIAL_HOMEPAGE_SECTIONS, HomepageSection, mergeLayoutWithDefaults } from '@/types/homepage';
 import { useProducts } from '@/context/ProductContext';
 import { useSettings } from '@/context/SettingsContext';
 import { isServiceProduct } from '@/utils/productSearch';
@@ -24,25 +24,7 @@ interface HomeSectionsContainerProps {
   blogPosts: any[];
 }
 
-function mergeLayoutWithDefaults(sections?: HomepageSection[] | null): HomepageSection[] {
-  if (!Array.isArray(sections) || sections.length === 0) {
-    return INITIAL_HOMEPAGE_SECTIONS;
-  }
-  const existingIds = new Set(sections.map((s) => s.id));
-  const missing = INITIAL_HOMEPAGE_SECTIONS.filter((s) => !existingIds.has(s.id));
-  if (missing.length === 0) return sections;
-
-  const merged = [...sections];
-  for (const m of missing) {
-    const targetIdx = merged.findIndex((s) => s.order >= m.order);
-    if (targetIdx !== -1) {
-      merged.splice(targetIdx, 0, m);
-    } else {
-      merged.push(m);
-    }
-  }
-  return merged.map((s, idx) => ({ ...s, order: idx + 1 }));
-}
+// mergeLayoutWithDefaults is imported from @/types/homepage
 
 export default function HomeSectionsContainer({
   initialLayout,

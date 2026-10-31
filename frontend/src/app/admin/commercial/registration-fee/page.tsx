@@ -606,9 +606,9 @@ export default function RegistrationFeeSettingsPage() {
                         </span>
                       )}
                     </div>
-                    {calculated.taxAmount > 0 && (
+                    {(calculated.taxAmount ?? 0) > 0 && (
                       <span className="text-[10px] text-indigo-600 font-semibold block mt-1">
-                        Base ₹{calculated.discountedBase} + {taxPercent}% GST (₹{calculated.taxAmount})
+                        Base ₹{calculated.discountedBase} + {taxPercent}% GST (₹{calculated.taxAmount ?? 0})
                       </span>
                     )}
                   </div>
