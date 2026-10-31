@@ -7,7 +7,7 @@ import TopBannerWidget from './TopBannerWidget';
 export default function ConditionalNavbar() {
   const pathname = usePathname();
   
-  // Hide navbar on checkout, seller dashboard, admin portals, and standalone kiosk pages
+  // Hide navbar on checkout, seller dashboard, admin portals, ads platform, delivery platform, and standalone kiosk pages
   if (
     pathname === '/checkout' ||
     pathname?.startsWith('/checkout') ||
@@ -16,6 +16,8 @@ export default function ConditionalNavbar() {
     pathname?.startsWith('/seller/login') ||
     pathname?.startsWith('/login') ||
     pathname?.startsWith('/admin') ||
+    pathname?.startsWith('/ads') ||
+    pathname?.startsWith('/delivery') ||
     pathname === '/salon/join'
   ) {
     return null;

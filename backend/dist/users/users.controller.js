@@ -46,10 +46,18 @@ let UsersController = class UsersController {
     create(createUserDto) {
         return this.usersService.create(createUserDto);
     }
-    findAll() {
+    findAll(authorization) {
+        const claims = this.authenticateToken(authorization);
+        if (claims.role !== 'ADMIN' && claims.role !== 'SUPER_ADMIN') {
+            throw new ForbiddenException('Admin privileges required to view user directory');
+        }
         return this.usersService.findAll();
     }
-    findOne(id) {
+    findOne(id, authorization) {
+        const claims = this.authenticateToken(authorization);
+        if (claims.sub !== id && claims.role !== 'ADMIN' && claims.role !== 'SUPER_ADMIN') {
+            throw new ForbiddenException('Access denied');
+        }
         return this.usersService.findOne(id);
     }
     async update(id, updateUserDto, authorization) {
@@ -68,7 +76,11 @@ let UsersController = class UsersController {
         this.authenticateOwner(id, authorization);
         return this.usersService.updatePassword(id, body.currentPassword, body.newPassword);
     }
-    remove(id) {
+    remove(id, authorization) {
+        const claims = this.authenticateToken(authorization);
+        if (claims.sub !== id && claims.role !== 'ADMIN' && claims.role !== 'SUPER_ADMIN') {
+            throw new ForbiddenException('Admin access required to delete accounts');
+        }
         return this.usersService.remove(id);
     }
     async getAddresses(id, authorization) {
@@ -97,15 +109,17 @@ __decorate([
 ], UsersController.prototype, "create", null);
 __decorate([
     Get(),
+    __param(0, Headers('authorization')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "findAll", null);
 __decorate([
     Get(':id'),
     __param(0, Param('id')),
+    __param(1, Headers('authorization')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "findOne", null);
 __decorate([
@@ -129,8 +143,9 @@ __decorate([
 __decorate([
     Delete(':id'),
     __param(0, Param('id')),
+    __param(1, Headers('authorization')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "remove", null);
 __decorate([

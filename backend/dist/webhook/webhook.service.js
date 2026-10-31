@@ -11,6 +11,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
 import { WalletService } from '../wallet/wallet.service.js';
 import { EventsService } from '../events/events.service.js';
+import { calculateStatutoryGst } from '../common/gst-engine.js';
 let WebhookService = class WebhookService {
     prisma;
     walletService;
@@ -29,30 +30,51 @@ let WebhookService = class WebhookService {
         if (existingTx) {
             return { status: 'ignored', message: 'Transaction already processed' };
         }
-        let platformFee = 0;
+        let commType = 'PERCENTAGE';
+        let commRate = 5.0;
+        let fixedFee = 0;
         const business = await this.prisma.business.findUnique({ where: { id: businessId } });
         if (business) {
-            const rule = await this.prisma.commissionRule.findFirst({
-                where: {
-                    isActive: true,
-                    OR: [
-                        { entityType: 'SECTOR', entityId: business.sector || 'DEFAULT' },
-                        { entityType: 'BUSINESS_TYPE', entityId: business.businessType || 'DEFAULT' }
-                    ]
-                },
-                orderBy: { percentage: 'desc' }
-            });
-            if (rule) {
-                platformFee = (amount * rule.percentage) / 100 + rule.fixedFee;
+            if (business.commissionType === 'PERCENTAGE' && business.commissionRate !== undefined && business.commissionRate > 0) {
+                commType = 'PERCENTAGE';
+                commRate = business.commissionRate;
+            }
+            else if (business.commissionType === 'FIXED' && business.commissionRate !== undefined && business.commissionRate > 0) {
+                commType = 'FIXED';
+                commRate = business.commissionRate;
             }
             else {
-                platformFee = amount * 0.05;
+                const rule = await this.prisma.commissionRule.findFirst({
+                    where: {
+                        isActive: true,
+                        OR: [
+                            { entityType: 'SECTOR', entityId: business.sector || 'DEFAULT' },
+                            { entityType: 'BUSINESS_TYPE', entityId: business.businessType || 'DEFAULT' },
+                            { entityType: 'GLOBAL', entityId: 'ALL' }
+                        ]
+                    },
+                    orderBy: { percentage: 'desc' }
+                });
+                if (rule) {
+                    commType = 'PERCENTAGE';
+                    commRate = rule.percentage;
+                    fixedFee = rule.fixedFee || 0;
+                }
             }
         }
-        else {
-            platformFee = amount * 0.05;
-        }
-        const netAmount = amount - platformFee;
+        const gstBreakdown = calculateStatutoryGst({
+            grossAmount: amount,
+            sector: business?.sector,
+            businessType: business?.businessType,
+            hasGst: Boolean(business?.gstNumber),
+            commissionType: commType,
+            commissionRate: commRate,
+            fixedFee,
+        });
+        const baseCommission = gstBreakdown.baseCommission;
+        const taxWithheld = Math.round((gstBreakdown.commissionGst + gstBreakdown.tcsAmount) * 100) / 100;
+        const platformFee = gstBreakdown.totalPlatformDeduction;
+        const netAmount = gstBreakdown.netSellerPayout;
         await this.prisma.$transaction(async (tx) => {
             await tx.ledgerTransaction.create({
                 data: {
@@ -61,6 +83,8 @@ let WebhookService = class WebhookService {
                     referenceType,
                     paymentRef,
                     grossAmount: amount,
+                    commission: baseCommission,
+                    tax: taxWithheld,
                     platformFee,
                     netAmount,
                     type: 'CREDIT',
@@ -81,7 +105,18 @@ let WebhookService = class WebhookService {
             businessId,
             amount
         });
-        return { status: 'success' };
+        return {
+            status: 'success',
+            settlement: {
+                grossAmount: amount,
+                baseCommission,
+                commissionGst: gstBreakdown.commissionGst,
+                tcsAmount: gstBreakdown.tcsAmount,
+                platformFee,
+                netAmount,
+                sacCode: gstBreakdown.sacCode
+            }
+        };
     }
 };
 WebhookService = __decorate([

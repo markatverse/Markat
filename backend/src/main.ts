@@ -110,7 +110,9 @@ async function bootstrap() {
         const isAllowedOrigin = allowedOrigins.some(o => o.replace(/\/$/, '').toLowerCase() === cleanOrigin);
         const isMarkatVerse = cleanOrigin === 'https://markatverse.com' ||
                               cleanOrigin === 'http://markatverse.com' ||
-                              cleanOrigin.endsWith('.markatverse.com');
+                              cleanOrigin.endsWith('.markatverse.com') ||
+                              cleanOrigin.includes('localhost') ||
+                              cleanOrigin.includes('127.0.0.1');
         const isVercel = cleanOrigin.endsWith('.vercel.app');
 
         if (isAllowedOrigin || isMarkatVerse || isVercel) {
@@ -121,7 +123,7 @@ async function bootstrap() {
       },
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
       credentials: true,
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'x-markatverse-platform', 'x-markatverse-host'],
     });
     
     // HTTP Headers Security (Helmet with production CSP & clickjacking prevention)
@@ -157,11 +159,15 @@ async function bootstrap() {
       legacyHeaders: false,
     });
     expressApp.use('/auth/login', authLimiter);
+    expressApp.use('/auth/signup', authLimiter);
+    expressApp.use('/auth/phone-login', authLimiter);
     expressApp.use('/auth/send-signup-otp', authLimiter);
     expressApp.use('/auth/verify-signup-otp', authLimiter);
     expressApp.use('/auth/forgot-password', authLimiter);
     expressApp.use('/auth/reset-password', authLimiter);
+    expressApp.use('/auth/verify-reset-code', authLimiter);
     expressApp.use('/auth/support-ticket', authLimiter);
+    expressApp.use('/payment/razorpay/verify', authLimiter);
     
     // Controlled JSON payload limit
     app.use(express.json({ limit: '10mb' }));

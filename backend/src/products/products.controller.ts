@@ -18,6 +18,15 @@ export class ProductsController {
     @Query('radius') radius?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('q') q?: string,
+    @Query('search') search?: string,
+    @Query('category') category?: string,
+    @Query('subcategory') subcategory?: string,
+    @Query('type') type?: string,
+    @Query('isB2B') isB2B?: string,
+    @Query('minPrice') minPrice?: string,
+    @Query('maxPrice') maxPrice?: string,
+    @Query('sortBy') sortBy?: string,
   ) {
     return this.productsService.findAll(
       location, 
@@ -25,7 +34,17 @@ export class ProductsController {
       lng ? parseFloat(lng) : undefined, 
       radius ? parseFloat(radius) : undefined,
       page ? parseInt(page) : 1,
-      limit ? parseInt(limit) : 50
+      limit ? parseInt(limit) : 50,
+      {
+        q: q || search,
+        category,
+        subcategory,
+        type,
+        isB2B: isB2B !== undefined ? isB2B === 'true' : undefined,
+        minPrice: minPrice ? parseFloat(minPrice) : undefined,
+        maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+        sortBy,
+      }
     );
   }
 

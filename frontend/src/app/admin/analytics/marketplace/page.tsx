@@ -1,26 +1,28 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { Users, Store, Package, ShoppingBag, Clock, MessageSquare, TrendingUp } from 'lucide-react';
+import { fastFetch } from '@/utils/api';
 
 export default function AnalyticsgtMarketplacePage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchAnalytics = async () => {
       try {
-        const res = await fetch('http://localhost:3001/admin/analytics/summary');
-        if (res.ok) {
-          const json = await res.json();
+        const json = await fastFetch<any>('/admin/analytics/summary', { ttlMs: 15000 });
+        if (isMounted && json) {
           setData(json);
         }
       } catch (e) {
         console.error("Failed to fetch analytics", e);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     fetchAnalytics();
+    return () => { isMounted = false; };
   }, []);
 
   const stats = [

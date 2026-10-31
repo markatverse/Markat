@@ -20,8 +20,17 @@ let ProductsController = class ProductsController {
     create(data) {
         return this.productsService.create(data);
     }
-    findAll(location, lat, lng, radius, page, limit) {
-        return this.productsService.findAll(location, lat ? parseFloat(lat) : undefined, lng ? parseFloat(lng) : undefined, radius ? parseFloat(radius) : undefined, page ? parseInt(page) : 1, limit ? parseInt(limit) : 50);
+    findAll(location, lat, lng, radius, page, limit, q, search, category, subcategory, type, isB2B, minPrice, maxPrice, sortBy) {
+        return this.productsService.findAll(location, lat ? parseFloat(lat) : undefined, lng ? parseFloat(lng) : undefined, radius ? parseFloat(radius) : undefined, page ? parseInt(page) : 1, limit ? parseInt(limit) : 50, {
+            q: q || search,
+            category,
+            subcategory,
+            type,
+            isB2B: isB2B !== undefined ? isB2B === 'true' : undefined,
+            minPrice: minPrice ? parseFloat(minPrice) : undefined,
+            maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+            sortBy,
+        });
     }
     getDummyStatus() {
         return this.productsService.getDummyStatus();
@@ -57,8 +66,17 @@ __decorate([
     __param(3, Query('radius')),
     __param(4, Query('page')),
     __param(5, Query('limit')),
+    __param(6, Query('q')),
+    __param(7, Query('search')),
+    __param(8, Query('category')),
+    __param(9, Query('subcategory')),
+    __param(10, Query('type')),
+    __param(11, Query('isB2B')),
+    __param(12, Query('minPrice')),
+    __param(13, Query('maxPrice')),
+    __param(14, Query('sortBy')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, String, String]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], ProductsController.prototype, "findAll", null);
 __decorate([

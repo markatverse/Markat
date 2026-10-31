@@ -47,8 +47,17 @@ let ContentController = class ContentController {
     deleteBanner(id) {
         return this.contentService.deleteBanner(id);
     }
+    getPublicAdsPolicy() {
+        return this.contentService.getPublicAdsPolicy();
+    }
+    setPublicAdsPolicy(body) {
+        return this.contentService.setPublicAdsPolicy(body);
+    }
     getAdvertisements() {
         return this.contentService.getAdvertisements();
+    }
+    getAllAdvertisementsForAdmin() {
+        return this.contentService.getAdvertisements(true);
     }
     getAdvertisement(id) {
         return this.contentService.getAdvertisementById(id);
@@ -171,11 +180,30 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ContentController.prototype, "deleteBanner", null);
 __decorate([
+    Get('advertisements/policy'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], ContentController.prototype, "getPublicAdsPolicy", null);
+__decorate([
+    Post('advertisements/policy'),
+    __param(0, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], ContentController.prototype, "setPublicAdsPolicy", null);
+__decorate([
     Get('advertisements'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ContentController.prototype, "getAdvertisements", null);
+__decorate([
+    Get('advertisements/admin-all'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], ContentController.prototype, "getAllAdvertisementsForAdmin", null);
 __decorate([
     Get('advertisements/:id'),
     __param(0, Param('id')),

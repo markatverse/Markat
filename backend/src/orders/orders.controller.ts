@@ -17,7 +17,17 @@ export class OrdersController {
   }
 
   @Get()
-  findAll() {
+  findAll(@Headers('authorization') authorization?: string) {
+    const token = authorization?.startsWith('Bearer ') ? authorization.slice(7) : undefined;
+    if (!token) throw new UnauthorizedException('Authentication required');
+    try {
+      const decoded = this.jwtService.verify(token);
+      if (decoded.role !== 'ADMIN' && decoded.role !== 'SUPER_ADMIN') {
+        throw new ForbiddenException('Admin access required to view global order ledger');
+      }
+    } catch {
+      throw new UnauthorizedException('Invalid or expired token');
+    }
     return this.ordersService.findAll();
   }
 
@@ -68,7 +78,17 @@ export class OrdersController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: string, @Headers('authorization') authorization?: string) {
+    const token = authorization?.startsWith('Bearer ') ? authorization.slice(7) : undefined;
+    if (!token) throw new UnauthorizedException('Authentication required');
+    try {
+      const decoded = this.jwtService.verify(token);
+      if (decoded.role !== 'ADMIN' && decoded.role !== 'SUPER_ADMIN') {
+        throw new ForbiddenException('Admin privileges required to delete orders');
+      }
+    } catch {
+      throw new UnauthorizedException('Invalid or expired token');
+    }
     return this.ordersService.remove(id);
   }
 }

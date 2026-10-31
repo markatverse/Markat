@@ -88,7 +88,13 @@ export declare class ContentController {
         linkUrl: string | null;
         position: string;
     }>;
+    getPublicAdsPolicy(): Promise<any>;
+    setPublicAdsPolicy(body: any): Promise<{
+        mode: string;
+        allowPublicAds: boolean;
+    }>;
     getAdvertisements(): Promise<any>;
+    getAllAdvertisementsForAdmin(): Promise<any>;
     getAdvertisement(id: string): Promise<{
         id: string;
         title: string;
@@ -184,8 +190,8 @@ export declare class ContentController {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        pageUrl: string;
         description: string;
+        pageUrl: string;
         keywords: string | null;
     }[]>;
     getSeoMetadataById(id: string): Promise<{
@@ -194,8 +200,8 @@ export declare class ContentController {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        pageUrl: string;
         description: string;
+        pageUrl: string;
         keywords: string | null;
     } | null>;
     createSeoMetadata(data: any): Promise<{
@@ -204,8 +210,8 @@ export declare class ContentController {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        pageUrl: string;
         description: string;
+        pageUrl: string;
         keywords: string | null;
     }>;
     updateSeoMetadata(id: string, data: any): Promise<{
@@ -214,8 +220,8 @@ export declare class ContentController {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        pageUrl: string;
         description: string;
+        pageUrl: string;
         keywords: string | null;
     }>;
     deleteSeoMetadata(id: string): Promise<{
@@ -224,8 +230,8 @@ export declare class ContentController {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        pageUrl: string;
         description: string;
+        pageUrl: string;
         keywords: string | null;
     }>;
     getHomepageLayout(): Promise<any>;

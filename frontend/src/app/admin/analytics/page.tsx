@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { TrendingUp, DollarSign, Users, Activity, CalendarDays, RefreshCcw, ShieldCheck } from 'lucide-react';
 import { useAdminRole } from '@/context/AdminRoleContext';
+import { fastFetch } from '@/utils/api';
 
 export default function AnalyticsPage() {
   const { allUsers } = useAuth();
@@ -10,26 +11,24 @@ export default function AnalyticsPage() {
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
+
 
   useEffect(() => {
+    let isMounted = true;
     const fetchAnalytics = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const res = await fetch(`${API_URL}/admin/analytics`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const json = await res.json();
+        const json = await fastFetch('/admin/analytics', { ttlMs: 15000 });
+        if (isMounted && json) {
           setData(json);
         }
       } catch (e) {
         console.error("Failed to load analytics", e);
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
     fetchAnalytics();
+    return () => { isMounted = false; };
   }, []);
 
   if (isLoading) {

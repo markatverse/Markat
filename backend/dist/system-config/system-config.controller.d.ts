@@ -42,6 +42,14 @@ export declare class SystemConfigController {
         updatedAt: Date;
         rate: number;
     }[]>;
+    seedStatutoryGstRules(): Promise<{
+        id: string;
+        name: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        rate: number;
+    }[]>;
     addTaxRule(body: {
         name: string;
         rate: number;

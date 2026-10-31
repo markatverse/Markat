@@ -55,4 +55,166 @@ export declare class ShippingService {
         current_status: any;
         reason?: undefined;
     }>;
+    private static inMemoryFleet;
+    private static inMemoryDispatches;
+    getDeliveryOverview(): Promise<{
+        metrics: {
+            onlineRiders: number;
+            busyRiders: number;
+            offlineRiders: number;
+            totalRiders: number;
+            pendingDispatches: number;
+            inTransitDispatches: number;
+            deliveredToday: number;
+            avgDeliveryMinutes: number;
+            totalCodCashInHand: number;
+            pendingRiderEarnings: number;
+            activeSurgeMultiplier: any;
+        };
+        fleet: {
+            id: string;
+            name: string;
+            phone: string;
+            vehicleType: string;
+            vehicleNumber: string;
+            zone: string;
+            status: string;
+            rating: number;
+            todayTrips: number;
+            todayEarnings: number;
+            codInHand: number;
+            kycStatus: string;
+            joinedDate: string;
+            dlNumber: string;
+        }[];
+        dispatches: ({
+            id: string;
+            orderNumber: string;
+            customerName: string;
+            customerPhone: string;
+            pickupStore: string;
+            deliveryAddress: string;
+            distanceKm: number;
+            orderTotal: number;
+            codAmount: number;
+            paymentMode: string;
+            assignedRiderId: string;
+            assignedRiderName: string;
+            status: string;
+            slaMinutes: number;
+            elapsedMinutes: number;
+            createdAt: string;
+        } | {
+            id: string;
+            orderNumber: string;
+            customerName: string;
+            customerPhone: string;
+            pickupStore: string;
+            deliveryAddress: string;
+            distanceKm: number;
+            orderTotal: number;
+            codAmount: number;
+            paymentMode: string;
+            assignedRiderId: null;
+            assignedRiderName: string;
+            status: string;
+            slaMinutes: number;
+            elapsedMinutes: number;
+            createdAt: string;
+        })[];
+        zonesConfig: any;
+        autoDispatchEnabled: boolean;
+    }>;
+    assignDispatch(dispatchId: string, riderId: string): Promise<{
+        success: boolean;
+        message: string;
+        dispatch: {
+            id: string;
+            orderNumber: string;
+            customerName: string;
+            customerPhone: string;
+            pickupStore: string;
+            deliveryAddress: string;
+            distanceKm: number;
+            orderTotal: number;
+            codAmount: number;
+            paymentMode: string;
+            assignedRiderId: string;
+            assignedRiderName: string;
+            status: string;
+            slaMinutes: number;
+            elapsedMinutes: number;
+            createdAt: string;
+        } | {
+            id: string;
+            orderNumber: string;
+            customerName: string;
+            customerPhone: string;
+            pickupStore: string;
+            deliveryAddress: string;
+            distanceKm: number;
+            orderTotal: number;
+            codAmount: number;
+            paymentMode: string;
+            assignedRiderId: null;
+            assignedRiderName: string;
+            status: string;
+            slaMinutes: number;
+            elapsedMinutes: number;
+            createdAt: string;
+        };
+        rider: {
+            id: string;
+            name: string;
+            phone: string;
+            vehicleType: string;
+            vehicleNumber: string;
+            zone: string;
+            status: string;
+            rating: number;
+            todayTrips: number;
+            todayEarnings: number;
+            codInHand: number;
+            kycStatus: string;
+            joinedDate: string;
+            dlNumber: string;
+        };
+    }>;
+    updateRiderKyc(riderId: string, status: 'APPROVED' | 'REJECTED' | 'SUSPENDED', reason?: string): Promise<{
+        success: boolean;
+        message: string;
+        rider: {
+            id: string;
+            name: string;
+            phone: string;
+            vehicleType: string;
+            vehicleNumber: string;
+            zone: string;
+            status: string;
+            rating: number;
+            todayTrips: number;
+            todayEarnings: number;
+            codInHand: number;
+            kycStatus: string;
+            joinedDate: string;
+            dlNumber: string;
+        };
+    }>;
+    getDeliveryZones(): Promise<any>;
+    updateDeliveryZones(zonesConfig: any): Promise<{
+        success: boolean;
+        zonesConfig: any;
+    }>;
+    settleRiderPayouts(options: {
+        riderIds?: string[];
+        note?: string;
+    }): Promise<{
+        success: boolean;
+        settledCount: number;
+        totalSettledAmount: number;
+        currency: string;
+        settlementUtr: string;
+        timestamp: string;
+        note: string;
+    }>;
 }

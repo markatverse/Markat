@@ -293,8 +293,13 @@ export default function ContentBannersPage() {
     <div className="max-w-6xl mx-auto animate-in fade-in duration-300 w-full relative">
       <header className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Content &gt; Banners</h1>
-          <p className="text-slate-400 mt-2 text-sm">Manage and configure promotional banners across the marketplace.</p>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-3xl font-bold text-white tracking-tight">Content &gt; Banners</h1>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
+              🛡️ Admin Platform Assets
+            </span>
+          </div>
+          <p className="text-slate-400 mt-2 text-sm">Manage official top promotions & hero showcases. These banners are strictly official platform assets managed exclusively by Admins (public advertiser ads are excluded).</p>
         </div>
         <button 
           onClick={() => {
@@ -303,7 +308,7 @@ export default function ContentBannersPage() {
             setShowModal(true);
           }}
           className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] flex items-center gap-2 cursor-pointer active:scale-95">
-          + Add New Banner
+          + Add Official Banner
         </button>
       </header>
 
@@ -361,6 +366,7 @@ export default function ContentBannersPage() {
                   <th className="p-4 pl-6">Title</th>
                   <th className="p-4">Banner Preview</th>
                   <th className="p-4">Position</th>
+                  <th className="p-4">Origin / Scope</th>
                   <th className="p-4">Status</th>
                   <th className="p-4 pr-6 text-right">Actions</th>
                 </tr>
@@ -389,6 +395,11 @@ export default function ContentBannersPage() {
                     </td>
                     <td className="p-4">
                        <div className="text-xs font-semibold bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg inline-block border border-slate-700">{banner.position}</div>
+                    </td>
+                    <td className="p-4">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/25">
+                        🛡️ Official Admin
+                      </span>
                     </td>
                     <td className="p-4">
                       {banner.status === 'ACTIVE' ? (
@@ -430,6 +441,18 @@ export default function ContentBannersPage() {
             </div>
 
             <form onSubmit={handleSave} className="flex flex-col gap-4">
+              <div className="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-lg">🛡️</span>
+                  <div>
+                    <p className="text-xs font-bold text-indigo-200">Official Admin Platform Asset</p>
+                    <p className="text-[10px] text-slate-400">Exclusively for Platform Administration; public ads never appear here</p>
+                  </div>
+                </div>
+                <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
+                  ADMIN ONLY
+                </span>
+              </div>
               <div>
                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Banner Title</label>
                 <input 

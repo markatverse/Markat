@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete, Query } from '@nestjs/common';
 import { CommercialService } from './commercial.service.js';
 
 @Controller('commercial')
@@ -37,7 +37,7 @@ export class CommercialController {
   @Delete('coupons/:id')
   deleteCoupon(@Param('id') id: string) { return this.commercialService.deleteCoupon(id); }
 
-  // Subscriptions
+  // Subscriptions with Statutory 18% GST (SAC 998319)
   @Get('subscriptions')
   getSubscriptions() { return this.commercialService.getSubscriptions(); }
 
@@ -46,6 +46,9 @@ export class CommercialController {
 
   @Post('subscriptions')
   createSubscription(@Body() data: any) { return this.commercialService.createSubscription(data); }
+
+  @Post('subscriptions/seed-defaults')
+  seedDefaultSubscriptions() { return this.commercialService.seedDefaultSubscriptions(); }
 
   @Patch('subscriptions/:id')
   updateSubscription(@Param('id') id: string, @Body() data: any) { return this.commercialService.updateSubscription(id, data); }
@@ -68,4 +71,74 @@ export class CommercialController {
 
   @Delete('commissions/:id')
   deleteCommission(@Param('id') id: string) { return this.commercialService.deleteCommission(id); }
+
+  // Registration Fee & Occasion Discounts
+  @Get('registration-fee/stats')
+  getRegistrationFeeStats() {
+    return this.commercialService.getRegistrationFeeStats();
+  }
+
+  @Get('registration-fee')
+  getRegistrationFee() {
+    return this.commercialService.getRegistrationFee();
+  }
+
+  @Post('registration-fee')
+  updateRegistrationFee(@Body() data: any) {
+    return this.commercialService.updateRegistrationFee(data);
+  }
+
+  @Patch('registration-fee')
+  patchRegistrationFee(@Body() data: any) {
+    return this.commercialService.updateRegistrationFee(data);
+  }
+
+  // Advertising Platform Management (Admin)
+  @Get('ads/admin-overview')
+  getAdsAdminOverview() {
+    return this.commercialService.getAdsAdminOverview();
+  }
+
+  @Post('ads/campaigns/moderate')
+  moderateCampaign(@Body() body: { campaignId: string; status: 'APPROVED' | 'REJECTED'; reason?: string }) {
+    return this.commercialService.moderateCampaign(body.campaignId, body.status, body.reason);
+  }
+
+  @Get('ads/placements')
+  getPlacementsConfig() {
+    return this.commercialService.getPlacementsConfig();
+  }
+
+  @Post('ads/placements')
+  updatePlacementsConfig(@Body() body: any) {
+    return this.commercialService.updatePlacementsConfig(body);
+  }
+
+  @Post('ads/advertiser/topup')
+  topupAdvertiserWallet(@Body() body: { advertiserId: string; amount: number }) {
+    return this.commercialService.topupAdvertiserWallet(body.advertiserId, body.amount);
+  }
+
+
+  // --- Advertiser Public / Merchant Campaign Endpoints ---
+  @Get('ads/campaigns')
+  getAdvertiserCampaigns(@Query('advertiserId') advertiserId?: string) {
+    return this.commercialService.getAdvertiserCampaigns(advertiserId);
+  }
+
+  @Post('ads/campaigns')
+  createAdvertiserCampaign(@Body() data: any) {
+    return this.commercialService.createAdvertiserCampaign(data);
+  }
+
+  @Patch('ads/campaigns/:id/toggle')
+  toggleCampaignStatus(@Param('id') id: string) {
+    return this.commercialService.toggleCampaignStatus(id);
+  }
+
+  @Get('ads/advertisers/:id/profile')
+  getAdvertiserProfile(@Param('id') id: string) {
+    return this.commercialService.getAdvertiserProfile(id);
+  }
+
 }

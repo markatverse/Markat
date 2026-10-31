@@ -45,9 +45,18 @@ let WalletService = class WalletService {
         });
     }
     async requestWithdrawal(businessId, amount, bankAccountId) {
+        if (!amount || typeof amount !== 'number' || amount <= 0 || !Number.isFinite(amount)) {
+            throw new BadRequestException('Withdrawal amount must be a positive number greater than 0');
+        }
         const wallet = await this.getWallet(businessId);
         if (wallet.availableBalance < amount) {
             throw new BadRequestException('Insufficient available balance');
+        }
+        const bankAccount = await this.prisma.bankAccount.findFirst({
+            where: { id: bankAccountId, businessId }
+        });
+        if (!bankAccount) {
+            throw new BadRequestException('Selected bank account does not belong to this business');
         }
         return this.prisma.$transaction(async (tx) => {
             const request = await tx.withdrawalRequest.create({

@@ -50,6 +50,9 @@ let SystemConfigController = class SystemConfigController {
     getTaxRules() {
         return this.systemConfigService.getTaxRules();
     }
+    seedStatutoryGstRules() {
+        return this.systemConfigService.seedStatutoryGstRules();
+    }
     addTaxRule(body) {
         return this.systemConfigService.addTaxRule(body);
     }
@@ -133,6 +136,12 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], SystemConfigController.prototype, "getTaxRules", null);
+__decorate([
+    Post('tax/seed-statutory'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], SystemConfigController.prototype, "seedStatutoryGstRules", null);
 __decorate([
     Post('tax'),
     __param(0, Body()),

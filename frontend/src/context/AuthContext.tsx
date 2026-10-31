@@ -1,6 +1,6 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getApiUrl } from '@/utils/api';
+import { getApiUrl, fastFetch } from '@/utils/api';
 
 const API_URL = getApiUrl();
 
@@ -87,10 +87,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (user && user.role.includes('admin')) {
       const token = localStorage.getItem('token');
-      fetch(`${API_URL}/users`, {
+      fastFetch<any[]>('/users', {
         headers: { Authorization: `Bearer ${token}` },
+        ttlMs: 15000,
       })
-        .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
             setAllUsers(data);

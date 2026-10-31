@@ -124,12 +124,16 @@ let PaymentService = PaymentService_1 = class PaymentService {
             throw new BadRequestException('Missing order ID or payment ID');
         }
         const { keyId, keySecret } = await this.getRazorpayCredentials();
-        if (keyId.includes('MarkatVerseKey') || !razorpay_signature) {
+        const isMockSandbox = (keyId.includes('MarkatVerseKey') || keyId.includes('rzp_test_')) && process.env.NODE_ENV !== 'production';
+        if (isMockSandbox && razorpay_signature === 'mock_verified_sig') {
             return {
                 verified: true,
                 message: 'Payment verified successfully (Mock/Sandbox)',
                 paymentId: razorpay_payment_id,
             };
+        }
+        if (!razorpay_signature || typeof razorpay_signature !== 'string' || razorpay_signature.trim().length === 0) {
+            throw new BadRequestException('Missing or invalid payment signature');
         }
         const body = razorpay_order_id + '|' + razorpay_payment_id;
         const expectedSignature = crypto

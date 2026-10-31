@@ -14,7 +14,7 @@ var UploadController_1;
 import { Controller, Post, Get, Param, Res, Req, UseInterceptors, UploadedFiles, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { existsSync, createReadStream, statSync } from 'fs';
-import { join, extname } from 'path';
+import { join, extname, basename } from 'path';
 import { MediaGridFSService } from './media-gridfs.service.js';
 const MIME_MAP = {
     '.png': 'image/png',
@@ -76,7 +76,7 @@ let UploadController = UploadController_1 = class UploadController {
         };
     }
     async serveMedia(filename, req, res) {
-        const safeFilename = filename.replace(/(\.\.[\/\\])+/g, '');
+        const safeFilename = basename(filename);
         try {
             const gridFile = await this.gridFsService.findFile(safeFilename);
             if (gridFile) {
@@ -149,7 +149,15 @@ let UploadController = UploadController_1 = class UploadController {
 __decorate([
     Post('upload'),
     UseInterceptors(FilesInterceptor('files', 10, {
-        limits: { fileSize: 50 * 1024 * 1024 }
+        limits: { fileSize: 50 * 1024 * 1024 },
+        fileFilter: (_req, file, cb) => {
+            const ext = extname(file.originalname).toLowerCase();
+            const allowed = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.mp4', '.webm', '.ogg', '.mov', '.pdf'];
+            if (!allowed.includes(ext)) {
+                return cb(new BadRequestException(`Unsupported file type ${ext}. Only safe media files (images, video, pdf) are permitted.`), false);
+            }
+            cb(null, true);
+        }
     })),
     __param(0, UploadedFiles()),
     __param(1, Req()),

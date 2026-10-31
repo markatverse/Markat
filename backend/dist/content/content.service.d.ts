@@ -92,7 +92,15 @@ export declare class ContentService {
         linkUrl: string | null;
         position: string;
     }>;
-    getAdvertisements(): Promise<any>;
+    getPublicAdsPolicy(): Promise<any>;
+    setPublicAdsPolicy(policy: {
+        mode: string;
+        allowPublicAds?: boolean;
+    }): Promise<{
+        mode: string;
+        allowPublicAds: boolean;
+    }>;
+    getAdvertisements(adminView?: boolean): Promise<any>;
     getAdvertisementById(id: string): Promise<{
         id: string;
         title: string;
@@ -188,8 +196,8 @@ export declare class ContentService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        pageUrl: string;
         description: string;
+        pageUrl: string;
         keywords: string | null;
     }[]>;
     getSeoMetadataById(id: string): Promise<{
@@ -198,8 +206,8 @@ export declare class ContentService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        pageUrl: string;
         description: string;
+        pageUrl: string;
         keywords: string | null;
     } | null>;
     createSeoMetadata(data: any): Promise<{
@@ -208,8 +216,8 @@ export declare class ContentService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        pageUrl: string;
         description: string;
+        pageUrl: string;
         keywords: string | null;
     }>;
     updateSeoMetadata(id: string, data: any): Promise<{
@@ -218,8 +226,8 @@ export declare class ContentService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        pageUrl: string;
         description: string;
+        pageUrl: string;
         keywords: string | null;
     }>;
     deleteSeoMetadata(id: string): Promise<{
@@ -228,8 +236,8 @@ export declare class ContentService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        pageUrl: string;
         description: string;
+        pageUrl: string;
         keywords: string | null;
     }>;
     getHomepageLayout(): Promise<any>;

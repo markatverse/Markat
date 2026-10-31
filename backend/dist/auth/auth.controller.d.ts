@@ -107,6 +107,11 @@ export declare class AuthController {
             subscriptionStatus: string;
             subscriptionStartDate: Date | null;
             subscriptionEndDate: Date | null;
+            registrationFeePaid: boolean;
+            registrationFeeAmount: number;
+            registrationFeeStatus: string;
+            registrationPaymentId: string | null;
+            registrationFeeDate: Date | null;
         }) | null;
     }>;
     forgotPassword(identifier: string): Promise<{

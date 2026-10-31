@@ -7,7 +7,16 @@ export declare class ProductsService {
     constructor(prisma: PrismaService);
     private clearCache;
     create(data: any): Promise<any>;
-    findAll(location?: string, lat?: number, lng?: number, radius?: number, page?: number, limit?: number): Promise<any>;
+    findAll(location?: string, lat?: number, lng?: number, radius?: number, page?: number, limit?: number, filters?: {
+        q?: string;
+        category?: string;
+        subcategory?: string;
+        type?: string;
+        isB2B?: boolean;
+        minPrice?: number;
+        maxPrice?: number;
+        sortBy?: string;
+    }): Promise<any>;
     findOne(id: string): Promise<any>;
     update(id: string, data: any): Promise<any>;
     updateAdminStatus(id: string, status: string): Promise<any>;

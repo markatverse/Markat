@@ -3,9 +3,16 @@ import { PrismaService } from '../prisma.service.js';
 
 @Injectable()
 export class AnalyticsService {
+  private summaryCache: { data: any; expiry: number } | null = null;
+  private financeCache: { data: any; expiry: number } | null = null;
+
   constructor(private readonly prisma: PrismaService) {}
 
   async getSummary() {
+    if (this.summaryCache && Date.now() < this.summaryCache.expiry) {
+      return this.summaryCache.data;
+    }
+
     const [
       totalUsers,
       totalSellers,
@@ -13,7 +20,7 @@ export class AnalyticsService {
       totalQueues,
       totalOrders,
       totalLeads,
-      completedOrders,
+      completedOrdersAgg,
       businesses
     ] = await Promise.all([
       this.prisma.user.count({ where: { role: 'CONSUMER' } }),
@@ -22,35 +29,36 @@ export class AnalyticsService {
       this.prisma.serviceQueue.count(),
       this.prisma.order.count(),
       this.prisma.lead.count(),
-      this.prisma.order.findMany({
+      this.prisma.order.aggregate({
         where: { status: 'COMPLETED' },
-        select: { total: true }
+        _sum: { total: true }
       }),
       this.prisma.business.findMany({
-        select: { wallet: { select: { totalEarnings: true } }, commissionType: true, commissionRate: true }
+        select: { wallet: { select: { totalEarnings: true } }, commissionType: true, commissionRate: true },
+        take: 100
       })
     ]);
 
-    // GMV from completed orders
-    const gmvFromOrders = completedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const gmvFromOrders = completedOrdersAgg._sum.total || 0;
 
-    // Some legacy fallback using wallets if orders are sparse
     let walletGMV = 0;
     let commission = 0;
     
     for (const b of businesses) {
       const bal = b.wallet?.totalEarnings || 0;
       walletGMV += bal;
+      let baseComm = 0;
       if (b.commissionType === 'FIXED') {
-        commission += (b.commissionRate || 999);
+        baseComm = (b.commissionRate || 999);
       } else {
-        commission += bal * ((b.commissionRate || 5) / 100);
+        baseComm = bal * ((b.commissionRate || 5) / 100);
       }
+      commission += Math.round(baseComm * 1.18 * 100) / 100; // Commission + 18% GST
     }
 
     const gmv = Math.max(gmvFromOrders, walletGMV);
     
-    return {
+    const result = {
       totalUsers,
       totalSellers,
       totalProducts,
@@ -60,43 +68,54 @@ export class AnalyticsService {
       gmv,
       commission,
       bookings: totalOrders + totalQueues,
-      retentionRate: '68%' // Placeholder for phase 2 retention metric
+      retentionRate: '68%'
     };
+
+    this.summaryCache = { data: result, expiry: Date.now() + 30000 };
+    return result;
   }
 
   async getFinanceData() {
-    const transactions = await this.prisma.ledgerTransaction.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 100,
-      include: {
-        wallet: {
-          include: {
-            business: {
-              select: { name: true }
+    if (this.financeCache && Date.now() < this.financeCache.expiry) {
+      return this.financeCache.data;
+    }
+
+    const [transactions, withdrawalRequests] = await Promise.all([
+      this.prisma.ledgerTransaction.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+        include: {
+          wallet: {
+            include: {
+              business: {
+                select: { name: true }
+              }
             }
           }
         }
-      }
-    });
-
-    const withdrawalRequests = await this.prisma.withdrawalRequest.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 100,
-      include: {
-        wallet: {
-          include: {
-            business: {
-              select: { name: true }
+      }),
+      this.prisma.withdrawalRequest.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+        include: {
+          wallet: {
+            include: {
+              business: {
+                select: { name: true }
+              }
             }
-          }
-        },
-        bankAccount: true
-      }
-    });
+          },
+          bankAccount: true
+        }
+      })
+    ]);
 
-    return {
+    const result = {
       transactions,
       withdrawals: withdrawalRequests
     };
+
+    this.financeCache = { data: result, expiry: Date.now() + 30000 };
+    return result;
   }
 }

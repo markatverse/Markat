@@ -63,6 +63,9 @@ let AuthService = AuthService_1 = class AuthService {
         });
         if (existing) {
             if (data.role === 'SELLER' && existing.role !== 'SELLER') {
+                if (existing.role === 'ADMIN' || existing.role === 'SUPER_ADMIN') {
+                    throw new BadRequestException('Administrator accounts cannot be converted to seller accounts.');
+                }
                 const isMatch = await bcrypt.compare(data.password, existing.password);
                 if (!isMatch) {
                     throw new BadRequestException('Account already exists with this email/phone. Incorrect password.');
@@ -283,12 +286,18 @@ let AuthService = AuthService_1 = class AuthService {
         if (!record) {
             throw new BadRequestException('No OTP request found for this email or it has expired');
         }
-        if (record.code !== code.toUpperCase()) {
-            throw new BadRequestException('Invalid OTP code');
-        }
         if (new Date() > record.expires) {
             this.otpStore.delete(identifier);
             throw new BadRequestException('OTP code has expired (valid for 5 minutes)');
+        }
+        if (record.attempts && record.attempts >= 5) {
+            this.otpStore.delete(identifier);
+            throw new BadRequestException('Too many incorrect OTP attempts. Please request a new verification code.');
+        }
+        if (record.code !== code.toUpperCase()) {
+            record.attempts = (record.attempts || 0) + 1;
+            const remaining = 5 - record.attempts;
+            throw new BadRequestException(`Invalid OTP code. ${remaining > 0 ? `${remaining} attempts remaining.` : 'Code locked.'}`);
         }
         this.otpStore.delete(identifier);
         return { message: 'Code verified successfully', success: true };
@@ -331,7 +340,7 @@ let AuthService = AuthService_1 = class AuthService {
         }).catch(err => this.logger.error('Failed audit log', err));
         return this.generateToken(user);
     }
-    async phoneLogin(phone) {
+    async phoneLogin(phone, passwordOrOtp) {
         if (!phone || typeof phone !== 'string') {
             throw new BadRequestException('Phone is required');
         }
@@ -340,19 +349,26 @@ let AuthService = AuthService_1 = class AuthService {
         if (!phoneRegex.test(cleanedPhone)) {
             throw new BadRequestException('Invalid phone number format. Please provide a valid 10-15 digit phone number.');
         }
-        let user = await this.prisma.user.findUnique({ where: { phone: cleanedPhone } });
+        const user = await this.prisma.user.findFirst({
+            where: {
+                OR: [
+                    { phone: cleanedPhone },
+                    { phone: `+91${cleanedPhone.replace(/^\+91/, '')}` },
+                ]
+            },
+            include: { business: true }
+        });
         if (!user) {
-            const markatId = await this.idGenerator.generateUserId();
-            user = await this.prisma.user.create({
-                data: {
-                    markatId,
-                    name: 'New User',
-                    phone: cleanedPhone,
-                    email: `${cleanedPhone}@temporary.markatverse.com`,
-                    password: await bcrypt.hash(Math.random().toString(36).slice(-8), 10),
-                    role: 'CONSUMER',
-                },
-            });
+            throw new UnauthorizedException('No account found with this phone number. Please register your account.');
+        }
+        if (user.password && passwordOrOtp) {
+            const isMatch = await bcrypt.compare(passwordOrOtp, user.password);
+            if (!isMatch) {
+                throw new UnauthorizedException('Incorrect password for this account.');
+            }
+        }
+        else if (user.password && !passwordOrOtp) {
+            throw new UnauthorizedException('Password is required to sign in with this phone number.');
         }
         return this.generateToken(user);
     }

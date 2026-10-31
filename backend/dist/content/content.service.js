@@ -75,15 +75,73 @@ let ContentService = class ContentService {
         this.bannersCache = null;
         return this.prisma.banner.delete({ where: { id } });
     }
-    async getAdvertisements() {
-        if (this.adsCache && Date.now() < this.adsCache.expiry) {
+    async getPublicAdsPolicy() {
+        try {
+            const config = await this.prisma.systemConfig.findUnique({
+                where: { key: 'PUBLIC_ADS_POLICY' },
+            });
+            if (config && config.value) {
+                return JSON.parse(config.value);
+            }
+        }
+        catch { }
+        return {
+            mode: 'ADMIN_ONLY',
+            allowPublicAds: false,
+            description: 'Official Admin Content Banners Only. Public user ads are hidden from customer interface.',
+            updatedAt: new Date().toISOString(),
+        };
+    }
+    async setPublicAdsPolicy(policy) {
+        this.adsCache = null;
+        const mode = policy.mode === 'HYBRID_APPROVED' ? 'HYBRID_APPROVED' : 'ADMIN_ONLY';
+        const allowPublicAds = mode === 'HYBRID_APPROVED';
+        const payload = JSON.stringify({
+            mode,
+            allowPublicAds,
+            description: allowPublicAds
+                ? 'Hybrid Mode: Admin Official Banners + Admin-Approved Public Ads'
+                : 'Admin Only Mode: Strictly official Admin content banners. Zero public ads.',
+            updatedAt: new Date().toISOString()
+        });
+        await this.prisma.systemConfig.upsert({
+            where: { key: 'PUBLIC_ADS_POLICY' },
+            update: { value: payload },
+            create: {
+                key: 'PUBLIC_ADS_POLICY',
+                value: payload,
+                description: 'Customer interface advertisement display policy',
+            },
+        });
+        return { mode, allowPublicAds };
+    }
+    async getAdvertisements(adminView = false) {
+        if (!adminView && this.adsCache && Date.now() < this.adsCache.expiry) {
             return this.adsCache.data;
         }
         try {
-            const ads = await this.prisma.advertisement.findMany({ take: 100 });
-            const sorted = (ads || []).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-            this.adsCache = { data: sorted, expiry: Date.now() + 30000 };
-            return sorted;
+            let whereClause = {};
+            if (!adminView) {
+                const policy = await this.getPublicAdsPolicy();
+                whereClause = {
+                    status: 'ACTIVE'
+                };
+            }
+            let ads = await this.prisma.advertisement.findMany({
+                where: whereClause,
+                take: 100,
+                orderBy: { createdAt: 'desc' }
+            });
+            if (!adminView) {
+                const policy = await this.getPublicAdsPolicy();
+                if (policy.mode === 'ADMIN_ONLY' || !policy.allowPublicAds) {
+                    ads = ads.filter((a) => !a.source || a.source === 'ADMIN' || a.source !== 'PUBLIC_ADVERTISER');
+                }
+            }
+            if (!adminView) {
+                this.adsCache = { data: ads, expiry: Date.now() + 30000 };
+            }
+            return ads;
         }
         catch (err) {
             console.error('Error in ContentService.getAdvertisements:', err?.message || err);

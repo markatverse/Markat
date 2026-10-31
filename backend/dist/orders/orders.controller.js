@@ -25,7 +25,19 @@ let OrdersController = class OrdersController {
     create(createOrderDto) {
         return this.ordersService.create(createOrderDto);
     }
-    findAll() {
+    findAll(authorization) {
+        const token = authorization?.startsWith('Bearer ') ? authorization.slice(7) : undefined;
+        if (!token)
+            throw new UnauthorizedException('Authentication required');
+        try {
+            const decoded = this.jwtService.verify(token);
+            if (decoded.role !== 'ADMIN' && decoded.role !== 'SUPER_ADMIN') {
+                throw new ForbiddenException('Admin access required to view global order ledger');
+            }
+        }
+        catch {
+            throw new UnauthorizedException('Invalid or expired token');
+        }
         return this.ordersService.findAll();
     }
     findBySeller(sellerId) {
@@ -61,7 +73,19 @@ let OrdersController = class OrdersController {
     update(id, updateOrderDto) {
         return this.ordersService.update(id, updateOrderDto);
     }
-    remove(id) {
+    remove(id, authorization) {
+        const token = authorization?.startsWith('Bearer ') ? authorization.slice(7) : undefined;
+        if (!token)
+            throw new UnauthorizedException('Authentication required');
+        try {
+            const decoded = this.jwtService.verify(token);
+            if (decoded.role !== 'ADMIN' && decoded.role !== 'SUPER_ADMIN') {
+                throw new ForbiddenException('Admin privileges required to delete orders');
+            }
+        }
+        catch {
+            throw new UnauthorizedException('Invalid or expired token');
+        }
         return this.ordersService.remove(id);
     }
 };
@@ -74,8 +98,9 @@ __decorate([
 ], OrdersController.prototype, "create", null);
 __decorate([
     Get(),
+    __param(0, Headers('authorization')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], OrdersController.prototype, "findAll", null);
 __decorate([
@@ -111,8 +136,9 @@ __decorate([
 __decorate([
     Delete(':id'),
     __param(0, Param('id')),
+    __param(1, Headers('authorization')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], OrdersController.prototype, "remove", null);
 OrdersController = __decorate([

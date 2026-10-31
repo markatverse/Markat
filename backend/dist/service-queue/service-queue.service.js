@@ -455,13 +455,15 @@ let ServiceQueueService = class ServiceQueueService {
             });
             if (!business)
                 return;
-            let amountOwed = 0;
+            let baseCommission = 0;
             if (business.commissionType === 'PERCENTAGE') {
-                amountOwed = booking.price * (business.commissionRate / 100);
+                baseCommission = booking.price * (business.commissionRate / 100);
             }
             else if (business.commissionType === 'FIXED') {
-                amountOwed = business.commissionRate;
+                baseCommission = business.commissionRate;
             }
+            const commissionGst = Math.round(baseCommission * 0.18 * 100) / 100;
+            const amountOwed = Math.round((baseCommission + commissionGst) * 100) / 100;
             if (amountOwed > 0) {
                 if (business.wallet) {
                     await this.prisma.wallet.update({

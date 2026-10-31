@@ -29,6 +29,8 @@ model User {
   // V2 Relations
   listings    Listing[] @relation("UserListings")
   addresses   ShippingAddress[]
+
+  @@index([role])
 }
 
 model Business {
@@ -69,6 +71,13 @@ model Business {
   subscriptionStatus    String    @default("ACTIVE") // ACTIVE, EXPIRED
   subscriptionStartDate DateTime?
   subscriptionEndDate   DateTime?
+
+  // Registration Fee Fields
+  registrationFeePaid   Boolean   @default(false)
+  registrationFeeAmount Float     @default(0)
+  registrationFeeStatus String    @default("PENDING") // PAID, WAIVED, PENDING
+  registrationPaymentId String?
+  registrationFeeDate   DateTime?
 
   user       User               @relation(fields: [userId], references: [id])
   wallet     Wallet?
@@ -183,6 +192,10 @@ model Product {
   @@index([latitude, longitude])
   @@index([isB2B])
   @@index([categoryName])
+  @@index([name])
+  @@index([status, createdAt])
+  @@index([status, categoryName])
+  @@index([status, type])
 }
 
 model Lead {
@@ -211,6 +224,9 @@ model Order {
   updatedAt DateTime    @updatedAt
 
   items OrderItem[]
+
+  @@index([status])
+  @@index([createdAt])
 }
 
 model OrderItem {
@@ -467,6 +483,11 @@ model LedgerTransaction {
   settledAt       DateTime?
 
   wallet          Wallet   @relation(fields: [walletId], references: [id])
+
+  @@index([walletId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model BankAccount {
@@ -617,7 +638,8 @@ model Advertisement {
   mediaUrl  String?
   linkUrl   String?
   position  String   @default("HOMEPAGE")
-  status    String   @default("ACTIVE") // ACTIVE, INACTIVE
+  source    String?  @default("ADMIN") // ADMIN, PUBLIC_ADVERTISER
+  status    String   @default("ACTIVE") // ACTIVE, INACTIVE, PENDING_APPROVAL
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -634,13 +656,16 @@ model Coupon {
 }
 
 model Subscription {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  planName    String
-  price       Float
-  features    String[] @default([])
-  status      String   @default("ACTIVE") // ACTIVE, INACTIVE
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  planName     String
+  price        Float
+  billingCycle String?  @default("MONTHLY") // MONTHLY, QUARTERLY, YEARLY, LIFETIME
+  taxPercent   Float?   @default(18.0)      // SAC 998319: 18% GST
+  sacCode      String?  @default("998319")
+  features     String[] @default([])
+  status       String   @default("ACTIVE") // ACTIVE, INACTIVE
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Commission {

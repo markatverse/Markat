@@ -1,158 +1,62 @@
+import { JwtService } from '@nestjs/jwt';
 import { AdminBusinessService } from './admin-business.service.js';
 export declare class AdminBusinessController {
     private readonly adminBusinessService;
-    constructor(adminBusinessService: AdminBusinessService);
-    getAllBusinesses(): Promise<{
-        user: {
-            id: string;
-            name: string;
-            markatId: string | null;
-            email: string | null;
-            phone: string | null;
-        };
-        wallet: {
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            businessId: string;
-            totalEarnings: number;
-            pendingBalance: number;
-            availableBalance: number;
-            withdrawn: number;
-            owedToPlatform: number;
-        } | null;
-        businessType: string;
-        sector: string | null;
-        id: string;
-        name: string;
-        userId: string;
-        createdAt: Date;
-        updatedAt: Date;
-        pincode: string | null;
-        latitude: number | null;
-        longitude: number | null;
-        businessCode: string | null;
-        logo: string | null;
-        description: string | null;
-        businessModel: import(".prisma/client").$Enums.MainType;
-        address: string | null;
-        gstNumber: string | null;
-        panNumber: string | null;
-        aadharNumber: string | null;
-        idProofType: string | null;
-        idProofUrl: string | null;
-        businessHours: import("@prisma/client/runtime/library").JsonValue | null;
-        verified: boolean;
-        verificationStatus: string;
-        verificationLevel: number;
-        verificationNotes: string | null;
-        kycCallStatus: string | null;
-        kycNotes: string | null;
-        capabilities: string[];
-        maxListings: number;
-        commissionType: string;
-        commissionRate: number;
-        subscriptionStatus: string;
-        subscriptionStartDate: Date | null;
-        subscriptionEndDate: Date | null;
-    }[]>;
-    getAllBranches(): Promise<({
-        business: {
-            businessType: string;
-            sector: string | null;
-            id: string;
-            name: string;
-            userId: string;
-            createdAt: Date;
-            updatedAt: Date;
-            pincode: string | null;
-            latitude: number | null;
-            longitude: number | null;
-            businessCode: string | null;
-            logo: string | null;
-            description: string | null;
-            businessModel: import(".prisma/client").$Enums.MainType;
-            address: string | null;
-            gstNumber: string | null;
-            panNumber: string | null;
-            aadharNumber: string | null;
-            idProofType: string | null;
-            idProofUrl: string | null;
-            businessHours: import("@prisma/client/runtime/library").JsonValue | null;
-            verified: boolean;
-            verificationStatus: string;
-            verificationLevel: number;
-            verificationNotes: string | null;
-            kycCallStatus: string | null;
-            kycNotes: string | null;
-            capabilities: string[];
-            maxListings: number;
-            commissionType: string;
-            commissionRate: number;
-            subscriptionStatus: string;
-            subscriptionStartDate: Date | null;
-            subscriptionEndDate: Date | null;
-        };
-    } & {
-        id: string;
-        name: string;
-        status: string;
-        createdAt: Date;
-        updatedAt: Date;
-        businessId: string;
-    })[]>;
+    private readonly jwtService;
+    constructor(adminBusinessService: AdminBusinessService, jwtService: JwtService);
+    private verifyAdmin;
+    getAllBusinesses(authHeader?: string): Promise<any>;
+    getAllBranches(authHeader?: string): Promise<any>;
     createBranch(body: {
         name: string;
         status: string;
         businessId: string;
-    }): Promise<{
+    }, authHeader?: string): Promise<{
         id: string;
         name: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
         businessId: string;
+        status: string;
     }>;
     updateBranch(id: string, body: {
         name?: string;
         status?: string;
         businessId?: string;
-    }): Promise<{
+    }, authHeader?: string): Promise<{
         id: string;
         name: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
         businessId: string;
+        status: string;
     }>;
-    deleteBranch(id: string): Promise<{
+    deleteBranch(id: string, authHeader?: string): Promise<{
         id: string;
         name: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
         businessId: string;
+        status: string;
     }>;
     updateSubscription(id: string, body: {
         subscriptionStatus: string;
         subscriptionStartDate: string | null;
         subscriptionEndDate: string | null;
-    }): Promise<{
-        businessType: string;
-        sector: string | null;
+    }, authHeader?: string): Promise<{
         id: string;
-        name: string;
-        userId: string;
-        createdAt: Date;
-        updatedAt: Date;
-        pincode: string | null;
-        latitude: number | null;
-        longitude: number | null;
         businessCode: string | null;
+        userId: string;
+        name: string;
         logo: string | null;
         description: string | null;
         businessModel: import(".prisma/client").$Enums.MainType;
+        businessType: string;
+        sector: string | null;
         address: string | null;
+        pincode: string | null;
+        latitude: number | null;
+        longitude: number | null;
         gstNumber: string | null;
         panNumber: string | null;
         aadharNumber: string | null;
@@ -165,6 +69,8 @@ export declare class AdminBusinessController {
         verificationNotes: string | null;
         kycCallStatus: string | null;
         kycNotes: string | null;
+        createdAt: Date;
+        updatedAt: Date;
         capabilities: string[];
         maxListings: number;
         commissionType: string;
@@ -172,6 +78,11 @@ export declare class AdminBusinessController {
         subscriptionStatus: string;
         subscriptionStartDate: Date | null;
         subscriptionEndDate: Date | null;
+        registrationFeePaid: boolean;
+        registrationFeeAmount: number;
+        registrationFeeStatus: string;
+        registrationPaymentId: string | null;
+        registrationFeeDate: Date | null;
     }>;
     updateBilling(id: string, body: {
         commissionType: string;
@@ -179,22 +90,20 @@ export declare class AdminBusinessController {
         subscriptionStatus: string;
         subscriptionStartDate: string | null;
         subscriptionEndDate: string | null;
-    }): Promise<{
-        businessType: string;
-        sector: string | null;
+    }, authHeader?: string): Promise<{
         id: string;
-        name: string;
-        userId: string;
-        createdAt: Date;
-        updatedAt: Date;
-        pincode: string | null;
-        latitude: number | null;
-        longitude: number | null;
         businessCode: string | null;
+        userId: string;
+        name: string;
         logo: string | null;
         description: string | null;
         businessModel: import(".prisma/client").$Enums.MainType;
+        businessType: string;
+        sector: string | null;
         address: string | null;
+        pincode: string | null;
+        latitude: number | null;
+        longitude: number | null;
         gstNumber: string | null;
         panNumber: string | null;
         aadharNumber: string | null;
@@ -207,6 +116,8 @@ export declare class AdminBusinessController {
         verificationNotes: string | null;
         kycCallStatus: string | null;
         kycNotes: string | null;
+        createdAt: Date;
+        updatedAt: Date;
         capabilities: string[];
         maxListings: number;
         commissionType: string;
@@ -214,5 +125,10 @@ export declare class AdminBusinessController {
         subscriptionStatus: string;
         subscriptionStartDate: Date | null;
         subscriptionEndDate: Date | null;
+        registrationFeePaid: boolean;
+        registrationFeeAmount: number;
+        registrationFeeStatus: string;
+        registrationPaymentId: string | null;
+        registrationFeeDate: Date | null;
     }>;
 }

@@ -17,12 +17,28 @@ let UsersService = class UsersService {
     prisma;
     idGenerator;
     events;
+    usersCache = null;
+    clearCache() {
+        this.usersCache = null;
+    }
+    safeUserSelect = {
+        id: true,
+        markatId: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+        business: true,
+    };
     constructor(prisma, idGenerator, events) {
         this.prisma = prisma;
         this.idGenerator = idGenerator;
         this.events = events;
     }
     async create(createUserDto) {
+        this.clearCache();
         const markatId = await this.idGenerator.generateUserId();
         return this.prisma.user.create({
             data: { ...createUserDto, markatId }
@@ -30,11 +46,14 @@ let UsersService = class UsersService {
     }
     findAll() {
         return this.prisma.user.findMany({
-            include: { business: true }
+            select: this.safeUserSelect,
         });
     }
     findOne(id) {
-        return this.prisma.user.findUnique({ where: { id } });
+        return this.prisma.user.findUnique({
+            where: { id },
+            select: this.safeUserSelect,
+        });
     }
     async findRole(id) {
         const user = await this.prisma.user.findUnique({
@@ -44,6 +63,7 @@ let UsersService = class UsersService {
         return user?.role ?? null;
     }
     async update(id, updateUserDto) {
+        this.clearCache();
         const updated = await this.prisma.user.update({
             where: { id },
             data: updateUserDto,
@@ -85,6 +105,7 @@ let UsersService = class UsersService {
         return { message: 'Password updated successfully' };
     }
     async remove(id) {
+        this.clearCache();
         this.events.logAction({
             action: 'DELETE_USER',
             entityType: 'User',

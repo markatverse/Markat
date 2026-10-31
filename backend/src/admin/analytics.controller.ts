@@ -5,6 +5,11 @@ import { AnalyticsService } from './analytics.service.js';
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
+  @Get()
+  getRoot() {
+    return this.analyticsService.getSummary();
+  }
+
   @Get('summary')
   getSummary() {
     return this.analyticsService.getSummary();

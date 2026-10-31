@@ -1,5 +1,10 @@
 import { PrismaService } from '../prisma.service.js';
 import { RedisService } from '../redis/redis.service.js';
+export declare const STATUTORY_GST_RULES: {
+    name: string;
+    rate: number;
+    status: string;
+}[];
 export declare class SystemConfigService {
     private prisma;
     private redis;
@@ -44,6 +49,14 @@ export declare class SystemConfigService {
     updatePaymentMethod(id: string, data: any): Promise<any[]>;
     deletePaymentMethod(id: string): Promise<any[]>;
     getTaxRules(): Promise<{
+        id: string;
+        name: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        rate: number;
+    }[]>;
+    seedStatutoryGstRules(): Promise<{
         id: string;
         name: string;
         status: string;

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Search, Store } from 'lucide-react';
+import { fastFetch } from '@/utils/api';
 
 export default function BusinessesPage() {
   const [businesses, setBusinesses] = useState<any[]>([]);
@@ -8,24 +9,25 @@ export default function BusinessesPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
+    let isMounted = true;
     const fetchBusinesses = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/admin/businesses`);
-        if (res.ok) {
-          const data = await res.json();
+        const data = await fastFetch<any[]>('/admin/businesses', { ttlMs: 15000 });
+        if (isMounted && Array.isArray(data)) {
           setBusinesses(data);
         }
       } catch (err) {
         console.error('Failed to fetch businesses:', err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     fetchBusinesses();
+    return () => { isMounted = false; };
   }, []);
 
-  const filteredBusinesses = businesses.filter(b => 
-    b.businessName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredBusinesses = businesses.filter(b =>
+    b.businessName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     b.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     b.user?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -38,17 +40,17 @@ export default function BusinessesPage() {
           <p className="text-slate-400 mt-2 text-sm">Manage and configure businesses across the platform.</p>
         </div>
       </header>
-      
+
       <div className="bg-slate-800 rounded-2xl border border-slate-700 shadow-lg overflow-hidden">
         <div className="p-4 border-b border-slate-700 bg-slate-900/50">
           <div className="relative w-full sm:w-80">
             <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-            <input 
-              type="text" 
-              placeholder="Search by name or ID..." 
+            <input
+              type="text"
+              placeholder="Search by name or ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 w-full text-sm transition-colors" 
+              className="bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 w-full text-sm transition-colors"
             />
           </div>
         </div>
@@ -95,11 +97,10 @@ export default function BusinessesPage() {
                     <div className="text-xs text-slate-500 mt-0.5">{b.sellerRole} &bull; {b.businessSector}</div>
                   </td>
                   <td className="p-4">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
-                      b.subscriptionStatus === 'ACTIVE'
-                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${b.subscriptionStatus === 'ACTIVE'
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                         : 'bg-slate-500/10 text-slate-400 border-slate-500/20'
-                    }`}>
+                      }`}>
                       {b.subscriptionStatus || 'INACTIVE'}
                     </span>
                   </td>

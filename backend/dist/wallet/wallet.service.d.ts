@@ -14,19 +14,19 @@ export declare class WalletService {
         owedToPlatform: number;
     }>;
     getTransactions(walletId: string): Promise<{
-        commission: number;
         id: string;
-        status: string;
         createdAt: Date;
-        type: string;
+        status: string;
+        walletId: string;
         referenceId: string | null;
         referenceType: string | null;
-        walletId: string;
         paymentRef: string | null;
         grossAmount: number;
         platformFee: number;
+        commission: number;
         tax: number;
         netAmount: number;
+        type: string;
         settledAt: Date | null;
     }[]>;
     addBankAccount(businessId: string, data: {

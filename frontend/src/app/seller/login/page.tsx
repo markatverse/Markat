@@ -24,13 +24,11 @@ export default function SellerLoginPage() {
   const router = useRouter();
   const { login, user } = useAuth();
 
-  // If already logged in, redirect accordingly
+  // If already logged in as a seller, send to seller dashboard
   useEffect(() => {
     if (user) {
       const role = user.role?.toUpperCase();
-      if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
-        router.replace('/admin');
-      } else if (['SELLER', 'BUSINESS'].includes(role)) {
+      if (['SELLER', 'BUSINESS', 'ELITE'].includes(role)) {
         router.replace('/seller/dashboard');
       }
     }
@@ -63,9 +61,9 @@ export default function SellerLoginPage() {
     clearErrors();
     setIsLoading(true);
     try {
-      const endpoint = isPhone ? '/auth/phone-login' : '/auth/login';
+      const endpoint = '/auth/login';
       const payload = isPhone
-        ? { phone: identifier }
+        ? { phone: identifier, password }
         : { email: identifier, password };
 
       const res = await fetch(`${API_URL}${endpoint}`, {
@@ -79,12 +77,14 @@ export default function SellerLoginPage() {
 
       // Check if user has seller role
       const role = data.user.role?.toUpperCase();
-      if (role !== 'SELLER' && role !== 'ADMIN') {
-        throw new Error('This account is not registered as a seller. Please register your business first.');
+      if (role !== 'SELLER' && role !== 'BUSINESS' && role !== 'ELITE' && role !== 'ADMIN') {
+        throw new Error('This account is registered as ' + (data.user.role || 'consumer') + ', not a Seller. Please register your business first.');
       }
 
+      // Ensure seller dashboard role context
+      const effectiveRole = (role === 'ADMIN' || role === 'SUPER_ADMIN') ? 'business' : (data.user.role.toLowerCase() as any);
       login(
-        { id: data.user.id, markatId: data.user.markatId, name: data.user.name, email: data.user.email, role: data.user.role.toLowerCase() as any, phone: data.user.phone || '', business: data.user.business },
+        { id: data.user.id, markatId: data.user.markatId, name: data.user.name, email: data.user.email, role: effectiveRole, phone: data.user.phone || '', business: data.user.business },
         data.access_token
       );
 

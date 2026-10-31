@@ -1,61 +1,11 @@
 import { PrismaService } from '../prisma.service.js';
 export declare class AdminBusinessService {
     private readonly prisma;
+    private businessesCache;
+    private branchesCache;
     constructor(prisma: PrismaService);
-    getAllBusinesses(): Promise<{
-        user: {
-            id: string;
-            name: string;
-            markatId: string | null;
-            email: string | null;
-            phone: string | null;
-        };
-        wallet: {
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            businessId: string;
-            totalEarnings: number;
-            pendingBalance: number;
-            availableBalance: number;
-            withdrawn: number;
-            owedToPlatform: number;
-        } | null;
-        businessType: string;
-        sector: string | null;
-        id: string;
-        name: string;
-        userId: string;
-        createdAt: Date;
-        updatedAt: Date;
-        pincode: string | null;
-        latitude: number | null;
-        longitude: number | null;
-        businessCode: string | null;
-        logo: string | null;
-        description: string | null;
-        businessModel: import(".prisma/client").$Enums.MainType;
-        address: string | null;
-        gstNumber: string | null;
-        panNumber: string | null;
-        aadharNumber: string | null;
-        idProofType: string | null;
-        idProofUrl: string | null;
-        businessHours: import("@prisma/client/runtime/library").JsonValue | null;
-        verified: boolean;
-        verificationStatus: string;
-        verificationLevel: number;
-        verificationNotes: string | null;
-        kycCallStatus: string | null;
-        kycNotes: string | null;
-        capabilities: string[];
-        maxListings: number;
-        commissionType: string;
-        commissionRate: number;
-        subscriptionStatus: string;
-        subscriptionStartDate: Date | null;
-        subscriptionEndDate: Date | null;
-    }[]>;
+    private clearCache;
+    getAllBusinesses(): Promise<any>;
     updateSubscription(id: string, data: {
         subscriptionStatus: string;
         subscriptionStartDate: Date | null;
@@ -95,6 +45,11 @@ export declare class AdminBusinessService {
         subscriptionStatus: string;
         subscriptionStartDate: Date | null;
         subscriptionEndDate: Date | null;
+        registrationFeePaid: boolean;
+        registrationFeeAmount: number;
+        registrationFeeStatus: string;
+        registrationPaymentId: string | null;
+        registrationFeeDate: Date | null;
     }>;
     updateBilling(id: string, data: {
         commissionType: string;
@@ -137,52 +92,13 @@ export declare class AdminBusinessService {
         subscriptionStatus: string;
         subscriptionStartDate: Date | null;
         subscriptionEndDate: Date | null;
+        registrationFeePaid: boolean;
+        registrationFeeAmount: number;
+        registrationFeeStatus: string;
+        registrationPaymentId: string | null;
+        registrationFeeDate: Date | null;
     }>;
-    getAllBranches(): Promise<({
-        business: {
-            businessType: string;
-            sector: string | null;
-            id: string;
-            name: string;
-            userId: string;
-            createdAt: Date;
-            updatedAt: Date;
-            pincode: string | null;
-            latitude: number | null;
-            longitude: number | null;
-            businessCode: string | null;
-            logo: string | null;
-            description: string | null;
-            businessModel: import(".prisma/client").$Enums.MainType;
-            address: string | null;
-            gstNumber: string | null;
-            panNumber: string | null;
-            aadharNumber: string | null;
-            idProofType: string | null;
-            idProofUrl: string | null;
-            businessHours: import("@prisma/client/runtime/library").JsonValue | null;
-            verified: boolean;
-            verificationStatus: string;
-            verificationLevel: number;
-            verificationNotes: string | null;
-            kycCallStatus: string | null;
-            kycNotes: string | null;
-            capabilities: string[];
-            maxListings: number;
-            commissionType: string;
-            commissionRate: number;
-            subscriptionStatus: string;
-            subscriptionStartDate: Date | null;
-            subscriptionEndDate: Date | null;
-        };
-    } & {
-        id: string;
-        name: string;
-        status: string;
-        createdAt: Date;
-        updatedAt: Date;
-        businessId: string;
-    })[]>;
+    getAllBranches(): Promise<any>;
     createBranch(data: {
         name: string;
         status: string;

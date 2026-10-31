@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useProducts } from "@/context/ProductContext";
 import { Search, MapPin, Headphones, Store, ShoppingCart, User, ChevronDown, Package, Loader2 } from "lucide-react";
 import LiveTokenToggle from "@/components/LiveTokenToggle";
+import EcosystemSwitcher from "@/components/EcosystemSwitcher";
 import { isServiceProduct, matchesProductSearch } from '@/utils/productSearch';
 import { LOGO_DATA_URI } from '@/utils/logoDataUri';
 
@@ -122,13 +123,21 @@ export default function Navbar() {
   };
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [activeSuggestion, setActiveSuggestion] = useState(-1);
   const searchRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
 
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 120);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
   const suggestions = useMemo(() => {
-    const query = searchQuery.trim();
+    const query = debouncedQuery.trim();
     if (query.length < 2) return [];
     const matchingProducts = products
       .filter(product => matchesProductSearch(product, query))
@@ -152,7 +161,7 @@ export default function Navbar() {
       }));
 
     return [...matchingCategories, ...matchingProducts].slice(0, 7);
-  }, [categories, products, searchQuery]);
+  }, [categories, products, debouncedQuery]);
 
   useEffect(() => {
     const closeSuggestions = (event: MouseEvent) => {
@@ -177,7 +186,7 @@ export default function Navbar() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    const query = searchQuery.trim();
+    const query = debouncedQuery.trim();
     if (!query) return;
     const params = new URLSearchParams();
     params.set("q", query);
@@ -212,21 +221,22 @@ export default function Navbar() {
   const isSellerOrBusiness = roleLower === 'seller' || roleLower === 'business' || roleLower === 'elite';
 
   return (
-    <nav className="flex flex-wrap md:flex-nowrap items-center justify-between py-2 px-3 sm:px-6 bg-white border-b border-slate-200 sticky top-0 z-[999] shadow-sm gap-y-3 gap-x-2">
+    <nav className="flex flex-wrap md:flex-nowrap items-center justify-between py-2.5 px-3 sm:px-6 bg-white border-b border-slate-200 sticky top-0 z-[999] shadow-xs gap-y-3 gap-x-3 md:gap-x-4">
       {/* 1. Logo (Top Left on Mobile, Left on Desktop) */}
       <div className="flex items-center shrink-0 order-1">
-        <Link href="/" className="flex items-center no-underline hover:opacity-90 transition-opacity ml-1 sm:ml-0 mr-4 sm:mr-8 md:mr-12 lg:mr-24 shrink-0">
+        <Link href="/" className="flex items-center no-underline hover:opacity-90 transition-opacity mr-2 sm:mr-4 md:mr-5 shrink-0">
           <picture>
+            <source srcSet="/logo.svg" type="image/svg+xml" />
             <source srcSet="/logo-optimized.webp" type="image/webp" />
             <img 
-              src={LOGO_DATA_URI} 
+              src="/logo.svg" 
               alt="MarkatVerse" 
               loading="eager" 
               fetchPriority="high" 
               decoding="sync"
-              width={160}
-              height={56}
-              className="h-12 sm:h-14 lg:h-14 w-auto object-contain scale-[2] sm:scale-[2.2] lg:scale-[2] origin-left" 
+              width={164}
+              height={40}
+              className="h-9 sm:h-10 lg:h-11 w-auto object-contain" 
             />
           </picture>
         </Link>
@@ -236,13 +246,13 @@ export default function Navbar() {
         <>
           {/* Deliver to (Hidden on Mobile, Left on Desktop) */}
           <div
-            className="hidden lg:flex items-center gap-2 px-3 py-1.5 cursor-pointer relative hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-200 ml-2 shrink-0 order-2"
+            className="hidden lg:flex items-center gap-2.5 px-3 py-1.5 cursor-pointer relative hover:bg-slate-100 rounded-xl transition-colors border border-transparent hover:border-slate-200 shrink-0 order-2"
             onClick={() => setIsLocationPopupOpen(!isLocationPopupOpen)}
           >
-            <MapPin className="w-5 h-5 text-slate-600" strokeWidth={1.5} />
+            <MapPin className="w-5 h-5 text-slate-700" strokeWidth={1.5} />
             <div className="flex flex-col gap-0">
-              <span className="text-[11px] text-slate-500 font-medium">Deliver to</span>
-              <span className="text-sm font-semibold text-slate-800 flex items-center gap-1">
+              <span className="text-[11px] text-slate-600 font-medium leading-none">Deliver to</span>
+              <span className="text-sm font-bold text-slate-900 flex items-center gap-1 mt-0.5 leading-none">
                 {userLocation || "Select Location"}
                 <ChevronDown className="w-3 h-3 text-slate-500" />
               </span>
@@ -356,7 +366,7 @@ export default function Navbar() {
           </div>
 
           {/* 3. Search Bar (Bottom Row on Mobile, Middle on Desktop) */}
-          <form ref={searchRef} onSubmit={handleSearch} className="relative flex items-stretch order-3 md:order-2 w-full md:flex-1 md:max-w-[700px] bg-slate-50 rounded-xl overflow-hidden md:mx-6 border border-slate-300 hover:border-blue-400 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all shadow-xs">
+          <form ref={searchRef} onSubmit={handleSearch} className="relative flex items-stretch order-3 md:order-2 w-full md:flex-1 md:max-w-[620px] lg:max-w-[700px] bg-white rounded-xl overflow-hidden md:mx-3 lg:mx-5 border border-[#E5D8BF] hover:border-blue-500 focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all shadow-xs">
             <input
               type="text"
               placeholder="Search for products, brands, services..."
@@ -427,13 +437,14 @@ export default function Navbar() {
         </div>
       )}
 
-      <div className="flex items-center gap-2 sm:gap-3 md:gap-5 text-slate-600 shrink-0 order-2 md:order-3 ml-auto md:ml-0">
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-4 lg:gap-5 text-slate-700 shrink-0 order-2 md:order-3 ml-auto md:ml-0">
+        <EcosystemSwitcher />
 
         {!isAdmin && (
           <>
-            <Link href="/help" className="hidden lg:flex flex-col items-center gap-1 cursor-pointer hover:text-blue-600 transition-colors group">
+            <Link href="/help" className="hidden lg:flex flex-col items-center justify-center h-11 px-2.5 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition-all group">
               <Headphones className="w-5 h-5 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
-              <span className="text-[11px] font-medium">Help</span>
+              <span className="text-[11px] font-semibold text-slate-700 group-hover:text-blue-700">Help</span>
             </Link>
 
             {isLoading ? (
@@ -443,14 +454,14 @@ export default function Navbar() {
               </div>
             ) : user && isSellerOrBusiness ? (
               // Logged in as Seller
-              <Link href="/seller/dashboard" className="flex flex-col items-center gap-1 cursor-pointer hover:text-blue-600 transition-colors group ml-2">
+              <Link href="/seller/dashboard" className="flex flex-col items-center justify-center h-11 px-2.5 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition-all group">
                 <Store className="w-5 h-5 group-hover:scale-110 transition-transform text-indigo-600" strokeWidth={1.5} />
                 <span className="hidden lg:block text-[11px] font-bold text-indigo-600">Seller Dashboard</span>
                 <span className="lg:hidden text-[10px] font-bold text-indigo-600">Dashboard</span>
               </Link>
             ) : (
               // Not logged in or Logged in as Buyer: show Become a Seller
-              <Link href={user ? "/seller/onboarding" : "/seller/login"} className="flex flex-col items-center gap-1 cursor-pointer hover:text-blue-600 transition-colors group ml-2">
+              <Link href={user ? "/seller/onboarding" : "/seller/login"} className="flex flex-col items-center justify-center h-11 px-2.5 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition-all group">
                 <Store className="w-5 h-5 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
                 <span className="hidden lg:block text-[11px] font-medium">Become a Seller</span>
                 <span className="lg:hidden text-[10px] font-medium">Seller</span>
@@ -474,19 +485,19 @@ export default function Navbar() {
               </div>
             ) : user && (
               <>
-                <Link href="/cart" className="flex flex-col items-center gap-1 cursor-pointer relative hover:text-blue-600 transition-colors group ml-2">
+                <Link href="/cart" className="flex flex-col items-center justify-center h-11 px-2.5 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition-all relative group">
                   {cartItemCount > 0 && (
                     <div className="absolute -top-1.5 -right-2 bg-amber-400 text-slate-900 font-bold text-[10px] py-[1px] px-1.5 rounded-full border border-white">{cartItemCount}</div>
                   )}
                   <ShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
-                  <span className="text-[11px] font-medium">Cart</span>
+                  <span className="text-[11px] font-semibold text-slate-700 group-hover:text-blue-700">Cart</span>
                 </Link>
               </>
             )}
           </>
         )}
 
-        <div className="ml-2 pl-4 border-l border-slate-200">
+        <div className="ml-1 pl-3 sm:pl-4 border-l border-slate-200 flex items-center">
           {isLoading ? (
             <div className="flex items-center gap-3 opacity-50">
               <div className="w-10 h-10 rounded-full bg-slate-200 animate-pulse"></div>
@@ -496,8 +507,8 @@ export default function Navbar() {
               </div>
             </div>
           ) : user ? (
-            <Link href="/profile/settings" className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-sm border-2 border-white ring-2 ring-slate-100">
+            <Link href="/profile/settings" className="flex items-center gap-2.5 px-2 py-1 rounded-xl hover:bg-slate-100 transition-all">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-sm border-2 border-white ring-2 ring-amber-300/70">
                 {user.name.charAt(0)}
               </div>
               <div className="hidden lg:flex flex-col items-start gap-0">
@@ -506,7 +517,7 @@ export default function Navbar() {
               </div>
             </Link>
           ) : (
-            <Link href="/login" className="flex items-center gap-2 cursor-pointer bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg transition-colors group">
+            <Link href="/login" className="flex items-center gap-2 cursor-pointer bg-white hover:bg-white/95 px-4 py-2 rounded-xl transition-all border border-slate-200 shadow-xs group">
               <User className="w-4 h-4 text-slate-600 group-hover:text-blue-600 transition-colors" strokeWidth={2} />
               <span className="font-semibold text-sm text-slate-800 group-hover:text-blue-600 transition-colors">Sign In</span>
             </Link>

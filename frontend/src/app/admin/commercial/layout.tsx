@@ -7,6 +7,7 @@ export default function CommercialLayout({ children }: { children: React.ReactNo
   const pathname = usePathname();
 
   const tabs = [
+    { name: 'Registration Fee', href: '/admin/commercial/registration-fee' },
     { name: 'Commission', href: '/admin/commercial/commission' },
     { name: 'Subscriptions', href: '/admin/commercial/subscriptions' },
     { name: 'Coupons', href: '/admin/commercial/coupons' },

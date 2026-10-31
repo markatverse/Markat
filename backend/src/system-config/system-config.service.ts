@@ -2,6 +2,54 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
 import { RedisService } from '../redis/redis.service.js';
 
+export const STATUTORY_GST_RULES = [
+  {
+    name: 'Section 9(1) - Platform Commission GST (SAC 998319)',
+    rate: 18,
+    status: 'ACTIVE',
+  },
+  {
+    name: 'Section 52 - E-Commerce TCS (Tax Collected at Source on Goods)',
+    rate: 1,
+    status: 'ACTIVE',
+  },
+  {
+    name: 'Section 9(5) - Restaurant & Cloud Kitchen Food Services',
+    rate: 5,
+    status: 'ACTIVE',
+  },
+  {
+    name: 'Section 9(5) - Unregistered Home Services & Repairs',
+    rate: 18,
+    status: 'ACTIVE',
+  },
+  {
+    name: 'Product GST Slab: 0% (Exempt / Daily Essentials)',
+    rate: 0,
+    status: 'ACTIVE',
+  },
+  {
+    name: 'Product GST Slab: 5% (Apparel < ₹1k, Packaged Groceries)',
+    rate: 5,
+    status: 'ACTIVE',
+  },
+  {
+    name: 'Product GST Slab: 12% (Processed Goods, Business Supplies)',
+    rate: 12,
+    status: 'ACTIVE',
+  },
+  {
+    name: 'Product GST Slab: 18% (Standard Rate - Electronics, Lifestyle)',
+    rate: 18,
+    status: 'ACTIVE',
+  },
+  {
+    name: 'Product GST Slab: 28% (Luxury & Heavy Appliances)',
+    rate: 28,
+    status: 'ACTIVE',
+  },
+];
+
 @Injectable()
 export class SystemConfigService {
   private readonly SEO_CACHE_KEY = 'config:seo';
@@ -150,8 +198,19 @@ export class SystemConfigService {
     return this.savePaymentMethods(filtered);
   }
 
-  // --- Tax Config ---
+  // --- Tax Config & Statutory GST Engine ---
   async getTaxRules() {
+    let rules = await this.prisma.taxRule.findMany({ orderBy: { createdAt: 'desc' } });
+    if (!rules || rules.length === 0) {
+      await this.prisma.taxRule.createMany({ data: STATUTORY_GST_RULES });
+      rules = await this.prisma.taxRule.findMany({ orderBy: { createdAt: 'desc' } });
+    }
+    return rules;
+  }
+
+  async seedStatutoryGstRules() {
+    await this.prisma.taxRule.deleteMany({});
+    await this.prisma.taxRule.createMany({ data: STATUTORY_GST_RULES });
     return this.prisma.taxRule.findMany({ orderBy: { createdAt: 'desc' } });
   }
 

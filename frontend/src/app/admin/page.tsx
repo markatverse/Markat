@@ -9,6 +9,7 @@ import {
   Sparkles, ShoppingBag, Layers
 } from 'lucide-react';
 import { useAdminRole } from '@/context/AdminRoleContext';
+import { getApiUrl, fastFetch } from '@/utils/api';
 
 const defaultSettings = {
   sectors: [
@@ -35,47 +36,38 @@ export default function AdminDashboardPage() {
   const [pendingSellers, setPendingSellers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
+  const API_URL = getApiUrl();
 
   // Calculate metrics
   const { totalSellers: activeSellers, totalBuyers: activeBuyers, totalVolume, totalPlatformRevenue, activeOrders, openExceptions } = metrics;
   const totalProducts = 124; // Static for now, as products API isn't globally fetching all
 
   useEffect(() => {
-    const fetchGlobalData = async () => {
+    let isMounted = true;
+    const fetchAdminData = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(`${API_URL}/admin/analytics/dashboard`);
-        if (res.ok) {
-          const data = await res.json();
-          setMetrics(data);
+        const [dashData, sellersData] = await Promise.all([
+          fastFetch('/admin/analytics/dashboard', { ttlMs: 15000 }),
+          fastFetch('/sellers', { ttlMs: 15000 }),
+        ]);
+        if (!isMounted) return;
+        if (dashData) setMetrics(dashData);
+        if (Array.isArray(sellersData)) {
+          const pending = sellersData.filter((s) => 
+            s.verificationStatus === 'PENDING' || !s.verified || s.kycCallStatus === 'PENDING'
+          );
+          setPendingSellers(pending);
         }
       } catch (e) {
-        console.error("Failed to fetch live aggregated data", e);
+        console.error("Failed to fetch admin data", e);
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
 
-    const fetchPendingSellers = async () => {
-      try {
-        const res = await fetch(`${API_URL}/sellers`, { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data)) {
-            const pending = data.filter((s: any) => 
-              s.verificationStatus === 'PENDING' || !s.verified || s.kycCallStatus === 'PENDING'
-            );
-            setPendingSellers(pending);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch pending sellers", err);
-      }
-    };
-
-    fetchGlobalData();
-    fetchPendingSellers();
+    fetchAdminData();
+    return () => { isMounted = false; };
   }, []);
 
   // Sector controls and dummy toggles removed

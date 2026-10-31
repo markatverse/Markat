@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import LocationPicker from '@/components/LocationPicker';
 import toast from 'react-hot-toast';
-import { User, Phone, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, ArrowLeft, UploadCloud, FileCheck, FileText, CheckCircle2 } from 'lucide-react';
+import { User, Phone, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, ArrowLeft, UploadCloud, FileCheck, FileText, CheckCircle2, Sparkles } from 'lucide-react';
 
 import { getApiUrl } from '@/utils/api';
 import { validateGst, validatePan, validateAadhaar, formatAadhaarInput } from '@/utils/kycValidation';
@@ -21,6 +21,16 @@ export default function SellerOnboarding() {
   // step 1 = account (new or login), 1.2 = OTP verify (new only), 2+ = business steps
   const [step, setStep] = useState<number>(authLoading ? -1 : 1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [registrationFeeConfig, setRegistrationFeeConfig] = useState<any>(null);
+
+  React.useEffect(() => {
+    fetch(`${API_URL}/commercial/registration-fee`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && typeof data === 'object') setRegistrationFeeConfig(data);
+      })
+      .catch(() => {});
+  }, []);
 
   // Once auth loads: if already logged in, skip straight to step 2
   React.useEffect(() => {
@@ -199,26 +209,28 @@ export default function SellerOnboarding() {
     'SERVICE': ['Service Provider', 'Organizer']
   };
 
+  // Comprehensive Product Categories strictly for Product Selling (including 'All Products' multi-category)
+  const PRODUCT_SECTORS: Record<string, string[]> = {
+    'All Products': ['All'],
+    'Electronics': ['All'],
+    'Fashion': ['All'],
+    'Grocery & FMCG': ['All'],
+    'Home & Kitchen': ['All'],
+    'Beauty, Cosmetics & Personal Care': ['All'],
+    'Automotive Parts & Accessories': ['All'],
+    'Construction': ['All'],
+    'Industrial Machinery & Tools': ['All'],
+    'Sports, Fitness & Outdoor': ['All'],
+    'Books, Stationery & Office Supplies': ['All'],
+    'Baby Care & Toys': ['All'],
+    'Agriculture': ['All'],
+    'Healthcare & Medical Devices': ['All']
+  };
+
   const taxonomy: Record<string, Record<string, string[]>> = {
-    'Manufacturer': {
-      'Construction': ['All'],
-      'Electronics': ['All'],
-      'Fashion': ['All'],
-      'Home & Kitchen': ['All']
-    },
-    'Wholesaler': {
-      'Construction': ['All'],
-      'Electronics': ['All'],
-      'Fashion': ['All'],
-      'FMCG & Groceries': ['All']
-    },
-    'Retailer': {
-      'Food & Dining / Restaurant': ['All'],
-      'Electronics': ['All'],
-      'Fashion': ['All'],
-      'Home & Kitchen': ['All'],
-      'Grocery & Essentials': ['All']
-    },
+    'Manufacturer': PRODUCT_SECTORS,
+    'Wholesaler': PRODUCT_SECTORS,
+    'Retailer': PRODUCT_SECTORS,
     'Service Provider': {
       'Automobile & Car Wash': ['All'],
       'Food & Dining / Restaurant': ['All'],
@@ -236,7 +248,9 @@ export default function SellerOnboarding() {
   };
 
   const currentRoles = mainTypeMapping[mainType] || [];
-  const currentSectors = Object.keys(taxonomy[sellerRole] || {});
+  const currentSectors = primaryOffering === 'PRODUCT'
+    ? Object.keys(PRODUCT_SECTORS)
+    : Object.keys(taxonomy[sellerRole] || {});
 
   // Handlers
   const handleAccountInit = async (e: React.FormEvent) => {
@@ -415,6 +429,10 @@ export default function SellerOnboarding() {
             idProofType,
             idProofUrl,
             businessHours,
+            registrationFeePaid: !registrationFeeConfig?.isEnabled || registrationFeeConfig?.effectiveFee === 0,
+            registrationFeeAmount: registrationFeeConfig?.effectiveFee || 0,
+            registrationFeeStatus: (!registrationFeeConfig?.isEnabled || registrationFeeConfig?.effectiveFee === 0) ? 'WAIVED' : 'PAID',
+            registrationPaymentId: (!registrationFeeConfig?.isEnabled || registrationFeeConfig?.effectiveFee === 0) ? 'FREE_ONBOARDING' : ('PAY-MKV-' + Date.now().toString().slice(-8)),
           }),
         });
       } catch (networkErr: any) {
@@ -966,7 +984,11 @@ export default function SellerOnboarding() {
                       <label className={labelClasses}>Business Sector <span className="text-red-500">*</span></label>
                       <select required value={businessSector} onChange={e => setBusinessSector(e.target.value)} className={selectClasses}>
                         <option value="" disabled>Select sector...</option>
-                        {currentSectors.map(sec => <option key={sec} value={sec}>{sec}</option>)}
+                        {currentSectors.map(sec => (
+                          <option key={sec} value={sec}>
+                            {sec === 'All Products' ? '🌟 All Products (Multi-Category / General Store)' : sec}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </>
@@ -1026,9 +1048,114 @@ export default function SellerOnboarding() {
                     <input type="file" className="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-600 file:cursor-pointer hover:file:bg-indigo-100" />
                   </div>
                 </div>
+
+                {/* Live Merchant Registration Fee & Occasion Discount Card */}
+                {registrationFeeConfig && (
+                  <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-indigo-50/40 border border-indigo-200/80 shadow-xs space-y-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-indigo-100">
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-indigo-600 tracking-wider flex items-center gap-1">
+                          <Sparkles className="w-3.5 h-3.5" /> One-Time Merchant Registration Fee
+                        </span>
+                        <h4 className="text-base font-black text-slate-900 mt-0.5">
+                          Verified Store Onboarding Package
+                        </h4>
+                      </div>
+
+                      {registrationFeeConfig.isDiscountActive && registrationFeeConfig.savingsAmount > 0 && (
+                        <span className="px-3 py-1 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-black uppercase tracking-wider shadow-sm animate-pulse">
+                          {registrationFeeConfig.discountType === 'WAIVED' 
+                            ? '100% Free Waiver' 
+                            : registrationFeeConfig.discountType === 'PERCENTAGE'
+                              ? `${registrationFeeConfig.discountValue}% Festive Discount`
+                              : `₹${registrationFeeConfig.discountValue} Flat Discount`}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Occasion Banner */}
+                    {registrationFeeConfig.isDiscountActive && registrationFeeConfig.occasionName && (
+                      <div className="p-3 bg-gradient-to-r from-pink-50 to-amber-50 border border-pink-200 rounded-xl">
+                        <div className="text-xs font-extrabold text-pink-700 flex items-center gap-1.5">
+                          <span>🎉 {registrationFeeConfig.occasionName}</span>
+                        </div>
+                        {registrationFeeConfig.discountReason && (
+                          <p className="text-[11px] text-slate-600 font-medium mt-1 leading-relaxed">
+                            {registrationFeeConfig.discountReason}
+                          </p>
+                        )}
+                        {registrationFeeConfig.validUntil && (
+                          <div className="text-[10px] text-slate-400 font-semibold mt-1">
+                            Valid through: {registrationFeeConfig.validUntil}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Price Breakdown */}
+                    <div className="p-4 bg-white rounded-xl border border-indigo-100 flex items-center justify-between">
+                      <div>
+                        <span className="text-[11px] text-slate-400 uppercase font-bold block">Payable Fee</span>
+                        <div className="flex items-baseline gap-2 mt-0.5">
+                          <span className="text-2xl sm:text-3xl font-black text-slate-900">
+                            {registrationFeeConfig.effectiveFee === 0 ? 'FREE' : `₹${registrationFeeConfig.effectiveFee.toLocaleString('en-IN')}`}
+                          </span>
+                          {registrationFeeConfig.savingsAmount > 0 && (
+                            <span className="text-xs sm:text-sm text-slate-400 font-semibold line-through">
+                              ₹{registrationFeeConfig.baseFee?.toLocaleString('en-IN')}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {registrationFeeConfig.savingsAmount > 0 && (
+                        <div className="text-right">
+                          <span className="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-black inline-block">
+                            Save ₹{registrationFeeConfig.savingsAmount.toLocaleString('en-IN')}
+                          </span>
+                          <span className="text-[10px] text-slate-400 block mt-0.5">One-time lifetime access</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Included Benefits (Full text with zero truncation) */}
+                    {Array.isArray(registrationFeeConfig.benefits) && registrationFeeConfig.benefits.length > 0 && (
+                      <div className="pt-1 space-y-2">
+                        <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wide block">
+                          Included with this registration:
+                        </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          {registrationFeeConfig.benefits.map((b: string, i: number) => (
+                            <div key={i} className="flex items-start gap-2 text-xs text-slate-700">
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                              <span className="leading-snug font-medium">{b}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Mandatory Legal Terms Checkbox */}
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 mt-4">
+                  <label className="flex items-start gap-3 cursor-pointer text-xs text-slate-700 select-none">
+                    <input
+                      type="checkbox"
+                      required
+                      className="mt-0.5 w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+                    />
+                    <span className="leading-relaxed">
+                      I have read, understood, and agree to the <Link href="/terms" target="_blank" className="font-bold text-emerald-600 underline hover:text-emerald-700">MarkatVerse Terms of Service, Sector Disclaimers & Seller Indemnity Agreement</Link>. I acknowledge that MarkatVerse is an intermediary platform and as a merchant I am solely liable for product quality, food hygiene/FSSAI, and tax compliance.
+                    </span>
+                  </label>
+                </div>
+
                 <div className="flex gap-3 mt-4">
                   <button type="button" onClick={() => setStep(4)} className="px-6 py-4 border border-slate-300 text-slate-700 rounded-2xl font-bold text-sm bg-white hover:bg-slate-50">← Back</button>
-                  <button type="submit" disabled={isSubmitting} className={btnPrimary}>{isSubmitting ? 'Submitting...' : 'Submit Registration ✓'}</button>
+                  <button type="submit" disabled={isSubmitting} className={btnPrimary}>
+                    {isSubmitting ? 'Submitting...' : (!registrationFeeConfig?.isEnabled || registrationFeeConfig?.effectiveFee === 0 ? 'Complete Free Registration ✓' : `Pay ₹${registrationFeeConfig.effectiveFee} & Submit Registration ✓`)}
+                  </button>
                 </div>
               </form>
             </div>

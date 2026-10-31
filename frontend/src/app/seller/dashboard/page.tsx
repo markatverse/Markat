@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useProducts } from '@/context/ProductContext';
-import { Store, BarChart3, Package, PlusCircle, ArrowLeft, Trash2, Edit2, CheckCircle2, CalendarClock, Settings, Menu, X, Users, TrendingUp, Ticket, Clock, Ban, Search, Phone, Mail, FileText, MapPin, ChevronDown, Activity, Scissors, User, UserPlus, Sparkles, Palette, Droplet, Briefcase, Eye, ShieldCheck, Utensils, UtensilsCrossed, Stethoscope, HeartPulse, ChefHat, MessageSquare, Lock, Check, Info, Bell, Key, PartyPopper, Car, Wrench, Wallet } from 'lucide-react';
+import { Store, BarChart3, Package, PlusCircle, ArrowLeft, Trash2, Edit2, CheckCircle2, CalendarClock, Settings, Menu, X, Users, TrendingUp, Ticket, Clock, Ban, Search, Phone, Mail, FileText, MapPin, ChevronDown, Activity, Scissors, User, UserPlus, Sparkles, Palette, Droplet, Briefcase, Eye, ShieldCheck, Utensils, UtensilsCrossed, Stethoscope, HeartPulse, ChefHat, MessageSquare, Lock, Check, Info, Bell, Key, PartyPopper, Car, Wrench, Wallet, FileSpreadsheet } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Suspense } from 'react';
 import StaffResourceManagementModal from '@/components/StaffResourceManagementModal';
@@ -22,6 +22,7 @@ import SellerCustomersTab from '@/components/seller/SellerCustomersTab';
 import SellerBookingsTab from '@/components/seller/SellerBookingsTab';
 import SellerQueueTab from '@/components/seller/SellerQueueTab';
 import SellerWalletTab from '@/components/seller/SellerWalletTab';
+import SellerTaxReportsTab from '@/components/seller/SellerTaxReportsTab';
 import MascotState from '@/components/MascotState';
 import { getApiUrl } from '@/utils/api';
 
@@ -206,8 +207,16 @@ function DashboardContent() {
   const isService = capabilities.includes('SERVICE');
 
   // Fallback lists in case category is not found in context yet
-  const CART_ORDER_FLOW = ['Retail Product', 'Electronics', 'Fashion', 'Home'];
-  const RFQ_QUOTE_FLOW = ['B2B Product', 'Manufacturer', 'Transport', 'Construction'];
+  const CART_ORDER_FLOW = [
+    'Retail Product', 'Electronics', 'Fashion', 'Home', 'All Products', 'All',
+    'Grocery & FMCG', 'Grocery & Essentials', 'FMCG & Groceries', 'General',
+    'Beauty, Cosmetics & Personal Care', 'Automotive Parts & Accessories',
+    'Sports, Fitness & Outdoor', 'Books, Stationery & Office Supplies', 'Baby Care & Toys'
+  ];
+  const RFQ_QUOTE_FLOW = [
+    'B2B Product', 'Manufacturer', 'Transport', 'Construction', 'Wholesaler',
+    'All Products', 'All', 'Industrial Machinery & Tools', 'Agriculture', 'Wholesale & Distribution'
+  ];
   const QUEUE_TOKEN_FLOW = ['Doctor', 'Salon', 'Spa', 'Beauty Parlour', 'Repair', 'Services', 'Beauty', 'Car Wash', 'Healthcare', 'Food & Dining / Restaurant', 'Restaurant', 'Cafe', 'Dining', 'Automobile', 'Automobile / Car Wash', 'Automobile & Car Wash', 'Car Wash & Automobile'];
   const PROJECT_MILESTONE_FLOW = ['Construction', 'Interior Designer', 'Event Planner', 'Event & Party', 'Wedding Planner'];
   const MEETING_PROPOSAL_FLOW = ['Event Planner', 'Event & Party', 'Wedding Planner', 'Consultant', 'Photography', 'Photographer', 'Professional', 'Lawyer'];
@@ -1452,6 +1461,24 @@ function DashboardContent() {
             )}
           </button>
 
+          {/* FLIPKART STYLE GST & CA TAX REPORTS TAB */}
+          <button 
+            onClick={() => navigateTab('tax_reports')} 
+            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+              activeTab === 'tax_reports' 
+                ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200 shadow-xs' 
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <FileSpreadsheet className="w-5 h-5 text-indigo-600 shrink-0" />
+              <span className="truncate">GST & CA Reports</span>
+            </div>
+            <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200/60 shrink-0">
+              Monthly
+            </span>
+          </button>
+
           <button 
             onClick={() => navigateTab('profile')} 
             className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
@@ -2552,6 +2579,18 @@ function DashboardContent() {
           />
         )}
 
+        {/* SELLER GST & CA TAX REPORTS TAB */}
+        {activeTab === 'tax_reports' && (
+          <SellerTaxReportsTab 
+            user={user} 
+            businessId={user?.business?.id || user?.id || ''} 
+            businessName={user?.business?.name || user?.name || 'Seller Business'} 
+            gstin={user?.business?.gstNumber || '07AABCM8899K1Z4'}
+            pan={user?.business?.panNumber || 'AABCM8899K'}
+            state={user?.business?.address ? 'Delhi (07)' : 'Delhi (07)'}
+          />
+        )}
+
         {activeTab === 'profile' && (
           <div className="max-w-5xl mx-auto animate-in fade-in duration-300 pb-12 font-sans">
             {/* Page Header */}
@@ -2781,8 +2820,8 @@ function DashboardContent() {
                           <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200/70 inline-flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                             {user.business.commissionType === 'PERCENTAGE' 
-                              ? `${user.business.commissionRate}% Marketplace Commission`
-                              : `₹${user.business.commissionRate} Flat Fee per Settlement`}
+                              ? `${user.business.commissionRate}% Marketplace Commission (+ 18% GST)`
+                              : `₹${user.business.commissionRate} Flat Fee (+ 18% GST)`}
                           </span>
                         ) : 'Standard Marketplace Terms'}
                       </div>

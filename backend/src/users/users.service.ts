@@ -10,6 +10,23 @@ import { EventsService } from '../events/events.service.js';
 
 @Injectable()
 export class UsersService {
+  private usersCache: { data: any; expiry: number } | null = null;
+
+  private clearCache() {
+    this.usersCache = null;
+  }
+    private readonly safeUserSelect = {
+    id: true,
+    markatId: true,
+    name: true,
+    email: true,
+    phone: true,
+    role: true,
+    createdAt: true,
+    updatedAt: true,
+    business: true,
+  };
+
   constructor(
     private prisma: PrismaService,
     private idGenerator: IdGeneratorService,
@@ -17,6 +34,7 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: any) {
+    this.clearCache();
     const markatId = await this.idGenerator.generateUserId();
     return this.prisma.user.create({ 
       data: { ...createUserDto, markatId } 
@@ -25,12 +43,15 @@ export class UsersService {
 
   findAll() {
     return this.prisma.user.findMany({
-      include: { business: true }
+      select: this.safeUserSelect,
     });
   }
 
   findOne(id: string) {
-    return this.prisma.user.findUnique({ where: { id } });
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: this.safeUserSelect,
+    });
   }
 
   async findRole(id: string) {
@@ -42,6 +63,7 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: any) {
+    this.clearCache();
     const updated = await this.prisma.user.update({
       where: { id },
       data: updateUserDto,
@@ -91,6 +113,7 @@ export class UsersService {
   }
 
   async remove(id: string) {
+    this.clearCache();
     // Log the intervention automatically
     this.events.logAction({
       action: 'DELETE_USER',

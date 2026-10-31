@@ -14,6 +14,9 @@ let AnalyticsController = class AnalyticsController {
     constructor(analyticsService) {
         this.analyticsService = analyticsService;
     }
+    getRoot() {
+        return this.analyticsService.getSummary();
+    }
     getSummary() {
         return this.analyticsService.getSummary();
     }
@@ -21,6 +24,12 @@ let AnalyticsController = class AnalyticsController {
         return this.analyticsService.getFinanceData();
     }
 };
+__decorate([
+    Get(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AnalyticsController.prototype, "getRoot", null);
 __decorate([
     Get('summary'),
     __metadata("design:type", Function),

@@ -1,39 +1,42 @@
+import { JwtService } from '@nestjs/jwt';
 import { WalletService } from './wallet.service.js';
 export declare class WalletController {
     private readonly walletService;
-    constructor(walletService: WalletService);
+    private readonly jwtService;
+    constructor(walletService: WalletService, jwtService: JwtService);
+    private verifyWalletAccess;
     getWallet(businessId: string): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         businessId: string;
         totalEarnings: number;
         pendingBalance: number;
         availableBalance: number;
         withdrawn: number;
         owedToPlatform: number;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     getTransactions(walletId: string): Promise<{
-        commission: number;
         id: string;
-        status: string;
         createdAt: Date;
-        type: string;
+        walletId: string;
         referenceId: string | null;
         referenceType: string | null;
-        walletId: string;
         paymentRef: string | null;
         grossAmount: number;
         platformFee: number;
+        commission: number;
         tax: number;
         netAmount: number;
+        type: string;
+        status: string;
         settledAt: Date | null;
     }[]>;
     getBankAccounts(businessId: string): Promise<{
         id: string;
+        businessId: string;
         createdAt: Date;
         updatedAt: Date;
-        businessId: string;
         accountName: string;
         accountNumber: string;
         ifscCode: string | null;
@@ -46,11 +49,11 @@ export declare class WalletController {
         accountNumber: string;
         ifscCode: string;
         bankName: string;
-    }): Promise<{
+    }, authHeader?: string): Promise<{
         id: string;
+        businessId: string;
         createdAt: Date;
         updatedAt: Date;
-        businessId: string;
         accountName: string;
         accountNumber: string;
         ifscCode: string | null;
@@ -61,8 +64,8 @@ export declare class WalletController {
     requestWithdrawal(businessId: string, body: {
         amount: number;
         bankAccountId: string;
-    }): Promise<any>;
+    }, authHeader?: string): Promise<any>;
     payPlatform(businessId: string, body?: {
         fromBalance?: boolean;
-    }): Promise<any>;
+    }, authHeader?: string): Promise<any>;
 }

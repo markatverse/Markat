@@ -3,41 +3,49 @@ import { PrismaService } from '../prisma.service.js';
 
 @Injectable()
 export class AnalyticsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private dashboardCache: { data: any; expiry: number } | null = null;
+
+  constructor(private readonly prisma: PrismaService) { }
 
   async getDashboardMetrics() {
-    // Phase 5: High-level automated metrics
-    const totalSellers = await this.prisma.business.count();
-    
-    // Buyers are users with role buyer/CONSUMER
-    const totalBuyers = await this.prisma.user.count({
-      where: { role: { in: ['buyer', 'CONSUMER'] } }
-    });
+    if (this.dashboardCache && Date.now() < this.dashboardCache.expiry) {
+      return this.dashboardCache.data;
+    }
 
-    const activeOrders = await this.prisma.order.count({
-      where: { status: { in: ['PENDING', 'PROCESSING'] } }
-    });
-    
-    // Ledger Aggregation for Volume and Revenue
-    const ledgerAgg = await this.prisma.ledgerTransaction.aggregate({
-      _sum: {
-        grossAmount: true,
-        platformFee: true
-      },
-      where: { type: 'CREDIT' }
-    });
+    // Parallel high-performance execution across indexed collections
+    const [
+      totalSellers,
+      totalBuyers,
+      activeOrders,
+      ledgerAgg,
+      exceptions,
+      recentTransactions
+    ] = await Promise.all([
+      this.prisma.business.count(),
+      this.prisma.user.count({
+        where: { role: { in: ['buyer', 'CONSUMER'] } }
+      }),
+      this.prisma.order.count({
+        where: { status: { in: ['PENDING', 'PROCESSING'] } }
+      }),
+      this.prisma.ledgerTransaction.aggregate({
+        _sum: {
+          grossAmount: true,
+          platformFee: true
+        },
+        where: { type: 'CREDIT' }
+      }),
+      this.prisma.automationException.count({
+        where: { status: 'OPEN' }
+      }),
+      this.prisma.ledgerTransaction.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        include: { wallet: { include: { business: true } } }
+      })
+    ]);
 
-    const exceptions = await this.prisma.automationException.count({
-      where: { status: 'OPEN' }
-    });
-
-    const recentTransactions = await this.prisma.ledgerTransaction.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 10,
-      include: { wallet: { include: { business: true } } }
-    });
-
-    return {
+    const result = {
       totalSellers,
       totalBuyers,
       activeOrders,
@@ -49,5 +57,8 @@ export class AnalyticsService {
         sellerName: t.wallet?.business?.name || 'Unknown'
       }))
     };
+
+    this.dashboardCache = { data: result, expiry: Date.now() + 30000 };
+    return result;
   }
 }

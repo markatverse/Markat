@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { DollarSign, ArrowUpRight, Wallet, TrendingUp, Download } from 'lucide-react';
+import { fastFetch } from '@/utils/api';
 
 export default function AnalyticsFinancePage() {
   const [data, setData] = useState<any>(null);
@@ -8,28 +9,21 @@ export default function AnalyticsFinancePage() {
   const [activeTab, setActiveTab] = useState<'ledger' | 'withdrawals'>('ledger');
   const [search, setSearch] = useState('');
 
-  const getApiUrl = () => {
-    if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
-    if (typeof window !== 'undefined') return `http://${window.location.hostname}:3001`;
-    return 'http://localhost:3001';
-  };
-  const API_URL = getApiUrl();
-
   useEffect(() => {
+    let isMounted = true;
     const fetchFinance = async () => {
       try {
-        const res = await fetch(`${API_URL}/admin/analytics/finance`);
-        if (!res.ok) throw new Error('Failed to fetch finance data');
-        const json = await res.json();
-        setData(json);
+        const json = await fastFetch<any>('/admin/analytics/finance', { ttlMs: 15000 });
+        if (isMounted && json) setData(json);
       } catch (err) {
         console.error(err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     fetchFinance();
-  }, [API_URL]);
+    return () => { isMounted = false; };
+  }, []);
 
   const transactions = data?.transactions || [];
   const withdrawals = data?.withdrawals || [];

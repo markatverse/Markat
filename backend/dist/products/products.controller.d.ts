@@ -3,7 +3,7 @@ export declare class ProductsController {
     private readonly productsService;
     constructor(productsService: ProductsService);
     create(data: any): Promise<any>;
-    findAll(location?: string, lat?: string, lng?: string, radius?: string, page?: string, limit?: string): Promise<any>;
+    findAll(location?: string, lat?: string, lng?: string, radius?: string, page?: string, limit?: string, q?: string, search?: string, category?: string, subcategory?: string, type?: string, isB2B?: string, minPrice?: string, maxPrice?: string, sortBy?: string): Promise<any>;
     getDummyStatus(): Promise<{
         enabled: boolean;
     }>;

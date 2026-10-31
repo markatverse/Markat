@@ -8,6 +8,7 @@ import {
   PhoneCall, AlertCircle, Building2, User, Clock
 } from 'lucide-react';
 import { maskAadhaar } from '@/utils/kycValidation';
+import { getApiUrl, fastFetch } from '@/utils/api';
 
 export default function AdminSellersPage() {
   const { canEdit } = useAdminRole();
@@ -26,28 +27,30 @@ export default function AdminSellersPage() {
   const [kycNotes, setKycNotes] = useState<string>('');
   const [showAadhaar, setShowAadhaar] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feeStatus, setFeeStatus] = useState<string>('PENDING');
+  const [feeAmount, setFeeAmount] = useState<number>(0);
+  const [feePaymentId, setFeePaymentId] = useState<string>('');
 
-  const getApiUrl = () => { if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL; if (typeof window !== 'undefined') { return 'http://' + window.location.hostname + ':3001'; } return 'http://localhost:3001'; }; const API_URL = getApiUrl();
+  const API_URL = getApiUrl();
 
   useEffect(() => {
     fetchSellers();
   }, [API_URL]);
 
-  const fetchSellers = () => {
+  const fetchSellers = async (forceFresh = false) => {
     setLoading(true);
-    fetch(`${API_URL}/sellers`, { cache: 'no-store' })
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setAllSellers(data);
-        }
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
+    try {
+      const data = await fastFetch<any[]>('/sellers', { ttlMs: forceFresh ? 0 : 15000 });
+      if (Array.isArray(data)) {
+        setAllSellers(data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   const openReviewModal = (seller: any) => {
     setSelectedSeller(seller);
@@ -57,6 +60,9 @@ export default function AdminSellersPage() {
     setKycCallStatus(seller.kycCallStatus || 'PENDING');
     setKycNotes(seller.kycNotes || '');
     setShowAadhaar(false);
+    setFeeStatus(seller.registrationFeeStatus || (seller.registrationFeePaid ? 'PAID' : 'PENDING'));
+    setFeeAmount(seller.registrationFeeAmount || 0);
+    setFeePaymentId(seller.registrationPaymentId || '');
   };
 
   const closeReviewModal = () => {
@@ -78,6 +84,17 @@ export default function AdminSellersPage() {
         })
       });
       
+      await fetch(`${API_URL}/sellers/${selectedSeller.id}/registration-fee`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          registrationFeeStatus: feeStatus,
+          registrationFeeAmount: feeAmount,
+          registrationPaymentId: feePaymentId,
+          registrationFeePaid: feeStatus === 'PAID' || feeStatus === 'WAIVED'
+        })
+      });
+
       const resBilling = await fetch(`${API_URL}/admin/businesses/${selectedSeller.id}/billing`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -99,6 +116,34 @@ export default function AdminSellersPage() {
     } catch (e) {
       console.error(e);
       alert('Error approving seller');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveFeeOnly = async () => {
+    if (!hasEditPermission || !selectedSeller) return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`${API_URL}/sellers/${selectedSeller.id}/registration-fee`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          registrationFeeStatus: feeStatus,
+          registrationFeeAmount: feeAmount,
+          registrationPaymentId: feePaymentId,
+          registrationFeePaid: feeStatus === 'PAID' || feeStatus === 'WAIVED'
+        })
+      });
+      if (res.ok) {
+        fetchSellers(true);
+        alert('Registration fee status updated successfully!');
+      } else {
+        alert('Failed to update fee status');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error updating fee status');
     } finally {
       setIsSubmitting(false);
     }
@@ -247,6 +292,7 @@ export default function AdminSellersPage() {
                 <th className="p-4">Contact & Phone</th>
                 <th className="p-4">KYC Identifiers</th>
                 <th className="p-4">KYC Call Status</th>
+                <th className="p-4">Reg. Fee Status</th>
                 <th className="p-4">Status</th>
                 <th className="p-4 pr-6 text-right">Actions</th>
               </tr>
@@ -309,6 +355,37 @@ export default function AdminSellersPage() {
                       <PhoneCall className="w-3 h-3" />
                       {seller.kycCallStatus === 'VERIFIED' ? 'Verified' : seller.kycCallStatus === 'CALLED' ? 'Called' : seller.kycCallStatus === 'FAILED' ? 'Failed' : 'Call Pending'}
                     </span>
+                  </td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border ${
+                        seller.registrationFeeStatus === 'PAID' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                        seller.registrationFeeStatus === 'WAIVED' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                        'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                      }`}>
+                        {seller.registrationFeeStatus === 'PAID' ? (
+                          <>
+                            <Check className="w-3 h-3 text-emerald-400" />
+                            PAID (₹{seller.registrationFeeAmount || 0})
+                          </>
+                        ) : seller.registrationFeeStatus === 'WAIVED' ? (
+                          <>
+                            <Check className="w-3 h-3 text-blue-400" />
+                            WAIVED (FREE)
+                          </>
+                        ) : (
+                          <>
+                            <Clock className="w-3 h-3 text-amber-400" />
+                            PENDING (₹{seller.registrationFeeAmount || 0})
+                          </>
+                        )}
+                      </span>
+                    </div>
+                    {seller.registrationPaymentId && (
+                      <div className="text-[10px] font-mono text-slate-500 mt-0.5 truncate max-w-[120px]" title={seller.registrationPaymentId}>
+                        Ref: {seller.registrationPaymentId}
+                      </div>
+                    )}
                   </td>
                   <td className="p-4">
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
@@ -561,6 +638,57 @@ export default function AdminSellersPage() {
                 </div>
               </div>
 
+              {/* Registration Fee Management */}
+              <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/70 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Merchant Registration Fee & Payment Status
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={handleSaveFeeOnly}
+                    disabled={isSubmitting}
+                    className="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-xs font-bold text-slate-200 rounded-lg transition-colors"
+                  >
+                    Save Fee Only
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Fee Status</label>
+                    <select
+                      value={feeStatus}
+                      onChange={(e) => setFeeStatus(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs font-bold text-white focus:outline-none focus:border-emerald-500"
+                    >
+                      <option value="PAID">✅ PAID</option>
+                      <option value="WAIVED">🔵 WAIVED / FREE</option>
+                      <option value="PENDING">⏳ PENDING PAYMENT</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Collected Amount (₹)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={feeAmount}
+                      onChange={(e) => setFeeAmount(Math.max(0, Number(e.target.value)))}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white font-mono font-bold focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Transaction / Ref ID</label>
+                    <input
+                      type="text"
+                      value={feePaymentId}
+                      onChange={(e) => setFeePaymentId(e.target.value)}
+                      placeholder="e.g. PAY-MKV-12345 or UPI-UTR"
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white font-mono focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* 5. Platform Fees Configuration */}
               <div className="space-y-4 pt-2 border-t border-slate-800">
                 <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-500">Platform Fees Configuration</h3>
@@ -595,11 +723,21 @@ export default function AdminSellersPage() {
                       {modelType === 'commission' ? '%' : '₹'}
                     </div>
                   </div>
-                  <p className="text-xs text-slate-500 mt-2">
-                    {modelType === 'commission' 
-                      ? `The platform will automatically deduct ${rate}% from the seller's sales.` 
-                      : `The seller will be billed ₹${rate} as a fixed subscription/fee.`}
-                  </p>
+                  <div className="mt-3 p-3 bg-slate-900/80 rounded-xl border border-slate-700/60 text-xs space-y-1">
+                    <div className="flex items-center justify-between font-bold">
+                      <span className="text-slate-300">Effective Platform Deduction (Commission + 18% GST):</span>
+                      <span className="text-emerald-400 text-sm font-black">
+                        {modelType === 'commission' 
+                          ? `${(rate * 1.18).toFixed(2)}%` 
+                          : `₹${(rate * 1.18).toFixed(2)}`}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      {modelType === 'commission' 
+                        ? `Base ${rate}% Commission + 18% GST (${(rate * 0.18).toFixed(2)}%). On a ₹1,000 sale: Platform deducts ₹${(rate * 10 * 1.18).toFixed(2)} (₹${(rate * 10).toFixed(2)} comm. + ₹${(rate * 10 * 0.18).toFixed(2)} GST). Net seller payout: ₹${(1000 - rate * 10 * 1.18).toFixed(2)}.`
+                        : `Base ₹${rate} fee + 18% GST (₹${(rate * 0.18).toFixed(2)}) = Total ₹${(rate * 1.18).toFixed(2)}.`}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

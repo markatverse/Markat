@@ -1,25 +1,18 @@
 import { getApiUrl } from "@/utils/api";
 import HomeSectionsContainer from "@/components/HomeSectionsContainer";
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 async function getAdvertisements() {
   try {
     const apiUrl = getApiUrl();
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
     try {
-      let res = await fetch(`${apiUrl}/commercial/advertisements`, {
-        cache: 'no-store',
+      const res = await fetch(`${apiUrl}/content/advertisements`, {
+        next: { revalidate: 60 },
         signal: controller.signal,
       }).catch(() => null);
-
-      if (!res || !res.ok) {
-        res = await fetch(`${apiUrl}/content/advertisements`, {
-          cache: 'no-store',
-          signal: controller.signal,
-        }).catch(() => null);
-      }
       clearTimeout(timeoutId);
 
       if (res && res.ok) {
@@ -42,10 +35,10 @@ async function getBanners() {
   try {
     const apiUrl = getApiUrl();
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
     try {
       const res = await fetch(`${apiUrl}/content/banners`, {
-        cache: 'no-store',
+        next: { revalidate: 60 },
         signal: controller.signal,
       });
       clearTimeout(timeoutId);

@@ -40,12 +40,20 @@ export class UsersController {
   }
 
   @Get()
-  findAll() {
+  findAll(@Headers('authorization') authorization?: string) {
+    const claims = this.authenticateToken(authorization);
+    if (claims.role !== 'ADMIN' && claims.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Admin privileges required to view user directory');
+    }
     return this.usersService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string, @Headers('authorization') authorization?: string) {
+    const claims = this.authenticateToken(authorization);
+    if (claims.sub !== id && claims.role !== 'ADMIN' && claims.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Access denied');
+    }
     return this.usersService.findOne(id);
   }
 
@@ -79,7 +87,11 @@ export class UsersController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: string, @Headers('authorization') authorization?: string) {
+    const claims = this.authenticateToken(authorization);
+    if (claims.sub !== id && claims.role !== 'ADMIN' && claims.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Admin access required to delete accounts');
+    }
     return this.usersService.remove(id);
   }
 

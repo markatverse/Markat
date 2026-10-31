@@ -64,6 +64,11 @@ export class SystemConfigController {
     return this.systemConfigService.getTaxRules();
   }
 
+  @Post('tax/seed-statutory')
+  seedStatutoryGstRules() {
+    return this.systemConfigService.seedStatutoryGstRules();
+  }
+
   @Post('tax')
   addTaxRule(@Body() body: { name: string; rate: number; status?: string }) {
     return this.systemConfigService.addTaxRule(body);

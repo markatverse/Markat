@@ -573,13 +573,17 @@ export class ServiceQueueService {
       });
       if (!business) return;
 
-      let amountOwed = 0;
+      let baseCommission = 0;
       if (business.commissionType === 'PERCENTAGE') {
-        amountOwed = booking.price * (business.commissionRate / 100);
+        baseCommission = booking.price * (business.commissionRate / 100);
       } else if (business.commissionType === 'FIXED') {
         // Fixed fee per transaction
-        amountOwed = business.commissionRate;
+        baseCommission = business.commissionRate;
       }
+
+      // Platform charges Commission + 18% GST (SAC 998319)
+      const commissionGst = Math.round(baseCommission * 0.18 * 100) / 100;
+      const amountOwed = Math.round((baseCommission + commissionGst) * 100) / 100;
 
       if (amountOwed > 0) {
         if (business.wallet) {

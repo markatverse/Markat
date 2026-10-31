@@ -1,6 +1,6 @@
 "use client";
 import { useSearchParams } from 'next/navigation';
-import { useProducts } from '@/context/ProductContext';
+import { useProducts, Product } from '@/context/ProductContext';
 import ProductGrid from '@/components/ProductGrid';
 import ServiceDirectoryList from '@/components/ServiceDirectoryList';
 import SidebarBannerWidget from '@/components/SidebarBannerWidget';
@@ -9,6 +9,7 @@ import MascotState from '@/components/MascotState';
 import { useState, useEffect, Suspense, useMemo } from 'react';
 import { SlidersHorizontal, MapPin } from 'lucide-react';
 import { isServiceProduct, matchesProductSearch } from '@/utils/productSearch';
+import { fastFetch } from '@/utils/api';
 
 function matchCategory(pCategory: string = '', targetCategory: string = '', pSubcategory: string = '', pName: string = '') {
   const pCat = pCategory.toLowerCase().trim();
@@ -73,6 +74,47 @@ function SearchContent() {
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [b2bOnly, setB2BOnly] = useState(false);
   const [premiumOnly, setPremiumOnly] = useState(false);
+  const [serverResults, setServerResults] = useState<Product[] | null>(null);
+
+  useEffect(() => {
+    if (!q.trim() && !selectedCategory) {
+      setServerResults(null);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        let url = `/products?limit=100`;
+        if (q.trim()) url += `&q=${encodeURIComponent(q.trim())}`;
+        if (selectedCategory && selectedCategory !== 'All Categories') url += `&category=${encodeURIComponent(selectedCategory)}`;
+        if (productType !== 'all') url += `&type=${productType}`;
+        if (locationFilter.trim()) url += `&location=${encodeURIComponent(locationFilter.trim())}`;
+
+        const res = await fastFetch<any>(url, { ttlMs: 30000 });
+        let items: any[] = [];
+        if (res && Array.isArray(res.data)) items = res.data;
+        else if (res && Array.isArray(res.products)) items = res.products;
+        else if (Array.isArray(res)) items = res;
+
+        if (items.length > 0) {
+          const mapped = items.map((item: any) => ({
+            ...item,
+            seller: item.sellerName || item.seller,
+            category: item.categoryName || item.category,
+            primaryType: (item.type === 'SERVICE' || item.primaryType === 'SERVICE') ? 'SERVICE' : (item.primaryType || 'PRODUCT'),
+            image: item.image || item.sku || undefined,
+            images: item.images || (item.image ? [item.image] : []),
+          }));
+          setServerResults(mapped);
+        } else {
+          setServerResults([]);
+        }
+      } catch {
+        setServerResults(null);
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [q, selectedCategory, productType, locationFilter]);
 
   const handleResetFilters = () => {
     setProductType('all');
@@ -104,7 +146,7 @@ function SearchContent() {
 
   // Derived filtered products
   const filteredProducts = useMemo(() => {
-    let result = products;
+    let result = (serverResults !== null && serverResults.length > 0) ? serverResults : products;
     
     // Search Query
     if (q.trim()) result = result.filter(product => matchesProductSearch(product, q));
@@ -194,7 +236,7 @@ function SearchContent() {
     }
     
     return result;
-  }, [q, locationFilter, productType, selectedCategory, selectedSubcategory, dynamicFilters, priceRange, minRating, verifiedOnly, b2bOnly, premiumOnly, sortBy, products]);
+  }, [q, locationFilter, productType, selectedCategory, selectedSubcategory, dynamicFilters, priceRange, minRating, verifiedOnly, b2bOnly, premiumOnly, sortBy, products, serverResults]);
 
   // Get unique categories from products and configs
   const availableCategories = useMemo(() => {

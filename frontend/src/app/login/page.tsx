@@ -23,6 +23,12 @@ function LoginContent() {
       const role = user.role?.toUpperCase();
       if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
         router.replace('/admin');
+      } else if (role === 'SELLER' || role === 'BUSINESS' || role === 'ELITE') {
+        if (redirectUrl) {
+          router.replace(redirectUrl);
+        } else {
+          router.replace('/seller/dashboard');
+        }
       } else {
         if (redirectUrl) {
           router.replace(redirectUrl);
@@ -119,7 +125,12 @@ function LoginContent() {
         { id: data.user.id, markatId: data.user.markatId, name: data.user.name, email: data.user.email, role: data.user.role.toLowerCase() as any, phone: data.user.phone || '', business: data.user.business },
         data.access_token
       );
-      router.push('/');
+      const userRole = (data.user?.role || '').toUpperCase();
+      if (userRole === 'SELLER' || userRole === 'BUSINESS' || userRole === 'ELITE') {
+        router.push('/seller/dashboard');
+      } else {
+        router.push('/');
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {

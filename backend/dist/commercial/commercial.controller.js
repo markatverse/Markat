@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete, Query } from '@nestjs/common';
 import { CommercialService } from './commercial.service.js';
 let CommercialController = class CommercialController {
     commercialService;
@@ -30,6 +30,7 @@ let CommercialController = class CommercialController {
     getSubscriptions() { return this.commercialService.getSubscriptions(); }
     getSubscription(id) { return this.commercialService.getSubscription(id); }
     createSubscription(data) { return this.commercialService.createSubscription(data); }
+    seedDefaultSubscriptions() { return this.commercialService.seedDefaultSubscriptions(); }
     updateSubscription(id, data) { return this.commercialService.updateSubscription(id, data); }
     deleteSubscription(id) { return this.commercialService.deleteSubscription(id); }
     getCommissions() { return this.commercialService.getCommissions(); }
@@ -37,6 +38,45 @@ let CommercialController = class CommercialController {
     createCommission(data) { return this.commercialService.createCommission(data); }
     updateCommission(id, data) { return this.commercialService.updateCommission(id, data); }
     deleteCommission(id) { return this.commercialService.deleteCommission(id); }
+    getRegistrationFeeStats() {
+        return this.commercialService.getRegistrationFeeStats();
+    }
+    getRegistrationFee() {
+        return this.commercialService.getRegistrationFee();
+    }
+    updateRegistrationFee(data) {
+        return this.commercialService.updateRegistrationFee(data);
+    }
+    patchRegistrationFee(data) {
+        return this.commercialService.updateRegistrationFee(data);
+    }
+    getAdsAdminOverview() {
+        return this.commercialService.getAdsAdminOverview();
+    }
+    moderateCampaign(body) {
+        return this.commercialService.moderateCampaign(body.campaignId, body.status, body.reason);
+    }
+    getPlacementsConfig() {
+        return this.commercialService.getPlacementsConfig();
+    }
+    updatePlacementsConfig(body) {
+        return this.commercialService.updatePlacementsConfig(body);
+    }
+    topupAdvertiserWallet(body) {
+        return this.commercialService.topupAdvertiserWallet(body.advertiserId, body.amount);
+    }
+    getAdvertiserCampaigns(advertiserId) {
+        return this.commercialService.getAdvertiserCampaigns(advertiserId);
+    }
+    createAdvertiserCampaign(data) {
+        return this.commercialService.createAdvertiserCampaign(data);
+    }
+    toggleCampaignStatus(id) {
+        return this.commercialService.toggleCampaignStatus(id);
+    }
+    getAdvertiserProfile(id) {
+        return this.commercialService.getAdvertiserProfile(id);
+    }
 };
 __decorate([
     Get('advertisements'),
@@ -129,6 +169,12 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], CommercialController.prototype, "createSubscription", null);
 __decorate([
+    Post('subscriptions/seed-defaults'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], CommercialController.prototype, "seedDefaultSubscriptions", null);
+__decorate([
     Patch('subscriptions/:id'),
     __param(0, Param('id')),
     __param(1, Body()),
@@ -178,6 +224,93 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], CommercialController.prototype, "deleteCommission", null);
+__decorate([
+    Get('registration-fee/stats'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], CommercialController.prototype, "getRegistrationFeeStats", null);
+__decorate([
+    Get('registration-fee'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], CommercialController.prototype, "getRegistrationFee", null);
+__decorate([
+    Post('registration-fee'),
+    __param(0, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], CommercialController.prototype, "updateRegistrationFee", null);
+__decorate([
+    Patch('registration-fee'),
+    __param(0, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], CommercialController.prototype, "patchRegistrationFee", null);
+__decorate([
+    Get('ads/admin-overview'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], CommercialController.prototype, "getAdsAdminOverview", null);
+__decorate([
+    Post('ads/campaigns/moderate'),
+    __param(0, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], CommercialController.prototype, "moderateCampaign", null);
+__decorate([
+    Get('ads/placements'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], CommercialController.prototype, "getPlacementsConfig", null);
+__decorate([
+    Post('ads/placements'),
+    __param(0, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], CommercialController.prototype, "updatePlacementsConfig", null);
+__decorate([
+    Post('ads/advertiser/topup'),
+    __param(0, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], CommercialController.prototype, "topupAdvertiserWallet", null);
+__decorate([
+    Get('ads/campaigns'),
+    __param(0, Query('advertiserId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], CommercialController.prototype, "getAdvertiserCampaigns", null);
+__decorate([
+    Post('ads/campaigns'),
+    __param(0, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], CommercialController.prototype, "createAdvertiserCampaign", null);
+__decorate([
+    Patch('ads/campaigns/:id/toggle'),
+    __param(0, Param('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], CommercialController.prototype, "toggleCampaignStatus", null);
+__decorate([
+    Get('ads/advertisers/:id/profile'),
+    __param(0, Param('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], CommercialController.prototype, "getAdvertiserProfile", null);
 CommercialController = __decorate([
     Controller('commercial'),
     __metadata("design:paramtypes", [CommercialService])

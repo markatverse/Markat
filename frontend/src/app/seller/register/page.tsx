@@ -9,7 +9,8 @@ import toast from 'react-hot-toast';
 import { 
   Building2, MapPin, Store, CheckCircle2, ArrowRight, ArrowLeft, 
   ShieldCheck, Sparkles, Phone, Mail, Clock, FileText, Briefcase,
-  UploadCloud, FileCheck, Eye, EyeOff, ExternalLink, AlertCircle
+  UploadCloud, FileCheck, Eye, EyeOff, ExternalLink, AlertCircle,
+  CreditCard, QrCode, Check, Zap, X
 } from 'lucide-react';
 
 import { getApiUrl } from '@/utils/api';
@@ -32,6 +33,11 @@ export default function SellerRegistrationPage() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [registrationFeeConfig, setRegistrationFeeConfig] = useState<any>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'SIMULATED' | 'UPI_QR' | 'PAY_LATER'>('SIMULATED');
+  const [manualUtr, setManualUtr] = useState('');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Step 1: Model & Categorization (Synchronized with backend config)
   const [businessModel, setBusinessModel] = useState<string>('B2C');
@@ -86,6 +92,16 @@ export default function SellerRegistrationPage() {
     }
   }, [user, authLoading, router]);
 
+  // Fetch live registration fee & occasion discount configuration
+  useEffect(() => {
+    fetch(`${API_URL}/commercial/registration-fee`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && typeof data === 'object') setRegistrationFeeConfig(data);
+      })
+      .catch(() => {});
+  }, []);
+
   // Redirect if already a seller
   useEffect(() => {
     if (user && (user.role?.toUpperCase() === 'SELLER' || user.business)) {
@@ -101,23 +117,38 @@ export default function SellerRegistrationPage() {
   // Fallback sectors map in case configuration endpoint has empty sectors or network drops
   const FALLBACK_SECTORS: Record<string, { id: string; name: string }[]> = {
     'B2C': [
-      { id: 'b2c_food', name: 'Food & Dining / Restaurant' },
-      { id: 'b2c_retail', name: 'Retail & Supermarket' },
-      { id: 'b2c_fashion', name: 'Fashion & Apparel' },
-      { id: 'b2c_electronics', name: 'Electronics & Appliances' },
-      { id: 'b2c_home', name: 'Home & Kitchen Essentials' },
-      { id: 'b2c_health', name: 'Health & Pharmacy' },
+      { id: 'b2c_all', name: 'All Products' },
+      { id: 'b2c_electronics', name: 'Electronics' },
+      { id: 'b2c_fashion', name: 'Fashion' },
+      { id: 'b2c_grocery', name: 'Grocery & FMCG' },
+      { id: 'b2c_home', name: 'Home & Kitchen' },
+      { id: 'b2c_beauty', name: 'Beauty, Cosmetics & Personal Care' },
+      { id: 'b2c_auto', name: 'Automotive Parts & Accessories' },
+      { id: 'b2c_sports', name: 'Sports, Fitness & Outdoor' },
+      { id: 'b2c_books', name: 'Books, Stationery & Office Supplies' },
+      { id: 'b2c_toys', name: 'Baby Care & Toys' },
+      { id: 'b2c_health', name: 'Healthcare & Medical Devices' },
     ],
     'B2B': [
+      { id: 'b2b_all', name: 'All Products' },
       { id: 'b2b_wholesale', name: 'Wholesale & Distribution' },
       { id: 'b2b_mfg', name: 'Manufacturing & Industrial' },
-      { id: 'b2b_construction', name: 'Construction & Materials' },
-      { id: 'b2b_fmcg', name: 'FMCG Bulk Supply' },
+      { id: 'b2b_construction', name: 'Construction' },
+      { id: 'b2b_fmcg', name: 'Grocery & FMCG' },
+      { id: 'b2b_electronics', name: 'Electronics' },
+      { id: 'b2b_industrial', name: 'Industrial Machinery & Tools' },
+      { id: 'b2b_agriculture', name: 'Agriculture' },
+      { id: 'b2b_auto', name: 'Automotive Parts & Accessories' },
     ],
     'BOTH': [
+      { id: 'both_all', name: 'All Products' },
       { id: 'both_retail_wholesale', name: 'Both B2B & B2C' },
-      { id: 'both_food', name: 'Food & Beverage Supply' },
-      { id: 'both_textiles', name: 'Textiles & Garments' },
+      { id: 'both_electronics', name: 'Electronics' },
+      { id: 'both_fashion', name: 'Fashion' },
+      { id: 'both_grocery', name: 'Grocery & FMCG' },
+      { id: 'both_home', name: 'Home & Kitchen' },
+      { id: 'both_construction', name: 'Construction' },
+      { id: 'both_industrial', name: 'Industrial Machinery & Tools' },
     ],
     'SERVICE': [
       { id: 'srv_carwash', name: 'Automobile & Car Wash' },
@@ -300,8 +331,12 @@ export default function SellerRegistrationPage() {
     }
   };
 
-  const handleFinalRegistration = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleFinalRegistration = async (feeDetails?: {
+    paid: boolean;
+    amount: number;
+    status: string;
+    paymentId?: string | null;
+  }) => {
     setIsSubmitting(true);
     setError('');
 
@@ -321,6 +356,11 @@ export default function SellerRegistrationPage() {
       const cleanedGst = gstNumber.trim().toUpperCase();
       const cleanedPan = (panNumber.trim().toUpperCase() || (cleanedGst.length === 15 ? cleanedGst.substring(2, 12) : ''));
 
+      const feePaid = feeDetails ? feeDetails.paid : (!registrationFeeConfig?.isEnabled || registrationFeeConfig?.effectiveFee === 0);
+      const feeAmount = feeDetails ? feeDetails.amount : (registrationFeeConfig?.effectiveFee || 0);
+      const feeStatus = feeDetails ? feeDetails.status : (feePaid ? 'WAIVED' : 'PENDING');
+      const feePaymentId = feeDetails?.paymentId || (feePaid && feeAmount === 0 ? 'FREE_ONBOARDING' : null);
+
       const payload = {
         ownerName: ownerName || user?.name || 'Seller',
         businessName: businessName.trim() || 'My Store',
@@ -339,6 +379,10 @@ export default function SellerRegistrationPage() {
         idProofType: idProofType || 'AADHAAR',
         idProofUrl: idProofUrl || '',
         businessHours,
+        registrationFeePaid: feePaid,
+        registrationFeeAmount: feeAmount,
+        registrationFeeStatus: feeStatus,
+        registrationPaymentId: feePaymentId,
       };
 
       let res: Response;
@@ -1245,6 +1289,99 @@ export default function SellerRegistrationPage() {
                   </div>
                 </div>
 
+                {/* Live Merchant Registration Fee & Occasion Discount Card */}
+                {registrationFeeConfig && (
+                  <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-indigo-50/40 border border-indigo-200/80 shadow-xs space-y-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-indigo-100">
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-indigo-600 tracking-wider flex items-center gap-1">
+                          <Sparkles className="w-3.5 h-3.5" /> One-Time Merchant Registration Fee
+                        </span>
+                        <h4 className="text-base font-black text-slate-900 mt-0.5">
+                          Verified Store Onboarding Package
+                        </h4>
+                      </div>
+
+                      {registrationFeeConfig.isDiscountActive && registrationFeeConfig.savingsAmount > 0 && (
+                        <span className="px-3 py-1 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-black uppercase tracking-wider shadow-sm animate-pulse">
+                          {registrationFeeConfig.discountType === 'WAIVED' 
+                            ? '100% Free Waiver' 
+                            : registrationFeeConfig.discountType === 'PERCENTAGE'
+                              ? `${registrationFeeConfig.discountValue}% Festive Discount`
+                              : `₹${registrationFeeConfig.discountValue} Flat Discount`}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Occasion Banner */}
+                    {registrationFeeConfig.isDiscountActive && registrationFeeConfig.occasionName && (
+                      <div className="p-3 bg-gradient-to-r from-pink-50 to-amber-50 border border-pink-200 rounded-xl">
+                        <div className="text-xs font-extrabold text-pink-700 flex items-center gap-1.5">
+                          <span>🎉 {registrationFeeConfig.occasionName}</span>
+                        </div>
+                        {registrationFeeConfig.discountReason && (
+                          <p className="text-[11px] text-slate-600 font-medium mt-1 leading-relaxed">
+                            {registrationFeeConfig.discountReason}
+                          </p>
+                        )}
+                        {registrationFeeConfig.validUntil && (
+                          <div className="text-[10px] text-slate-400 font-semibold mt-1">
+                            Valid through: {registrationFeeConfig.validUntil}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Price Breakdown */}
+                    <div className="p-4 bg-white rounded-xl border border-indigo-100 flex items-center justify-between">
+                      <div>
+                        <span className="text-[11px] text-slate-400 uppercase font-bold block">Payable Fee</span>
+                        <div className="flex items-baseline gap-2 mt-0.5">
+                          <span className="text-2xl sm:text-3xl font-black text-slate-900">
+                            {registrationFeeConfig.effectiveFee === 0 ? 'FREE' : `₹${registrationFeeConfig.effectiveFee.toLocaleString('en-IN')}`}
+                          </span>
+                          {registrationFeeConfig.savingsAmount > 0 && (
+                            <span className="text-xs sm:text-sm text-slate-400 font-semibold line-through">
+                              ₹{registrationFeeConfig.baseFee?.toLocaleString('en-IN')}
+                            </span>
+                          )}
+                        </div>
+                        {registrationFeeConfig.taxAmount > 0 && (
+                          <span className="text-[10px] text-indigo-600 font-semibold block mt-1">
+                            Base ₹{registrationFeeConfig.discountedBase} + 18% GST (₹{registrationFeeConfig.taxAmount})
+                          </span>
+                        )}
+                      </div>
+
+                      {registrationFeeConfig.savingsAmount > 0 && (
+                        <div className="text-right">
+                          <span className="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-black inline-block">
+                            Save ₹{registrationFeeConfig.savingsAmount.toLocaleString('en-IN')}
+                          </span>
+                          <span className="text-[10px] text-slate-400 block mt-0.5">One-time lifetime access</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Included Benefits (Full text with zero truncation) */}
+                    {Array.isArray(registrationFeeConfig.benefits) && registrationFeeConfig.benefits.length > 0 && (
+                      <div className="pt-1 space-y-2">
+                        <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wide block">
+                          Included with this registration:
+                        </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          {registrationFeeConfig.benefits.map((b: string, i: number) => (
+                            <div key={i} className="flex items-start gap-2 text-xs text-slate-700">
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                              <span className="leading-snug font-medium">{b}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Notice of Admin Call & Journey */}
                 <div className="p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 text-amber-900 flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
@@ -1254,6 +1391,25 @@ export default function SellerRegistrationPage() {
                     An administrator will review your submitted documents and place a brief verification call to <strong>+91-{businessPhone}</strong>.
                     Once approved, your store will be fully activated and ready to start your journey on MarkatVerse!
                   </div>
+                </div>
+
+                {/* Mandatory Legal Terms & Indemnity Agreement Checkbox */}
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                  <label className="flex items-start gap-3 cursor-pointer text-xs text-slate-700 select-none">
+                    <input
+                      type="checkbox"
+                      checked={agreedToTerms}
+                      onChange={(e) => setAgreedToTerms(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+                    />
+                    <span className="leading-relaxed">
+                      I have read, understood, and unconditionally agree to the{' '}
+                      <Link href="/terms" target="_blank" className="font-bold text-emerald-600 underline hover:text-emerald-700">
+                        MarkatVerse Terms of Service, Sector Disclaimers & Seller Indemnity Agreement
+                      </Link>
+                      . I acknowledge that MarkatVerse operates strictly as an intermediary technology marketplace under Section 79 of the IT Act, and as a seller, I assume 100% legal, regulatory (FSSAI/GST), and quality liability for my products, food items, or services.
+                    </span>
+                  </label>
                 </div>
               </div>
 
@@ -1266,20 +1422,241 @@ export default function SellerRegistrationPage() {
                 >
                   <ArrowLeft className="w-4 h-4" /> Back
                 </button>
-                <button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={handleFinalRegistration}
-                  className="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2"
-                >
-                  {isSubmitting ? 'Submitting Application...' : 'Submit for Verification & Launch 🚀'}
-                </button>
+                {registrationFeeConfig && registrationFeeConfig.isEnabled && registrationFeeConfig.effectiveFee > 0 ? (
+                  <button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => {
+                      if (!agreedToTerms) {
+                        toast.error('Please agree to the Terms of Service & Seller Indemnity Agreement to continue.');
+                        return;
+                      }
+                      setShowPaymentModal(true);
+                    }}
+                    className={`px-8 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2 ${
+                      !agreedToTerms ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    Pay ₹{registrationFeeConfig.effectiveFee} & Submit Registration ✓
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => {
+                      if (!agreedToTerms) {
+                        toast.error('Please agree to the Terms of Service & Seller Indemnity Agreement to continue.');
+                        return;
+                      }
+                      handleFinalRegistration({ paid: true, amount: 0, status: 'WAIVED', paymentId: 'FREE_ONBOARDING' });
+                    }}
+                    className={`px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2 ${
+                      !agreedToTerms ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {isSubmitting ? 'Submitting Application...' : 'Complete Free Registration & Launch 🚀'}
+                  </button>
+                )}
               </div>
             </div>
           )}
 
         </div>
 
+      
+        {/* Registration Fee Payment Checkout Modal */}
+        {showPaymentModal && registrationFeeConfig && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden text-slate-900 animate-in zoom-in-95 duration-200">
+              
+              {/* Modal Header */}
+              <div className="p-6 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-indigo-400 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5" /> Verified Merchant Checkout
+                  </span>
+                  <h3 className="text-lg font-black mt-0.5">Store Registration Fee</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPaymentModal(false)}
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Amount Due Banner */}
+              <div className="p-5 bg-indigo-50/70 border-b border-indigo-100 flex items-center justify-between">
+                <div>
+                  <span className="text-xs text-slate-600 font-semibold block">Total Payable Onboarding Fee:</span>
+                  <div className="flex items-baseline gap-2 mt-0.5">
+                    <span className="text-2xl font-black text-slate-900">₹{registrationFeeConfig.effectiveFee}</span>
+                    {registrationFeeConfig.savingsAmount > 0 && (
+                      <span className="text-xs text-slate-400 line-through">₹{registrationFeeConfig.baseFee}</span>
+                    )}
+                  </div>
+                  {registrationFeeConfig.taxAmount > 0 && (
+                    <span className="text-[11px] text-indigo-700 font-semibold block mt-1">
+                      (Taxable Amount: ₹{registrationFeeConfig.discountedBase} + 18% GST: ₹{registrationFeeConfig.taxAmount})
+                    </span>
+                  )}
+                </div>
+                {registrationFeeConfig.savingsAmount > 0 && (
+                  <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black">
+                    Saved ₹{registrationFeeConfig.savingsAmount}
+                  </span>
+                )}
+              </div>
+
+              {/* Payment Method Selector Tabs */}
+              <div className="p-6 space-y-4">
+                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                  Select Payment Method:
+                </span>
+
+                <div className="space-y-2.5">
+                  {/* Option 1: Instant Gateway (Fast Testing) */}
+                  <label
+                    onClick={() => setPaymentMethod('SIMULATED')}
+                    className={`flex items-start gap-3 p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                      paymentMethod === 'SIMULATED' ? 'border-emerald-500 bg-emerald-50/40 shadow-xs' : 'border-slate-200 hover:border-slate-300 bg-white'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      checked={paymentMethod === 'SIMULATED'}
+                      onChange={() => setPaymentMethod('SIMULATED')}
+                      className="mt-1 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black text-slate-900">⚡ Instant Mock Verification Gateway</span>
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9px] font-black uppercase">
+                          Fast Test
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                        Instantly verifies the ₹{registrationFeeConfig.effectiveFee} registration fee with an official transaction ID (PAY-MKV-...) for quick testing.
+                      </p>
+                    </div>
+                  </label>
+
+                  {/* Option 2: Scan UPI QR */}
+                  <label
+                    onClick={() => setPaymentMethod('UPI_QR')}
+                    className={`flex items-start gap-3 p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                      paymentMethod === 'UPI_QR' ? 'border-emerald-500 bg-emerald-50/40 shadow-xs' : 'border-slate-200 hover:border-slate-300 bg-white'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      checked={paymentMethod === 'UPI_QR'}
+                      onChange={() => setPaymentMethod('UPI_QR')}
+                      className="mt-1 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black text-slate-900">📱 UPI QR / Bank Transfer</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                        Scan with GPay, PhonePe, or Paytm and enter your 12-digit UPI UTR reference number.
+                      </p>
+                      
+                      {paymentMethod === 'UPI_QR' && (
+                        <div className="mt-3 p-3 bg-white rounded-xl border border-slate-200 space-y-2">
+                          <div className="text-[11px] font-mono text-slate-600">
+                            Merchant VPA: <strong className="text-slate-900">pay-merchant@markatverse</strong>
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Enter 12-digit UTR / Reference No."
+                            value={manualUtr}
+                            onChange={(e) => setManualUtr(e.target.value)}
+                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono focus:border-emerald-500 focus:outline-none"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </label>
+
+                  {/* Option 3: Pay Later on Call */}
+                  <label
+                    onClick={() => setPaymentMethod('PAY_LATER')}
+                    className={`flex items-start gap-3 p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                      paymentMethod === 'PAY_LATER' ? 'border-indigo-500 bg-indigo-50/40 shadow-xs' : 'border-slate-200 hover:border-slate-300 bg-white'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      checked={paymentMethod === 'PAY_LATER'}
+                      onChange={() => setPaymentMethod('PAY_LATER')}
+                      className="mt-1 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black text-slate-900">📞 Pay Later on Admin Phone Verification</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                        Submit now. Fee will be verified or collected during your scheduled admin verification call.
+                      </p>
+                    </div>
+                  </label>
+                </div>
+
+                {/* Confirm Action Button */}
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    disabled={isSubmitting || (paymentMethod === 'UPI_QR' && !manualUtr.trim())}
+                    onClick={() => {
+                      if (paymentMethod === 'SIMULATED') {
+                        const mockId = 'PAY-MKV-' + Date.now().toString().slice(-8);
+                        setShowPaymentModal(false);
+                        handleFinalRegistration({
+                          paid: true,
+                          amount: registrationFeeConfig.effectiveFee,
+                          status: 'PAID',
+                          paymentId: mockId
+                        });
+                      } else if (paymentMethod === 'UPI_QR') {
+                        setShowPaymentModal(false);
+                        handleFinalRegistration({
+                          paid: true,
+                          amount: registrationFeeConfig.effectiveFee,
+                          status: 'PAID',
+                          paymentId: manualUtr.trim()
+                        });
+                      } else {
+                        setShowPaymentModal(false);
+                        handleFinalRegistration({
+                          paid: false,
+                          amount: registrationFeeConfig.effectiveFee,
+                          status: 'PENDING',
+                          paymentId: null
+                        });
+                      }
+                    }}
+                    className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl font-bold text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2"
+                  >
+                    {isSubmitting ? (
+                      'Processing Registration...'
+                    ) : paymentMethod === 'PAY_LATER' ? (
+                      'Submit Application (Pay Later) →'
+                    ) : (
+                      `Confirm ₹${registrationFeeConfig.effectiveFee} Payment & Complete Registration ✓`
+                    )}
+                  </button>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

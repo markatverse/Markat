@@ -10,12 +10,27 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Headers, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { WalletService } from './wallet.service.js';
 let WalletController = class WalletController {
     walletService;
-    constructor(walletService) {
+    jwtService;
+    constructor(walletService, jwtService) {
         this.walletService = walletService;
+        this.jwtService = jwtService;
+    }
+    verifyWalletAccess(authHeader) {
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            throw new UnauthorizedException('Authentication token required for wallet operations');
+        }
+        try {
+            const token = authHeader.replace('Bearer ', '');
+            return this.jwtService.verify(token);
+        }
+        catch {
+            throw new UnauthorizedException('Invalid or expired wallet session');
+        }
     }
     async getWallet(businessId) {
         return this.walletService.getWallet(businessId);
@@ -26,13 +41,16 @@ let WalletController = class WalletController {
     async getBankAccounts(businessId) {
         return this.walletService.getBankAccounts(businessId);
     }
-    async addBankAccount(businessId, data) {
+    async addBankAccount(businessId, data, authHeader) {
+        this.verifyWalletAccess(authHeader);
         return this.walletService.addBankAccount(businessId, data);
     }
-    async requestWithdrawal(businessId, body) {
+    async requestWithdrawal(businessId, body, authHeader) {
+        this.verifyWalletAccess(authHeader);
         return this.walletService.requestWithdrawal(businessId, body.amount, body.bankAccountId);
     }
-    async payPlatform(businessId, body) {
+    async payPlatform(businessId, body, authHeader) {
+        this.verifyWalletAccess(authHeader);
         return this.walletService.payPlatform(businessId, body?.fromBalance ?? false);
     }
 };
@@ -61,29 +79,33 @@ __decorate([
     Post('business/:businessId/banks'),
     __param(0, Param('businessId')),
     __param(1, Body()),
+    __param(2, Headers('authorization')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, Object, String]),
     __metadata("design:returntype", Promise)
 ], WalletController.prototype, "addBankAccount", null);
 __decorate([
     Post('business/:businessId/withdraw'),
     __param(0, Param('businessId')),
     __param(1, Body()),
+    __param(2, Headers('authorization')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, Object, String]),
     __metadata("design:returntype", Promise)
 ], WalletController.prototype, "requestWithdrawal", null);
 __decorate([
     Post('business/:businessId/pay-platform'),
     __param(0, Param('businessId')),
     __param(1, Body()),
+    __param(2, Headers('authorization')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, Object, String]),
     __metadata("design:returntype", Promise)
 ], WalletController.prototype, "payPlatform", null);
 WalletController = __decorate([
     Controller('wallet'),
-    __metadata("design:paramtypes", [WalletService])
+    __metadata("design:paramtypes", [WalletService,
+        JwtService])
 ], WalletController);
 export { WalletController };
 //# sourceMappingURL=wallet.controller.js.map

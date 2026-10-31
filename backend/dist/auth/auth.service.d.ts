@@ -44,7 +44,7 @@ export declare class AuthService {
             business: any;
         };
     }>;
-    phoneLogin(phone: string): Promise<{
+    phoneLogin(phone: string, passwordOrOtp?: string): Promise<{
         access_token: string;
         user: {
             id: any;
@@ -122,6 +122,11 @@ export declare class AuthService {
             subscriptionStatus: string;
             subscriptionStartDate: Date | null;
             subscriptionEndDate: Date | null;
+            registrationFeePaid: boolean;
+            registrationFeeAmount: number;
+            registrationFeeStatus: string;
+            registrationPaymentId: string | null;
+            registrationFeeDate: Date | null;
         }) | null;
     }>;
     forgotPassword(identifier: string): Promise<{

@@ -14,7 +14,7 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import type { Request, Response } from 'express';
 import { existsSync, createReadStream, statSync } from 'fs';
-import { join, extname } from 'path';
+import { join, extname, basename } from 'path';
 import { MediaGridFSService } from './media-gridfs.service.js';
 
 const MIME_MAP: Record<string, string> = {
@@ -43,7 +43,15 @@ export class UploadController {
    */
   @Post('upload')
   @UseInterceptors(FilesInterceptor('files', 10, {
-    limits: { fileSize: 50 * 1024 * 1024 } // 50MB max per file (supporting videos and high-res images)
+    limits: { fileSize: 50 * 1024 * 1024 },
+    fileFilter: (_req: any, file: any, cb: any) => {
+      const ext = extname(file.originalname).toLowerCase();
+      const allowed = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.mp4', '.webm', '.ogg', '.mov', '.pdf'];
+      if (!allowed.includes(ext)) {
+        return cb(new BadRequestException(`Unsupported file type ${ext}. Only safe media files (images, video, pdf) are permitted.`), false);
+      }
+      cb(null, true);
+    }
   }))
   async uploadFiles(@UploadedFiles() files: Array<Express.Multer.File>, @Req() req: Request) {
     if (!files || files.length === 0) {
@@ -106,7 +114,7 @@ export class UploadController {
     @Req() req: Request,
     @Res() res: Response
   ) {
-    const safeFilename = filename.replace(/(\.\.[\/\\])+/g, '');
+    const safeFilename = basename(filename);
 
     // 1. Check MongoDB GridFS first
     try {

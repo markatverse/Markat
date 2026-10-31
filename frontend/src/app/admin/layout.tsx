@@ -22,15 +22,56 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
-  // Auth Guard
+  // Auth Guard: Enforce strict Admin-only access to prevent Sellers/Consumers from seeing Admin Panel
   useEffect(() => {
-    if (!isLoading && !user && !pathname?.startsWith('/admin/login')) {
-      window.location.replace('/');
+    if (!isLoading && !pathname?.startsWith('/admin/login')) {
+      if (!user) {
+        window.location.replace('/admin/login');
+        return;
+      }
+
+      const roleLower = (user.role || '').toLowerCase();
+      const isAdmin = roleLower.includes('admin') || roleLower === 'super_admin';
+
+      if (!isAdmin) {
+        if (roleLower === 'seller' || roleLower === 'business' || roleLower === 'elite') {
+          router.replace('/seller/dashboard');
+        } else {
+          router.replace('/');
+        }
+      }
     }
-  }, [user, isLoading, pathname]);
+  }, [user, isLoading, pathname, router]);
 
   if (pathname?.startsWith('/admin/login')) {
     return <div className="min-h-screen w-full bg-slate-950 text-slate-100 font-sans flex flex-col">{children}</div>;
+  }
+
+  const roleLower = (user?.role || '').toLowerCase();
+  const isAdmin = roleLower.includes('admin') || roleLower === 'super_admin';
+
+  if (!isLoading && user && !isAdmin) {
+    return (
+      <div className="min-h-screen w-full bg-slate-950 flex items-center justify-center p-4 text-white font-sans">
+        <div className="text-center space-y-4 max-w-md p-8 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl">
+          <div className="w-16 h-16 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center mx-auto text-2xl font-bold">
+            🛡️
+          </div>
+          <h2 className="text-xl font-bold text-white">Access Denied: Admin Clearance Required</h2>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            You are logged in as <strong className="text-indigo-400 capitalize">{user.role}</strong>. The Platform Admin Control Panel is strictly restricted to authorized system administrators.
+          </p>
+          <div className="pt-2">
+            <Link
+              href={roleLower === 'seller' || roleLower === 'business' || roleLower === 'elite' ? '/seller/dashboard' : '/'}
+              className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs inline-flex items-center gap-2 shadow-lg shadow-indigo-600/30"
+            >
+              Go to {roleLower === 'seller' || roleLower === 'business' || roleLower === 'elite' ? 'Seller Dashboard' : 'Homepage'}
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

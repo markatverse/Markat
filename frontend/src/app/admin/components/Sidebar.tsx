@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { ChevronRight, ArrowLeft, ShieldCheck, Users, Store, Box, Network, Settings, ListTree, LogOut, Receipt, Briefcase, BarChart3, Bell, LayoutDashboard, Headset } from 'lucide-react';
+import { ChevronRight, ArrowLeft, ShieldCheck, Users, Store, Box, Network, Settings, ListTree, LogOut, Receipt, Briefcase, BarChart3, Bell, LayoutDashboard, Headset, Megaphone, Truck } from 'lucide-react';
 
 type NavItem = {
   name: string;
@@ -53,6 +53,16 @@ export default function Sidebar({ currentAdminRole, setCurrentAdminRole, isMobil
       href: '/admin/commercial/commission',
     },
     {
+      name: 'Advertising',
+      icon: <Megaphone className="w-5 h-5" />,
+      href: '/admin/ads',
+    },
+    {
+      name: 'Delivery & Fleet',
+      icon: <Truck className="w-5 h-5" />,
+      href: '/admin/delivery',
+    },
+    {
       name: 'Operations',
       icon: <Network className="w-5 h-5" />,
       href: '/admin/operations/exceptions',
@@ -94,7 +104,7 @@ export default function Sidebar({ currentAdminRole, setCurrentAdminRole, isMobil
     if (currentAdminRole === 'super_admin') return true;
     
     if (currentAdminRole === 'catalog_admin') {
-      return ['Dashboard Overview', 'Marketplace', 'Content'].includes(item.name);
+      return ['Dashboard Overview', 'Marketplace', 'Content', 'Advertising'].includes(item.name);
     }
     
     if (currentAdminRole === 'onboarding_admin') {
@@ -102,7 +112,7 @@ export default function Sidebar({ currentAdminRole, setCurrentAdminRole, isMobil
     }
     
     if (currentAdminRole === 'support_admin') {
-      return ['Dashboard Overview', 'Users', 'Customer Support', 'Transactions', 'Operations'].includes(item.name);
+      return ['Dashboard Overview', 'Users', 'Customer Support', 'Transactions', 'Operations', 'Delivery & Fleet'].includes(item.name);
     }
     
     return false;
@@ -168,7 +178,7 @@ export default function Sidebar({ currentAdminRole, setCurrentAdminRole, isMobil
             <div key={item.name} className="mb-2">
               {item.href ? (
                 <Link href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="block group">
-                  <div className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 transform group-hover:translate-x-1 ${(pathname === item.href || (item.name === 'Content' && pathname.startsWith('/admin/content'))) ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.15)]' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
+                  <div className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 transform group-hover:translate-x-1 ${(pathname === item.href || (item.name === 'Content' && pathname.startsWith('/admin/content')) || (item.name === 'Commercial' && pathname.startsWith('/admin/commercial')) || (item.name === 'Advertising' && pathname.startsWith('/admin/ads')) || (item.name === 'Delivery & Fleet' && pathname.startsWith('/admin/delivery'))) ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.15)]' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
                     {item.icon}
                     <span>{item.name}</span>
                   </div>

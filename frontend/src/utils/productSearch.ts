@@ -73,32 +73,34 @@ export const BRAND_SYNONYMS = [
  * Fast Levenshtein distance calculation for typo tolerance
  */
 export function levenshteinDistance(a: string, b: string): number {
+  if (a === b) return 0;
   if (a.length === 0) return b.length;
   if (b.length === 0) return a.length;
-  const matrix: number[][] = [];
+  if (Math.abs(a.length - b.length) > 2) return 3; // early bailout
 
-  for (let i = 0; i <= b.length; i++) {
-    matrix[i] = [i];
-  }
-  for (let j = 0; j <= a.length; j++) {
-    matrix[0][j] = j;
-  }
+  const alen = a.length;
+  const blen = b.length;
+  let prevRow = new Array(blen + 1);
+  let currRow = new Array(blen + 1);
 
-  for (let i = 1; i <= b.length; i++) {
-    for (let j = 1; j <= a.length; j++) {
-      if (b.charAt(i - 1) === a.charAt(j - 1)) {
-        matrix[i][j] = matrix[i - 1][j - 1];
-      } else {
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j - 1] + 1, // substitution
-          matrix[i][j - 1] + 1,     // insertion
-          matrix[i - 1][j] + 1      // deletion
-        );
-      }
+  for (let j = 0; j <= blen; j++) prevRow[j] = j;
+
+  for (let i = 1; i <= alen; i++) {
+    currRow[0] = i;
+    const aChar = a.charCodeAt(i - 1);
+    for (let j = 1; j <= blen; j++) {
+      const cost = aChar === b.charCodeAt(j - 1) ? 0 : 1;
+      currRow[j] = Math.min(
+        prevRow[j] + 1,
+        currRow[j - 1] + 1,
+        prevRow[j - 1] + cost
+      );
     }
+    const temp = prevRow;
+    prevRow = currRow;
+    currRow = temp;
   }
-
-  return matrix[b.length][a.length];
+  return prevRow[blen];
 }
 
 /**
@@ -107,12 +109,13 @@ export function levenshteinDistance(a: string, b: string): number {
 export function isFuzzyMatch(target: string, query: string): boolean {
   const t = target.toLowerCase();
   const q = query.toLowerCase();
-  if (t.includes(q) || q.includes(t)) return true;
+  if (t.includes(q)) return true;
+  if (q.length < 3) return false;
 
   const words = t.split(/[\s,.-]+/);
   for (const w of words) {
-    if (w.length >= 4 && q.length >= 4) {
-      const maxDistance = q.length > 6 ? 2 : 1;
+    if (w.length >= 3 && Math.abs(w.length - q.length) <= 2) {
+      const maxDistance = q.length > 5 ? 2 : 1;
       if (levenshteinDistance(w, q) <= maxDistance) {
         return true;
       }

@@ -12,28 +12,22 @@ export declare class OrdersController {
             createdAt: Date;
             updatedAt: Date;
             sellerId: string | null;
-            price: number;
             productId: string;
             productName: string | null;
             quantity: number;
+            price: number;
             orderId: string;
         }[];
     } & {
-        shippingAddress: import("@prisma/client/runtime/library").JsonValue | null;
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
         buyerId: string | null;
+        status: string;
         orderNumber: string | null;
         total: number;
-        orderType: string | null;
-        trackingNumber: string | null;
-        courierPartner: string | null;
-        shippingLabelUrl: string | null;
-        estimatedDelivery: string | null;
     }>;
-    findAll(): Promise<{
+    findAll(authorization?: string): Promise<{
         id: string;
         orderNumber: string | null;
         customerId: string | null;
@@ -58,70 +52,46 @@ export declare class OrdersController {
             createdAt: Date;
             updatedAt: Date;
             sellerId: string | null;
-            price: number;
             productId: string;
             productName: string | null;
             quantity: number;
+            price: number;
             orderId: string;
         }[];
     } & {
-        shippingAddress: import("@prisma/client/runtime/library").JsonValue | null;
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
         buyerId: string | null;
+        status: string;
         orderNumber: string | null;
         total: number;
-        orderType: string | null;
-        trackingNumber: string | null;
-        courierPartner: string | null;
-        shippingLabelUrl: string | null;
-        estimatedDelivery: string | null;
     })[]>;
     findOne(id: string): import(".prisma/client").Prisma.Prisma__OrderClient<{
-        shippingAddress: import("@prisma/client/runtime/library").JsonValue | null;
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
         buyerId: string | null;
+        status: string;
         orderNumber: string | null;
         total: number;
-        orderType: string | null;
-        trackingNumber: string | null;
-        courierPartner: string | null;
-        shippingLabelUrl: string | null;
-        estimatedDelivery: string | null;
     } | null, null, import("@prisma/client/runtime/library").DefaultArgs>;
     update(id: string, updateOrderDto: UpdateOrderDto): Promise<{
-        shippingAddress: import("@prisma/client/runtime/library").JsonValue | null;
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
         buyerId: string | null;
+        status: string;
         orderNumber: string | null;
         total: number;
-        orderType: string | null;
-        trackingNumber: string | null;
-        courierPartner: string | null;
-        shippingLabelUrl: string | null;
-        estimatedDelivery: string | null;
     }>;
-    remove(id: string): import(".prisma/client").Prisma.Prisma__OrderClient<{
-        shippingAddress: import("@prisma/client/runtime/library").JsonValue | null;
+    remove(id: string, authorization?: string): import(".prisma/client").Prisma.Prisma__OrderClient<{
         id: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
         buyerId: string | null;
+        status: string;
         orderNumber: string | null;
         total: number;
-        orderType: string | null;
-        trackingNumber: string | null;
-        courierPartner: string | null;
-        shippingLabelUrl: string | null;
-        estimatedDelivery: string | null;
     }, never, import("@prisma/client/runtime/library").DefaultArgs>;
 }

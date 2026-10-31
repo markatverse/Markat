@@ -91,20 +91,61 @@ let ProductsService = class ProductsService {
         });
         return this.mapProduct(product);
     }
-    async findAll(location, lat, lng, radius, page = 1, limit = 50) {
-        const cacheKey = `${location || ''}:${lat ?? ''}:${lng ?? ''}:${radius ?? ''}:${page}:${limit}`;
+    async findAll(location, lat, lng, radius, page = 1, limit = 50, filters) {
+        const cacheKey = JSON.stringify({ location, lat, lng, radius, page, limit, filters });
         const cached = this.listCache.get(cacheKey);
         if (cached && Date.now() < cached.expiry) {
             return cached.data;
         }
         const skip = (page - 1) * limit;
+        const where = { status: 'ACTIVE' };
+        if (filters?.q && filters.q.trim()) {
+            const q = filters.q.trim();
+            where.OR = [
+                { name: { contains: q, mode: 'insensitive' } },
+                { categoryName: { contains: q, mode: 'insensitive' } },
+                { subcategory: { contains: q, mode: 'insensitive' } },
+                { sellerName: { contains: q, mode: 'insensitive' } },
+                { description: { contains: q, mode: 'insensitive' } },
+            ];
+        }
+        if (filters?.category && filters.category !== 'All Categories') {
+            where.categoryName = { contains: filters.category, mode: 'insensitive' };
+        }
+        if (filters?.subcategory) {
+            where.subcategory = { contains: filters.subcategory, mode: 'insensitive' };
+        }
+        if (filters?.type && filters.type !== 'all') {
+            where.type = filters.type.toUpperCase() === 'SERVICES' ? 'SERVICE' : 'PRODUCT';
+        }
+        if (filters?.isB2B !== undefined) {
+            where.isB2B = filters.isB2B;
+        }
+        if (filters?.minPrice !== undefined || filters?.maxPrice !== undefined) {
+            where.price = {};
+            if (filters?.minPrice !== undefined && !isNaN(filters.minPrice))
+                where.price.gte = filters.minPrice;
+            if (filters?.maxPrice !== undefined && !isNaN(filters.maxPrice))
+                where.price.lte = filters.maxPrice;
+        }
+        if (location && location.trim() && !lat) {
+            where.location = { contains: location.trim(), mode: 'insensitive' };
+        }
+        let orderBy = { createdAt: 'desc' };
+        if (filters?.sortBy === 'price_low')
+            orderBy = { price: 'asc' };
+        else if (filters?.sortBy === 'price_high')
+            orderBy = { price: 'desc' };
+        else if (filters?.sortBy === 'rating')
+            orderBy = { rating: 'desc' };
         const useDbPagination = !(lat !== undefined && lng !== undefined && !isNaN(lat) && !isNaN(lng));
         let products = await this.prisma.product.findMany({
-            where: { status: 'ACTIVE' },
-            orderBy: { createdAt: 'desc' },
-            ...(useDbPagination ? { skip, take: limit } : {})
+            where,
+            orderBy,
+            take: useDbPagination ? limit : 300,
+            skip: useDbPagination ? skip : undefined,
         });
-        let total = useDbPagination ? await this.prisma.product.count({ where: { status: 'ACTIVE' } }) : 0;
+        let total = useDbPagination ? await this.prisma.product.count({ where }) : products.length;
         if (!useDbPagination && lat !== undefined && lng !== undefined) {
             let effectiveRadius = radius;
             let sectorRadiusMap = {};
@@ -227,7 +268,7 @@ let ProductsService = class ProductsService {
             limit,
             totalPages: Math.ceil(total / limit)
         };
-        this.listCache.set(cacheKey, { data: result, expiry: Date.now() + 10000 });
+        this.listCache.set(cacheKey, { data: result, expiry: Date.now() + 30000 });
         return result;
     }
     async findOne(id) {

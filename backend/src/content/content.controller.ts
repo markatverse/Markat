@@ -57,10 +57,25 @@ export class ContentController {
     return this.contentService.deleteBanner(id);
   }
 
-  // --- Advertisements ---
+  // --- Advertisements & Policy ---
+  @Get('advertisements/policy')
+  getPublicAdsPolicy() {
+    return this.contentService.getPublicAdsPolicy();
+  }
+
+  @Post('advertisements/policy')
+  setPublicAdsPolicy(@Body() body: any) {
+    return this.contentService.setPublicAdsPolicy(body);
+  }
+
   @Get('advertisements')
   getAdvertisements() {
     return this.contentService.getAdvertisements();
+  }
+
+  @Get('advertisements/admin-all')
+  getAllAdvertisementsForAdmin() {
+    return this.contentService.getAdvertisements(true);
   }
 
   @Get('advertisements/:id')
