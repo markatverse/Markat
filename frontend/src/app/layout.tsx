@@ -177,9 +177,10 @@ export default function RootLayout({
       <head>
         {/* Leaflet CSS */}
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossOrigin="" />
-        {/* Instant High-Performance Logo Preload */}
+        {/* Instant High-Performance Logo & Mascot Preload */}
         <link rel="preload" href="/logo-optimized.webp" as="image" type="image/webp" fetchPriority="high" />
         <link rel="preload" href="/logo.png" as="image" type="image/png" fetchPriority="high" />
+        <link rel="preload" href="/mascot/no-internet.svg" as="image" type="image/svg+xml" />
         {/* Google Rich Snippets / Schema.org Structured Data */}
         <script
           type="application/ld+json"

@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
+import NoInternetSvgIllustration from './NoInternetSvgIllustration';
 
 export type MascotStateType =
   | '404'
@@ -51,8 +52,8 @@ export const DEFAULT_MASCOT_CONFIGS: Record<MascotStateType, MascotStateConfig> 
     category: 'system',
   },
   'no-internet': {
-    image: '/mascot/no-internet.webp',
-    cardImage: '/mascot/no-internet-card.webp',
+    image: '/mascot/no-internet.svg',
+    cardImage: '/mascot/no-internet-card.svg',
     title: 'No Internet',
     description: 'Looks like you are offline. Check your internet connection and try again.',
     actionText: 'Retry',
@@ -157,15 +158,23 @@ export default function MascotState({
   className = '',
 }: MascotStateProps) {
   const [adminConfig, setAdminConfig] = React.useState<MascotStateConfig | null>(null);
+  const [imageError, setImageError] = React.useState(false);
 
   React.useEffect(() => {
+    setImageError(false);
     const syncConfig = () => {
       try {
         const raw = localStorage.getItem(MASCOT_STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
           if (parsed && parsed[state]) {
-            setAdminConfig(parsed[state]);
+            const cfg = { ...parsed[state] };
+            // Auto-migrate legacy webp to vector svg format for offline mascot
+            if (state === 'no-internet' && cfg.image?.includes('no-internet.webp')) {
+              cfg.image = '/mascot/no-internet.svg';
+              cfg.cardImage = '/mascot/no-internet-card.svg';
+            }
+            setAdminConfig(cfg);
             return;
           }
         }
@@ -197,6 +206,16 @@ export default function MascotState({
   const finalSecondaryText = secondaryText ?? baseConfig.secondaryText;
   const finalSecondaryHref = secondaryHref ?? baseConfig.secondaryHref;
 
+  // Check if admin has set a custom remote/uploaded image that isn't the standard mascot
+  const isCustomUploadedImage = Boolean(
+    adminConfig?.image &&
+    !adminConfig.image.includes('/mascot/no-internet.svg') &&
+    !adminConfig.image.includes('/mascot/no-internet.webp')
+  );
+
+  // Directly render inline vector SVG illustration for offline state or if external asset fails to load
+  const shouldRenderInlineSvg = (state === 'no-internet' && !isCustomUploadedImage) || imageError;
+
   return (
     <div
       className={`flex flex-col items-center justify-center text-center select-none ${
@@ -204,13 +223,18 @@ export default function MascotState({
       } ${className}`}
     >
       {/* 3D Mascot Character Illustration */}
-      <div className={`relative ${compact ? 'w-36 h-36' : 'w-48 sm:w-56 h-48 sm:h-56'} mb-4 shrink-0 transition-transform duration-300 hover:scale-105`}>
-        <img
-          src={baseConfig.image}
-          alt={finalTitle}
-          loading="eager"
-          className="w-full h-full object-contain drop-shadow-sm filter contrast-105"
-        />
+      <div className={`relative ${compact ? 'w-36 h-36' : 'w-48 sm:w-56 h-48 sm:h-56'} mb-4 shrink-0 transition-transform duration-300 hover:scale-105 flex items-center justify-center`}>
+        {shouldRenderInlineSvg ? (
+          <NoInternetSvgIllustration className="w-full h-full object-contain drop-shadow-sm filter contrast-105" />
+        ) : (
+          <img
+            src={baseConfig.image}
+            alt={finalTitle}
+            loading="eager"
+            onError={() => setImageError(true)}
+            className="w-full h-full object-contain drop-shadow-sm filter contrast-105"
+          />
+        )}
       </div>
 
       {/* MarkatVerse Brand Wordmark */}
