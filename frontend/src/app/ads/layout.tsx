@@ -58,13 +58,12 @@ export default function AdsPlatformLayout({ children }: { children: React.ReactN
 
   const isAdmin = user?.role === 'ADMIN';
 
-  // Navigation Items: Public vs Authenticated
+  // Navigation Items: Clean, Simplified & Non-Redundant
+  // Merged "Overview", "Advertiser Portal" and "Campaign Manager" into a single unified "Campaign Manager"
   const navItems = user ? [
-    { name: 'Overview', href: '/ads', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { name: 'Advertiser Portal', href: '/ads/advertiser', icon: <Megaphone className="w-4 h-4" /> },
-    { name: 'Campaign Manager', href: '/ads/campaigns', icon: <BarChart3 className="w-4 h-4" /> },
+    { name: 'Campaign Manager', href: '/ads/advertiser', icon: <Megaphone className="w-4 h-4" /> },
     { name: 'Publisher Portal', href: '/ads/publisher', icon: <Store className="w-4 h-4" /> },
-    ...(isAdmin ? [{ name: 'Ads Admin', href: '/ads/admin', icon: <ShieldCheck className="w-4 h-4 text-emerald-400" /> }] : []),
+    ...(isAdmin ? [{ name: 'Ads Admin', href: '/ads/admin', icon: <ShieldCheck className="w-4 h-4 text-emerald-600" /> }] : []),
   ] : [];
 
   return (
@@ -76,7 +75,7 @@ export default function AdsPlatformLayout({ children }: { children: React.ReactN
           
           {/* Official MarkatVerse ADS Single-Line Brand Asset */}
           <div className="flex items-center gap-3">
-            <Link href="/ads" className="flex items-center group py-0.5" title="MarkatVerse ADS">
+            <Link href={user ? "/ads/advertiser" : "/ads"} className="flex items-center group py-0.5" title="MarkatVerse ADS">
               <img 
                 src="/logo-ads.svg" 
                 alt="MarkatVerse ADS" 
@@ -85,11 +84,9 @@ export default function AdsPlatformLayout({ children }: { children: React.ReactN
             </Link>
 
             {/* Nav Tabs (Desktop) */}
-            <nav className="hidden lg:flex items-center gap-1 ml-8 pl-6 border-l border-slate-200">
+            <nav className="hidden lg:flex items-center gap-1.5 ml-8 pl-6 border-l border-slate-200">
               {navItems.map((item) => {
-                const isActive = item.href === '/ads' 
-                  ? pathname === '/ads' 
-                  : (pathname?.startsWith(item.href) && !item.href.includes('#'));
+                const isActive = pathname === item.href || (item.href !== '/ads' && pathname?.startsWith(item.href));
 
                 return (
                   <Link

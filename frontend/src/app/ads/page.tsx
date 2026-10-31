@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
   Megaphone, Store, BarChart3, ShieldCheck, 
   ArrowRight, TrendingUp, DollarSign, Eye, 
@@ -13,8 +14,16 @@ import AdsHeroIllustration from '@/components/ads/AdsHeroIllustration';
 import toast from 'react-hot-toast';
 
 export default function AdsPlatformDashboard() {
+  const router = useRouter();
   const { user, login } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
+
+  // Automatically take authenticated advertisers directly to the unified Campaign Manager
+  useEffect(() => {
+    if (user) {
+      router.replace('/ads/advertiser');
+    }
+  }, [user, router]);
 
   // State for live interactive campaigns on the authenticated dashboard
   const [campaigns, setCampaigns] = useState<any[]>(() => {

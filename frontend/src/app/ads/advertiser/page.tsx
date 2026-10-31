@@ -8,7 +8,8 @@ import {
   Target, Calendar, CheckCircle2, AlertCircle, X, Sparkles,
   ExternalLink, Layers, ArrowUpRight, Upload, Wallet,
   Lock, ArrowRight, ShieldCheck, RefreshCw, Check, Trash2,
-  TrendingUp, CreditCard, ShoppingBag, MapPin, SlidersHorizontal, Info
+  TrendingUp, CreditCard, ShoppingBag, MapPin, SlidersHorizontal, Info,
+  Zap, ChevronDown, ChevronUp, Cpu
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getApiUrl } from '@/utils/api';
@@ -193,6 +194,50 @@ export default function AdvertiserPortalPage() {
     linkUrl: '/search?category=Electronics',
     targetLocation: 'Your Local City PIN (5km Radius)'
   });
+
+  // Programmatic Auction Simulator State (Integrated from former Campaign Manager)
+  const [showAuctionEngine, setShowAuctionEngine] = useState(false);
+  const [isSimulatingAuction, setIsSimulatingAuction] = useState(false);
+  const [auctionLog, setAuctionLog] = useState([
+    {
+      id: 'REQ-98124',
+      userContext: 'PIN 110001 • Category: Electronics & Gadgets',
+      bidders: [
+        { name: 'Apex Mobiles Store', bid: 6.5, qualityScore: 9.2, rank: 59.8, status: 'WINNER', clearingPrice: 5.82 },
+        { name: 'Digital Express Delhi', bid: 5.8, qualityScore: 8.5, rank: 49.3, status: 'OUTBID', clearingPrice: 0 },
+        { name: 'GadgetZone Premier', bid: 4.0, qualityScore: 9.0, rank: 36.0, status: 'OUTBID', clearingPrice: 0 },
+      ],
+      decisionTimeMs: 11
+    },
+    {
+      id: 'REQ-98123',
+      userContext: 'PIN 560001 • Category: Dining & Restaurants',
+      bidders: [
+        { name: 'Tandoor Grill House', bid: 4.8, qualityScore: 9.5, rank: 45.6, status: 'WINNER', clearingPrice: 4.25 },
+        { name: 'Urban Burger Bar', bid: 4.2, qualityScore: 8.8, rank: 36.9, status: 'OUTBID', clearingPrice: 0 }
+      ],
+      decisionTimeMs: 9
+    }
+  ]);
+
+  const triggerLiveAuctionSimulation = () => {
+    setIsSimulatingAuction(true);
+    setTimeout(() => {
+      const newSim = {
+        id: `REQ-${Math.floor(98125 + Math.random() * 1000)}`,
+        userContext: `PIN 400001 • Category: Festive Apparel`,
+        bidders: [
+          { name: 'Apex Mobiles Store', bid: 7.2, qualityScore: 9.4, rank: 67.6, status: 'WINNER', clearingPrice: 6.1 },
+          { name: 'Ethnic Vogue Store', bid: 6.0, qualityScore: 8.9, rank: 53.4, status: 'OUTBID', clearingPrice: 0 },
+          { name: 'Khadi Crafts India', bid: 4.5, qualityScore: 9.1, rank: 40.9, status: 'OUTBID', clearingPrice: 0 }
+        ],
+        decisionTimeMs: Math.floor(8 + Math.random() * 8)
+      };
+      setAuctionLog(prev => [newSim, ...prev.slice(0, 3)]);
+      setIsSimulatingAuction(false);
+      toast.success(`Live auction resolved in ${newSim.decisionTimeMs}ms (Clearing: ₹${newSim.bidders[0].clearingPrice.toFixed(2)})`);
+    }, 600);
+  };
 
   // Creative Presets for Quick Setup
   const creativePresets = [
@@ -521,14 +566,30 @@ export default function AdvertiserPortalPage() {
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            Advertiser Campaign Portal
+            Campaign Manager
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Store: <strong className="text-slate-800 font-bold">{user?.business?.name || user?.name || 'My Local Business'}</strong> • Hyperlocal ad auction, live clicks, and budget control.
+            Store: <strong className="text-slate-800 font-bold">{user?.business?.name || user?.name || 'My Local Business'}</strong> • Hyperlocal ad auction, live clicks, budget control &amp; real-time bid pacing.
           </p>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
+          {/* Auction Engine Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setShowAuctionEngine(!showAuctionEngine)}
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+              showAuctionEngine
+                ? 'bg-blue-50 border-blue-300 text-blue-700'
+                : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
+            }`}
+            title="Inspect 15ms programmatic auction engine telemetry"
+          >
+            <Zap className={`w-4 h-4 ${showAuctionEngine ? 'text-amber-500 fill-amber-500' : 'text-blue-600'}`} />
+            <span>Auction Engine</span>
+            {showAuctionEngine ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </button>
+
           {/* Recharge Wallet Button */}
           <button
             type="button"
@@ -859,6 +920,147 @@ export default function AdvertiserPortalPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* 5. Programmatic Auction Engine & Telemetry (Unified inside Campaign Manager) */}
+      <div className="rounded-3xl bg-white border border-slate-200/90 shadow-2xs overflow-hidden">
+        <div 
+          onClick={() => setShowAuctionEngine(!showAuctionEngine)}
+          className="p-5 sm:p-6 flex items-center justify-between cursor-pointer hover:bg-slate-50/60 transition-colors select-none"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 shadow-2xs">
+              <Zap className="w-5 h-5 text-amber-500 fill-amber-500" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-black text-slate-900">Programmatic Auction Engine &amp; Bidding Telemetry</h3>
+                <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                  Sub-15ms Vickrey
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Inspect 2nd-price Vickrey clearing bids, ad quality ranks, and real-time bid pacing simulator.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!showAuctionEngine) setShowAuctionEngine(true);
+                triggerLiveAuctionSimulation();
+              }}
+              disabled={isSimulatingAuction}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs flex items-center gap-2 transition-all shadow-xs cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isSimulatingAuction ? 'animate-spin' : ''}`} />
+              <span>{isSimulatingAuction ? 'Executing Auction...' : 'Simulate Live Ad Bid'}</span>
+            </button>
+
+            <div className="p-1.5 text-slate-400 hover:text-slate-700">
+              {showAuctionEngine ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            </div>
+          </div>
+        </div>
+
+        {showAuctionEngine && (
+          <div className="border-t border-slate-100 p-5 sm:p-6 bg-slate-50/50 space-y-6 animate-in fade-in duration-200">
+            {/* Quick Engine Metrics */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              <div className="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Auction Latency</span>
+                <div className="text-xl sm:text-2xl font-black text-emerald-600 mt-0.5 font-mono">11.4 ms</div>
+                <span className="text-[10px] text-slate-400 mt-0.5 block">Sub-15ms SLA target</span>
+              </div>
+              <div className="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Auction Algorithm</span>
+                <div className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">2nd-Price</div>
+                <span className="text-[10px] text-blue-600 mt-0.5 block">Vickrey clearing rule</span>
+              </div>
+              <div className="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Bot Filter Catch</span>
+                <div className="text-xl sm:text-2xl font-black text-purple-600 mt-0.5 font-mono">99.8%</div>
+                <span className="text-[10px] text-slate-400 mt-0.5 block">Anti-fraud click barrier</span>
+              </div>
+              <div className="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Frequency Cap</span>
+                <div className="text-xl sm:text-2xl font-black text-pink-600 mt-0.5 font-mono">3 / user / hr</div>
+                <span className="text-[10px] text-slate-400 mt-0.5 block">Prevents ad fatigue</span>
+              </div>
+            </div>
+
+            {/* Live Auction Feed */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <Cpu className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Real-Time Bidding Rounds</span>
+                </h4>
+                <span className="text-[11px] text-slate-400">Live auction logs resolved in under 15ms</span>
+              </div>
+
+              <div className="space-y-3">
+                {auctionLog.map((log) => (
+                  <div 
+                    key={log.id}
+                    className="bg-white rounded-xl border border-slate-200 p-4 space-y-2.5 shadow-2xs"
+                  >
+                    <div className="flex flex-wrap justify-between items-center gap-2 pb-2 border-b border-slate-100 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200 text-[11px]">
+                          {log.id}
+                        </span>
+                        <span className="text-slate-300">•</span>
+                        <span className="text-slate-700 font-medium text-xs">{log.userContext}</span>
+                      </div>
+                      <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 text-[10px] font-mono">
+                        Solved in {log.decisionTimeMs}ms
+                      </span>
+                    </div>
+
+                    {/* Bidders in this round */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                      {log.bidders.map((b, idx) => (
+                        <div 
+                          key={idx}
+                          className={`p-3 rounded-xl border text-xs space-y-1 ${
+                            b.status === 'WINNER'
+                              ? 'bg-emerald-50/50 border-emerald-200 text-slate-900'
+                              : 'bg-slate-50/80 border-slate-200 text-slate-600'
+                          }`}
+                        >
+                          <div className="flex justify-between items-center">
+                            <span className="font-bold truncate text-slate-900 text-xs">{b.name}</span>
+                            <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md ${
+                              b.status === 'WINNER' ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'
+                            }`}>
+                              {b.status}
+                            </span>
+                          </div>
+
+                          <div className="flex justify-between items-baseline text-[11px] font-mono">
+                            <span>Bid: ₹{b.bid.toFixed(2)}</span>
+                            <span>Score: {b.qualityScore}/10</span>
+                          </div>
+
+                          <div className="flex justify-between items-baseline font-mono pt-1 border-t border-slate-200/60 text-[11px]">
+                            <span className="text-slate-500 text-[10px]">Rank: <strong className="text-slate-900">{b.rank.toFixed(1)}</strong></span>
+                            {b.status === 'WINNER' && (
+                              <span className="text-emerald-700 font-bold text-[10px]">Clearing: ₹{b.clearingPrice.toFixed(2)}</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ===================================================================== */}
