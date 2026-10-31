@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const { items } = useCart();
+  const { items, showNotification } = useCart();
   const { user } = useAuth();
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -39,6 +39,15 @@ export default function BottomNav() {
         )}
         <ShoppingCart className="w-5 h-5" strokeWidth={isActive('/cart') ? 2 : 1.5} />
         <span className="text-[10px] font-medium">Cart</span>
+
+        {showNotification && (
+          <div className="absolute bottom-full mb-1 z-50 pointer-events-none animate-in fade-in slide-in-from-bottom-1 duration-200">
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-900 text-white shadow-lg text-[9px] font-bold whitespace-nowrap border border-slate-700">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+              <span>Added!</span>
+            </div>
+          </div>
+        )}
       </Link>
 
       {user ? (

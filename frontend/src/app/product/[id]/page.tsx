@@ -1513,7 +1513,7 @@ export default function ProductDetails() {
                     {isRetail && isElite ? (
                       <button
                         className="flex-1 px-6 py-4 bg-white border-2 border-slate-300 hover:border-amber-500 hover:bg-amber-50 text-slate-800 rounded-xl font-bold text-base transition-colors"
-                        onClick={() => requireAuth(() => { addToCart(product); alert(`Added ${rfqQuantity} of ${product.name} to cart!`); })}
+                        onClick={() => requireAuth(() => { addToCart(product); })}
                       >
                         Add to Cart
                       </button>
@@ -1999,10 +1999,7 @@ export default function ProductDetails() {
                             parameters: selectedVariants
                           });
                         }
-                        toast.success(`Added ${retailQuantity > 1 ? `${retailQuantity}x ` : ''}${product.name} to cart!`, {
-                          icon: '🛍️',
-                          duration: 2500
-                        });
+
                       }}
                     >
                       <ShoppingBag className="w-4 h-4" /> Add to Cart

@@ -533,7 +533,7 @@ export default function SellerStorefront() {
                             image: product.image,
                             category: product.category
                           });
-                          alert('Added to Cart!');
+                          
                         }}
                         className="w-full py-2 sm:py-2.5 bg-gray-900 hover:bg-indigo-600 text-white font-bold rounded-lg transition-colors duration-300 flex items-center justify-center gap-1 sm:gap-2 md:hidden"
                       >

@@ -3,8 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  Truck, Users, MapPin, Navigation, ShieldCheck, 
+import {
+  Truck, Users, MapPin, Navigation, ShieldCheck,
   LayoutDashboard, ArrowUpRight, BatteryCharging, LogOut, ArrowRight
 } from 'lucide-react';
 import EcosystemSwitcher from '@/components/EcosystemSwitcher';
@@ -24,47 +24,37 @@ export default function DeliveryPlatformLayout({ children }: { children: React.R
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col selection:bg-emerald-500 selection:text-black">
-      
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col selection:bg-emerald-500 selection:text-white">
+
       {/* Top Delivery Navigation Bar */}
-      <header className="border-b border-white/10 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50 px-4 sm:px-8 py-3.5">
+      <header className="border-b border-slate-200 bg-white/95 backdrop-blur-xl sticky top-0 z-50 px-4 sm:px-8 py-3.5 shadow-xs">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          
-          {/* Logo & Platform Tag */}
+
+          {/* Official MarkatVerse DELIVERY Brand Identity */}
           <div className="flex items-center gap-3">
-            <Link href="/delivery" className="flex items-center gap-2.5 group">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
-                <Truck className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-black text-lg tracking-tight text-white">MarkatVerse</span>
-                  <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-black uppercase tracking-wider">
-                    DELIVERY
-                  </span>
-                </div>
-                <span className="text-[10px] text-slate-400 font-medium block">
-                  delivery.markatverse.com
-                </span>
-              </div>
+            <Link href="/delivery" className="flex items-center group py-0.5" title="MarkatVerse DELIVERY">
+              <img
+                src="/logo-delivery.svg"
+                alt="MarkatVerse DELIVERY"
+                className="h-8 sm:h-9 md:h-11 w-auto object-contain hover:opacity-95 transition-opacity"
+              />
             </Link>
 
             {/* Nav Tabs (Desktop) */}
-            <nav className="hidden lg:flex items-center gap-1 ml-8 pl-6 border-l border-white/10">
+            <nav className="hidden lg:flex items-center gap-1 ml-8 pl-6 border-l border-slate-200">
               {navItems.map((item) => {
-                const isActive = item.href === '/delivery' 
-                  ? pathname === '/delivery' 
+                const isActive = item.href === '/delivery'
+                  ? pathname === '/delivery'
                   : pathname?.startsWith(item.href);
 
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
-                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                      isActive
-                        ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.35)]'
-                        : 'text-slate-400 hover:text-white hover:bg-white/5'
-                    }`}
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${isActive
+                        ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/30'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                      }`}
                   >
                     {item.icon}
                     <span>{item.name}</span>
@@ -79,28 +69,28 @@ export default function DeliveryPlatformLayout({ children }: { children: React.R
             <EcosystemSwitcher />
 
             {user ? (
-              <div className="flex items-center gap-3 pl-3 border-l border-white/10">
+              <div className="flex items-center gap-3 pl-3 border-l border-slate-200">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 text-white flex items-center justify-center text-xs font-bold">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 text-white flex items-center justify-center text-xs font-bold shadow-xs">
                     {user.name.charAt(0)}
                   </div>
                   <div className="hidden sm:block text-left">
-                    <span className="text-xs font-bold text-white block truncate max-w-[120px]">{user.name}</span>
-                    <span className="text-[10px] text-emerald-400 font-medium capitalize">{user.role || 'Partner'}</span>
+                    <span className="text-xs font-bold text-slate-800 block truncate max-w-[120px]">{user.name}</span>
+                    <span className="text-[10px] text-emerald-600 font-bold capitalize">{user.role || 'Partner'}</span>
                   </div>
                 </div>
                 <button
                   onClick={logout}
-                  className="text-[11px] font-semibold text-slate-400 hover:text-rose-400 p-1.5 rounded-lg hover:bg-white/5 transition-colors"
+                  className="text-[11px] font-semibold text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
                   title="Sign Out"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
               </div>
             ) : (
-              <Link 
-                href="/delivery/login" 
-                className="text-xs font-bold px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-all shadow-md shadow-emerald-600/30 flex items-center gap-1.5"
+              <Link
+                href="/delivery/login"
+                className="text-xs font-bold px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all shadow-md shadow-emerald-600/25 flex items-center gap-1.5"
               >
                 <span>Sign In</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -109,22 +99,21 @@ export default function DeliveryPlatformLayout({ children }: { children: React.R
           </div>
         </div>
 
-        {/* Mobile Horizontal Subnav */}
-        <div className="lg:hidden flex overflow-x-auto gap-2 pt-3 border-t border-white/5 mt-3 pb-1 scrollbar-none">
+        {/* Mobile Horizontal Subnav (Touch-friendly & Edge-to-Edge) */}
+        <div className="lg:hidden flex overflow-x-auto gap-2 pt-3 border-t border-slate-200 mt-3 pb-1 -mx-4 px-4 scrollbar-none touch-pan-x">
           {navItems.map((item) => {
-            const isActive = item.href === '/delivery' 
-              ? pathname === '/delivery' 
+            const isActive = item.href === '/delivery'
+              ? pathname === '/delivery'
               : pathname?.startsWith(item.href);
 
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                  isActive
-                    ? 'bg-emerald-600 text-white'
-                    : 'text-slate-400 hover:text-white bg-white/5'
-                }`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${isActive
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 bg-slate-100'
+                  }`}
               >
                 {item.icon}
                 <span>{item.name}</span>

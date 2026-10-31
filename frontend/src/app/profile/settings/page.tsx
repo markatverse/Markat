@@ -798,7 +798,7 @@ export default function ProfileSettings() {
                                     sellerId: product.sellerId || product.seller
                                   });
                                   removeFromWishlist(id);
-                                  toast.success('Moved to cart');
+                                  
                                 }}
                                 className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shadow-lg shadow-blue-900/20"
                               >

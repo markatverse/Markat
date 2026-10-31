@@ -148,19 +148,19 @@ export default function FleetManagementPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-black text-white">Fleet &amp; Asset Management</h1>
-            <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900">Fleet &amp; Asset Management</h1>
+            <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
               Zero-Emission Fleet Focus
             </span>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Real-time telemetry across electric scooters, delivery bikes, and B2B freight vans.
           </p>
         </div>
 
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-2 transition-all shadow-md shadow-emerald-600/25"
         >
           <Plus className="w-4 h-4" /> Register New Fleet Vehicle
         </button>
@@ -168,31 +168,31 @@ export default function FleetManagementPage() {
 
       {/* Fleet Mix KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-white/5">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Fleet Active</span>
-          <div className="text-2xl font-black text-white mt-1 font-mono">{840 + vehicles.length} Vehicles</div>
-          <span className="text-[11px] text-emerald-400 mt-0.5 block">94% active utilization</span>
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Total Fleet Active</span>
+          <div className="text-2xl font-black text-slate-900 mt-1 font-mono">{840 + vehicles.length} Vehicles</div>
+          <span className="text-[11px] text-emerald-600 mt-0.5 block font-bold">94% active utilization</span>
         </div>
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-emerald-500/20">
-          <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">Electric Vehicles (EV)</span>
-          <div className="text-2xl font-black text-emerald-400 mt-1 font-mono">620 (74%)</div>
-          <span className="text-[11px] text-slate-400 mt-0.5 block">Zero emission green fleet</span>
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+          <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">Electric Vehicles (EV)</span>
+          <div className="text-2xl font-black text-emerald-600 mt-1 font-mono">620 (74%)</div>
+          <span className="text-[11px] text-slate-500 mt-0.5 block">Zero emission green fleet</span>
         </div>
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-white/5">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Low Battery Alerts (&lt;25%)</span>
-          <div className="text-2xl font-black text-amber-400 mt-1 font-mono">18 Units</div>
-          <span className="text-[11px] text-amber-300 mt-0.5 block">Re-routed to swap station</span>
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Low Battery Alerts (&lt;25%)</span>
+          <div className="text-2xl font-black text-amber-500 mt-1 font-mono">18 Units</div>
+          <span className="text-[11px] text-amber-600 mt-0.5 block font-medium">Re-routed to swap station</span>
         </div>
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-white/5">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Fuel &amp; Carbon Saved</span>
-          <div className="text-2xl font-black text-teal-400 mt-1 font-mono">1,840 kg CO₂</div>
-          <span className="text-[11px] text-slate-400 mt-0.5 block">Saved this month</span>
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Fuel &amp; Carbon Saved</span>
+          <div className="text-2xl font-black text-teal-600 mt-1 font-mono">1,840 kg CO₂</div>
+          <span className="text-[11px] text-slate-500 mt-0.5 block">Saved this month</span>
         </div>
       </div>
 
       {/* Vehicle Roster Table */}
-      <div className="bg-slate-900/60 rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
-        <div className="p-5 border-b border-white/5 flex flex-wrap gap-3 justify-between items-center">
+      <div className="bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-xs">
+        <div className="p-5 border-b border-slate-100 flex flex-wrap gap-3 justify-between items-center">
           <div className="flex gap-2 flex-wrap">
             {['ALL', 'EV_2_WHEELER', 'PETROL_BIKE', 'DELIVERY_VAN'].map(tab => (
               <button
@@ -200,8 +200,8 @@ export default function FleetManagementPage() {
                 onClick={() => setTypeFilter(tab)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                   typeFilter === tab
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-slate-800 text-slate-400 hover:text-white'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:text-slate-900'
                 }`}
               >
                 {tab.replace('_', ' ')}
@@ -210,20 +210,20 @@ export default function FleetManagementPage() {
           </div>
 
           <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input 
               type="text" 
               placeholder="Search vehicle reg or rider..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-950/60 border border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-white text-xs focus:outline-none focus:border-emerald-500" 
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-1.5 text-slate-900 text-xs focus:outline-none focus:border-emerald-500 focus:bg-white" 
             />
           </div>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead className="bg-slate-950/60 text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-white/5">
+            <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-wider text-slate-500 border-b border-slate-200">
               <tr>
                 <th className="p-4 pl-6">Vehicle &amp; Rider</th>
                 <th className="p-4">Vehicle Type</th>
@@ -234,47 +234,47 @@ export default function FleetManagementPage() {
                 <th className="p-4 pr-6 text-right">Rating</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5 text-xs">
+            <tbody className="divide-y divide-slate-100 text-xs">
               {filtered.map(v => (
-                <tr key={v.id} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="p-4 pl-6 font-bold text-white">
-                    <div className="font-mono text-emerald-400">{v.regNumber}</div>
-                    <span className="text-slate-300 font-medium block">{v.riderName}</span>
+                <tr key={v.id} className="hover:bg-slate-50/70 transition-colors">
+                  <td className="p-4 pl-6 font-bold text-slate-900">
+                    <div className="font-mono text-emerald-700">{v.regNumber}</div>
+                    <span className="text-slate-800 font-medium block">{v.riderName}</span>
                     <span className="text-[10px] text-slate-500">{v.riderPhone}</span>
                   </td>
                   <td className="p-4">
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white/5 text-slate-300 border border-white/10">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
                       {v.type.replace('_', ' ')}
                     </span>
                   </td>
-                  <td className="p-4 text-slate-300">{v.assignedZone}</td>
+                  <td className="p-4 text-slate-600">{v.assignedZone}</td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
-                      <div className="w-16 h-2 rounded-full bg-slate-800 overflow-hidden">
+                      <div className="w-16 h-2 rounded-full bg-slate-200 overflow-hidden">
                         <div 
                           className={`h-full ${v.batteryLevel > 50 ? 'bg-emerald-500' : v.batteryLevel > 20 ? 'bg-amber-500' : 'bg-rose-500'}`}
                           style={{ width: `${v.batteryLevel}%` }}
                         />
                       </div>
-                      <span className="font-mono font-bold text-white">{v.batteryLevel}%</span>
+                      <span className="font-mono font-bold text-slate-800">{v.batteryLevel}%</span>
                     </div>
                   </td>
-                  <td className="p-4 font-mono font-bold text-white">{v.tripsToday} runs</td>
+                  <td className="p-4 font-mono font-bold text-slate-800">{v.tripsToday} runs</td>
                   <td className="p-4">
                     <button
                       onClick={() => handleToggleStatus(v.id)}
                       title="Click to cycle status"
                       className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border transition-all ${
-                        v.status === 'ONLINE' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20' :
-                        v.status === 'DELIVERING' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20' :
-                        v.status === 'CHARGING' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20' :
-                        'bg-rose-500/10 text-rose-400 border-rose-500/30 hover:bg-rose-500/20'
+                        v.status === 'ONLINE' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' :
+                        v.status === 'DELIVERING' ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100' :
+                        v.status === 'CHARGING' ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' :
+                        'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
                       }`}
                     >
                       {v.status} ⟳
                     </button>
                   </td>
-                  <td className="p-4 pr-6 text-right font-mono font-bold text-amber-400">
+                  <td className="p-4 pr-6 text-right font-mono font-bold text-amber-500">
                     {v.rating} ★
                   </td>
                 </tr>
@@ -286,37 +286,37 @@ export default function FleetManagementPage() {
 
       {/* Register Vehicle Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-white/10 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative space-y-4">
-            <div className="flex justify-between items-center pb-3 border-b border-white/10">
-              <h3 className="text-lg font-black text-white flex items-center gap-2">
-                <Plus className="w-5 h-5 text-emerald-400" /> Register Fleet Vehicle
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative space-y-4">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+              <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                <Plus className="w-5 h-5 text-emerald-600" /> Register Fleet Vehicle
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleAddVehicle} className="space-y-3 text-xs">
               <div>
-                <label className="text-slate-300 font-bold block mb-1">Registration Number *</label>
+                <label className="text-slate-700 font-bold block mb-1">Registration Number *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. DL04-AB-1234"
                   value={newVehicle.regNumber}
                   onChange={(e) => setNewVehicle({ ...newVehicle, regNumber: e.target.value })}
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-mono focus:outline-none focus:border-emerald-500 focus:bg-white"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-slate-300 font-bold block mb-1">Vehicle Type *</label>
+                  <label className="text-slate-700 font-bold block mb-1">Vehicle Type *</label>
                   <select
                     value={newVehicle.type}
                     onChange={(e) => setNewVehicle({ ...newVehicle, type: e.target.value as any })}
-                    className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white"
                   >
                     <option value="EV_2_WHEELER">EV 2-Wheeler</option>
                     <option value="PETROL_BIKE">Petrol Bike</option>
@@ -325,48 +325,48 @@ export default function FleetManagementPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-slate-300 font-bold block mb-1">Battery / Fuel (%)</label>
+                  <label className="text-slate-700 font-bold block mb-1">Battery / Fuel (%)</label>
                   <input
                     type="number"
                     min="10"
                     max="100"
                     value={newVehicle.batteryLevel}
                     onChange={(e) => setNewVehicle({ ...newVehicle, batteryLevel: Number(e.target.value) })}
-                    className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-mono focus:outline-none focus:border-emerald-500 focus:bg-white"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-slate-300 font-bold block mb-1">Assigned Rider Name *</label>
+                <label className="text-slate-700 font-bold block mb-1">Assigned Rider Name *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Arvind Mishra"
                   value={newVehicle.riderName}
                   onChange={(e) => setNewVehicle({ ...newVehicle, riderName: e.target.value })}
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white"
                 />
               </div>
 
               <div>
-                <label className="text-slate-300 font-bold block mb-1">Rider Phone Number</label>
+                <label className="text-slate-700 font-bold block mb-1">Rider Phone Number</label>
                 <input
                   type="tel"
                   placeholder="+91 98765 43210"
                   value={newVehicle.riderPhone}
                   onChange={(e) => setNewVehicle({ ...newVehicle, riderPhone: e.target.value })}
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white"
                 />
               </div>
 
               <div>
-                <label className="text-slate-300 font-bold block mb-1">Operating Hub Zone</label>
+                <label className="text-slate-700 font-bold block mb-1">Operating Hub Zone</label>
                 <input
                   type="text"
                   value={newVehicle.assignedZone}
                   onChange={(e) => setNewVehicle({ ...newVehicle, assignedZone: e.target.value })}
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white"
                 />
               </div>
 
@@ -374,13 +374,13 @@ export default function FleetManagementPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl"
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-md"
+                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md shadow-emerald-600/25"
                 >
                   Save Vehicle
                 </button>

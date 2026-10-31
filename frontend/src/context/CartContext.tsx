@@ -1,5 +1,7 @@
 "use client";
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useRef } from 'react';
+import Link from 'next/link';
+import { Check, ArrowRight } from 'lucide-react';
 
 import { useAuth } from './AuthContext';
 import { useRouter } from 'next/navigation';
@@ -36,6 +38,7 @@ type CartContextType = {
   moveToCart: (id: string) => void;
   removeSaved: (id: string) => void;
   total: number;
+  showNotification: boolean;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -47,6 +50,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [savedItems, setSavedItems] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
+  const notificationTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const triggerAddedNotification = () => {
+    if (notificationTimerRef.current) clearTimeout(notificationTimerRef.current);
+    setShowNotification(true);
+    notificationTimerRef.current = setTimeout(() => {
+      setShowNotification(false);
+    }, 2400);
+  };
 
   // Restore cart and saved items from localStorage after initial client mount to avoid hydration mismatch
   React.useEffect(() => {
@@ -96,6 +109,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       return [...prev, { ...product, quantity: 1 }];
     });
+    triggerAddedNotification();
     return true;
   };
 
@@ -133,7 +147,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       return [...prev, itemToMove];
     });
-    toast.success('Moved back to Cart');
+    triggerAddedNotification();
   };
 
   const removeSaved = (id: string) => {
@@ -156,6 +170,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       moveToCart,
       removeSaved,
       total,
+      showNotification,
     }}>
       {children}
     </CartContext.Provider>
@@ -179,6 +194,7 @@ export function useCart() {
       total: 0,
       totalItems: 0,
       totalPrice: 0,
+      showNotification: false,
     };
   }
   return context;

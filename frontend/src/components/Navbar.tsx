@@ -12,7 +12,7 @@ import { isServiceProduct, matchesProductSearch } from '@/utils/productSearch';
 import { LOGO_DATA_URI } from '@/utils/logoDataUri';
 
 export default function Navbar() {
-  const { items } = useCart();
+  const { items, showNotification } = useCart();
   const { user, isLoading } = useAuth();
   const { userLocation, setUserLocation, setUserLat, setUserLng, products, categories } = useProducts();
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -491,6 +491,18 @@ export default function Navbar() {
                   )}
                   <ShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
                   <span className="text-[11px] font-semibold text-slate-700 group-hover:text-blue-700">Cart</span>
+
+                  {/* Small "Added to Cart" notification under header directly over cart */}
+                  {showNotification && (
+                    <div className="absolute top-full mt-2 -right-3 z-50 pointer-events-none animate-in fade-in slide-in-from-top-1.5 duration-200">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 text-white shadow-xl text-[11px] font-bold whitespace-nowrap border border-slate-700">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+                        <span>Added to cart</span>
+                        {/* Caret arrow pointing up to cart icon */}
+                        <div className="absolute -top-1 right-7 w-2 h-2 bg-slate-900 rotate-45 border-t border-l border-slate-700" />
+                      </div>
+                    </div>
+                  )}
                 </Link>
               </>
             )}
@@ -499,21 +511,17 @@ export default function Navbar() {
 
         <div className="hidden md:flex ml-1 pl-3 sm:pl-4 border-l border-slate-200 items-center">
           {isLoading ? (
-            <div className="flex items-center gap-3 opacity-50">
+            <div className="flex items-center opacity-50">
               <div className="w-10 h-10 rounded-full bg-slate-200 animate-pulse"></div>
-              <div className="hidden lg:flex flex-col gap-1">
-                <div className="w-20 h-4 bg-slate-200 rounded animate-pulse"></div>
-                <div className="w-16 h-3 bg-slate-200 rounded animate-pulse"></div>
-              </div>
             </div>
           ) : user ? (
-            <Link href="/profile/settings" className="flex items-center gap-2.5 px-2 py-1 rounded-xl hover:bg-slate-100 transition-all">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-sm border-2 border-white ring-2 ring-amber-300/70">
-                {user.name.charAt(0)}
-              </div>
-              <div className="hidden lg:flex flex-col items-start gap-0">
-                <span className="font-semibold text-sm text-slate-800">{user.name}</span>
-                <span className="text-[11px] text-slate-500 font-medium">My Account <ChevronDown className="inline w-3 h-3" /></span>
+            <Link 
+              href="/profile/settings" 
+              className="flex items-center p-0.5 rounded-full hover:opacity-90 transition-all group"
+              title={user.name ? `${user.name} - My Account` : "My Account"}
+            >
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-sm border-2 border-white ring-2 ring-amber-300/70 group-hover:scale-105 transition-transform">
+                {user.name.charAt(0).toUpperCase()}
               </div>
             </Link>
           ) : (

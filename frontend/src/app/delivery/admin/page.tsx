@@ -171,24 +171,24 @@ export default function DeliveryAdminPage() {
   if (!isAdmin) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center p-4">
-        <div className="max-w-md w-full p-8 rounded-3xl bg-slate-900/90 border border-purple-500/30 text-center space-y-5 shadow-2xl backdrop-blur-xl">
-          <div className="w-16 h-16 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center mx-auto shadow-lg shadow-purple-500/20">
+        <div className="max-w-md w-full p-8 rounded-3xl bg-white border border-purple-200 text-center space-y-5 shadow-sm">
+          <div className="w-16 h-16 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto shadow-md shadow-purple-500/10">
             <Lock className="w-8 h-8" />
           </div>
           <div className="space-y-1.5">
-            <h2 className="text-xl font-black text-white tracking-tight">Delivery Admin Restricted</h2>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <h2 className="text-xl font-black text-slate-900 tracking-tight">Delivery Admin Restricted</h2>
+            <p className="text-xs text-slate-500 leading-relaxed">
               This operations command center is strictly restricted to MarkatVerse Logistics Administrators and Fleet Directors.
             </p>
           </div>
           <Link
             href="/delivery/login?redirect=/delivery/admin"
-            className="block w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs transition-all shadow-[0_0_20px_rgba(168,85,247,0.35)] flex items-center justify-center gap-2"
+            className="block w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-purple-600/25 flex items-center justify-center gap-2"
           >
             <ShieldCheck className="w-4 h-4" />
             <span>Sign In as Operations Administrator</span>
           </Link>
-          <Link href="/delivery" className="inline-block text-[11px] text-slate-500 hover:text-slate-300">
+          <Link href="/delivery" className="inline-block text-[11px] text-slate-500 hover:text-slate-700">
             ← Return to Delivery Platform
           </Link>
         </div>
@@ -200,15 +200,15 @@ export default function DeliveryAdminPage() {
     <div className="space-y-8 animate-in fade-in duration-300">
       
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/60 p-6 rounded-3xl border border-white/10">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-3xl border border-slate-200/90 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-black text-white">Delivery Operations Admin</h1>
-            <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900">Delivery Operations Admin</h1>
+            <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
               🛡️ Ops Command
             </span>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Real-time fleet supervision, emergency trip re-dispatch, dynamic zone pricing, and automated UPI courier payouts.
           </p>
         </div>
@@ -216,7 +216,7 @@ export default function DeliveryAdminPage() {
         <button 
           onClick={handleSettlePayouts}
           disabled={isSettling}
-          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl font-bold text-xs flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl font-bold text-xs flex items-center gap-2 transition-all shadow-md shadow-emerald-600/25"
         >
           <DollarSign className="w-4 h-4" />
           <span>{isSettling ? 'Processing Batch UPI...' : `Settle Partner Payouts (₹${(metrics.pendingRiderEarnings / 1000).toFixed(1)}k)`}</span>
@@ -225,17 +225,17 @@ export default function DeliveryAdminPage() {
 
       {/* Payout Success Alert */}
       {settlementSuccess && (
-        <div className="p-4 rounded-2xl bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 text-xs flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
             <div>
-              <span className="font-bold block text-white">Batch Rider UPI Settlement Complete!</span>
-              <span className="text-[11px] text-emerald-300">
+              <span className="font-bold block text-slate-900">Batch Rider UPI Settlement Complete!</span>
+              <span className="text-[11px] text-emerald-700">
                 Settled ₹{settlementSuccess.totalSettledAmount.toLocaleString()} across {settlementSuccess.settledCount} couriers • UTR: {settlementSuccess.settlementUtr}
               </span>
             </div>
           </div>
-          <button onClick={() => setSettlementSuccess(null)} className="text-emerald-400 hover:text-white text-xs font-bold px-2 py-1">
+          <button onClick={() => setSettlementSuccess(null)} className="text-emerald-700 hover:text-emerald-900 text-xs font-bold px-2 py-1">
             Dismiss
           </button>
         </div>
@@ -243,82 +243,82 @@ export default function DeliveryAdminPage() {
 
       {/* Real-time KPI Ribbon */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-white/5">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Active Couriers Online</span>
-          <div className="text-2xl font-black text-emerald-400 mt-1 font-mono">{metrics.onlineRiders}</div>
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Active Couriers Online</span>
+          <div className="text-2xl font-black text-emerald-600 mt-1 font-mono">{metrics.onlineRiders}</div>
           <span className="text-[11px] text-slate-500 mt-0.5 block">{metrics.busyRiders} en-route on active deliveries</span>
         </div>
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-white/5">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Completed Deliveries</span>
-          <div className="text-2xl font-black text-teal-400 mt-1 font-mono">{metrics.deliveredToday.toLocaleString()}</div>
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Completed Deliveries</span>
+          <div className="text-2xl font-black text-teal-600 mt-1 font-mono">{metrics.deliveredToday.toLocaleString()}</div>
           <span className="text-[11px] text-slate-500 mt-0.5 block">Sub-24 min average SLA</span>
         </div>
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-white/5">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">COD Cash In Rider Hands</span>
-          <div className="text-2xl font-black text-amber-400 mt-1 font-mono">₹{metrics.totalCodCashInHand.toLocaleString()}</div>
-          <span className="text-[11px] text-emerald-400 mt-0.5 block">Audit verified at shift-end</span>
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">COD Cash In Rider Hands</span>
+          <div className="text-2xl font-black text-amber-600 mt-1 font-mono">₹{metrics.totalCodCashInHand.toLocaleString()}</div>
+          <span className="text-[11px] text-emerald-600 mt-0.5 block font-bold">Audit verified at shift-end</span>
         </div>
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-white/5">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pending Rider Earnings</span>
-          <div className="text-2xl font-black text-purple-400 mt-1 font-mono">₹{metrics.pendingRiderEarnings.toLocaleString()}</div>
-          <span className="text-[11px] text-slate-400 mt-0.5 block">Direct bank payout ready</span>
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Pending Rider Earnings</span>
+          <div className="text-2xl font-black text-purple-600 mt-1 font-mono">₹{metrics.pendingRiderEarnings.toLocaleString()}</div>
+          <span className="text-[11px] text-slate-500 mt-0.5 block">Direct bank payout ready</span>
         </div>
       </div>
 
       {/* Bird's-Eye Live City Map Simulation Grid */}
-      <div className="bg-slate-900/80 rounded-3xl border border-white/10 p-6 space-y-4 shadow-2xl">
-        <div className="flex justify-between items-center pb-2 border-b border-white/5">
-          <div className="flex items-center gap-2 text-sm font-black text-white">
-            <MapPin className="w-4 h-4 text-emerald-400 animate-pulse" />
+      <div className="bg-white rounded-3xl border border-slate-200/90 p-6 space-y-4 shadow-xs">
+        <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+          <div className="flex items-center gap-2 text-sm font-black text-slate-900">
+            <MapPin className="w-4 h-4 text-emerald-600 animate-pulse" />
             <span>Live City Fleet Heatmap &amp; Delivery Density (NCR Zone)</span>
           </div>
-          <span className="text-xs text-emerald-400 font-mono font-bold">● {metrics.onlineRiders} Couriers Active</span>
+          <span className="text-xs text-emerald-700 font-mono font-bold">● {metrics.onlineRiders} Couriers Active</span>
         </div>
 
         {/* Visual Map Grid */}
-        <div className="h-64 sm:h-72 w-full rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-white/5 relative overflow-hidden flex items-center justify-center p-6">
-          <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:24px_24px] opacity-20" />
+        <div className="h-64 sm:h-72 w-full rounded-2xl bg-slate-50 border border-slate-200 relative overflow-hidden flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:24px_24px] opacity-15" />
           
           <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-4 w-full">
-            <div className="p-4 rounded-xl bg-slate-900/90 border border-emerald-500/40 text-center space-y-1">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">Noida Hub (Sec 18)</span>
-              <div className="text-xl font-black text-emerald-400 font-mono">248 Riders</div>
-              <span className="text-[9px] text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-full inline-block">High Demand (1.2x)</span>
+            <div className="p-4 rounded-xl bg-white border border-emerald-200 shadow-xs text-center space-y-1">
+              <span className="text-[10px] text-slate-500 font-bold uppercase block">Noida Hub (Sec 18)</span>
+              <div className="text-xl font-black text-emerald-700 font-mono">248 Riders</div>
+              <span className="text-[9px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full inline-block font-bold">High Demand (1.2x)</span>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-900/90 border border-teal-500/40 text-center space-y-1">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">South Delhi (Connaught)</span>
-              <div className="text-xl font-black text-teal-400 font-mono">312 Riders</div>
-              <span className="text-[9px] text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded-full inline-block">Optimal Supply</span>
+            <div className="p-4 rounded-xl bg-white border border-teal-200 shadow-xs text-center space-y-1">
+              <span className="text-[10px] text-slate-500 font-bold uppercase block">South Delhi (Connaught)</span>
+              <div className="text-xl font-black text-teal-700 font-mono">312 Riders</div>
+              <span className="text-[9px] text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full inline-block font-bold">Optimal Supply</span>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-900/90 border border-blue-500/40 text-center space-y-1">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">Gurugram Cyber Hub</span>
-              <div className="text-xl font-black text-blue-400 font-mono">184 Riders</div>
-              <span className="text-[9px] text-blue-300 bg-blue-500/10 px-2 py-0.5 rounded-full inline-block">High Corporate B2B</span>
+            <div className="p-4 rounded-xl bg-white border border-blue-200 shadow-xs text-center space-y-1">
+              <span className="text-[10px] text-slate-500 font-bold uppercase block">Gurugram Cyber Hub</span>
+              <div className="text-xl font-black text-blue-700 font-mono">184 Riders</div>
+              <span className="text-[9px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full inline-block font-bold">High Corporate B2B</span>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-900/90 border border-purple-500/40 text-center space-y-1">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">Ghaziabad Express</span>
-              <div className="text-xl font-black text-purple-400 font-mono">98 Riders</div>
-              <span className="text-[9px] text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded-full inline-block">Normal Flow</span>
+            <div className="p-4 rounded-xl bg-white border border-purple-200 shadow-xs text-center space-y-1">
+              <span className="text-[10px] text-slate-500 font-bold uppercase block">Ghaziabad Express</span>
+              <div className="text-xl font-black text-purple-700 font-mono">98 Riders</div>
+              <span className="text-[9px] text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full inline-block font-bold">Normal Flow</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Exception & Delay Resolution Queue */}
-      <div className="bg-slate-900/60 rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
-        <div className="p-5 border-b border-white/5 flex justify-between items-center">
-          <h3 className="text-sm font-black text-white flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-400" /> Exception &amp; Delay Resolution Queue
+      <div className="bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-xs">
+        <div className="p-5 border-b border-slate-100 flex justify-between items-center">
+          <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-500" /> Exception &amp; Delay Resolution Queue
           </h3>
-          <span className="text-xs text-amber-400 font-bold">{incidents.filter(i => i.status === 'PENDING').length} active issues</span>
+          <span className="text-xs text-amber-700 font-bold">{incidents.filter(i => i.status === 'PENDING').length} active issues</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
-            <thead className="bg-slate-950/60 text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-white/5">
+            <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-wider text-slate-500 border-b border-slate-200">
               <tr>
                 <th className="p-4 pl-6">Order &amp; Incident</th>
                 <th className="p-4">Assigned Courier</th>
@@ -328,21 +328,21 @@ export default function DeliveryAdminPage() {
                 <th className="p-4 pr-6 text-right">Intervention</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-slate-100">
               {incidents.map(inc => (
-                <tr key={inc.id} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="p-4 pl-6 font-bold text-white">
-                    <div className="font-mono text-purple-400">{inc.orderId}</div>
-                    <span className="text-amber-400 text-[11px] font-semibold">{inc.incidentType.replace('_', ' ')}</span>
+                <tr key={inc.id} className="hover:bg-slate-50/70 transition-colors">
+                  <td className="p-4 pl-6 font-bold text-slate-900">
+                    <div className="font-mono text-purple-700">{inc.orderId}</div>
+                    <span className="text-amber-700 text-[11px] font-semibold">{inc.incidentType.replace('_', ' ')}</span>
                   </td>
-                  <td className="p-4 text-slate-300">{inc.riderName}</td>
-                  <td className="p-4 text-slate-300">{inc.customerName}</td>
-                  <td className="p-4 font-mono font-bold text-rose-400">{inc.elapsedMins} mins elapsed</td>
+                  <td className="p-4 text-slate-700">{inc.riderName}</td>
+                  <td className="p-4 text-slate-600">{inc.customerName}</td>
+                  <td className="p-4 font-mono font-bold text-rose-600">{inc.elapsedMins} mins elapsed</td>
                   <td className="p-4">
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border ${
                       inc.status === 'RESOLVED' 
-                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-                        : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                        : 'bg-amber-50 text-amber-700 border-amber-200'
                     }`}>
                       {inc.status}
                     </span>
@@ -351,12 +351,12 @@ export default function DeliveryAdminPage() {
                     {inc.status === 'PENDING' ? (
                       <button
                         onClick={() => handleReassign(inc.id, inc.orderId)}
-                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-[11px] transition-all shadow-md shadow-emerald-600/20"
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[11px] transition-all shadow-md shadow-emerald-600/20"
                       >
                         Re-assign Courier
                       </button>
                     ) : (
-                      <span className="text-[11px] text-emerald-400 font-semibold flex items-center justify-end gap-1">
+                      <span className="text-[11px] text-emerald-700 font-semibold flex items-center justify-end gap-1">
                         <CheckCircle2 className="w-3.5 h-3.5" /> Re-dispatched
                       </span>
                     )}
@@ -369,36 +369,36 @@ export default function DeliveryAdminPage() {
       </div>
 
       {/* Delivery Zone Rate Configuration */}
-      <div className="bg-slate-900/60 rounded-3xl border border-white/10 p-6 space-y-4 shadow-2xl">
-        <div className="flex justify-between items-center pb-2 border-b border-white/5">
-          <div className="flex items-center gap-2 text-sm font-black text-white">
-            <Settings className="w-4 h-4 text-blue-400" />
+      <div className="bg-white rounded-3xl border border-slate-200/90 p-6 space-y-4 shadow-xs">
+        <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+          <div className="flex items-center gap-2 text-sm font-black text-slate-900">
+            <Settings className="w-4 h-4 text-blue-600" />
             <span>Delivery Zone Tariff &amp; SLA Management</span>
           </div>
-          <span className="text-xs text-slate-400">Live Production Tariffs</span>
+          <span className="text-xs text-slate-500">Live Production Tariffs</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {zones.map((zone) => (
-            <div key={zone.id} className="p-5 rounded-2xl bg-slate-950/70 border border-white/5 space-y-3">
+            <div key={zone.id} className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
               <div className="flex justify-between items-start">
                 <div>
-                  <h4 className="text-sm font-bold text-white">{zone.name}</h4>
-                  <span className="text-[10px] text-slate-400">Max {zone.maxDistanceKm}km radius</span>
+                  <h4 className="text-sm font-bold text-slate-900">{zone.name}</h4>
+                  <span className="text-[10px] text-slate-500">Max {zone.maxDistanceKm}km radius</span>
                 </div>
-                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold border border-emerald-200">
                   ₹{zone.perKmRate}/km
                 </span>
               </div>
 
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Base Delivery Fare (₹)</label>
+                <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block mb-1">Base Delivery Fare (₹)</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
                     value={zone.baseFare}
                     onChange={(e) => handleUpdateZoneRate(zone.id, Number(e.target.value))}
-                    className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-blue-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-mono focus:outline-none focus:border-blue-500 shadow-xs"
                   />
                   <span className="text-xs text-slate-500">INR</span>
                 </div>

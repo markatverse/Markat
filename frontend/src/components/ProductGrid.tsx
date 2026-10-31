@@ -450,9 +450,7 @@ export default function ProductGrid({
                         category: product.category,
                         sellerId: product.sellerId,
                       });
-                      if (added) {
-                        toast.success(`Added ${product.name} to cart!`, { duration: 1800 });
-                      }
+
                     }}
                     className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white font-bold text-[10px] flex items-center gap-1 transition-all"
                   >

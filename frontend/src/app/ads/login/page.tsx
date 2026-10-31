@@ -219,21 +219,12 @@ function AdsLoginContent() {
 
       {/* Top Brand Bar */}
       <div className="p-6 flex justify-between items-center max-w-7xl mx-auto w-full relative z-10">
-        <Link href="/ads" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-500 text-white flex items-center justify-center font-black shadow-lg shadow-purple-500/20 group-hover:scale-105 transition-transform">
-            <Megaphone className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-black text-lg tracking-tight text-white">MarkatVerse</span>
-              <span className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-black uppercase tracking-wider">
-                ADS
-              </span>
-            </div>
-            <span className="text-[10px] text-slate-400 font-medium block">
-              ads.markatverse.com
-            </span>
-          </div>
+        <Link href="/ads" className="flex items-center group py-0.5" title="MarkatVerse ADS">
+          <img 
+            src="/logo-ads.svg" 
+            alt="MarkatVerse ADS" 
+            className="h-11 sm:h-12 md:h-14 w-auto object-contain hover:opacity-95 transition-opacity" 
+          />
         </Link>
 
         <div className="flex items-center gap-4">
@@ -518,7 +509,7 @@ function AdsLoginContent() {
 
       {/* Footer */}
       <footer className="p-6 text-center text-xs text-slate-500 relative z-10 border-t border-white/5">
-        &copy; {new Date().getFullYear()} MarkatVerse Advertising Platform (ads.markatverse.com). All rights reserved.
+        &copy; {new Date().getFullYear()} MarkatVerse Advertising Platform. All rights reserved.
       </footer>
 
     </div>

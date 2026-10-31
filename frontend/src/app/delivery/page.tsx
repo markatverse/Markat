@@ -14,10 +14,10 @@ export default function DeliveryPlatformDashboard() {
   const isAdmin = user?.role === 'ADMIN';
 
   const kpis = [
-    { label: 'Active Riders Online', value: '842', change: '+54 from peak', positive: true, icon: <Navigation className="w-5 h-5 text-emerald-400" /> },
-    { label: 'Deliveries Today', value: '18,420', change: '+18.2% vs last week', positive: true, icon: <Package className="w-5 h-5 text-teal-400" /> },
-    { label: 'Average Delivery SLA', value: '23.8 min', change: '-4.2 min faster', positive: true, icon: <Clock className="w-5 h-5 text-blue-400" /> },
-    { label: 'On-Time Success Rate', value: '99.4%', change: 'Target 99.0%', positive: true, icon: <CheckCircle2 className="w-5 h-5 text-green-400" /> },
+    { label: 'Active Riders Online', value: '842', change: '+54 from peak', positive: true, icon: <Navigation className="w-5 h-5 text-emerald-600" /> },
+    { label: 'Deliveries Today', value: '18,420', change: '+18.2% vs last week', positive: true, icon: <Package className="w-5 h-5 text-teal-600" /> },
+    { label: 'Average Delivery SLA', value: '23.8 min', change: '-4.2 min faster', positive: true, icon: <Clock className="w-5 h-5 text-blue-600" /> },
+    { label: 'On-Time Success Rate', value: '99.4%', change: 'Target 99.0%', positive: true, icon: <CheckCircle2 className="w-5 h-5 text-green-600" /> },
   ];
 
   const modules = [
@@ -67,32 +67,32 @@ export default function DeliveryPlatformDashboard() {
     <div className="space-y-10 animate-in fade-in duration-300">
       
       {/* Hero Welcome Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-950/70 via-teal-950/50 to-slate-900 border border-emerald-500/30 p-8 sm:p-12 shadow-2xl">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-600/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="relative overflow-hidden rounded-3xl bg-white border border-slate-200/90 p-5 sm:p-8 lg:p-12 shadow-sm">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-emerald-100/60 to-teal-50/20 rounded-full blur-3xl pointer-events-none" />
         <div className="max-w-2xl relative z-10 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold uppercase tracking-wider">
-            <Zap className="w-3.5 h-3.5 text-emerald-400" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] sm:text-xs font-bold uppercase tracking-wider">
+            <Zap className="w-3.5 h-3.5 text-emerald-600" />
             Hyperlocal Logistics &amp; Fleet Ecosystem
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight">
             Sub-30 Minute Autonomous Hyperlocal Delivery.
           </h1>
-          <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+          <p className="text-slate-600 text-xs sm:text-base leading-relaxed">
             Powering seamless pickups and deliveries across food dining, grocery essentials, B2B wholesale freight, and retail merchandise.
           </p>
-          <div className="flex flex-wrap gap-3 pt-2">
+          <div className="flex flex-wrap gap-2.5 sm:gap-3 pt-2">
             {user ? (
               <>
                 <Link
                   href="/delivery/dispatch"
-                  className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm transition-all shadow-[0_0_20px_rgba(16,185,129,0.4)] flex items-center gap-2"
+                  className="px-5 py-2.5 sm:px-6 sm:py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-md shadow-emerald-600/25 flex items-center gap-2"
                 >
                   <span>Dispatch Console</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
                   href="/delivery/partner"
-                  className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-sm transition-all border border-slate-700 flex items-center gap-2"
+                  className="px-5 py-2.5 sm:px-6 sm:py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-xs sm:text-sm transition-all border border-slate-200 flex items-center gap-2"
                 >
                   <span>Rider Partner Portal</span>
                 </Link>
@@ -101,16 +101,16 @@ export default function DeliveryPlatformDashboard() {
               <>
                 <Link
                   href="/delivery/login"
-                  className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm transition-all shadow-[0_0_20px_rgba(16,185,129,0.4)] flex items-center gap-2"
+                  className="px-5 py-2.5 sm:px-6 sm:py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-md shadow-emerald-600/25 flex items-center gap-2"
                 >
                   <span>Partner Sign In</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
                   href="/delivery/login?mode=register"
-                  className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-sm transition-all border border-slate-700 flex items-center gap-2"
+                  className="px-5 py-2.5 sm:px-6 sm:py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-xs sm:text-sm transition-all border border-slate-200 flex items-center gap-2"
                 >
-                  <span>Join as Delivery Partner</span>
+                  <span>Join as Partner</span>
                 </Link>
               </>
             )}
@@ -119,20 +119,20 @@ export default function DeliveryPlatformDashboard() {
       </div>
 
       {/* KPI Cards Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {kpis.map((kpi, idx) => (
           <div 
             key={idx}
-            className="p-6 rounded-3xl bg-slate-900/60 border border-white/5 backdrop-blur-xl relative overflow-hidden group hover:border-emerald-500/30 transition-all"
+            className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs relative overflow-hidden group hover:border-emerald-300 hover:shadow-md transition-all"
           >
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{kpi.label}</span>
-              <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{kpi.label}</span>
+              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 group-hover:scale-110 transition-transform">
                 {kpi.icon}
               </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-white font-mono">{kpi.value}</div>
-            <span className="text-[11px] text-emerald-400 font-bold mt-1 block flex items-center gap-1">
+            <div className="text-2xl sm:text-3xl font-black text-slate-900 font-mono">{kpi.value}</div>
+            <span className="text-[11px] text-emerald-600 font-bold mt-1 block flex items-center gap-1">
               <TrendingUp className="w-3 h-3" /> {kpi.change}
             </span>
           </div>
@@ -143,8 +143,8 @@ export default function DeliveryPlatformDashboard() {
       <div className="space-y-4">
         <div className="flex justify-between items-end">
           <div>
-            <h2 className="text-xl font-black text-white">Logistics Modules</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Explore each dedicated portal in the MarkatVerse Delivery ecosystem.</p>
+            <h2 className="text-xl font-black text-slate-900">Logistics Modules</h2>
+            <p className="text-xs text-slate-500 mt-0.5">Explore each dedicated portal in the MarkatVerse Delivery ecosystem.</p>
           </div>
         </div>
 
@@ -152,31 +152,31 @@ export default function DeliveryPlatformDashboard() {
           {modules.map((m, idx) => (
             <div
               key={idx}
-              className="p-7 rounded-3xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 transition-all flex flex-col justify-between group shadow-xl relative overflow-hidden"
+              className="p-7 rounded-3xl bg-white border border-slate-200/90 hover:border-emerald-300 transition-all flex flex-col justify-between group shadow-xs hover:shadow-md relative overflow-hidden"
             >
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${m.color} text-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform`}>
+                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${m.color} text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform`}>
                     {m.icon}
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-slate-300">
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-600">
                     {m.badge}
                   </span>
                 </div>
 
                 <div>
-                  <h3 className="text-xl font-black text-white mb-2 group-hover:text-emerald-300 transition-colors">
+                  <h3 className="text-xl font-black text-slate-900 mb-2 group-hover:text-emerald-700 transition-colors">
                     {m.title}
                   </h3>
-                  <p className="text-xs text-slate-400 leading-relaxed">
+                  <p className="text-xs text-slate-500 leading-relaxed">
                     {m.description}
                   </p>
                 </div>
 
-                <div className="space-y-2 pt-2 border-t border-white/5">
+                <div className="space-y-2 pt-2 border-t border-slate-100">
                   {m.features.map((f, i) => (
-                    <div key={i} className="flex items-center gap-2 text-xs text-slate-300">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <div key={i} className="flex items-center gap-2 text-xs text-slate-700">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                       <span>{f}</span>
                     </div>
                   ))}
@@ -186,7 +186,7 @@ export default function DeliveryPlatformDashboard() {
               <div className="pt-6 mt-4">
                 <Link
                   href={m.href}
-                  className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md group-hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                  className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-xs group-hover:shadow-md"
                 >
                   <span>{m.buttonText || `Open ${m.title}`}</span>
                   <ArrowRight className="w-3.5 h-3.5" />

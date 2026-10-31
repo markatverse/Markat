@@ -172,18 +172,18 @@ function DeliveryLoginContent() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-emerald-500 selection:text-black">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between selection:bg-emerald-500 selection:text-white">
       {/* Top Bar */}
-      <header className="border-b border-white/10 bg-slate-900/60 backdrop-blur-xl px-4 sm:px-8 py-3.5">
+      <header className="border-b border-slate-200 bg-white/95 backdrop-blur-xl px-4 sm:px-8 py-3.5 shadow-xs">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link href="/delivery" className="flex items-center gap-2 group text-slate-300 hover:text-white transition-colors">
+          <Link href="/delivery" className="flex items-center gap-2 group text-slate-600 hover:text-slate-900 transition-colors">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             <span className="text-xs font-bold">Back to Delivery Platform</span>
           </Link>
 
           <div className="flex items-center gap-3">
             <EcosystemSwitcher />
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black shadow-lg shadow-emerald-500/20">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black shadow-md shadow-emerald-500/20">
               <Truck className="w-4 h-4" />
             </div>
           </div>
@@ -196,14 +196,14 @@ function DeliveryLoginContent() {
           
           {/* Brand Heading */}
           <div className="text-center space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[11px] font-black uppercase tracking-wider">
-              <Truck className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-black uppercase tracking-wider">
+              <Truck className="w-3.5 h-3.5 text-emerald-600" />
               MarkatVerse Logistics Single Sign-On
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
               {mode === 'signin' ? 'Log in to Delivery Platform' : 'Join Delivery Fleet'}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
+            <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
               {mode === 'signin'
                 ? 'Sign in to access Courier Partner portal, Fleet Hub, Dispatch Engine, and Operations Admin.'
                 : 'Onboard your vehicle and start earning daily direct-to-bank UPI payouts with sub-30 minute delivery runs.'}
@@ -211,64 +211,64 @@ function DeliveryLoginContent() {
           </div>
 
           {/* Quick Demo Access Bar */}
-          <div className="p-4 rounded-2xl bg-slate-900/80 border border-emerald-500/30 backdrop-blur-xl space-y-2.5">
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-2.5">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-white flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                 Quick 1-Click Role Login:
               </span>
-              <span className="text-[10px] text-emerald-400 uppercase font-mono font-bold">Instant Preview</span>
+              <span className="text-[10px] text-emerald-700 uppercase font-mono font-bold">Instant Preview</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => handleDemoLogin('rider.vikas@markatverse.com', 'rider', 'Vikas Kushwaha (Rider)', '/delivery/partner')}
-                className="p-2.5 rounded-xl bg-slate-950/80 hover:bg-emerald-950/40 border border-emerald-500/20 hover:border-emerald-500/60 text-left transition-all group"
+                className="p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50/60 border border-slate-200 hover:border-emerald-300 text-left transition-all group"
               >
-                <div className="text-[11px] font-bold text-white group-hover:text-emerald-300 flex items-center justify-between">
+                <div className="text-[11px] font-bold text-slate-800 group-hover:text-emerald-700 flex items-center justify-between">
                   <span>Rider Partner</span>
-                  <Navigation className="w-3 h-3 text-emerald-400" />
+                  <Navigation className="w-3 h-3 text-emerald-600" />
                 </div>
-                <span className="text-[10px] text-slate-400 block mt-0.5 truncate">Ather 450X • 14 Runs</span>
+                <span className="text-[10px] text-slate-500 block mt-0.5 truncate">Ather 450X • 14 Runs</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleDemoLogin('fleet.ncr@markatverse.com', 'fleet', 'NCR Green Logistics Hub', '/delivery/fleet')}
-                className="p-2.5 rounded-xl bg-slate-950/80 hover:bg-teal-950/40 border border-teal-500/20 hover:border-teal-500/60 text-left transition-all group"
+                className="p-2.5 rounded-xl bg-slate-50 hover:bg-teal-50/60 border border-slate-200 hover:border-teal-300 text-left transition-all group"
               >
-                <div className="text-[11px] font-bold text-white group-hover:text-teal-300 flex items-center justify-between">
+                <div className="text-[11px] font-bold text-slate-800 group-hover:text-teal-700 flex items-center justify-between">
                   <span>Fleet Manager</span>
-                  <Truck className="w-3 h-3 text-teal-400" />
+                  <Truck className="w-3 h-3 text-teal-600" />
                 </div>
-                <span className="text-[10px] text-slate-400 block mt-0.5 truncate">EV & Bike Hub (42 vehicles)</span>
+                <span className="text-[10px] text-slate-500 block mt-0.5 truncate">EV & Bike Hub (42 vehicles)</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleDemoLogin('admin@markatverse.com', 'ADMIN', 'Delivery Ops Admin', '/delivery/admin')}
-                className="p-2.5 rounded-xl bg-slate-950/80 hover:bg-purple-950/40 border border-purple-500/20 hover:border-purple-500/60 text-left transition-all group"
+                className="p-2.5 rounded-xl bg-slate-50 hover:bg-purple-50/60 border border-slate-200 hover:border-purple-300 text-left transition-all group"
               >
-                <div className="text-[11px] font-bold text-white group-hover:text-purple-300 flex items-center justify-between">
+                <div className="text-[11px] font-bold text-slate-800 group-hover:text-purple-700 flex items-center justify-between">
                   <span>Ops Admin 🛡️</span>
-                  <ShieldCheck className="w-3 h-3 text-purple-400" />
+                  <ShieldCheck className="w-3 h-3 text-purple-600" />
                 </div>
-                <span className="text-[10px] text-slate-400 block mt-0.5 truncate">Full Command & Re-route</span>
+                <span className="text-[10px] text-slate-500 block mt-0.5 truncate">Full Command & Re-route</span>
               </button>
             </div>
           </div>
 
           {/* Form Card */}
-          <div className="bg-slate-900/90 border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl relative">
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-sm relative">
             
             {/* Mode Switcher Tabs */}
-            <div className="flex rounded-xl bg-slate-950 p-1 mb-6 border border-white/5">
+            <div className="flex rounded-xl bg-slate-100 p-1 mb-6 border border-slate-200">
               <button
                 type="button"
                 onClick={() => { setMode('signin'); clearMessages(); }}
                 className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                  mode === 'signin' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                  mode === 'signin' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 Sign In
@@ -277,7 +277,7 @@ function DeliveryLoginContent() {
                 type="button"
                 onClick={() => { setMode('register'); clearMessages(); }}
                 className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                  mode === 'register' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                  mode === 'register' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 New Partner Onboarding
@@ -286,16 +286,16 @@ function DeliveryLoginContent() {
 
             {/* Error Message */}
             {error && (
-              <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2 mb-4">
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2 mb-4">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                 <span>{error}</span>
               </div>
             )}
 
             {/* Success Message */}
             {success && (
-              <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2 mb-4">
-                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+              <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs flex items-center gap-2 mb-4">
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
                 <span>{success}</span>
               </div>
             )}
@@ -304,7 +304,7 @@ function DeliveryLoginContent() {
             {mode === 'signin' ? (
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div>
-                  <label className="text-xs font-bold text-slate-300 mb-1.5 block">Email Address or Mobile Number</label>
+                  <label className="text-xs font-bold text-slate-700 mb-1.5 block">Email Address or Mobile Number</label>
                   <div className="relative">
                     <input
                       type="text"
@@ -312,16 +312,16 @@ function DeliveryLoginContent() {
                       placeholder="rider@markatverse.com or +91 98765 43210"
                       value={identifier}
                       onChange={(e) => setIdentifier(e.target.value)}
-                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 pl-10 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-500 transition-colors"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 pl-10 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
                     />
-                    <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                   </div>
                 </div>
 
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
-                    <label className="text-xs font-bold text-slate-300">Password</label>
-                    <Link href="/terms" className="text-[11px] text-emerald-400 hover:underline">
+                    <label className="text-xs font-bold text-slate-700">Password</label>
+                    <Link href="/terms" className="text-[11px] text-emerald-600 hover:underline">
                       Help &amp; Support
                     </Link>
                   </div>
@@ -332,13 +332,13 @@ function DeliveryLoginContent() {
                       placeholder="••••••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 pl-10 pr-10 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-500 transition-colors"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 pl-10 pr-10 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
                     />
-                    <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="text-slate-500 hover:text-slate-300 absolute right-3.5 top-3.5"
+                      className="text-slate-400 hover:text-slate-600 absolute right-3.5 top-3.5"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -348,7 +348,7 @@ function DeliveryLoginContent() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl text-sm transition-all shadow-[0_0_20px_rgba(16,185,129,0.35)] flex items-center justify-center gap-2 mt-2"
+                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-emerald-600/25 flex items-center justify-center gap-2 mt-2"
                 >
                   {isLoading ? <span>Verifying Credentials...</span> : <span>Sign In to Delivery Console</span>}
                   <ArrowRight className="w-4 h-4" />
@@ -359,36 +359,36 @@ function DeliveryLoginContent() {
               <form onSubmit={handleRegister} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-bold text-slate-300 mb-1 block">Full Name *</label>
+                    <label className="text-xs font-bold text-slate-700 mb-1 block">Full Name *</label>
                     <input
                       type="text"
                       required
                       placeholder="e.g. Vikas Kushwaha"
                       value={registerData.fullName}
                       onChange={(e) => setRegisterData({ ...registerData, fullName: e.target.value })}
-                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-slate-300 mb-1 block">Mobile Number (WhatsApp) *</label>
+                    <label className="text-xs font-bold text-slate-700 mb-1 block">Mobile Number (WhatsApp) *</label>
                     <input
                       type="tel"
                       required
                       placeholder="+91 98765 43210"
                       value={registerData.phone}
                       onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
-                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-bold text-slate-300 mb-1 block">Vehicle Type *</label>
+                    <label className="text-xs font-bold text-slate-700 mb-1 block">Vehicle Type *</label>
                     <select
                       value={registerData.vehicleType}
                       onChange={(e) => setRegisterData({ ...registerData, vehicleType: e.target.value })}
-                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white"
                     >
                       <option value="EV_2_WHEELER">Electric Scooter (EV Bike)</option>
                       <option value="PETROL_BIKE">Petrol Motorcycle</option>
@@ -397,70 +397,70 @@ function DeliveryLoginContent() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-slate-300 mb-1 block">Vehicle Reg. Number *</label>
+                    <label className="text-xs font-bold text-slate-700 mb-1 block">Vehicle Reg. Number *</label>
                     <input
                       type="text"
                       required
                       placeholder="e.g. UP16-CZ-8821"
                       value={registerData.vehicleRegNumber}
                       onChange={(e) => setRegisterData({ ...registerData, vehicleRegNumber: e.target.value })}
-                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-bold text-slate-300 mb-1 block">Driving License (DL) Number</label>
+                    <label className="text-xs font-bold text-slate-700 mb-1 block">Driving License (DL) Number</label>
                     <input
                       type="text"
                       placeholder="e.g. DL-04202100889"
                       value={registerData.drivingLicenseNumber}
                       onChange={(e) => setRegisterData({ ...registerData, drivingLicenseNumber: e.target.value })}
-                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-slate-300 mb-1 block">Daily Payout UPI ID *</label>
+                    <label className="text-xs font-bold text-slate-700 mb-1 block">Daily Payout UPI ID *</label>
                     <input
                       type="text"
                       required
                       placeholder="rider@oksbi / 9876543210@paytm"
                       value={registerData.upiId}
                       onChange={(e) => setRegisterData({ ...registerData, upiId: e.target.value })}
-                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-300 mb-1 block">Email Address *</label>
+                  <label className="text-xs font-bold text-slate-700 mb-1 block">Email Address *</label>
                   <input
                     type="email"
                     required
                     placeholder="rider@example.com"
                     value={registerData.email}
                     onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                    className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-300 mb-1 block">Create Account Password *</label>
+                  <label className="text-xs font-bold text-slate-700 mb-1 block">Create Account Password *</label>
                   <input
                     type="password"
                     required
                     placeholder="Min. 6 characters"
                     value={registerData.password}
                     onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                    className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl text-sm transition-all shadow-[0_0_20px_rgba(16,185,129,0.35)] flex items-center justify-center gap-2 mt-4"
+                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-emerald-600/25 flex items-center justify-center gap-2 mt-4"
                 >
                   {isLoading ? <span>Submitting Onboarding Form...</span> : <span>Complete Partner Registration</span>}
                   <ArrowRight className="w-4 h-4" />
@@ -472,11 +472,11 @@ function DeliveryLoginContent() {
           {/* Compliance & Trust Footnote */}
           <div className="flex items-center justify-center gap-6 text-[11px] text-slate-500 pt-2">
             <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
               100% Direct UPI Daily Earnings
             </span>
             <span className="flex items-center gap-1.5">
-              <BatteryCharging className="w-3.5 h-3.5 text-teal-400" />
+              <BatteryCharging className="w-3.5 h-3.5 text-teal-600" />
               EV Battery Swap Station Network
             </span>
           </div>
@@ -485,7 +485,7 @@ function DeliveryLoginContent() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 py-4 text-center text-xs text-slate-500">
+      <footer className="border-t border-slate-200 py-4 text-center text-xs text-slate-500 bg-white">
         © {new Date().getFullYear()} MarkatVerse Logistics Technologies Pvt Ltd. All rights reserved.
       </footer>
     </div>
@@ -496,7 +496,7 @@ function DeliveryLoginContent() {
 
 export default function DeliveryLoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center"><div className="w-10 h-10 border-4 border-slate-700 border-t-emerald-500 rounded-full animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="w-10 h-10 border-4 border-slate-300 border-t-emerald-500 rounded-full animate-spin" /></div>}>
       <DeliveryLoginContent />
     </Suspense>
   );

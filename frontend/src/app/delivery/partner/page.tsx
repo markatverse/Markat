@@ -120,28 +120,28 @@ export default function DeliveryPartnerPortalPage() {
     <div className="space-y-8 animate-in fade-in duration-300">
       
       {/* Rider Header & Online Toggle */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/60 p-6 rounded-3xl border border-white/10">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-3xl border border-slate-200/90 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-black text-white">Rider Partner Portal</h1>
-            <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900">Rider Partner Portal</h1>
+            <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
               Active Courier App
             </span>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Courier: <strong className="text-white">{user?.name || 'Vikas Kushwaha'}</strong> • Partner ID: <strong className="text-white font-mono">RID-8421</strong> • Vehicle: <strong>Ather 450X EV (UP16-CZ-8821)</strong>
+          <p className="text-xs text-slate-500 mt-1">
+            Courier: <strong className="text-slate-800">{user?.name || 'Vikas Kushwaha'}</strong> • Partner ID: <strong className="text-slate-800 font-mono">RID-8421</strong> • Vehicle: <strong className="text-slate-800">Ather 450X EV (UP16-CZ-8821)</strong>
           </p>
         </div>
 
         {/* Online / Offline Availability Switch */}
-        <div className="flex items-center gap-3 bg-slate-950 p-2.5 rounded-2xl border border-white/10">
-          <span className={`text-xs font-bold ${isOnline ? 'text-emerald-400' : 'text-slate-500'}`}>
+        <div className="flex items-center gap-3 bg-slate-100 p-2.5 rounded-2xl border border-slate-200">
+          <span className={`text-xs font-bold ${isOnline ? 'text-emerald-700' : 'text-slate-500'}`}>
             {isOnline ? 'ONLINE (Ready for Runs)' : 'OFFLINE'}
           </span>
           <button
             onClick={() => setIsOnline(!isOnline)}
             className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors ${
-              isOnline ? 'bg-emerald-600 justify-end' : 'bg-slate-700 justify-start'
+              isOnline ? 'bg-emerald-600 justify-end' : 'bg-slate-300 justify-start'
             }`}
             title="Toggle delivery availability"
           >
@@ -151,93 +151,93 @@ export default function DeliveryPartnerPortalPage() {
       </div>
 
       {payoutSuccessMsg && (
-        <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-xs font-bold text-emerald-300 flex items-center gap-2 animate-in fade-in">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs font-bold text-emerald-700 flex items-center gap-2 animate-in fade-in">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{payoutSuccessMsg}</span>
         </div>
       )}
 
       {/* Today's Earnings Strip */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-white/5 relative group">
-          <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Today's Earnings</span>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs relative group">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1.5">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Today's Earnings</span>
             <button
               onClick={handleRequestPayout}
               disabled={payoutRequested || todayEarnings === 0}
-              className="text-[9px] font-bold text-emerald-400 hover:text-white bg-emerald-500/10 hover:bg-emerald-600 px-2.5 py-1 rounded-full transition-colors"
+              className="text-[9px] font-bold text-emerald-700 hover:text-white bg-emerald-50 hover:bg-emerald-600 border border-emerald-200 px-2 py-0.5 rounded-full transition-colors w-fit"
             >
               Instant UPI Payout
             </button>
           </div>
-          <div className="text-2xl font-black text-emerald-400 mt-1 font-mono">₹{todayEarnings}</div>
-          <span className="text-[11px] text-slate-500 mt-0.5 block">{completedRuns} completed trips today</span>
+          <div className="text-xl sm:text-2xl font-black text-emerald-600 mt-1 font-mono">₹{todayEarnings}</div>
+          <span className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5 block">{completedRuns} trips today</span>
         </div>
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-white/5">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Customer Tips</span>
-          <div className="text-2xl font-black text-teal-400 mt-1 font-mono">₹{Math.round(todayEarnings * 0.16)}</div>
-          <span className="text-[11px] text-slate-500 mt-0.5 block">100% credited directly to rider</span>
+        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Customer Tips</span>
+          <div className="text-xl sm:text-2xl font-black text-teal-600 mt-1 font-mono">₹{Math.round(todayEarnings * 0.16)}</div>
+          <span className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5 block">100% to rider</span>
         </div>
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-white/5">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Distance</span>
-          <div className="text-2xl font-black text-white mt-1 font-mono">{(completedRuns * 2.7).toFixed(1)} km</div>
-          <span className="text-[11px] text-slate-500 mt-0.5 block">Eco-friendly EV Fleet</span>
+        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Total Distance</span>
+          <div className="text-xl sm:text-2xl font-black text-slate-900 mt-1 font-mono">{(completedRuns * 2.7).toFixed(1)} km</div>
+          <span className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5 block">Eco EV Fleet</span>
         </div>
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-white/5">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Rider Rating</span>
-          <div className="text-2xl font-black text-amber-400 mt-1 font-mono">4.95 ★</div>
-          <span className="text-[11px] text-emerald-400 mt-0.5 block">Top Tier Courier</span>
+        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Rider Rating</span>
+          <div className="text-xl sm:text-2xl font-black text-amber-500 mt-1 font-mono">4.95 ★</div>
+          <span className="text-[10px] sm:text-[11px] text-emerald-600 mt-0.5 block font-bold">Top Tier Courier</span>
         </div>
       </div>
 
       {/* Main Delivery Run Lifecycle Card */}
-      <div className="bg-slate-900/80 rounded-3xl border border-emerald-500/30 p-6 lg:p-8 space-y-6 shadow-2xl relative overflow-hidden">
+      <div className="bg-white rounded-3xl border border-slate-200/90 p-6 lg:p-8 space-y-6 shadow-sm relative overflow-hidden">
         
         {/* Top Header of the Run */}
-        <div className="flex flex-wrap justify-between items-center gap-3 pb-5 border-b border-white/10">
+        <div className="flex flex-wrap justify-between items-center gap-3 pb-5 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
-              <Bike className="w-6 h-6 animate-pulse" />
+            <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+              <Bike className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
+                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                   {stage === 'ASSIGNED' && 'Stage 1: Pickup from Store'}
                   {stage === 'PICKED_UP' && 'Stage 2: Out for Delivery'}
                   {stage === 'ARRIVED' && 'Stage 3: Customer Handover & OTP'}
                   {stage === 'DELIVERED' && 'Delivered & Settled'}
                 </span>
-                <span className="text-xs font-mono text-slate-400 font-bold">{activeTrip.distanceKm} km trip</span>
+                <span className="text-xs font-mono text-slate-500 font-bold">{activeTrip.distanceKm} km trip</span>
               </div>
-              <h3 className="text-xl font-black text-white mt-1">Order {activeTrip.orderId}</h3>
+              <h3 className="text-xl font-black text-slate-900 mt-1">Order {activeTrip.orderId}</h3>
             </div>
           </div>
 
           <div className="text-right">
-            <span className="text-xs text-slate-400 block font-medium">Trip Pay + Tip</span>
-            <span className="text-2xl font-black text-emerald-400 font-mono">
+            <span className="text-xs text-slate-500 block font-medium">Trip Pay + Tip</span>
+            <span className="text-2xl font-black text-emerald-600 font-mono">
               ₹{activeTrip.payoutAmount + activeTrip.customerTip}
             </span>
-            <span className="text-[10px] text-slate-400 block font-mono">
+            <span className="text-[10px] text-slate-500 block font-mono">
               (₹{activeTrip.payoutAmount} fare + ₹{activeTrip.customerTip} tip)
             </span>
           </div>
         </div>
 
         {/* 3-Step Visual Progress Bar */}
-        <div className="bg-slate-950/80 p-4 rounded-2xl border border-white/5">
+        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
           <div className="grid grid-cols-3 gap-2 text-center text-xs">
             {/* Step 1 */}
             <div className={`p-3 rounded-xl border transition-all flex flex-col items-center gap-1 ${
               stage === 'ASSIGNED'
-                ? 'bg-blue-600/20 border-blue-500/40 text-blue-300'
-                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                ? 'bg-blue-50 border-blue-200 text-blue-700 shadow-xs'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-700'
             }`}>
               <div className="flex items-center gap-1.5 font-bold">
                 {stage !== 'ASSIGNED' ? <Check className="w-3.5 h-3.5" /> : <Store className="w-3.5 h-3.5" />}
                 <span>1. Store Pickup</span>
               </div>
-              <span className="text-[10px] text-slate-400">
+              <span className="text-[10px] text-slate-500">
                 {stage === 'ASSIGNED' ? 'Pending pickup' : 'Picked up'}
               </span>
             </div>
@@ -245,10 +245,10 @@ export default function DeliveryPartnerPortalPage() {
             {/* Step 2 */}
             <div className={`p-3 rounded-xl border transition-all flex flex-col items-center gap-1 ${
               stage === 'PICKED_UP'
-                ? 'bg-amber-600/20 border-amber-500/40 text-amber-300'
+                ? 'bg-amber-50 border-amber-200 text-amber-700 shadow-xs'
                 : stage === 'ARRIVED' || stage === 'DELIVERED'
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                : 'bg-slate-900/40 border-white/5 text-slate-500'
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                : 'bg-white border-slate-200 text-slate-400'
             }`}>
               <div className="flex items-center gap-1.5 font-bold">
                 {stage === 'ARRIVED' || stage === 'DELIVERED' ? (
@@ -258,7 +258,7 @@ export default function DeliveryPartnerPortalPage() {
                 )}
                 <span>2. In Transit</span>
               </div>
-              <span className="text-[10px] text-slate-400">
+              <span className="text-[10px] text-slate-500">
                 {stage === 'ASSIGNED' ? 'Waiting pickup' : stage === 'PICKED_UP' ? 'En-route to customer' : 'Arrived at door'}
               </span>
             </div>
@@ -266,16 +266,16 @@ export default function DeliveryPartnerPortalPage() {
             {/* Step 3 */}
             <div className={`p-3 rounded-xl border transition-all flex flex-col items-center gap-1 ${
               stage === 'ARRIVED'
-                ? 'bg-emerald-600/20 border-emerald-500/40 text-emerald-300'
+                ? 'bg-emerald-100 border-emerald-300 text-emerald-800 shadow-xs'
                 : stage === 'DELIVERED'
-                ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300'
-                : 'bg-slate-900/40 border-white/5 text-slate-500'
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                : 'bg-white border-slate-200 text-slate-400'
             }`}>
               <div className="flex items-center gap-1.5 font-bold">
-                {stage === 'DELIVERED' ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+                {stage === 'DELIVERED' ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> : <ShieldCheck className="w-3.5 h-3.5" />}
                 <span>3. Delivery &amp; OTP</span>
               </div>
-              <span className="text-[10px] text-slate-400">
+              <span className="text-[10px] text-slate-500">
                 {stage === 'DELIVERED' ? 'Verified & Paid' : '4-digit customer code'}
               </span>
             </div>
@@ -284,20 +284,20 @@ export default function DeliveryPartnerPortalPage() {
 
         {/* STAGE: DELIVERED SUCCESS STATE */}
         {stage === 'DELIVERED' ? (
-          <div className="p-8 bg-emerald-500/10 rounded-2xl border border-emerald-500/30 text-center space-y-4 animate-in zoom-in-95">
-            <div className="w-14 h-14 rounded-full bg-emerald-500 text-black flex items-center justify-center mx-auto shadow-xl shadow-emerald-500/30">
+          <div className="p-8 bg-emerald-50 rounded-2xl border border-emerald-200 text-center space-y-4 animate-in zoom-in-95">
+            <div className="w-14 h-14 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto shadow-lg shadow-emerald-600/30">
               <Check className="w-8 h-8 stroke-[3]" />
             </div>
             <div>
-              <h4 className="text-2xl font-black text-white">Order {activeTrip.orderId} Delivered!</h4>
-              <p className="text-xs text-slate-300 max-w-md mx-auto mt-1">
+              <h4 className="text-2xl font-black text-slate-900">Order {activeTrip.orderId} Delivered!</h4>
+              <p className="text-xs text-slate-600 max-w-md mx-auto mt-1">
                 OTP verified successfully. ₹{activeTrip.payoutAmount + activeTrip.customerTip} has been immediately credited to your rider balance.
               </p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <button
                 onClick={handleNextTrip}
-                className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] inline-flex items-center gap-2"
+                className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-emerald-600/25 inline-flex items-center gap-2"
               >
                 <span>Accept Next Assigned Delivery</span>
                 <ArrowRight className="w-4 h-4" />
@@ -313,51 +313,51 @@ export default function DeliveryPartnerPortalPage() {
               {/* STAGE 1 HIGHLIGHT: Store Pickup Details */}
               <div className={`p-5 rounded-2xl border transition-all ${
                 stage === 'ASSIGNED' 
-                  ? 'bg-blue-950/40 border-blue-500/40 shadow-lg' 
-                  : 'bg-slate-950/60 border-white/5 opacity-80'
+                  ? 'bg-blue-50/60 border-blue-200 shadow-xs' 
+                  : 'bg-slate-50 border-slate-200/70 opacity-90'
               }`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
                       <Store className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-[10px] font-black uppercase text-blue-400 tracking-wider block">
+                      <span className="text-[10px] font-black uppercase text-blue-700 tracking-wider block">
                         Step 1: Merchant Pickup Location
                       </span>
-                      <h4 className="text-base font-bold text-white mt-0.5">{activeTrip.merchantName}</h4>
-                      <p className="text-xs text-slate-400 mt-0.5">{activeTrip.merchantAddress}</p>
+                      <h4 className="text-base font-bold text-slate-900 mt-0.5">{activeTrip.merchantName}</h4>
+                      <p className="text-xs text-slate-500 mt-0.5">{activeTrip.merchantAddress}</p>
                     </div>
                   </div>
 
                   <a 
                     href={`tel:${activeTrip.merchantPhone}`}
-                    className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 text-xs font-semibold flex items-center gap-1 shrink-0"
+                    className="px-3 py-1.5 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 border border-blue-200 text-xs font-semibold flex items-center gap-1 shrink-0"
                   >
                     <Phone className="w-3.5 h-3.5" />
                     <span>Call Store</span>
                   </a>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-white/5 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
+                <div className="mt-4 pt-3 border-t border-slate-200/80 flex flex-wrap items-center justify-between text-xs text-slate-600 gap-2">
                   <div>
-                    <strong className="text-slate-200">Package Items:</strong> {activeTrip.orderItems}
+                    <strong className="text-slate-800">Package Items:</strong> {activeTrip.orderItems}
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-200 text-slate-700 font-bold">
                     {activeTrip.itemsCount} units packed
                   </span>
                 </div>
 
                 {stage === 'ASSIGNED' && (
-                  <div className="mt-4 pt-3 border-t border-blue-500/20">
+                  <div className="mt-4 pt-3 border-t border-blue-200">
                     <button
                       onClick={handleConfirmPickup}
-                      className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)]"
+                      className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-600/25"
                     >
                       <PackageCheck className="w-4 h-4" />
                       <span>Confirm Order Picked Up from Store</span>
                     </button>
-                    <p className="text-[10px] text-slate-400 text-center mt-2">
+                    <p className="text-[10px] text-slate-500 text-center mt-2">
                       Click once you receive and verify the sealed order package from the merchant.
                     </p>
                   </div>
@@ -367,20 +367,20 @@ export default function DeliveryPartnerPortalPage() {
               {/* STAGE 2 HIGHLIGHT: Customer Destination & Live Routing */}
               <div className={`p-5 rounded-2xl border transition-all ${
                 stage === 'PICKED_UP' || stage === 'ARRIVED'
-                  ? 'bg-amber-950/30 border-amber-500/40 shadow-lg' 
-                  : 'bg-slate-950/60 border-white/5 opacity-70'
+                  ? 'bg-amber-50/60 border-amber-200 shadow-xs' 
+                  : 'bg-slate-50 border-slate-200/70 opacity-90'
               }`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
                       <MapPin className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-[10px] font-black uppercase text-emerald-400 tracking-wider block">
+                      <span className="text-[10px] font-black uppercase text-emerald-700 tracking-wider block">
                         Step 2: Customer Delivery Address
                       </span>
-                      <h4 className="text-base font-bold text-white mt-0.5">{activeTrip.customerName}</h4>
-                      <p className="text-xs text-slate-300 mt-0.5">{activeTrip.customerAddress}</p>
+                      <h4 className="text-base font-bold text-slate-900 mt-0.5">{activeTrip.customerName}</h4>
+                      <p className="text-xs text-slate-600 mt-0.5">{activeTrip.customerAddress}</p>
                     </div>
                   </div>
                 </div>
@@ -389,32 +389,32 @@ export default function DeliveryPartnerPortalPage() {
                 <div className="flex flex-wrap items-center gap-2.5 mt-4">
                   <a 
                     href={`tel:${activeTrip.customerPhone}`}
-                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5"
+                    className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 border border-slate-200"
                   >
-                    <Phone className="w-3.5 h-3.5 text-emerald-400" />
+                    <Phone className="w-3.5 h-3.5 text-emerald-600" />
                     <span>Call Customer ({activeTrip.customerPhone})</span>
                   </a>
                   <a 
                     href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(activeTrip.customerAddress)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5"
+                    className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold flex items-center gap-1.5"
                   >
-                    <Navigation className="w-3.5 h-3.5 text-emerald-400" />
+                    <Navigation className="w-3.5 h-3.5 text-emerald-600" />
                     <span>Turn-by-Turn GPS Map</span>
                   </a>
                 </div>
 
                 {stage === 'PICKED_UP' && (
-                  <div className="mt-4 pt-3 border-t border-amber-500/20">
+                  <div className="mt-4 pt-3 border-t border-amber-200">
                     <button
                       onClick={handleArrivedAtCustomer}
-                      className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-[0_0_15px_rgba(217,119,6,0.3)]"
+                      className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-amber-600/25"
                     >
                       <MapPin className="w-4 h-4" />
                       <span>I Have Arrived at Customer Doorstep</span>
                     </button>
-                    <p className="text-[10px] text-slate-400 text-center mt-2">
+                    <p className="text-[10px] text-slate-500 text-center mt-2">
                       Notify customer and prepare for 4-digit OTP handover.
                     </p>
                   </div>
@@ -424,28 +424,28 @@ export default function DeliveryPartnerPortalPage() {
             </div>
 
             {/* Right 5 Columns: Stage 3 OTP Verification Action Box */}
-            <div className="lg:col-span-5 bg-slate-950/80 p-6 rounded-2xl border border-white/10 space-y-4">
+            <div className="lg:col-span-5 bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                <h4 className="text-sm font-black uppercase tracking-wider text-white">
+                <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                <h4 className="text-sm font-black uppercase tracking-wider text-slate-900">
                   Step 3: Secure Delivery OTP
                 </h4>
               </div>
               
-              <p className="text-xs text-slate-400 leading-relaxed">
-                When you hand over the order to <strong>{activeTrip.customerName}</strong>, ask them for the 4-digit drop-off verification code shown on their MarkatVerse app or SMS.
+              <p className="text-xs text-slate-600 leading-relaxed">
+                When you hand over the order to <strong className="text-slate-900">{activeTrip.customerName}</strong>, ask them for the 4-digit drop-off verification code shown on their MarkatVerse app or SMS.
               </p>
 
               {otpError && (
-                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                   <span>{otpError}</span>
                 </div>
               )}
 
               <form onSubmit={handleVerifyOtp} className="space-y-4 pt-2">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                  <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block mb-1.5">
                     Customer 4-Digit Code
                   </label>
                   <input
@@ -458,11 +458,11 @@ export default function DeliveryPartnerPortalPage() {
                       setOtpError(null);
                     }}
                     disabled={stage !== 'ARRIVED' && stage !== 'PICKED_UP'}
-                    className="w-full bg-slate-900 border border-white/15 rounded-xl px-4 py-3 text-2xl font-mono font-black tracking-widest text-center text-white focus:outline-none focus:border-emerald-500 disabled:opacity-50"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-2xl font-mono font-black tracking-widest text-center text-slate-900 focus:outline-none focus:border-emerald-500 disabled:opacity-50 shadow-xs"
                   />
-                  <div className="text-[11px] text-slate-400 text-center mt-2 flex items-center justify-center gap-1.5">
+                  <div className="text-[11px] text-slate-500 text-center mt-2 flex items-center justify-center gap-1.5">
                     <span>Demo test OTP:</span>
-                    <span className="font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                    <span className="font-mono text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                       {activeTrip.expectedOtp}
                     </span>
                     <span className="text-slate-500">(or 1234)</span>
@@ -472,7 +472,7 @@ export default function DeliveryPartnerPortalPage() {
                 <button
                   type="submit"
                   disabled={!isOnline || otpInput.length < 4}
-                  className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+                  className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-600/25"
                 >
                   <ShieldCheck className="w-4 h-4" />
                   <span>Verify OTP &amp; Complete Delivery</span>
@@ -480,31 +480,31 @@ export default function DeliveryPartnerPortalPage() {
               </form>
 
               {/* Developer / Demo Quick Stage Jumper */}
-              <div className="pt-4 border-t border-white/5">
+              <div className="pt-4 border-t border-slate-200">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 block mb-2">
                   Interactive Stage Switcher:
                 </span>
                 <div className="grid grid-cols-3 gap-1.5">
                   <button 
                     onClick={() => setStage('ASSIGNED')}
-                    className={`py-1 text-[10px] font-bold rounded border ${
-                      stage === 'ASSIGNED' ? 'bg-blue-600 text-white border-blue-400' : 'bg-slate-900 text-slate-400 border-white/10 hover:text-white'
+                    className={`py-1 text-[10px] font-bold rounded border transition-colors ${
+                      stage === 'ASSIGNED' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                     }`}
                   >
                     1. Pickup
                   </button>
                   <button 
                     onClick={() => setStage('PICKED_UP')}
-                    className={`py-1 text-[10px] font-bold rounded border ${
-                      stage === 'PICKED_UP' ? 'bg-amber-600 text-white border-amber-400' : 'bg-slate-900 text-slate-400 border-white/10 hover:text-white'
+                    className={`py-1 text-[10px] font-bold rounded border transition-colors ${
+                      stage === 'PICKED_UP' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                     }`}
                   >
                     2. In Transit
                   </button>
                   <button 
                     onClick={() => setStage('ARRIVED')}
-                    className={`py-1 text-[10px] font-bold rounded border ${
-                      stage === 'ARRIVED' ? 'bg-emerald-600 text-white border-emerald-400' : 'bg-slate-900 text-slate-400 border-white/10 hover:text-white'
+                    className={`py-1 text-[10px] font-bold rounded border transition-colors ${
+                      stage === 'ARRIVED' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                     }`}
                   >
                     3. At Door
