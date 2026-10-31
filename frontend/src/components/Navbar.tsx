@@ -448,7 +448,7 @@ export default function Navbar() {
             </Link>
 
             {isLoading ? (
-              <div className="flex flex-col items-center gap-1 ml-2 opacity-50">
+              <div className="hidden md:flex flex-col items-center gap-1 ml-2 opacity-50">
                 <div className="w-5 h-5 bg-slate-200 rounded animate-pulse"></div>
                 <div className="hidden lg:block w-16 h-3 bg-slate-200 rounded animate-pulse mt-1"></div>
               </div>
@@ -479,13 +479,13 @@ export default function Navbar() {
         {!isAdmin && (
           <>
             {isLoading ? (
-              <div className="flex flex-col items-center gap-1 ml-2 opacity-50">
+              <div className="hidden md:flex flex-col items-center gap-1 ml-2 opacity-50">
                 <div className="w-5 h-5 bg-slate-200 rounded animate-pulse"></div>
                 <div className="w-6 h-3 bg-slate-200 rounded animate-pulse mt-1"></div>
               </div>
             ) : user && (
               <>
-                <Link href="/cart" className="flex flex-col items-center justify-center h-11 px-2.5 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition-all relative group">
+                <Link href="/cart" className="hidden md:flex flex-col items-center justify-center h-11 px-2.5 rounded-xl hover:bg-slate-100 hover:text-blue-700 transition-all relative group">
                   {cartItemCount > 0 && (
                     <div className="absolute -top-1.5 -right-2 bg-amber-400 text-slate-900 font-bold text-[10px] py-[1px] px-1.5 rounded-full border border-white">{cartItemCount}</div>
                   )}
@@ -497,7 +497,7 @@ export default function Navbar() {
           </>
         )}
 
-        <div className="ml-1 pl-3 sm:pl-4 border-l border-slate-200 flex items-center">
+        <div className="hidden md:flex ml-1 pl-3 sm:pl-4 border-l border-slate-200 items-center">
           {isLoading ? (
             <div className="flex items-center gap-3 opacity-50">
               <div className="w-10 h-10 rounded-full bg-slate-200 animate-pulse"></div>
