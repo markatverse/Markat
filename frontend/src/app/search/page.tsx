@@ -8,7 +8,7 @@ import AdvertisementWidget from '@/components/AdvertisementWidget';
 import MascotState from '@/components/MascotState';
 import { useState, useEffect, Suspense, useMemo } from 'react';
 import { SlidersHorizontal, MapPin } from 'lucide-react';
-import { isServiceProduct, matchesProductSearch } from '@/utils/productSearch';
+import { isServiceProduct, matchesProductSearch, isServiceCategory } from '@/utils/productSearch';
 import { fastFetch } from '@/utils/api';
 
 function matchCategory(pCategory: string | null = '', targetCategory: string | null = '', pSubcategory: string | null = '', pName: string | null = '') {
@@ -94,36 +94,6 @@ function matchCategory(pCategory: string | null = '', targetCategory: string | n
 }
 
 
-export const isServiceCategory = (catName: string): boolean => {
-  if (!catName) return false;
-  const lower = catName.toLowerCase().trim();
-  return (
-    lower === 'services' ||
-    lower === 'salon & spa' ||
-    lower === 'salon, spa & beauty' ||
-    lower === 'salon & parlour' ||
-    lower === 'salon' ||
-    lower === 'spa' ||
-    lower === 'home services' ||
-    lower === 'transport' ||
-    lower === 'transport & logistics' ||
-    lower === 'transport services' ||
-    lower === 'mobility & freight' ||
-    lower === 'events & planning' ||
-    lower === 'top organizers' ||
-    lower === 'organizers' ||
-    lower === 'event planner' ||
-    lower === 'car wash' ||
-    lower === 'car wash & detailing' ||
-    lower === 'cleaning' ||
-    lower === 'repair' ||
-    lower === 'electrician' ||
-    lower === 'plumber' ||
-    lower === 'carpenter' ||
-    lower === 'painter' ||
-    lower.includes('service')
-  );
-};
 
 const SERVICE_CATEGORIES = [
   'Services',
@@ -431,7 +401,10 @@ function SearchContent() {
     }
 
     if (selectedCategory && !list.includes(selectedCategory)) {
-      list.unshift(selectedCategory);
+      const isServ = isServiceCategory(selectedCategory);
+      if ((productType === 'services' && isServ) || (productType === 'products' && !isServ) || productType === 'all') {
+        list.unshift(selectedCategory);
+      }
     }
 
     return list;
@@ -494,7 +467,7 @@ function SearchContent() {
     <div className="max-w-[1400px] mx-auto p-5 min-h-[calc(100vh-80px)] bg-slate-50 flex flex-col gap-6">
       
       {/* Horizontal Filters Bar */}
-      <div className="flex items-center gap-3 overflow-x-auto hide-scrollbar py-3 px-1 border-b border-slate-200/50 bg-white shadow-sm rounded-2xl w-full">
+      <div className="flex items-center gap-3 overflow-x-auto no-scrollbar hide-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-3 px-1 border-b border-slate-200/50 bg-white shadow-sm rounded-2xl w-full">
         <div className="pl-4 pr-2 flex items-center text-slate-400 shrink-0 border-r border-slate-200 mr-1">
           <SlidersHorizontal className="w-5 h-5" />
         </div>

@@ -146,6 +146,37 @@ export function isFuzzyMatch(target: string, query: string): boolean {
   return false;
 }
 
+export function isServiceCategory(catName: string | null | undefined): boolean {
+  if (!catName) return false;
+  const lower = catName.toLowerCase().trim();
+  return (
+    lower === 'services' ||
+    lower === 'salon & spa' ||
+    lower === 'salon, spa & beauty' ||
+    lower === 'salon & parlour' ||
+    lower === 'salon' ||
+    lower === 'spa' ||
+    lower === 'home services' ||
+    lower === 'transport' ||
+    lower === 'transport & logistics' ||
+    lower === 'transport services' ||
+    lower === 'mobility & freight' ||
+    lower === 'events & planning' ||
+    lower === 'top organizers' ||
+    lower === 'organizers' ||
+    lower === 'event planner' ||
+    lower === 'car wash' ||
+    lower === 'car wash & detailing' ||
+    lower === 'cleaning' ||
+    lower === 'repair' ||
+    lower === 'electrician' ||
+    lower === 'plumber' ||
+    lower === 'carpenter' ||
+    lower === 'painter' ||
+    lower.includes('service')
+  );
+}
+
 export function isServiceProduct(product?: (Product & { type?: string }) | null): boolean {
   if (!product) return false;
   

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useProducts } from '@/context/ProductContext';
-import { Store, BarChart3, Package, PlusCircle, ArrowLeft, Trash2, Edit2, CheckCircle2, CalendarClock, Settings, Menu, X, Users, TrendingUp, Ticket, Clock, Ban, Search, Phone, Mail, FileText, MapPin, ChevronDown, Activity, Scissors, User, UserPlus, Sparkles, Palette, Droplet, Briefcase, Eye, ShieldCheck, Utensils, UtensilsCrossed, Stethoscope, HeartPulse, ChefHat, MessageSquare, Lock, Check, Info, Bell, Key, PartyPopper, Car, Wrench, Wallet, FileSpreadsheet, QrCode } from 'lucide-react';
+import { Store, BarChart3, Package, PlusCircle, ArrowLeft, Trash2, Edit2, CheckCircle2, CalendarClock, Settings, Menu, X, Users, TrendingUp, Ticket, Clock, Ban, Search, Phone, Mail, FileText, MapPin, ChevronDown, Activity, Scissors, User, UserPlus, Sparkles, Palette, Droplet, Briefcase, Eye, ShieldCheck, Utensils, UtensilsCrossed, Stethoscope, HeartPulse, ChefHat, MessageSquare, Lock, Check, Info, Bell, Key, PartyPopper, Car, Wrench, Wallet, FileSpreadsheet, QrCode, Copy } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Suspense } from 'react';
 import StaffResourceManagementModal from '@/components/StaffResourceManagementModal';
@@ -3007,6 +3007,27 @@ function DashboardContent() {
                           className="text-[10px] font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded transition-colors"
                         >
                           All 7 Days
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const mon = (profileForm.businessHours && profileForm.businessHours.monday) || { open: '09:00', close: '18:00', closed: false };
+                            setProfileForm(p => ({
+                              ...p,
+                              businessHours: {
+                                ...(p.businessHours || {}),
+                                tuesday: { ...mon },
+                                wednesday: { ...mon },
+                                thursday: { ...mon },
+                                friday: { ...mon },
+                                saturday: { ...mon },
+                              }
+                            }));
+                          }}
+                          className="text-[10px] font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded transition-colors flex items-center gap-1"
+                        >
+                          <Copy className="w-2.5 h-2.5 text-slate-500" />
+                          Copy Mon
                         </button>
                       </div>
                     )}

@@ -4,8 +4,10 @@ import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import {  useRouter } from 'next/navigation';
 import {
-  MapPin, Clock, Users, Ticket, ChevronRight, Loader2, RefreshCw, CalendarClock, Sparkles, CheckCircle2, PhoneCall
+  MapPin, Clock, Users, Ticket, ChevronRight, Loader2, RefreshCw, CalendarClock, Sparkles, CheckCircle2, PhoneCall,
+  X, ShieldCheck, QrCode, Check, Copy, ExternalLink
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 // ─── Dynamic Walk-in Services ───────────────────────────────────────────────────
 
@@ -126,6 +128,10 @@ export default function SmartQueueWidget({ service }: { service: any }) {
   }
   const [selectedServices, setSelectedServices] = useState<ServiceItem[]>(availableServices.length > 0 ? [availableServices[0]] : []);
   const totalPrice = selectedServices.reduce((sum: number, s: ServiceItem) => sum + s.price, 0);
+  const effectiveShopName = service?.seller || service?.name || (selected ? (selected as any).shopName : 'Walk-in Service');
+  const sellerUpiId = service?.sellerUpiId || (service?.sellerPhone ? `${service.sellerPhone.replace(/\D/g, '')}@upi` : '');
+  const sellerUpiQr = service?.sellerUpiQr || '';
+  const dynamicQrUrl = sellerUpiId ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`upi://pay?pa=${sellerUpiId}&pn=${encodeURIComponent(effectiveShopName)}&am=${totalPrice}&cu=INR`)}` : '';
   const [result, setResult] = useState<JoinResult | null>(null);
   const [err, setErr] = useState('');
 
@@ -863,7 +869,7 @@ export default function SmartQueueWidget({ service }: { service: any }) {
       {/* ─────────────────────────────────────────────────────────────
           DIRECT-TO-SELLER UPI & QR PAYMENT MODAL
       ───────────────────────────────────────────────────────────── */}
-      {showDirectPayModal && (
+{showDirectPayModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-200 overflow-hidden text-center animate-in zoom-in-95 duration-150">
             

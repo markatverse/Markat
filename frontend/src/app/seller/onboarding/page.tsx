@@ -1193,6 +1193,30 @@ export default function SellerOnboarding() {
                   >
                     24/7
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const mon = (businessHours as any).monday;
+                      setBusinessHours({
+                        ...businessHours,
+                        tuesday: { ...mon },
+                        wednesday: { ...mon },
+                        thursday: { ...mon },
+                        friday: { ...mon },
+                        saturday: { ...mon },
+                      });
+                      toast.success(
+                        mon.closed 
+                          ? 'Copied Monday (Closed) to Tue�Sat' 
+                          : `Copied Monday hours (${timeFormat === '12' ? `${formatTo12Hour(mon.open)} � ${formatTo12Hour(mon.close)}` : `${mon.open} � ${mon.close}`}) to Tue�Sat`
+                      );
+                    }}
+                    title="Copy Monday hours to Tuesday�Saturday"
+                    className="px-2 py-1 rounded-lg bg-white border border-slate-200 hover:border-indigo-400 text-slate-700 font-bold text-[11px] shadow-2xs whitespace-nowrap cursor-pointer transition-all flex items-center gap-1"
+                  >
+                    <Copy className="w-3 h-3 text-slate-500" />
+                    Copy Mon
+                  </button>
                 </div>
 
                 {/* Right: 12h vs 24h Segmented Pill */}
