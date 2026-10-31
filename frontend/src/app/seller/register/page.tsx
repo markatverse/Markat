@@ -947,24 +947,41 @@ export default function SellerRegistrationPage() {
                       toast.error('Please enter a valid 10-digit mobile number for the admin KYC verification call');
                       return;
                     }
-                    if (hasGst) {
-                      if (!validateGst(gstNumber).valid) {
-                        toast.error(validateGst(gstNumber).message || 'Please enter a valid 15-character GSTIN');
+                    const isService = selectedType?.toLowerCase().includes('service') || selectedSector?.toLowerCase().includes('service') || businessModel?.toLowerCase().includes('service');
+                    if (!isService) {
+                      if (hasGst) {
+                        if (!validateGst(gstNumber).valid) {
+                          toast.error(validateGst(gstNumber).message || 'Please enter a valid 15-character GSTIN');
+                          return;
+                        }
+                      } else {
+                        if (!validatePan(panNumber).valid) {
+                          toast.error(validatePan(panNumber).message || 'Please enter a valid 10-character PAN number');
+                          return;
+                        }
+                      }
+                      if (!validateAadhaar(aadharNumber).valid) {
+                        toast.error(validateAadhaar(aadharNumber).message || 'Please enter a valid 12-digit Aadhaar number');
+                        return;
+                      }
+                      if (!idProofUrl) {
+                        toast.error('Please upload your real Aadhaar card, PAN card, or GST certificate');
                         return;
                       }
                     } else {
-                      if (!validatePan(panNumber).valid) {
+                      // Optional for services: validate only if provided
+                      if (hasGst && gstNumber && !validateGst(gstNumber).valid) {
+                        toast.error(validateGst(gstNumber).message || 'Please enter a valid 15-character GSTIN');
+                        return;
+                      }
+                      if (!hasGst && panNumber && !validatePan(panNumber).valid) {
                         toast.error(validatePan(panNumber).message || 'Please enter a valid 10-character PAN number');
                         return;
                       }
-                    }
-                    if (!validateAadhaar(aadharNumber).valid) {
-                      toast.error(validateAadhaar(aadharNumber).message || 'Please enter a valid 12-digit Aadhaar number');
-                      return;
-                    }
-                    if (!idProofUrl) {
-                      toast.error('Please upload your real Aadhaar card, PAN card, or GST certificate');
-                      return;
+                      if (aadharNumber && !validateAadhaar(aadharNumber).valid) {
+                        toast.error(validateAadhaar(aadharNumber).message || 'Please enter a valid 12-digit Aadhaar number');
+                        return;
+                      }
                     }
                     setStep(3);
                   }}

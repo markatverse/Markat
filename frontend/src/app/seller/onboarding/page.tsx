@@ -396,6 +396,39 @@ export default function SellerOnboarding() {
 
   const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const isService = primaryOffering === 'SERVICE' || mainType === 'SERVICE';
+
+    // Documentation validation based on Category (Products vs Services)
+    if (!isService) {
+      if (!gstNumber && !aadharNumber) {
+        toast.error('Please enter your GSTIN or Aadhaar Number to verify your business');
+        return;
+      }
+      if (gstNumber && !validateGst(gstNumber).valid) {
+        toast.error(validateGst(gstNumber).message || 'Invalid GST number');
+        return;
+      }
+      if (aadharNumber && !validateAadhaar(aadharNumber).valid) {
+        toast.error(validateAadhaar(aadharNumber).message || 'Valid 12-digit Aadhaar number is required');
+        return;
+      }
+      if (!idProofUrl) {
+        toast.error('Please upload your real Aadhaar Card or GST Certificate');
+        return;
+      }
+    } else {
+      // For Services: documentation is optional, validate only if provided
+      if (gstNumber && !validateGst(gstNumber).valid) {
+        toast.error(validateGst(gstNumber).message || 'Invalid GST number');
+        return;
+      }
+      if (aadharNumber && !validateAadhaar(aadharNumber).valid) {
+        toast.error(validateAadhaar(aadharNumber).message || 'Valid 12-digit Aadhaar number is required');
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       const token = registeredToken || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
@@ -480,9 +513,9 @@ export default function SellerOnboarding() {
   const stepsList = [
     { num: 1, label: 'Account' },
     { num: 2, label: 'Profile' },
-    { num: 3, label: 'Features' },
+    { num: 3, label: 'Category' },
     { num: 4, label: 'Hours' },
-    { num: 5, label: 'Submit' }
+    { num: 5, label: 'Documents' }
   ];
 
   const inputClasses = "w-full p-4 pl-12 rounded-2xl border border-slate-200 bg-white text-slate-700 outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 transition-all placeholder:text-slate-400 text-sm";
@@ -754,119 +787,21 @@ export default function SellerOnboarding() {
               </div>
               <form onSubmit={e => {
                 e.preventDefault();
-                if (!gstNumber && !panNumber) {
-                  toast.error('Please enter either a valid GSTIN or PAN number');
+                if (!businessName.trim()) {
+                  toast.error('Please enter your business / store name');
                   return;
                 }
-                if (gstNumber && !validateGst(gstNumber).valid) {
-                  toast.error(validateGst(gstNumber).message || 'Invalid GST number');
+                if (!pinCode || pinCode.length !== 6) {
+                  toast.error('Please enter a valid 6-digit PIN code');
                   return;
                 }
-                if (!gstNumber && panNumber && !validatePan(panNumber).valid) {
-                  toast.error(validatePan(panNumber).message || 'Invalid PAN number');
-                  return;
-                }
-                if (!validateAadhaar(aadharNumber).valid) {
-                  toast.error(validateAadhaar(aadharNumber).message || 'Valid 12-digit Aadhaar number is required');
-                  return;
-                }
-                if (!idProofUrl) {
-                  toast.error('Please upload your real Aadhaar, PAN, or GST proof document');
+                if (!businessLocation.trim()) {
+                  toast.error('Please enter your shop number and street name');
                   return;
                 }
                 setStep(3);
               }} className="flex flex-col gap-6">
                 <div><label className={labelClasses}>Legal Business Name <span className="text-red-500">*</span></label><input required type="text" value={businessName} onChange={e => setBusinessName(e.target.value)} placeholder="e.g. ACME Corp" className={inputClasses} /></div>
-                
-                {/* Tax ID & PAN */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className={labelClasses}>GSTIN (15-Char)</label>
-                    <input 
-                      type="text" 
-                      maxLength={15}
-                      value={gstNumber} 
-                      onChange={e => {
-                        const val = e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, '');
-                        setGstNumber(val);
-                        if (val.length === 15) setPanNumber(val.substring(2, 12));
-                      }} 
-                      placeholder="e.g. 22AAAAA0000A1Z5" 
-                      className={inputClasses} 
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClasses}>PAN Number (10-Char) <span className="text-red-500">*</span></label>
-                    <input 
-                      type="text" 
-                      maxLength={10}
-                      value={panNumber} 
-                      onChange={e => setPanNumber(e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, ''))} 
-                      placeholder="e.g. ABCDE1234F" 
-                      className={inputClasses} 
-                    />
-                  </div>
-                </div>
-
-                {/* Aadhaar Number */}
-                <div>
-                  <label className={labelClasses}>Aadhaar Number (12-Digit) <span className="text-red-500">*</span></label>
-                  <input 
-                    type="text" 
-                    maxLength={14}
-                    value={aadharNumber} 
-                    onChange={e => setAadharNumber(formatAadhaarInput(e.target.value))} 
-                    placeholder="XXXX XXXX XXXX" 
-                    className={inputClasses} 
-                  />
-                </div>
-
-                {/* Document Proof Upload */}
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <label className={labelClasses}>Upload Real ID Proof Document <span className="text-red-500">*</span></label>
-                    <select
-                      value={idProofType}
-                      onChange={e => setIdProofType(e.target.value as any)}
-                      className="text-xs bg-slate-100 border border-slate-200 rounded p-1 font-semibold"
-                    >
-                      <option value="AADHAAR">Aadhaar Card</option>
-                      <option value="PAN">PAN Card</option>
-                      <option value="GST">GST Certificate</option>
-                    </select>
-                  </div>
-
-                  {!idProofUrl ? (
-                    <label className="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer bg-white text-center transition-all">
-                      <input 
-                        type="file" 
-                        accept="image/png,image/jpeg,image/webp,application/pdf"
-                        onChange={handleDocumentUpload} 
-                        disabled={isUploadingDoc}
-                        className="hidden" 
-                      />
-                      <UploadCloud className="w-6 h-6 text-slate-400 mb-1" />
-                      <span className="text-xs font-bold text-slate-700">
-                        {isUploadingDoc ? 'Uploading...' : `Upload Real ${idProofType} Card / Certificate`}
-                      </span>
-                      <span className="text-[10px] text-slate-400 mt-0.5">PDF, PNG, JPG (Max 10MB)</span>
-                    </label>
-                  ) : (
-                    <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
-                        <FileCheck className="w-4 h-4 text-emerald-600" />
-                        <span>{idProofFileName || `${idProofType} Proof Attached`}</span>
-                      </div>
-                      <button 
-                        type="button" 
-                        onClick={() => { setIdProofUrl(''); setIdProofFileName(''); }}
-                        className="text-xs font-bold text-rose-600 hover:underline"
-                      >
-                        Change
-                      </button>
-                    </div>
-                  )}
-                </div>
 
                 <div className="flex justify-between items-center mt-2 border-t border-slate-100 pt-6 mb-4">
                   <h3 className="text-sm font-bold text-slate-800">Pinpoint your Location on Map</h3>
@@ -995,7 +930,7 @@ export default function SellerOnboarding() {
                 )}
                 <div className="flex gap-3 mt-4">
                   <button type="button" onClick={() => setStep(2)} className="px-6 py-4 border border-slate-300 text-slate-700 rounded-2xl font-bold text-sm bg-white hover:bg-slate-50">← Back</button>
-                  <button type="submit" disabled={!mainType} className={btnPrimary}>Next: Final Step →</button>
+                  <button type="submit" disabled={!mainType} className={btnPrimary}>Next: Hours →</button>
                 </div>
               </form>
             </div>
@@ -1028,24 +963,136 @@ export default function SellerOnboarding() {
                 </div>
                 <div className="flex gap-3 mt-4">
                   <button type="button" onClick={() => setStep(3)} className="px-6 py-4 border border-slate-300 text-slate-700 rounded-2xl font-bold text-sm bg-white hover:bg-slate-50">← Back</button>
-                  <button type="submit" className={btnPrimary}>Next: Final Step →</button>
+                  <button type="submit" className={btnPrimary}>Next: Verification &amp; Documents →</button>
                 </div>
               </form>
             </div>
           )}
 
-          {/* STEP 5: SUBMIT */}
+          {/* STEP 5: DOCUMENTS & VERIFICATION */}
           {step === 5 && (
             <div className="bg-transparent py-4">
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-slate-900 mb-1">🚀 Final Step</h2>
-                <p className="text-slate-500 text-sm">Upload documents to verify your business</p>
+                <h2 className="text-2xl font-bold text-slate-900 mb-1">🚀 Final Step: Verification</h2>
+                <p className="text-slate-500 text-sm">
+                  {primaryOffering === 'SERVICE'
+                    ? 'Review your details. GSTIN and Aadhaar documentation are optional for services.'
+                    : 'Provide your GSTIN and Aadhaar documentation to verify your merchant store.'}
+                </p>
               </div>
               <form onSubmit={handleFinalSubmit} className="flex flex-col gap-6">
-                <div>
-                  <label className={labelClasses}>ID Proof / License (Optional)</label>
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 border-dashed text-center">
-                    <input type="file" className="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-600 file:cursor-pointer hover:file:bg-indigo-100" />
+                
+                {/* Documentation Section */}
+                <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                        <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                        Business Documentation &amp; Identity
+                      </h3>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        {primaryOffering === 'SERVICE'
+                          ? 'GST and Aadhaar verification is optional for service providers'
+                          : 'GST and Aadhaar verification for active merchant onboarding'}
+                      </p>
+                    </div>
+                    {primaryOffering === 'SERVICE' && (
+                      <span className="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold shrink-0">
+                        Optional for Services
+                      </span>
+                    )}
+                  </div>
+
+                  {/* GSTIN (15-Char) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className={labelClasses}>
+                        GSTIN (15-Char) {primaryOffering === 'SERVICE' ? <span className="text-slate-400 font-normal lowercase">(optional)</span> : <span className="text-slate-400 font-normal lowercase">(if registered)</span>}
+                      </label>
+                      {primaryOffering === 'SERVICE' && (
+                        <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded">Optional</span>
+                      )}
+                    </div>
+                    <input 
+                      type="text" 
+                      maxLength={15}
+                      value={gstNumber} 
+                      onChange={e => {
+                        const val = e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, '');
+                        setGstNumber(val);
+                        if (val.length === 15) setPanNumber(val.substring(2, 12));
+                      }} 
+                      placeholder="e.g. 22AAAAA0000A1Z5" 
+                      className={inputClasses} 
+                    />
+                  </div>
+
+                  {/* Aadhaar Number (12-Digit) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className={labelClasses}>
+                        Aadhaar Number (12-Digit) {primaryOffering === 'SERVICE' ? <span className="text-slate-400 font-normal lowercase">(optional)</span> : <span className="text-red-500">*</span>}
+                      </label>
+                      {primaryOffering === 'SERVICE' && (
+                        <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded">Optional</span>
+                      )}
+                    </div>
+                    <input 
+                      type="text" 
+                      maxLength={14}
+                      value={aadharNumber} 
+                      onChange={e => setAadharNumber(formatAadhaarInput(e.target.value))} 
+                      placeholder="XXXX XXXX XXXX" 
+                      className={inputClasses} 
+                    />
+                  </div>
+
+                  {/* Document Proof Upload */}
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <label className={labelClasses}>
+                        Upload Real ID Proof Document {primaryOffering === 'SERVICE' ? <span className="text-slate-400 font-normal lowercase">(optional)</span> : <span className="text-red-500">*</span>}
+                      </label>
+                      <select
+                        value={idProofType}
+                        onChange={e => setIdProofType(e.target.value as any)}
+                        className="text-xs bg-slate-100 border border-slate-200 rounded-lg p-1.5 font-semibold text-slate-700 outline-none"
+                      >
+                        <option value="AADHAAR">Aadhaar Card</option>
+                        <option value="GST">GST Certificate</option>
+                      </select>
+                    </div>
+
+                    {!idProofUrl ? (
+                      <label className="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer bg-white text-center transition-all">
+                        <input 
+                          type="file" 
+                          accept="image/png,image/jpeg,image/webp,application/pdf"
+                          onChange={handleDocumentUpload} 
+                          disabled={isUploadingDoc}
+                          className="hidden" 
+                        />
+                        <UploadCloud className="w-7 h-7 text-slate-400 mb-1" />
+                        <span className="text-xs font-bold text-slate-700">
+                          {isUploadingDoc ? 'Uploading...' : `Upload Real ${idProofType === 'GST' ? 'GST Certificate' : 'AADHAAR Card'}`}
+                        </span>
+                        <span className="text-[10px] text-slate-400 mt-0.5">PDF, PNG, JPG (Max 10MB)</span>
+                      </label>
+                    ) : (
+                      <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
+                          <FileCheck className="w-4 h-4 text-emerald-600" />
+                          <span>{idProofFileName || `${idProofType === 'GST' ? 'GST Certificate' : 'Aadhaar Card'} Attached`}</span>
+                        </div>
+                        <button 
+                          type="button" 
+                          onClick={() => { setIdProofUrl(''); setIdProofFileName(''); }}
+                          className="text-xs font-bold text-rose-600 hover:underline cursor-pointer"
+                        >
+                          Change
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
