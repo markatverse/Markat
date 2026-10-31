@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
   Megaphone, Plus, Search, Play, Pause, 
   BarChart2, Eye, DollarSign, 
@@ -140,8 +141,16 @@ const DEFAULT_CAMPAIGNS: Campaign[] = [
 ];
 
 export default function AdvertiserPortalPage() {
+  const router = useRouter();
   const { user, login } = useAuth();
   const API_URL = getApiUrl();
+
+  // If user is not authenticated, strictly redirect to public ads overview homepage
+  useEffect(() => {
+    if (!user) {
+      router.replace('/ads');
+    }
+  }, [user, router]);
 
   // 1. Initial State from LocalStorage or Defaults
   const [campaigns, setCampaigns] = useState<Campaign[]>(() => {
@@ -506,67 +515,13 @@ export default function AdvertiserPortalPage() {
   }, [campaigns]);
 
   // =========================================================================
-  // VIEW: UNLOGGED IN (Clean Welcome + 1-Click Demo Login)
+  // VIEW: UNLOGGED IN (Strictly Redirect to Public Overview Homepage)
   // =========================================================================
   if (!user) {
     return (
-      <div className="max-w-2xl mx-auto my-12 p-8 sm:p-12 rounded-3xl bg-white border border-slate-200/90 shadow-xs text-center space-y-6 animate-in fade-in duration-200">
-        <div className="w-16 h-16 rounded-2xl bg-purple-50 text-purple-600 mx-auto flex items-center justify-center border border-purple-200 shadow-2xs">
-          <Megaphone className="w-8 h-8" />
-        </div>
-
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-bold border border-purple-200">
-            <Lock className="w-3.5 h-3.5" />
-            <span>Advertiser Portal</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            Sign In to Manage Your Local Ad Campaigns
-          </h1>
-          <p className="text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
-            Target high-intent shoppers within your store's 5km radius, run real-time bidding, track conversion ROAS, and manage GST tax credits.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left py-2">
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-            <span className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-purple-600" /> 5km Radius
-            </span>
-            <span className="text-[11px] text-slate-500 leading-tight block">Target neighborhood shoppers by PIN code.</span>
-          </div>
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-            <span className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
-              <CreditCard className="w-3.5 h-3.5 text-emerald-600" /> 18% GST Credit
-            </span>
-            <span className="text-[11px] text-slate-500 leading-tight block">SAC 998319 invoices for full Input Tax Credit.</span>
-          </div>
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-            <span className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
-              <TrendingUp className="w-3.5 h-3.5 text-blue-600" /> Real-Time ROAS
-            </span>
-            <span className="text-[11px] text-slate-500 leading-tight block">Instant impressions, clicks, and order attribution.</span>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-          <Link
-            href="/ads/login?redirect=/ads/advertiser"
-            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <span>Sign In to Advertiser Portal</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-
-          <button
-            type="button"
-            onClick={handleQuickDemoLogin}
-            className="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-amber-50 to-amber-100 hover:from-amber-100 hover:to-amber-200 text-amber-900 border border-amber-200 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
-          >
-            <Sparkles className="w-4 h-4 text-amber-600" />
-            <span>✨ 1-Click Demo Advertiser</span>
-          </button>
-        </div>
+      <div className="min-h-[50vh] flex flex-col items-center justify-center space-y-3">
+        <div className="w-8 h-8 border-3 border-purple-600 border-t-transparent rounded-full animate-spin" />
+        <span className="text-xs text-slate-400 font-medium">Redirecting to Ads Overview...</span>
       </div>
     );
   }

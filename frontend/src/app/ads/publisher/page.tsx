@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { 
   Store, DollarSign, Eye, TrendingUp, Layers, 
@@ -66,31 +67,19 @@ export default function PublisherPortalPage() {
     toast.success('Signed in as Demo Storefront Publisher!');
   };
 
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (!user) {
+      router.replace('/ads');
+    }
+  }, [user, router]);
+
   if (!user) {
     return (
-      <div className="max-w-md mx-auto my-14 p-8 bg-white border border-slate-200/90 rounded-3xl text-center space-y-5 shadow-xs animate-in fade-in duration-200">
-        <div className="w-14 h-14 rounded-2xl bg-pink-50 text-pink-600 mx-auto flex items-center justify-center border border-pink-200 shadow-2xs">
-          <Store className="w-7 h-7" />
-        </div>
-        <div className="space-y-1.5">
-          <h2 className="text-xl font-black text-slate-900">Publisher Monetization Network</h2>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            Storefront catalog monetization, eCPM yields, and monthly 70/30 revenue share payouts require an authenticated publisher / merchant account.
-          </p>
-        </div>
-        <div className="pt-2 flex flex-col sm:flex-row gap-2.5 justify-center">
-          <Link href="/ads/login?redirect=/ads/publisher" className="py-2.5 px-5 bg-pink-600 hover:bg-pink-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs">
-            Sign In to Monetize
-          </Link>
-          <button 
-            type="button"
-            onClick={handleQuickDemoLogin}
-            className="py-2.5 px-4 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-            <span>Try 1-Click Demo</span>
-          </button>
-        </div>
+      <div className="min-h-[50vh] flex flex-col items-center justify-center space-y-3">
+        <div className="w-8 h-8 border-3 border-pink-600 border-t-transparent rounded-full animate-spin" />
+        <span className="text-xs text-slate-400 font-medium">Redirecting to Ads Overview...</span>
       </div>
     );
   }
