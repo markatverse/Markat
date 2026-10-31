@@ -12,6 +12,29 @@ import toast from 'react-hot-toast';
 export default function CampaignEnginePage() {
   const { user, login } = useAuth();
 
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [auctionLog, setAuctionLog] = useState([
+    {
+      id: 'REQ-98124',
+      userContext: 'PIN 110001 • Category: Electronics & Gadgets',
+      bidders: [
+        { name: 'Apex Mobiles Store', bid: 6.5, qualityScore: 9.2, rank: 59.8, status: 'WINNER', clearingPrice: 5.82 },
+        { name: 'Digital Express Delhi', bid: 5.8, qualityScore: 8.5, rank: 49.3, status: 'OUTBID', clearingPrice: 0 },
+        { name: 'GadgetZone Premier', bid: 4.0, qualityScore: 9.0, rank: 36.0, status: 'OUTBID', clearingPrice: 0 },
+      ],
+      decisionTimeMs: 11
+    },
+    {
+      id: 'REQ-98123',
+      userContext: 'PIN 560001 • Category: Dining & Restaurants',
+      bidders: [
+        { name: 'Tandoor Grill House', bid: 4.8, qualityScore: 9.5, rank: 45.6, status: 'WINNER', clearingPrice: 4.25 },
+        { name: 'Urban Burger Bar', bid: 4.2, qualityScore: 8.8, rank: 36.9, status: 'OUTBID', clearingPrice: 0 }
+      ],
+      decisionTimeMs: 9
+    }
+  ]);
+
   const handleQuickDemoLogin = () => {
     const demoUser = {
       id: 'USR-ADV-01',
@@ -59,29 +82,6 @@ export default function CampaignEnginePage() {
       </div>
     );
   }
-
-  const [isSimulating, setIsSimulating] = useState(false);
-  const [auctionLog, setAuctionLog] = useState([
-    {
-      id: 'REQ-98124',
-      userContext: 'PIN 110001 • Category: Electronics & Gadgets',
-      bidders: [
-        { name: 'Apex Mobiles Store', bid: 6.5, qualityScore: 9.2, rank: 59.8, status: 'WINNER', clearingPrice: 5.82 },
-        { name: 'Digital Express Delhi', bid: 5.8, qualityScore: 8.5, rank: 49.3, status: 'OUTBID', clearingPrice: 0 },
-        { name: 'GadgetZone Premier', bid: 4.0, qualityScore: 9.0, rank: 36.0, status: 'OUTBID', clearingPrice: 0 },
-      ],
-      decisionTimeMs: 11
-    },
-    {
-      id: 'REQ-98123',
-      userContext: 'PIN 560001 • Category: Dining & Restaurants',
-      bidders: [
-        { name: 'Tandoor Grill House', bid: 4.8, qualityScore: 9.5, rank: 45.6, status: 'WINNER', clearingPrice: 4.25 },
-        { name: 'Urban Burger Bar', bid: 4.2, qualityScore: 8.8, rank: 36.9, status: 'OUTBID', clearingPrice: 0 }
-      ],
-      decisionTimeMs: 9
-    }
-  ]);
 
   const triggerLiveAuctionSimulation = () => {
     setIsSimulating(true);

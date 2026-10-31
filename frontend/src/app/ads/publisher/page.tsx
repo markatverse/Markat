@@ -12,6 +12,41 @@ import toast from 'react-hot-toast';
 export default function PublisherPortalPage() {
   const { user, login } = useAuth();
 
+  const [slots] = useState([
+    {
+      id: 'SLOT-01',
+      name: 'Storefront Header Banner Slot',
+      type: 'Desktop 728x90 & Mobile 320x50',
+      dailyImpressions: 48500,
+      avgEcpm: 68.5,
+      revenueShare: '70% Publisher / 30% Platform',
+      thisMonthEarnings: 3320,
+      status: 'ACTIVE'
+    },
+    {
+      id: 'SLOT-02',
+      name: 'Product Details Related Rail Slot',
+      type: 'Native Product Card Sponsored',
+      dailyImpressions: 32400,
+      avgEcpm: 84.0,
+      revenueShare: '70% Publisher / 30% Platform',
+      thisMonthEarnings: 2720,
+      status: 'ACTIVE'
+    },
+    {
+      id: 'SLOT-03',
+      name: 'Order Confirmation Thank-You Placement',
+      type: 'High-Intent Banner Card',
+      dailyImpressions: 14200,
+      avgEcpm: 120.0,
+      revenueShare: '70% Publisher / 30% Platform',
+      thisMonthEarnings: 1704,
+      status: 'ACTIVE'
+    }
+  ]);
+
+  const totalEarnings = slots.reduce((acc, s) => acc + s.thisMonthEarnings, 0);
+
   const handleQuickDemoLogin = () => {
     const demoUser = {
       id: 'USR-PUB-01',
@@ -59,41 +94,6 @@ export default function PublisherPortalPage() {
       </div>
     );
   }
-
-  const [slots] = useState([
-    {
-      id: 'SLOT-01',
-      name: 'Storefront Header Banner Slot',
-      type: 'Desktop 728x90 & Mobile 320x50',
-      dailyImpressions: 48500,
-      avgEcpm: 68.5,
-      revenueShare: '70% Publisher / 30% Platform',
-      thisMonthEarnings: 3320,
-      status: 'ACTIVE'
-    },
-    {
-      id: 'SLOT-02',
-      name: 'Product Details Related Rail Slot',
-      type: 'Native Product Card Sponsored',
-      dailyImpressions: 32400,
-      avgEcpm: 84.0,
-      revenueShare: '70% Publisher / 30% Platform',
-      thisMonthEarnings: 2720,
-      status: 'ACTIVE'
-    },
-    {
-      id: 'SLOT-03',
-      name: 'Order Confirmation Thank-You Placement',
-      type: 'High-Intent Banner Card',
-      dailyImpressions: 14200,
-      avgEcpm: 120.0,
-      revenueShare: '70% Publisher / 30% Platform',
-      thisMonthEarnings: 1704,
-      status: 'ACTIVE'
-    }
-  ]);
-
-  const totalEarnings = slots.reduce((acc, s) => acc + s.thisMonthEarnings, 0);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300 py-2 sm:py-4">
