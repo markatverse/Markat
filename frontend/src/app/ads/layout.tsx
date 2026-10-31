@@ -45,12 +45,7 @@ export default function AdsPlatformLayout({ children }: { children: React.ReactN
     { name: 'Campaign Manager', href: '/ads/campaigns', icon: <BarChart3 className="w-4 h-4" /> },
     { name: 'Publisher Portal', href: '/ads/publisher', icon: <Store className="w-4 h-4" /> },
     ...(isAdmin ? [{ name: 'Ads Admin', href: '/ads/admin', icon: <ShieldCheck className="w-4 h-4 text-emerald-400" /> }] : []),
-  ] : [
-    { name: 'Overview', href: '/ads', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { name: 'Placements & Rates', href: '/ads#placements', icon: <Layers className="w-4 h-4" /> },
-    { name: 'How It Works', href: '/ads#how-it-works', icon: <HelpCircle className="w-4 h-4" /> },
-    { name: 'Publisher Network', href: '/ads#publishers', icon: <Store className="w-4 h-4" /> },
-  ];
+  ] : [];
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col selection:bg-purple-500 selection:text-white">
