@@ -1096,104 +1096,64 @@ export default function SellerOnboarding() {
                   </div>
                 </div>
 
-                {/* Live Merchant Registration Fee & Occasion Discount Card */}
+                {/* Simple One-Time Merchant Registration Fee Card */}
                 {registrationFeeConfig && (
-                  <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-indigo-50/40 border border-indigo-200/80 shadow-xs space-y-4">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-indigo-100">
+                  <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                       <div>
-                        <span className="text-[10px] uppercase font-bold text-indigo-600 tracking-wider flex items-center gap-1">
-                          <Sparkles className="w-3.5 h-3.5" /> One-Time Merchant Registration Fee
-                        </span>
-                        <h4 className="text-base font-black text-slate-900 mt-0.5">
-                          Verified Store Onboarding Package
-                        </h4>
-                      </div>
-
-                      {registrationFeeConfig.isDiscountActive && registrationFeeConfig.savingsAmount > 0 && (
-                        <span className="px-3 py-1 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-black uppercase tracking-wider shadow-sm animate-pulse">
-                          {registrationFeeConfig.discountType === 'WAIVED' 
-                            ? '100% Free Waiver' 
-                            : registrationFeeConfig.discountType === 'PERCENTAGE'
-                              ? `${registrationFeeConfig.discountValue}% Festive Discount`
-                              : `₹${registrationFeeConfig.discountValue} Flat Discount`}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Occasion Banner */}
-                    {registrationFeeConfig.isDiscountActive && registrationFeeConfig.occasionName && (
-                      <div className="p-3 bg-gradient-to-r from-pink-50 to-amber-50 border border-pink-200 rounded-xl">
-                        <div className="text-xs font-extrabold text-pink-700 flex items-center gap-1.5">
-                          <span>🎉 {registrationFeeConfig.occasionName}</span>
+                        <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                          One-Time Merchant Registration Fee
                         </div>
-                        {registrationFeeConfig.discountReason && (
-                          <p className="text-[11px] text-slate-600 font-medium mt-1 leading-relaxed">
-                            {registrationFeeConfig.discountReason}
-                          </p>
-                        )}
-                        {registrationFeeConfig.validUntil && (
-                          <div className="text-[10px] text-slate-400 font-semibold mt-1">
-                            Valid through: {registrationFeeConfig.validUntil}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Price Breakdown */}
-                    <div className="p-4 bg-white rounded-xl border border-indigo-100 flex items-center justify-between">
-                      <div>
-                        <span className="text-[11px] text-slate-400 uppercase font-bold block">Payable Fee</span>
-                        <div className="flex items-baseline gap-2 mt-0.5">
+                        <div className="flex items-baseline gap-2.5 mt-1">
                           <span className="text-2xl sm:text-3xl font-black text-slate-900">
                             {registrationFeeConfig.effectiveFee === 0 ? 'FREE' : `₹${registrationFeeConfig.effectiveFee.toLocaleString('en-IN')}`}
                           </span>
                           {registrationFeeConfig.savingsAmount > 0 && (
-                            <span className="text-xs sm:text-sm text-slate-400 font-semibold line-through">
+                            <span className="text-sm text-slate-400 font-semibold line-through">
                               ₹{registrationFeeConfig.baseFee?.toLocaleString('en-IN')}
                             </span>
                           )}
+                          <span className="text-xs text-slate-500 font-medium">
+                            • One-time lifetime access
+                          </span>
                         </div>
                       </div>
 
                       {registrationFeeConfig.savingsAmount > 0 && (
-                        <div className="text-right">
-                          <span className="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-black inline-block">
+                        <div className="self-start sm:self-auto">
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold">
                             Save ₹{registrationFeeConfig.savingsAmount.toLocaleString('en-IN')}
+                            {registrationFeeConfig.discountType === 'PERCENTAGE' && ` (${registrationFeeConfig.discountValue}% OFF)`}
                           </span>
-                          <span className="text-[10px] text-slate-400 block mt-0.5">One-time lifetime access</span>
                         </div>
                       )}
                     </div>
 
-                    {/* Included Benefits (Full text with zero truncation) */}
-                    {Array.isArray(registrationFeeConfig.benefits) && registrationFeeConfig.benefits.length > 0 && (
-                      <div className="pt-1 space-y-2">
-                        <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wide block">
-                          Included with this registration:
-                        </span>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                          {registrationFeeConfig.benefits.map((b: string, i: number) => (
-                            <div key={i} className="flex items-start gap-2 text-xs text-slate-700">
-                              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                              <span className="leading-snug font-medium">{b}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    {/* Simple Key Perks */}
+                    <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-slate-600 font-medium">
+                      <span className="inline-flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Verified Store Badge
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Direct Leads & Queue
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Priority Support
+                      </span>
+                    </div>
                   </div>
                 )}
 
-                {/* Mandatory Legal Terms Checkbox */}
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 mt-4">
-                  <label className="flex items-start gap-3 cursor-pointer text-xs text-slate-700 select-none">
+                {/* Simple Legal Terms Checkbox */}
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 mt-3">
+                  <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-600 select-none">
                     <input
                       type="checkbox"
                       required
-                      className="mt-0.5 w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+                      className="mt-0.5 w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 shrink-0"
                     />
-                    <span className="leading-relaxed">
-                      I have read, understood, and agree to the <Link href="/terms" target="_blank" className="font-bold text-emerald-600 underline hover:text-emerald-700">MarkatVerse Terms of Service, Sector Disclaimers & Seller Indemnity Agreement</Link>. I acknowledge that MarkatVerse is an intermediary platform and as a merchant I am solely liable for product quality, food hygiene/FSSAI, and tax compliance.
+                    <span className="leading-snug">
+                      I agree to the <Link href="/terms" target="_blank" className="font-semibold text-emerald-600 underline hover:text-emerald-700">Terms of Service</Link> &amp; Seller Agreement.
                     </span>
                   </label>
                 </div>
