@@ -280,15 +280,38 @@ export default function AdvertiserPortalPage() {
     } catch {}
   };
 
-  // Listen for external wallet changes
+  // Listen for external campaign and wallet changes (from Admin Panel or other tabs)
   useEffect(() => {
+    const handleCampaignsUpdate = (e: any) => {
+      if (e.detail?.campaigns && Array.isArray(e.detail.campaigns)) {
+        setCampaigns(e.detail.campaigns);
+      }
+    };
     const handleWalletUpdate = (e: any) => {
       if (e.detail?.balance !== undefined) {
         setWalletBalance(e.detail.balance);
       }
     };
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'mv_advertiser_campaigns' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed) && parsed.length > 0) setCampaigns(parsed);
+        } catch {}
+      }
+      if (e.key === 'mv_advertiser_wallet' && e.newValue) {
+        setWalletBalance(Number(e.newValue) || 12500);
+      }
+    };
+
+    window.addEventListener('mv_advertiser_campaigns_updated', handleCampaignsUpdate);
     window.addEventListener('mv_advertiser_wallet_updated', handleWalletUpdate);
-    return () => window.removeEventListener('mv_advertiser_wallet_updated', handleWalletUpdate);
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener('mv_advertiser_campaigns_updated', handleCampaignsUpdate);
+      window.removeEventListener('mv_advertiser_wallet_updated', handleWalletUpdate);
+      window.removeEventListener('storage', handleStorage);
+    };
   }, []);
 
   // 1-Click Demo Login if user isn't logged in
@@ -865,10 +888,17 @@ export default function AdvertiserPortalPage() {
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                             : isPaused
                             ? 'bg-amber-50 text-amber-700 border-amber-200'
-                            : 'bg-blue-50 text-blue-700 border-blue-200'
+                            : (c.status as string) === 'REJECTED'
+                            ? 'bg-rose-50 text-rose-700 border-rose-200'
+                            : 'bg-purple-100 text-purple-700 border-purple-300'
                         }`}>
                           {c.status}
                         </span>
+                        {(c as any).rejectionReason && (
+                          <div className="text-[10px] text-rose-600 mt-0.5 max-w-[120px] truncate" title={(c as any).rejectionReason}>
+                            ⚠️ {(c as any).rejectionReason}
+                          </div>
+                        )}
                       </td>
 
                       {/* Actions */}

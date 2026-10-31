@@ -555,6 +555,18 @@ export class CommercialService {
 
   private static inMemoryAdvertisers = [
     {
+      id: 'ADV-MK-01',
+      name: 'Manish Kumar (Store: Manish Kumar)',
+      contactPerson: 'Manish Kumar',
+      email: 'manish@markatverse.com',
+      phone: '+91 98112 88442',
+      gstin: '07MKPJK1234F1Z9',
+      isVerified: true,
+      walletBalance: 12500,
+      totalLifetimeSpend: 46504,
+      activeCampaigns: 4,
+    },
+    {
       id: 'ADV-101',
       name: 'Shree Balaji Electronics',
       contactPerson: 'Ramesh Sharma',
