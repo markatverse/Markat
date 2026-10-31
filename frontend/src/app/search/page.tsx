@@ -11,11 +11,11 @@ import { SlidersHorizontal, MapPin } from 'lucide-react';
 import { isServiceProduct, matchesProductSearch } from '@/utils/productSearch';
 import { fastFetch } from '@/utils/api';
 
-function matchCategory(pCategory: string = '', targetCategory: string = '', pSubcategory: string = '', pName: string = '') {
-  const pCat = pCategory.toLowerCase().trim();
-  const tCat = targetCategory.toLowerCase().trim();
-  const pSub = pSubcategory.toLowerCase().trim();
-  const name = pName.toLowerCase().trim();
+function matchCategory(pCategory: string | null = '', targetCategory: string | null = '', pSubcategory: string | null = '', pName: string | null = '') {
+  const pCat = (pCategory || '').toLowerCase().trim();
+  const tCat = (targetCategory || '').toLowerCase().trim();
+  const pSub = (pSubcategory || '').toLowerCase().trim();
+  const name = (pName || '').toLowerCase().trim();
 
   if (!tCat) return true;
   if (pCat === tCat) return true;
@@ -258,7 +258,7 @@ function SearchContent() {
   // Get available dynamic filters based on the selected category's parameters
   const availableDynamicFilters = useMemo(() => {
     if (!selectedCategory) return [];
-    const categoryConfig = categories?.find(c => c.name.toLowerCase() === selectedCategory.toLowerCase());
+    const categoryConfig = categories?.find(c => (c.name || '').toLowerCase() === (selectedCategory || '').toLowerCase());
     
     // Fallback logic to extract keys from products directly if no global category config exists
     if (!categoryConfig || !categoryConfig.parameters) {
@@ -486,8 +486,8 @@ function SearchContent() {
             />
           </div>
         ) : productType === 'services' || 
-            ['services', 'home services', 'transport', 'organizers', 'salon & spa', 'events & planning', 'salon & parlour', 'spa'].includes(selectedCategory.toLowerCase()) || 
-            categories.some(category => category.name.toLowerCase() === selectedCategory.toLowerCase() && category.primaryType === 'SERVICE') ||
+            ['services', 'home services', 'transport', 'organizers', 'salon & spa', 'events & planning', 'salon & parlour', 'spa'].includes((selectedCategory || '').toLowerCase()) || 
+            categories.some(category => (category.name || '').toLowerCase() === (selectedCategory || '').toLowerCase() && category.primaryType === 'SERVICE') ||
             (filteredProducts.length > 0 && filteredProducts.every(p => isServiceProduct(p))) ? (
           <ServiceDirectoryList products={filteredProducts} />
         ) : (
