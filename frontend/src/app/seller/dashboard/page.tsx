@@ -1463,21 +1463,6 @@ function DashboardContent() {
             )}
           </button>
 
-          {/* DIRECT UPI & QR SCANNER BUTTON */}
-          <button 
-            type="button"
-            onClick={() => setShowSettingsUpiModal(true)} 
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-slate-700 hover:bg-emerald-50 hover:text-emerald-900 border border-transparent hover:border-emerald-200 cursor-pointer"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <QrCode className="w-5 h-5 text-emerald-600 shrink-0" />
-              <span className="truncate font-bold">UPI &amp; QR Scanner</span>
-            </div>
-            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60 shrink-0">
-              Direct
-            </span>
-          </button>
-
           {/* FLIPKART STYLE GST & CA TAX REPORTS TAB */}
           <button 
             onClick={() => navigateTab('tax_reports')} 
