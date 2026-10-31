@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getApiUrl } from '@/utils/api';
+import SellerDirectUpiModal from '@/components/seller/SellerDirectUpiModal';
 
 interface WalletData {
   id: string;
@@ -90,6 +91,7 @@ export default function SellerWalletTab({
   const [isSettleModalOpen, setIsSettleModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [isAddBankModalOpen, setIsAddBankModalOpen] = useState(false);
+  const [showUpiModal, setShowUpiModal] = useState(false);
 
   // Settle modal states
   const [settleMethod, setSettleMethod] = useState<'balance' | 'online'>('balance');
@@ -349,6 +351,17 @@ export default function SellerWalletTab({
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
             <span className="hidden sm:inline">Refresh</span>
+          </button>
+
+          {/* Setup Direct UPI & QR Barcode Scanner */}
+          <button
+            type="button"
+            onClick={() => setShowUpiModal(true)}
+            className="px-3.5 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
+            title="Setup Direct UPI ID & Shop QR Barcode Scanner"
+          >
+            <QrCode className="w-4 h-4 text-emerald-600" />
+            <span>Direct UPI &amp; QR Scanner</span>
           </button>
 
           {/* Settle Commission Fee Button */}
@@ -1107,6 +1120,14 @@ export default function SellerWalletTab({
         </div>
       )}
 
+      {/* Direct UPI ID & Shop QR Scanner Setup Modal */}
+      <SellerDirectUpiModal
+        isOpen={showUpiModal}
+        onClose={() => setShowUpiModal(false)}
+        sellerId={businessId}
+        shopName={businessName}
+        onUpdated={() => fetchWalletData()}
+      />
     </div>
   );
 }

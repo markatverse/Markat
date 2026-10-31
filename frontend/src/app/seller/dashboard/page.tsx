@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useProducts } from '@/context/ProductContext';
-import { Store, BarChart3, Package, PlusCircle, ArrowLeft, Trash2, Edit2, CheckCircle2, CalendarClock, Settings, Menu, X, Users, TrendingUp, Ticket, Clock, Ban, Search, Phone, Mail, FileText, MapPin, ChevronDown, Activity, Scissors, User, UserPlus, Sparkles, Palette, Droplet, Briefcase, Eye, ShieldCheck, Utensils, UtensilsCrossed, Stethoscope, HeartPulse, ChefHat, MessageSquare, Lock, Check, Info, Bell, Key, PartyPopper, Car, Wrench, Wallet, FileSpreadsheet } from 'lucide-react';
+import { Store, BarChart3, Package, PlusCircle, ArrowLeft, Trash2, Edit2, CheckCircle2, CalendarClock, Settings, Menu, X, Users, TrendingUp, Ticket, Clock, Ban, Search, Phone, Mail, FileText, MapPin, ChevronDown, Activity, Scissors, User, UserPlus, Sparkles, Palette, Droplet, Briefcase, Eye, ShieldCheck, Utensils, UtensilsCrossed, Stethoscope, HeartPulse, ChefHat, MessageSquare, Lock, Check, Info, Bell, Key, PartyPopper, Car, Wrench, Wallet, FileSpreadsheet, QrCode } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Suspense } from 'react';
 import StaffResourceManagementModal from '@/components/StaffResourceManagementModal';
@@ -23,6 +23,7 @@ import SellerBookingsTab from '@/components/seller/SellerBookingsTab';
 import SellerQueueTab from '@/components/seller/SellerQueueTab';
 import SellerWalletTab from '@/components/seller/SellerWalletTab';
 import SellerTaxReportsTab from '@/components/seller/SellerTaxReportsTab';
+import SellerDirectUpiModal from '@/components/seller/SellerDirectUpiModal';
 import MascotState from '@/components/MascotState';
 import { getApiUrl } from '@/utils/api';
 
@@ -146,6 +147,7 @@ function DashboardContent() {
   const { addProduct, editProduct, deleteProduct, products, categories } = useProducts();
   const [isPremiumSeller, setIsPremiumSeller] = useState(true); // Mock state to demonstrate the paywall
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showSettingsUpiModal, setShowSettingsUpiModal] = useState(false);
   
   const { user, login, logout, isLoading } = useAuth();
   const [leads, setLeads] = useState<any[]>([]);
@@ -1459,6 +1461,21 @@ function DashboardContent() {
                 Active
               </span>
             )}
+          </button>
+
+          {/* DIRECT UPI & QR SCANNER BUTTON */}
+          <button 
+            type="button"
+            onClick={() => setShowSettingsUpiModal(true)} 
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-slate-700 hover:bg-emerald-50 hover:text-emerald-900 border border-transparent hover:border-emerald-200 cursor-pointer"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <QrCode className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span className="truncate font-bold">UPI &amp; QR Scanner</span>
+            </div>
+            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60 shrink-0">
+              Direct
+            </span>
           </button>
 
           {/* FLIPKART STYLE GST & CA TAX REPORTS TAB */}
@@ -3120,6 +3137,13 @@ function DashboardContent() {
         )}
 
 
+                <SellerDirectUpiModal
+          isOpen={showSettingsUpiModal}
+          onClose={() => setShowSettingsUpiModal(false)}
+          sellerId={user?.business?.id || user?.id || ''}
+          shopName={user?.business?.name || user?.name || 'Store'}
+        />
+
         {activeTab === 'settings' && (
           <div className="max-w-4xl mx-auto animate-in fade-in duration-300 space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -3132,6 +3156,29 @@ function DashboardContent() {
                 className="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3.5 py-2 rounded-xl transition-colors border border-indigo-100 flex items-center gap-1.5 w-fit cursor-pointer"
               >
                 <User className="w-4 h-4" /> View Business Profile →
+              </button>
+            </div>
+
+            {/* DIRECT UPI & SHOP SCANNER SETUP CARD */}
+            <div className="bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-white rounded-3xl border border-emerald-200/90 shadow-sm p-6 md:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/25 shrink-0">
+                  <QrCode className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-black text-slate-900 leading-tight">Direct UPI &amp; Shop QR Scanner Setup</h2>
+                  <p className="text-xs text-slate-600 mt-1 max-w-xl">
+                    Configure your seller UPI ID and upload your physical shop standee QR scanner or barcode. Customer service payments go 100% straight to your account.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSettingsUpiModal(true)}
+                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md shadow-emerald-600/30 transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+              >
+                <QrCode className="w-4 h-4" />
+                <span>Update UPI &amp; Scanner</span>
               </button>
             </div>
 
