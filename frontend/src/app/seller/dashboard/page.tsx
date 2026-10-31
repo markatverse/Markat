@@ -1036,7 +1036,7 @@ function DashboardContent() {
       {/* Mobile Header */}
       <div className="lg:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200 shrink-0 sticky top-0 z-40">
         <Link href="/" className="flex items-center no-underline">
-          <img src="/logo-optimized.webp" alt="MarkatVerse" loading="eager" fetchPriority="high" decoding="sync" className="h-12 object-contain scale-[2] origin-left" />
+          <img src="/logo.svg" alt="MarkatVerse" loading="eager" fetchPriority="high" decoding="sync" className="h-8 w-auto object-contain" />
         </Link>
         <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
           {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -1061,8 +1061,8 @@ function DashboardContent() {
         {/* Sidebar Header & Brand */}
         <div className="px-5 py-4 border-b border-slate-100">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center no-underline hover:opacity-90 transition-opacity overflow-visible py-1">
-              <img src="/logo-optimized.webp" alt="MarkatVerse" loading="eager" fetchPriority="high" decoding="sync" className="h-12 object-contain scale-[1.7] origin-left" />
+            <Link href="/" className="flex items-center no-underline hover:opacity-90 transition-opacity">
+              <img src="/logo.svg" alt="MarkatVerse" loading="eager" fetchPriority="high" decoding="sync" className="h-8 w-auto object-contain" />
             </Link>
             <span className="text-[9px] font-black tracking-wider uppercase bg-amber-50 text-amber-700 border border-amber-200/60 px-2 py-0.5 rounded-md shrink-0">
               Seller

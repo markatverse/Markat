@@ -145,3 +145,4 @@ export function mergeLayoutWithDefaults(sections?: HomepageSection[] | null): Ho
   const missing = INITIAL_HOMEPAGE_SECTIONS.filter((s) => !existingIds.has(s.id));
   return [...sections, ...missing].sort((a, b) => a.order - b.order);
 }
+
