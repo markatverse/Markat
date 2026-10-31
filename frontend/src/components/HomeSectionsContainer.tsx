@@ -106,18 +106,18 @@ export default function HomeSectionsContainer({
         return (
           <section key="quick_shortcuts" className="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 lg:p-5 flex items-center justify-between overflow-x-auto gap-4 lg:gap-8 w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {[
-              { name: "Top Deals", icon: "🔥", style: "bg-red-50 text-[24px]", link: "/search?filter=top_deals" },
-              { name: "Services", icon: "🛠️", style: "bg-emerald-50 border border-emerald-200 text-[24px] shadow-sm relative", badge: "Live", link: "/search?type=services", show: hasActiveServices },
-              { name: "Food & Dining", icon: "🍔", style: "bg-amber-50 border border-amber-200 text-[24px] shadow-sm", link: "/search?category=Food%20%26%20Dining", show: isSectorActive('food') },
-              { name: "Salon & Spa", icon: "💇‍♀️", style: "bg-pink-50 border border-pink-200 text-[24px] shadow-sm", link: "/search?service=Salon", show: isSectorActive('salon') },
-              { name: "Mobiles", icon: "📱", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Mobiles", show: hasActiveProducts },
-              { name: "Electronics", icon: "💻", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Electronics", show: hasActiveProducts },
-              { name: "Fashion", icon: "👕", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Fashion", show: hasActiveProducts },
-              { name: "Home", icon: "🏠", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Home", show: hasActiveProducts || isSectorActive('home') },
-              { name: "Beauty", icon: "💄", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Beauty", show: hasActiveProducts || isSectorActive('salon') },
-              { name: "Auto", icon: "🚗", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Auto", show: hasActiveProducts || isSectorActive('automobile & car wash') },
-              { name: "Sports", icon: "⚽", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/search?category=Sports", show: hasActiveProducts },
-              { name: "View All", icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>, style: "bg-[#0f1928] text-white", link: "/explore" }
+              { name: "Top Deals", icon: "🔥", style: "bg-red-50 text-[24px]", link: "/category/top-deals" },
+              { name: "Services", icon: "🛠️", style: "bg-emerald-50 border border-emerald-200 text-[24px] shadow-sm relative", badge: "Live", link: "/category/services", show: hasActiveServices },
+              { name: "Food & Dining", icon: "🍔", style: "bg-amber-50 border border-amber-200 text-[24px] shadow-sm", link: "/category/food-dining", show: isSectorActive('food') },
+              { name: "Salon & Spa", icon: "💇‍♀️", style: "bg-pink-50 border border-pink-200 text-[24px] shadow-sm", link: "/category/salon-spa", show: isSectorActive('salon') },
+              { name: "Mobiles", icon: "📱", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/category/mobiles", show: hasActiveProducts },
+              { name: "Electronics", icon: "💻", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/category/electronics", show: hasActiveProducts },
+              { name: "Fashion", icon: "👕", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/category/fashion", show: hasActiveProducts },
+              { name: "Home", icon: "🏠", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/category/home", show: hasActiveProducts || isSectorActive('home') },
+              { name: "Beauty", icon: "💄", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/category/beauty", show: hasActiveProducts || isSectorActive('salon') },
+              { name: "Auto", icon: "🚗", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/category/auto", show: hasActiveProducts || isSectorActive('automobile & car wash') },
+              { name: "Sports", icon: "⚽", style: "bg-white border border-slate-200 text-[24px] shadow-sm", link: "/category/sports", show: hasActiveProducts },
+              { name: "View All", icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>, style: "bg-[#0f1928] text-white", link: "/categories" }
             ].filter((cat: any) => cat.show !== false).map((cat: any, idx) => (
               <Link href={cat.link} key={idx} className="flex flex-col items-center gap-2 min-w-[65px] cursor-pointer group no-underline relative">
                 <div className={`w-[52px] h-[52px] rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-105 ${cat.style.includes('text-') ? cat.style : cat.style + ' text-2xl'}`}>
@@ -322,7 +322,7 @@ export default function HomeSectionsContainer({
                     
                     <div className="flex items-center gap-2 overflow-x-auto w-full relative z-10 pb-1 custom-scrollbar">
                       {[
-                        { name: "Salon & Spa", icon: "💇‍♀️", link: "/search?service=Salon" },
+                        { name: "Salon & Spa", icon: "💇‍♀️", link: "/search?category=Salon%20%26%20Spa" },
                         { name: "Food & Dining", icon: "🍽️", link: "/search?category=Food%20%26%20Dining" },
                         { name: "Cleaning", icon: "🧹", link: "/search?service=Cleaning" },
                         { name: "Logistics", icon: "🚚", link: "/search?service=Logistics" },
@@ -455,7 +455,7 @@ export default function HomeSectionsContainer({
                   
                   <div className="flex items-center gap-3 overflow-x-auto w-full relative z-10 pb-3 custom-scrollbar">
                     {[
-                      { name: "Salon & Spa", icon: "💇‍♀️", link: "/search?service=Salon" },
+                      { name: "Salon & Spa", icon: "💇‍♀️", link: "/search?category=Salon%20%26%20Spa" },
                       { name: "Food & Dining", icon: "🍽️", link: "/search?category=Food%20%26%20Dining" },
                       { name: "Home Cleaning", icon: "🧹", link: "/search?service=Cleaning" },
                       { name: "Logistics & Delivery", icon: "🚚", link: "/search?service=Logistics" },

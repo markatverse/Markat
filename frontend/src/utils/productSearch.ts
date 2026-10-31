@@ -8,6 +8,7 @@ const legacyServiceCategories = [
   'Organizers',
   'Salon & Parlour',
   'Salon & Parlor',
+  'Salon & Spa',
   'Salon',
   'Beauty Parlour',
   'Spa',
@@ -16,26 +17,49 @@ const legacyServiceCategories = [
   'Doctor & Clinic',
   'Health & Wellness',
   'Event Services',
-  'Food & Dining',
-  'Restaurants',
-  'Restaurant',
-  'Dining',
-  'Food & Beverages',
-  'Cafes',
-  'Cafe',
-  'Bistro',
-  'Catering',
+  'Events & Planning',
   'Hotel & Hospitality',
   'Professional Services',
   'Legal Services',
-  'Consulting'
+  'Consulting',
+  'Electrician',
+  'Plumber',
+  'Carpenter',
+  'Cleaner',
+  'Painter',
+  'Mechanic'
 ];
 
 const physicalProductCategories = [
+  'mobiles',
+  'smartphones',
   'electronics',
   'fashion',
+  'clothing',
+  'apparel',
+  'footwear',
+  'home',
   'home & kitchen',
   'home & living',
+  'furniture',
+  'kitchen',
+  'beauty',
+  'beauty, cosmetics & personal care',
+  'skincare',
+  'cosmetics',
+  'sports',
+  'sports, fitness & outdoor',
+  'fitness',
+  'food & dining',
+  'food',
+  'dining',
+  'restaurant',
+  'restaurants',
+  'bakery',
+  'cafes',
+  'beverages',
+  'auto',
+  'automotive parts & accessories',
   'construction',
   'construction materials',
   'industrial machinery & tools',
@@ -43,9 +67,6 @@ const physicalProductCategories = [
   'grocery & fmcg',
   'grocery',
   'healthcare & medical devices',
-  'automotive parts & accessories',
-  'beauty, cosmetics & personal care',
-  'sports, fitness & outdoor',
   'books, stationery & office supplies',
   'kids, toys & baby care',
   'jewelry, watches & luxury',
@@ -53,7 +74,8 @@ const physicalProductCategories = [
   'mobile',
   'laptop',
   'cement',
-  'power tools'
+  'power tools',
+  'b2b'
 ];
 
 export const BRAND_SYNONYMS = [
@@ -149,9 +171,7 @@ export function isServiceProduct(product?: (Product & { type?: string }) | null)
   if (
     cat === 'salon' || cat === 'spa' || cat === 'car wash' || cat === 'services' ||
     cat === 'home services' || cat === 'event services' || cat === 'freelancer' ||
-    cat.includes('food & dining') || cat.includes('restaurant') || cat.includes('dining') ||
-    subcat.includes('restaurant') || subcat.includes('dining') || subcat.includes('bistro') ||
-    subcat.includes('cafe') || subcat.includes('salon service') || subcat.includes('spa service') ||
+    subcat.includes('salon service') || subcat.includes('spa service') ||
     subcat.includes('haircut') || subcat.includes('facial & clean-up') ||
     subcat.includes('car wash service') || subcat.includes('detailing package') ||
     subcat.includes('repair service') || subcat.includes('consultation') ||

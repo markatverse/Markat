@@ -17,17 +17,17 @@ function matchCategory(pCategory: string | null = '', targetCategory: string | n
   const pSub = (pSubcategory || '').toLowerCase().trim();
   const name = (pName || '').toLowerCase().trim();
 
-  if (!tCat) return true;
+  if (!tCat || tCat === 'all' || tCat === 'all categories') return true;
   if (pCat === tCat) return true;
 
   // 1. Business to Business / Wholesale
   if (tCat === 'b2b' || tCat.includes('wholesale')) {
-    return pCat === 'b2b' || pCat.includes('b2b') || pCat.includes('wholesale') || pSub.includes('wholesale') || name.includes('wholesale');
+    return pCat === 'b2b' || pCat.includes('b2b') || pCat.includes('wholesale') || pSub.includes('wholesale') || name.includes('wholesale') || name.includes('bulk');
   }
 
   // 2. Building & Infrastructure / Construction Materials
   if (tCat === 'construction materials' || tCat === 'construction' || tCat.includes('infrastructure')) {
-    return pCat.includes('construction') || pCat.includes('building') || pCat.includes('raw material') || pSub.includes('contractor');
+    return pCat.includes('construction') || pCat.includes('building') || pCat.includes('raw material') || pSub.includes('contractor') || name.includes('cement') || name.includes('steel') || name.includes('sand');
   }
 
   // 3. Direct to Consumer / Home Services
@@ -37,27 +37,121 @@ function matchCategory(pCategory: string | null = '', targetCategory: string | n
 
   // 4. Wellness & Care / Salon & Spa
   if (tCat === 'salon & spa' || tCat === 'salon, spa & beauty' || tCat === 'salon & parlour' || tCat === 'salon' || tCat === 'spa' || tCat.includes('wellness')) {
-    return pCat === 'salon & parlour' || pCat === 'spa' || (pCat === 'services' && (pSub === 'salon' || pSub === 'spa' || name.includes('hair') || name.includes('salon') || name.includes('spa') || name.includes('pedicure') || name.includes('nail')));
+    return pCat === 'salon & parlour' || pCat === 'spa' || pCat === 'salon & spa' || (pCat === 'services' && (pSub === 'salon' || pSub === 'spa' || name.includes('hair') || name.includes('salon') || name.includes('spa') || name.includes('pedicure') || name.includes('nail') || name.includes('facial') || name.includes('makeup')));
   }
 
   // 5. Events & Planning / Top Organizers
-  if (tCat === 'events & planning' || tCat === 'top organizers' || tCat === 'organizers' || tCat === 'event planner') {
+  if (tCat === 'events & planning' || tCat === 'top organizers' || tCat === 'organizers' || tCat === 'event planner' || tCat === 'events') {
     return pCat === 'organizers' || pCat === 'event planner' || pCat === 'events & planning' || name.includes('event') || name.includes('wedding') || name.includes('organizer') || pSub.includes('wedding');
   }
 
   // 6. Mobility & Freight / Transport Services
-  if (tCat === 'transport' || tCat === 'mobility & freight' || tCat === 'transport services' || tCat === 'logistics & transport') {
+  if (tCat === 'transport' || tCat === 'mobility & freight' || tCat === 'transport services' || tCat === 'logistics & transport' || tCat === 'logistics') {
     return pCat === 'transport' || pCat === 'logistics & transport' || pCat === 'rentals' || name.includes('transport') || name.includes('freight') || name.includes('logistics') || name.includes('auto rental') || name.includes('cargo') || name.includes('movers');
+  }
+
+  // 7. Food & Dining / Restaurants / Cafes
+  if (tCat === 'food & dining' || tCat === 'food' || tCat === 'dining' || tCat === 'restaurant' || tCat === 'restaurants' || tCat === 'cafes') {
+    return pCat === 'food & dining' || pCat.includes('food') || pCat.includes('dining') || pCat.includes('restaurant') || pSub.includes('biryani') || pSub.includes('pizza') || pSub.includes('beverage') || pSub.includes('cafe') || name.includes('biryani') || name.includes('pizza') || name.includes('coffee') || name.includes('tea') || name.includes('food') || name.includes('dining');
+  }
+
+  // 8. Mobiles & Smartphones
+  if (tCat === 'mobiles' || tCat === 'mobile' || tCat === 'smartphones' || tCat === 'phone' || tCat === 'phones') {
+    return pCat === 'mobiles' || pCat === 'smartphones' || (pCat === 'electronics' && (pSub.includes('mobile') || pSub.includes('smartphone') || pSub.includes('phone') || name.includes('galaxy') || name.includes('iphone') || name.includes('oneplus') || name.includes('phone')));
+  }
+
+  // 9. Electronics & Gadgets
+  if (tCat === 'electronics' || tCat === 'electronics & gadgets' || tCat === 'gadgets') {
+    return pCat === 'electronics' || pCat.includes('electronic') || pCat === 'mobiles' || pSub.includes('audio') || pSub.includes('laptop') || pSub.includes('television') || pSub.includes('mobile') || name.includes('earbuds') || name.includes('tv') || name.includes('macbook');
+  }
+
+  // 10. Fashion & Apparel
+  if (tCat === 'fashion' || tCat === 'clothing' || tCat === 'apparel') {
+    return pCat === 'fashion' || pCat.includes('fashion') || pCat.includes('clothing') || pSub.includes('men') || pSub.includes('women') || pSub.includes('footwear') || name.includes('shirt') || name.includes('kurti') || name.includes('sneaker');
+  }
+
+  // 11. Home & Living / Kitchen / Furniture
+  if (tCat === 'home' || tCat === 'home & living' || tCat === 'home & kitchen' || tCat === 'furniture') {
+    return pCat === 'home' || pCat.includes('home') || pCat.includes('furniture') || pSub.includes('kitchen') || pSub.includes('furniture') || pSub.includes('bedding') || name.includes('kitchen') || name.includes('table') || name.includes('bedsheet');
+  }
+
+  // 12. Beauty & Personal Care / Cosmetics
+  if (tCat === 'beauty' || tCat === 'cosmetics' || tCat === 'skincare' || tCat === 'personal care') {
+    return pCat === 'beauty' || pCat.includes('beauty') || pCat.includes('cosmetic') || pSub.includes('skincare') || pSub.includes('makeup') || pSub.includes('haircare') || name.includes('serum') || name.includes('lipstick') || name.includes('hair oil') || name.includes('glow');
+  }
+
+  // 13. Auto & Vehicles / Car Detailing / Parts
+  if (tCat === 'auto' || tCat === 'automobile' || tCat === 'vehicles' || tCat === 'automobile & car wash' || tCat === 'automotive') {
+    return pCat === 'auto' || pCat === 'automobile' || pCat.includes('automobile') || pCat.includes('car wash') || pCat === 'transport' || pCat === 'rentals' || pSub.includes('car') || pSub.includes('vehicle') || pSub.includes('rider') || name.includes('car') || name.includes('engine oil') || name.includes('helmet') || name.includes('auto rental') || name.includes('suv');
+  }
+
+  // 14. Sports & Fitness
+  if (tCat === 'sports' || tCat === 'sports & fitness' || tCat === 'fitness' || tCat === 'gym') {
+    return pCat === 'sports' || pCat.includes('sports') || pCat.includes('fitness') || pSub.includes('gym') || pSub.includes('fitness') || pSub.includes('yoga') || pSub.includes('outdoor') || name.includes('dumbbell') || name.includes('football') || name.includes('yoga');
   }
 
   return pCat.includes(tCat) || tCat.includes(pCat);
 }
 
+
+export const isServiceCategory = (catName: string): boolean => {
+  if (!catName) return false;
+  const lower = catName.toLowerCase().trim();
+  return (
+    lower === 'services' ||
+    lower === 'salon & spa' ||
+    lower === 'salon, spa & beauty' ||
+    lower === 'salon & parlour' ||
+    lower === 'salon' ||
+    lower === 'spa' ||
+    lower === 'home services' ||
+    lower === 'transport' ||
+    lower === 'transport & logistics' ||
+    lower === 'transport services' ||
+    lower === 'mobility & freight' ||
+    lower === 'events & planning' ||
+    lower === 'top organizers' ||
+    lower === 'organizers' ||
+    lower === 'event planner' ||
+    lower === 'car wash' ||
+    lower === 'car wash & detailing' ||
+    lower === 'cleaning' ||
+    lower === 'repair' ||
+    lower === 'electrician' ||
+    lower === 'plumber' ||
+    lower === 'carpenter' ||
+    lower === 'painter' ||
+    lower.includes('service')
+  );
+};
+
+const SERVICE_CATEGORIES = [
+  'Services',
+  'Salon & Spa',
+  'Home Services',
+  'Transport & Logistics',
+  'Events & Planning'
+];
+
+const PRODUCT_CATEGORIES = [
+  'Mobiles',
+  'Electronics',
+  'Fashion',
+  'Home',
+  'Beauty',
+  'Auto',
+  'Sports',
+  'Food & Dining',
+  'B2B',
+  'Construction Materials'
+];
+
 function SearchContent() {
   const searchParams = useSearchParams();
   const initialQ = searchParams.get('q') || '';
   const initialLoc = searchParams.get('loc') || '';
-  const initialCat = searchParams.get('category') || searchParams.get('cat') || '';
+  const initialService = searchParams.get('service') || '';
+  const initialCat = searchParams.get('category') || searchParams.get('cat') || (initialService ? 'Salon & Spa' : '');
   
   const { products, categories, isLoading } = useProducts();
   
@@ -74,6 +168,7 @@ function SearchContent() {
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [b2bOnly, setB2BOnly] = useState(false);
   const [premiumOnly, setPremiumOnly] = useState(false);
+  const [isTopDeals, setIsTopDeals] = useState((searchParams.get('filter') || '') === 'top_deals');
   const [serverResults, setServerResults] = useState<Product[] | null>(null);
 
   useEffect(() => {
@@ -106,7 +201,7 @@ function SearchContent() {
           }));
           setServerResults(mapped);
         } else {
-          setServerResults([]);
+          setServerResults(null);
         }
       } catch {
         setServerResults(null);
@@ -126,23 +221,74 @@ function SearchContent() {
     setVerifiedOnly(false);
     setB2BOnly(false);
     setPremiumOnly(false);
+    setIsTopDeals(false);
     setSortBy('recommended');
   };
 
   // Sync with URL if it changes
   useEffect(() => {
     setQ((searchParams.get('q') || '').trim());
-    const cat = searchParams.get('category') || searchParams.get('cat');
-    setSelectedCategory(cat && cat !== 'All Categories' ? cat : '');
+    const service = searchParams.get('service');
+    const cat = searchParams.get('category') || searchParams.get('cat') || (service ? 'Salon & Spa' : '');
+    const type = searchParams.get('type');
+
+    let resolvedType = type === 'services' ? 'services' : type === 'products' ? 'products' : 'all';
+    let resolvedCat = cat && cat !== 'All Categories' ? cat : '';
+
+    // Synchronize type and category to avoid contradiction
+    if (resolvedCat) {
+      if (isServiceCategory(resolvedCat)) {
+        resolvedType = 'services';
+      } else if (resolvedType === 'all') {
+        resolvedType = 'products';
+      }
+    } else if (resolvedType === 'services' && resolvedCat && !isServiceCategory(resolvedCat)) {
+      resolvedCat = '';
+    } else if (resolvedType === 'products' && resolvedCat && isServiceCategory(resolvedCat)) {
+      resolvedCat = '';
+    }
+
+    setProductType(resolvedType);
+    setSelectedCategory(resolvedCat);
     setLocationFilter(searchParams.get('loc') || '');
 
     const filter = searchParams.get('filter');
-    setSortBy(filter === 'top_deals' ? 'discount' : 'recommended');
+    const dealsActive = filter === 'top_deals';
+    setIsTopDeals(dealsActive);
+    setSortBy(dealsActive ? 'discount' : 'recommended');
     setB2BOnly(filter === 'b2b');
-
-    const type = searchParams.get('type');
-    setProductType(type === 'services' ? 'services' : type === 'products' ? 'products' : 'all');
   }, [searchParams]);
+
+  // Synchronized Handlers to prevent contradictory filter states
+  const handleProductTypeChange = (newType: string) => {
+    setProductType(newType);
+    setSelectedSubcategory('');
+    setDynamicFilters({});
+
+    if (newType === 'services') {
+      if (selectedCategory && !isServiceCategory(selectedCategory)) {
+        setSelectedCategory('');
+      }
+    } else if (newType === 'products') {
+      if (selectedCategory && isServiceCategory(selectedCategory)) {
+        setSelectedCategory('');
+      }
+    }
+  };
+
+  const handleCategoryChange = (newCat: string) => {
+    setSelectedCategory(newCat);
+    setSelectedSubcategory('');
+    setDynamicFilters({});
+
+    if (newCat) {
+      if (isServiceCategory(newCat)) {
+        setProductType('services');
+      } else {
+        setProductType('products');
+      }
+    }
+  };
 
   // Derived filtered products
   const filteredProducts = useMemo(() => {
@@ -156,14 +302,25 @@ function SearchContent() {
       result = result.filter(p => (p.location || '').toLowerCase().includes(locationFilter.toLowerCase()));
     }
     
-    // Type Filter
-    if (productType !== 'all') {
+    // Top Deals Filter
+    if (isTopDeals) {
       result = result.filter(p => {
-        const isService = isServiceProduct(p);
-        if (productType === 'services') return isService;
-        if (productType === 'products') return !isService;
-        return true;
+        const hasOrig = p.originalPrice && p.originalPrice > p.price;
+        const hasDisc = !!p.discount && p.discount !== '0%' && p.discount !== '0% OFF';
+        return hasOrig || hasDisc;
       });
+    }
+
+    // Strict Product vs. Service Separation:
+    // If services are selected (either by Type or by Service Category), DO NOT SHOW PRODUCTS! ONLY SHOW SERVICES!
+    // If products are selected (either by Type or by Product Category), DO NOT SHOW SERVICES! ONLY SHOW PRODUCTS!
+    const isServiceMode = productType === 'services' || (selectedCategory && isServiceCategory(selectedCategory));
+    const isProductMode = productType === 'products' || (selectedCategory && !isServiceCategory(selectedCategory));
+
+    if (isServiceMode) {
+      result = result.filter(p => isServiceProduct(p));
+    } else if (isProductMode) {
+      result = result.filter(p => !isServiceProduct(p));
     }
 
     // Category Filter
@@ -238,22 +395,60 @@ function SearchContent() {
     return result;
   }, [q, locationFilter, productType, selectedCategory, selectedSubcategory, dynamicFilters, priceRange, minRating, verifiedOnly, b2bOnly, premiumOnly, sortBy, products, serverResults]);
 
-  // Get unique categories from products and configs
+  // Dynamically filter available categories based on selected productType
   const availableCategories = useMemo(() => {
-    const set = new Set<string>();
-    if (selectedCategory) set.add(selectedCategory);
-    ['B2B', 'Construction Materials', 'Home Services', 'Salon & Spa', 'Events & Planning', 'Transport', 'Electronics', 'Fashion', 'Home'].forEach(c => set.add(c));
-    (categories || []).forEach(c => { if (c.name) set.add(c.name); });
-    products.forEach(p => { if (p.category) set.add(p.category); });
-    return Array.from(set);
-  }, [categories, products, selectedCategory]);
+    let list: string[] = [];
+
+    if (productType === 'services') {
+      // ONLY service categories
+      const set = new Set<string>();
+      SERVICE_CATEGORIES.forEach(c => set.add(c));
+      (categories || []).forEach(c => {
+        if (c.primaryType === 'SERVICE' || isServiceCategory(c.name)) set.add(c.name);
+      });
+      products.forEach(p => {
+        if (isServiceProduct(p) && p.category && isServiceCategory(p.category)) set.add(p.category);
+      });
+      list = Array.from(set);
+    } else if (productType === 'products') {
+      // ONLY physical product categories
+      const set = new Set<string>();
+      PRODUCT_CATEGORIES.forEach(c => set.add(c));
+      (categories || []).forEach(c => {
+        if (c.primaryType !== 'SERVICE' && !isServiceCategory(c.name)) set.add(c.name);
+      });
+      products.forEach(p => {
+        if (!isServiceProduct(p) && p.category && !isServiceCategory(p.category)) set.add(p.category);
+      });
+      list = Array.from(set);
+    } else {
+      // All Types: show all categories
+      const set = new Set<string>();
+      [...PRODUCT_CATEGORIES, ...SERVICE_CATEGORIES].forEach(c => set.add(c));
+      (categories || []).forEach(c => { if (c.name) set.add(c.name); });
+      products.forEach(p => { if (p.category) set.add(p.category); });
+      list = Array.from(set);
+    }
+
+    if (selectedCategory && !list.includes(selectedCategory)) {
+      list.unshift(selectedCategory);
+    }
+
+    return list;
+  }, [productType, categories, products, selectedCategory]);
   
-  // Get unique subcategories for the selected category
+  // Get unique subcategories for the selected category filtered by type
   const availableSubcategories = useMemo(() => {
     if (!selectedCategory) return [];
-    const catProducts = products.filter(p => matchCategory(p.category, selectedCategory, p.subcategory, p.name));
+    const catProducts = products.filter(p => {
+      const matchCat = matchCategory(p.category, selectedCategory, p.subcategory, p.name);
+      const isServ = isServiceProduct(p);
+      if (productType === 'services') return matchCat && isServ;
+      if (productType === 'products') return matchCat && !isServ;
+      return matchCat;
+    });
     return Array.from(new Set(catProducts.map(p => p.subcategory).filter(Boolean))) as string[];
-  }, [selectedCategory, products]);
+  }, [selectedCategory, products, productType]);
   
   // Get available dynamic filters based on the selected category's parameters
   const availableDynamicFilters = useMemo(() => {
@@ -307,7 +502,7 @@ function SearchContent() {
         {/* Type Pill */}
         <select 
           value={productType} 
-          onChange={(e) => setProductType(e.target.value)}
+          onChange={(e) => handleProductTypeChange(e.target.value)}
           className="bg-slate-100 hover:bg-slate-200 text-slate-700 border-none text-sm rounded-full px-4 py-2 font-medium cursor-pointer outline-none whitespace-nowrap appearance-none pr-8 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M7%2010l5%205%205-5z%22%20fill%3D%22%2364748B%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.2rem_center] bg-[length:1.25rem_1.25rem] shrink-0 transition-colors"
         >
           <option value="all">All Types</option>
@@ -318,14 +513,10 @@ function SearchContent() {
         {/* Category Pill */}
         <select 
           value={selectedCategory} 
-          onChange={(e) => {
-            setSelectedCategory(e.target.value);
-            setSelectedSubcategory('');
-            setDynamicFilters({});
-          }}
+          onChange={(e) => handleCategoryChange(e.target.value)}
           className="bg-slate-100 hover:bg-slate-200 text-slate-700 border-none text-sm rounded-full px-4 py-2 font-medium cursor-pointer outline-none whitespace-nowrap appearance-none pr-8 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M7%2010l5%205%205-5z%22%20fill%3D%22%2364748B%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.2rem_center] bg-[length:1.25rem_1.25rem] shrink-0 transition-colors"
         >
-          <option value="">All Categories</option>
+          <option value="">{productType === 'services' ? 'All Services' : productType === 'products' ? 'All Products' : 'All Categories'}</option>
           {availableCategories.map(cat => (
             <option key={cat} value={cat}>{cat}</option>
           ))}
@@ -398,6 +589,16 @@ function SearchContent() {
 
         {/* Feature Pills (Toggles) */}
         <button 
+          onClick={() => {
+            const next = !isTopDeals;
+            setIsTopDeals(next);
+            if (next) setSortBy('discount');
+          }} 
+          className={`text-sm rounded-full px-4 py-2 font-bold whitespace-nowrap shrink-0 transition-colors border ${isTopDeals ? 'bg-red-50 text-red-600 border-red-300 shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-transparent'}`}
+        >
+          🔥 Top Deals
+        </button>
+        <button 
           onClick={() => setVerifiedOnly(!verifiedOnly)} 
           className={`text-sm rounded-full px-4 py-2 font-medium whitespace-nowrap shrink-0 transition-colors border border-transparent ${verifiedOnly ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
         >
@@ -440,8 +641,11 @@ function SearchContent() {
           <AdvertisementWidget position="SEARCH_PAGE" className="mb-6" />
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
-              {b2bOnly ? 'B2B Wholesale & Enterprise' : selectedCategory ? selectedCategory : 'Search Results'}
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2 flex items-center gap-2">
+              {isTopDeals ? '🔥 Top Deals & Exclusive Discounts' :
+               b2bOnly ? '🏢 B2B Wholesale & Enterprise' :
+               productType === 'services' && !selectedCategory ? '🛠️ All Services & Bookings' :
+               selectedCategory ? selectedCategory : 'Search Results'}
             </h1>
             <p className="text-slate-500 font-medium">
               {filteredProducts.length} results found
@@ -485,13 +689,10 @@ function SearchContent() {
               onSecondaryAction={handleResetFilters}
             />
           </div>
-        ) : productType === 'services' || 
-            ['services', 'home services', 'transport', 'organizers', 'salon & spa', 'events & planning', 'salon & parlour', 'spa'].includes((selectedCategory || '').toLowerCase()) || 
-            categories.some(category => (category.name || '').toLowerCase() === (selectedCategory || '').toLowerCase() && category.primaryType === 'SERVICE') ||
-            (filteredProducts.length > 0 && filteredProducts.every(p => isServiceProduct(p))) ? (
+        ) : (productType === 'services' || isServiceCategory(selectedCategory) || (filteredProducts.length > 0 && filteredProducts.every(p => isServiceProduct(p)))) ? (
           <ServiceDirectoryList products={filteredProducts} />
         ) : (
-          <ProductGrid products={filteredProducts} productOnly={productType === 'products'} />
+          <ProductGrid products={filteredProducts} productOnly={true} />
         )}
         </main>
       </div>

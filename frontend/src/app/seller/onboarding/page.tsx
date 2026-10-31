@@ -5,12 +5,37 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import LocationPicker from '@/components/LocationPicker';
 import toast from 'react-hot-toast';
-import { User, Phone, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, ArrowLeft, UploadCloud, FileCheck, FileText, CheckCircle2, Sparkles } from 'lucide-react';
+import { User, Phone, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, ArrowLeft, UploadCloud, FileCheck, FileText, CheckCircle2, Sparkles, Building2, MapPin, Loader2, Copy, Zap, Clock, BookOpen, X } from 'lucide-react';
 
 import { getApiUrl } from '@/utils/api';
 import { validateGst, validatePan, validateAadhaar, formatAadhaarInput } from '@/utils/kycValidation';
 
 const API_URL = getApiUrl();
+
+// Helper to convert 24h "HH:mm" to 12h display string e.g. "09:00 AM"
+const formatTo12Hour = (time24: string): string => {
+  if (!time24) return '09:00 AM';
+  const [hStr, mStr] = time24.split(':');
+  let h = parseInt(hStr, 10);
+  const m = mStr || '00';
+  if (isNaN(h)) return time24;
+  const period = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return `${h.toString().padStart(2, '0')}:${m} ${period}`;
+};
+
+// Standard 30-minute intervals for 12h selection
+const STANDARD_TIME_OPTIONS_12H: { value: string; label: string }[] = [];
+for (let h = 0; h < 24; h++) {
+  for (let m = 0; m < 60; m += 30) {
+    const val = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    const period = h >= 12 ? 'PM' : 'AM';
+    const displayH = h % 12 || 12;
+    const label = `${displayH.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${period}`;
+    STANDARD_TIME_OPTIONS_12H.push({ value: val, label });
+  }
+}
+STANDARD_TIME_OPTIONS_12H.push({ value: '23:59', label: '11:59 PM' });
 
 export default function SellerOnboarding() {
   const router = useRouter();
@@ -63,13 +88,17 @@ export default function SellerOnboarding() {
 
   // Business Info & KYC
   const [businessName, setBusinessName] = useState('');
+  const [hasGstRegistration, setHasGstRegistration] = useState(true);
   const [gstNumber, setGstNumber] = useState('');
   const [panNumber, setPanNumber] = useState('');
   const [aadharNumber, setAadharNumber] = useState('');
-  const [idProofType, setIdProofType] = useState<'AADHAAR' | 'PAN' | 'GST'>('AADHAAR');
+  const [idProofType, setIdProofType] = useState<'AADHAAR' | 'PAN' | 'GST'>('GST');
   const [idProofUrl, setIdProofUrl] = useState('');
   const [idProofFileName, setIdProofFileName] = useState('');
   const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [hasReadTerms, setHasReadTerms] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   // Business Type
   const [primaryOffering, setPrimaryOffering] = useState('');
@@ -85,6 +114,8 @@ export default function SellerOnboarding() {
   const [stateName, setStateName] = useState('');
   const [businessLocation, setBusinessLocation] = useState('');
   const [locality, setLocality] = useState('');
+  const [subLocality, setSubLocality] = useState('');
+  const [isCustomLocality, setIsCustomLocality] = useState(false);
   const [landmark, setLandmark] = useState('');
   const [areas, setAreas] = useState<string[]>([]);
   const [isFetchingPin, setIsFetchingPin] = useState(false);
@@ -101,6 +132,7 @@ export default function SellerOnboarding() {
     saturday: { open: '09:00', close: '18:00', closed: false },
     sunday: { open: '09:00', close: '18:00', closed: true },
   });
+  const [timeFormat, setTimeFormat] = useState<'12' | '24'>('12');
 
   React.useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -137,9 +169,15 @@ export default function SellerOnboarding() {
         const newState = bdcData.principalSubdivision || nomData.address.state || '';
         
         // Exact locality from BigDataCloud or Nominatim
-        let exactLocality = nomData.address.neighbourhood || nomData.address.suburb || bdcData.locality || '';
+        let exactLocality = nomData.address.suburb || nomData.address.village || nomData.address.town || bdcData.locality || '';
         if (!exactLocality && nomData.display_name) {
           exactLocality = nomData.display_name.split(',')[1]?.trim() || '';
+        }
+
+        // Sub-locality, neighbourhood, mohalla, or tola
+        let detectedSubLocality = nomData.address.neighbourhood || nomData.address.hamlet || nomData.address.quarter || nomData.address.residential || '';
+        if (detectedSubLocality === exactLocality || detectedSubLocality === newCity) {
+          detectedSubLocality = '';
         }
         
         // Street info for the business location field
@@ -156,6 +194,7 @@ export default function SellerOnboarding() {
         if (newCity) setCity(newCity);
         if (newState) setStateName(newState);
         if (exactLocality) setLocality(exactLocality);
+        if (detectedSubLocality) setSubLocality(detectedSubLocality);
         if (streetAddress) setBusinessLocation(streetAddress);
       }
     } catch (error) {
@@ -397,34 +436,36 @@ export default function SellerOnboarding() {
   const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const isService = primaryOffering === 'SERVICE' || mainType === 'SERVICE';
+    // 1. Mandatory Terms & Conditions check (must read and tick)
+    if (!termsAccepted || !hasReadTerms) {
+      toast.error('Please read and tick the mandatory Terms of Service & Seller Agreement');
+      setShowTermsModal(true);
+      return;
+    }
 
-    // Documentation validation based on Category (Products vs Services)
-    if (!isService) {
-      if (!gstNumber && !aadharNumber) {
-        toast.error('Please enter your GSTIN or Aadhaar Number to verify your business');
-        return;
-      }
-      if (gstNumber && !validateGst(gstNumber).valid) {
-        toast.error(validateGst(gstNumber).message || 'Invalid GST number');
-        return;
-      }
-      if (aadharNumber && !validateAadhaar(aadharNumber).valid) {
-        toast.error(validateAadhaar(aadharNumber).message || 'Valid 12-digit Aadhaar number is required');
+    // 2. Documentation validation:
+    // If hasGstRegistration: GSTIN and GST Certificate are required. Aadhaar is NOT required.
+    // If !hasGstRegistration: Aadhaar card number and Aadhaar document are STRICTLY MANDATORY.
+    if (hasGstRegistration) {
+      if (!gstNumber || !validateGst(gstNumber).valid) {
+        toast.error(validateGst(gstNumber).message || 'Valid 15-character GSTIN is required for registered businesses');
         return;
       }
       if (!idProofUrl) {
-        toast.error('Please upload your real Aadhaar Card or GST Certificate');
-        return;
-      }
-    } else {
-      // For Services: documentation is optional, validate only if provided
-      if (gstNumber && !validateGst(gstNumber).valid) {
-        toast.error(validateGst(gstNumber).message || 'Invalid GST number');
+        toast.error('Please upload your official GST Certificate document');
         return;
       }
       if (aadharNumber && !validateAadhaar(aadharNumber).valid) {
-        toast.error(validateAadhaar(aadharNumber).message || 'Valid 12-digit Aadhaar number is required');
+        toast.error(validateAadhaar(aadharNumber).message || 'Invalid Aadhaar number format');
+        return;
+      }
+    } else {
+      if (!aadharNumber || !validateAadhaar(aadharNumber).valid) {
+        toast.error('Valid 12-digit Aadhaar Card number is mandatory when GST is not provided');
+        return;
+      }
+      if (!idProofUrl) {
+        toast.error('Please upload your official Aadhaar Card document proof');
         return;
       }
     }
@@ -450,7 +491,7 @@ export default function SellerOnboarding() {
             businessType: sellerRole || 'Retailer',
             mainType: mainType || 'B2C',
             sector: businessSector || 'General',
-            address: `${businessLocation || ''}${locality ? ', ' + locality : ''}${landmark ? ', ' + landmark : ''}, ${city || 'City'}, ${stateName || 'State'}`,
+            address: `${businessLocation || ''}${subLocality ? ', ' + subLocality : ''}${locality ? ', ' + locality : ''}${landmark ? ', ' + landmark : ''}, ${city || 'City'}, ${stateName || 'State'}`,
             pincode: pinCode || '000000',
             latitude: latitude || 28.6139,
             longitude: longitude || 77.2090,
@@ -522,6 +563,9 @@ export default function SellerOnboarding() {
   const selectClasses = "w-full p-4 rounded-2xl border border-slate-200 bg-white text-slate-700 outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 transition-all text-sm";
   const labelClasses = "block text-[11px] font-bold text-slate-600 mb-2 uppercase tracking-wider";
   const btnPrimary = "w-full py-4 bg-gradient-to-r from-indigo-400 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 text-white rounded-2xl font-bold transition-all shadow-md disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm";
+  const compactInput = "w-full px-4 py-2.5 sm:py-3 rounded-xl border border-slate-200 bg-white text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-slate-400 text-sm";
+  const compactSelect = "w-full px-4 py-2.5 sm:py-3 rounded-xl border border-slate-200 bg-white text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all text-sm";
+  const compactLabel = "block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide";
 
   return (
     <div className="min-h-screen bg-[#f4f7fa] flex">
@@ -617,7 +661,7 @@ export default function SellerOnboarding() {
 
       {/* Right Side: Form */}
       <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-12 overflow-y-auto">
-        <div className="w-full max-w-[440px]">
+        <div className="w-full max-w-[460px] sm:max-w-[480px]">
           {/* Step Progress */}
           {step >= 2 && step <= 5 && (
             <div className="flex items-center justify-between mb-10 overflow-x-auto pb-2">
@@ -780,11 +824,16 @@ export default function SellerOnboarding() {
 
           {/* STEP 2: PROFILE */}
           {step === 2 && (
-            <div className="bg-transparent py-4">
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-slate-900 mb-1">🏢 Business Profile</h2>
-                <p className="text-slate-500 text-sm">Basic details about your business and location</p>
+            <div className="bg-transparent py-2">
+              <div className="mb-4 sm:mb-5">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                  <span>🏢</span> Business Profile
+                </h2>
+                <p className="text-slate-500 text-xs sm:text-sm mt-0.5">
+                  Basic details about your business and store location
+                </p>
               </div>
+
               <form onSubmit={e => {
                 e.preventDefault();
                 if (!businessName.trim()) {
@@ -800,62 +849,197 @@ export default function SellerOnboarding() {
                   return;
                 }
                 setStep(3);
-              }} className="flex flex-col gap-6">
-                <div><label className={labelClasses}>Legal Business Name <span className="text-red-500">*</span></label><input required type="text" value={businessName} onChange={e => setBusinessName(e.target.value)} placeholder="e.g. ACME Corp" className={inputClasses} /></div>
+              }} className="space-y-3.5 sm:space-y-4">
 
-                <div className="flex justify-between items-center mt-2 border-t border-slate-100 pt-6 mb-4">
-                  <h3 className="text-sm font-bold text-slate-800">Pinpoint your Location on Map</h3>
-                </div>
-                
-                <LocationPicker 
-                  latitude={latitude} 
-                  longitude={longitude} 
-                  onChange={handleLocationChange} 
-                />
-
-                <div className="flex justify-between items-center mt-6">
-                  <h3 className="text-sm font-bold text-slate-800">Address Details</h3>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className={labelClasses}>PIN Code <span className="text-red-500">*</span></label>
-                    <input required type="text" maxLength={6} value={pinCode} onChange={e => setPinCode(e.target.value.replace(/\D/g, ''))} placeholder="e.g. 110001" className={inputClasses} />
-                  </div>
-                  <div>
-                    <label className={labelClasses}>State <span className="text-red-500">*</span></label>
-                    <input required type="text" value={stateName} onChange={e => setStateName(e.target.value)} placeholder="e.g. Delhi" className={inputClasses} />
-                  </div>
-                  <div>
-                    <label className={labelClasses}>City / District <span className="text-red-500">*</span></label>
-                    <input required type="text" value={city} onChange={e => setCity(e.target.value)} placeholder="e.g. New Delhi" className={inputClasses} />
-                  </div>
-                  <div>
-                    <label className={labelClasses}>Locality</label>
-                    {areas.length > 0 ? (
-                      <select className={selectClasses} value={locality} onChange={e => setLocality(e.target.value)}>
-                        <option value="" disabled>Select Locality</option>
-                        {areas.map(a => <option key={a} value={a}>{a}</option>)}
-                      </select>
-                    ) : (
-                      <input type="text" value={locality} onChange={e => setLocality(e.target.value)} placeholder="Enter PIN or map pin to fetch" className={`${inputClasses} bg-slate-50`} />
-                    )}
+                {/* 1. Legal Business Name */}
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
+                  <label className={compactLabel}>
+                    Legal Business Name <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    <input 
+                      required 
+                      type="text" 
+                      value={businessName} 
+                      onChange={e => setBusinessName(e.target.value)} 
+                      placeholder="e.g. ACME Corp / Rajesh General Store" 
+                      className={`${compactInput} pl-10`} 
+                    />
                   </div>
                 </div>
 
-                <div>
-                  <label className={labelClasses}>Shop No. & Street / Gali Name <span className="text-red-500">*</span></label>
-                  <textarea required rows={2} value={businessLocation} onChange={e => setBusinessLocation(e.target.value)} placeholder="e.g. Shop No. 12, Main Street / Gali No. 4" className={inputClasses} />
+                {/* 2. Interactive Ground-Level Map Box */}
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-2.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="w-4 h-4 text-emerald-600" />
+                      <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                        Pinpoint Ground Location on Map
+                      </h3>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] text-slate-500 font-medium hidden sm:inline">
+                        📍 Drag pin to shop entrance • Switch to 🛰️ Satellite
+                      </span>
+                      {isFetchingPin && (
+                        <span className="flex items-center gap-1 text-[11px] text-indigo-600 font-semibold animate-pulse">
+                          <Loader2 className="w-3 h-3 animate-spin" /> Fetching address...
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <LocationPicker 
+                    latitude={latitude} 
+                    longitude={longitude} 
+                    onChange={handleLocationChange} 
+                    className="h-56 sm:h-64 rounded-xl overflow-hidden border border-slate-200 shadow-2xs"
+                  />
                 </div>
-                <div>
-                  <label className={labelClasses}>Nearby Landmark (Optional)</label>
-                  <input type="text" value={landmark} onChange={e => setLandmark(e.target.value)} placeholder="e.g. Near City Mall" className={inputClasses} />
+
+                {/* 3. Structured Address Details */}
+                <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-4">
+                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 pb-2 border-b border-slate-100">
+                    Address &amp; Store Details
+                  </h3>
+
+                  {/* 2-Column Responsive Grid for Geographic Fields */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Row 1: PIN Code & State */}
+                    <div>
+                      <label className={compactLabel}>
+                        PIN Code <span className="text-rose-500">*</span>
+                      </label>
+                      <input 
+                        required 
+                        type="text" 
+                        maxLength={6} 
+                        value={pinCode} 
+                        onChange={e => setPinCode(e.target.value.replace(/\D/g, ''))} 
+                        placeholder="e.g. 110001" 
+                        className={compactInput} 
+                      />
+                    </div>
+
+                    <div>
+                      <label className={compactLabel}>
+                        State <span className="text-rose-500">*</span>
+                      </label>
+                      <input 
+                        required 
+                        type="text" 
+                        value={stateName} 
+                        onChange={e => setStateName(e.target.value)} 
+                        placeholder="e.g. Bihar / Delhi" 
+                        className={compactInput} 
+                      />
+                    </div>
+
+                    {/* Row 2: City / District & Locality / Suburb */}
+                    <div>
+                      <label className={compactLabel}>
+                        City / District <span className="text-rose-500">*</span>
+                      </label>
+                      <input 
+                        required 
+                        type="text" 
+                        value={city} 
+                        onChange={e => setCity(e.target.value)} 
+                        placeholder="e.g. Vaishali / Gurgaon" 
+                        className={compactInput} 
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className={`${compactLabel} mb-0`}>Locality</label>
+                        {areas.length > 0 && (
+                          <button 
+                            type="button" 
+                            onClick={() => { setIsCustomLocality(!isCustomLocality); }}
+                            className="text-[11px] font-semibold text-indigo-600 hover:underline cursor-pointer"
+                          >
+                            {isCustomLocality ? '← Pick from list' : '+ Custom'}
+                          </button>
+                        )}
+                      </div>
+                      {areas.length > 0 && !isCustomLocality ? (
+                        <select 
+                          className={compactSelect} 
+                          value={locality} 
+                          onChange={e => {
+                            if (e.target.value === '__custom__') {
+                              setIsCustomLocality(true);
+                              setLocality('');
+                            } else {
+                              setLocality(e.target.value);
+                            }
+                          }}
+                        >
+                          <option value="" disabled>Select Area</option>
+                          {areas.map(a => <option key={a} value={a}>{a}</option>)}
+                          <option value="__custom__">+ Enter custom locality...</option>
+                        </select>
+                      ) : (
+                        <input 
+                          type="text" 
+                          value={locality} 
+                          onChange={e => setLocality(e.target.value)} 
+                          placeholder="e.g. Paura / Arjun Nagar" 
+                          className={compactInput} 
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Full-Width Street Address */}
+                  <div>
+                    <label className={compactLabel}>
+                      Shop No., Building &amp; Street / Gali Name <span className="text-rose-500">*</span>
+                    </label>
+                    <input 
+                      required 
+                      type="text" 
+                      value={businessLocation} 
+                      onChange={e => setBusinessLocation(e.target.value)} 
+                      placeholder="e.g. Shop No. 12, Main Street / Gali No. 4" 
+                      className={compactInput} 
+                    />
+                  </div>
+
+                  {/* Single Full-Width Field: Nearby Landmark / Also Known As (Near Me) */}
+                  <div>
+                    <label className={compactLabel}>
+                      Nearby Landmark / Also Known As (Near Me) <span className="text-slate-400 font-normal lowercase">(optional)</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      value={landmark} 
+                      onChange={e => setLandmark(e.target.value)} 
+                      placeholder="e.g. Near City Mall / Opp. High School / Near Shiv Mandir / Ward No. 4" 
+                      className={compactInput} 
+                    />
+                  </div>
                 </div>
-                <div className="flex gap-3 mt-4">
+
+                {/* Form Buttons */}
+                <div className="flex items-center gap-3 pt-2">
                   {!user && (
-                    <button type="button" onClick={() => setStep(1)} className="px-6 py-4 border border-slate-300 text-slate-700 rounded-2xl font-bold text-sm bg-white hover:bg-slate-50">← Back</button>
+                    <button 
+                      type="button" 
+                      onClick={() => setStep(1)} 
+                      className="px-5 py-3 border border-slate-200 text-slate-700 rounded-xl font-bold text-sm bg-white hover:bg-slate-50 transition-all shadow-2xs"
+                    >
+                      ← Back
+                    </button>
                   )}
-                  <button type="submit" className={btnPrimary}>Next: Features →</button>
+                  <button 
+                    type="submit" 
+                    className="flex-1 py-3 px-6 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-xl font-bold text-sm shadow-xs transition-all flex items-center justify-center gap-2"
+                  >
+                    Next: Features →
+                  </button>
                 </div>
               </form>
             </div>
@@ -938,32 +1122,253 @@ export default function SellerOnboarding() {
 
           {/* STEP 4: HOURS */}
           {step === 4 && (
-            <div className="bg-transparent py-4">
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-slate-900 mb-1">🕒 Business Hours</h2>
-                <p className="text-slate-500 text-sm">When is your business open?</p>
+            <div className="bg-transparent py-2">
+              <div className="mb-4 sm:mb-5">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                  <span>🕒</span> Business Hours
+                </h2>
+                <p className="text-slate-500 text-xs sm:text-sm mt-0.5">
+                  Set the opening and closing schedule for your store listings and customer visits
+                </p>
               </div>
-              <form onSubmit={e => { e.preventDefault(); setStep(5); }} className="flex flex-col gap-6">
-                <div>
-                  <div className="flex flex-col gap-3">
-                    {Object.keys(businessHours).map(day => (
-                      <div key={day} className="flex items-center justify-between bg-white p-3 rounded-2xl border border-slate-200">
-                        <span className="capitalize w-24 text-sm font-semibold text-slate-700">{day}</span>
-                        <div className="flex gap-2">
-                          <input type="time" value={(businessHours as any)[day].open} onChange={e => setBusinessHours({...businessHours, [day]: {...(businessHours as any)[day], open: e.target.value}})} disabled={(businessHours as any)[day].closed} className="p-1.5 border border-slate-200 rounded text-xs outline-none focus:border-indigo-400 bg-slate-50" />
-                          <span className="text-slate-400 self-center">-</span>
-                          <input type="time" value={(businessHours as any)[day].close} onChange={e => setBusinessHours({...businessHours, [day]: {...(businessHours as any)[day], close: e.target.value}})} disabled={(businessHours as any)[day].closed} className="p-1.5 border border-slate-200 rounded text-xs outline-none focus:border-indigo-400 bg-slate-50" />
-                        </div>
-                        <label className="flex items-center gap-2 text-xs font-semibold text-slate-500 cursor-pointer">
-                          <input type="checkbox" checked={(businessHours as any)[day].closed} onChange={e => setBusinessHours({...businessHours, [day]: {...(businessHours as any)[day], closed: e.target.checked}})} className="rounded" /> Closed
-                        </label>
-                      </div>
-                    ))}
-                  </div>
+
+              {/* Short & Sleek Quick Presets + 12h/24h Format Selector Toolbar */}
+              <div className="flex items-center justify-between gap-2 mb-3 bg-slate-50/90 p-1.5 rounded-xl border border-slate-200/80 text-xs">
+                {/* Left: Quick Presets */}
+                <div className="flex items-center gap-1 overflow-x-auto min-w-0">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0 flex items-center gap-1 mr-0.5">
+                    <Zap className="w-3 h-3 text-amber-500" /> Presets:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBusinessHours({
+                        monday: { open: '09:00', close: '20:00', closed: false },
+                        tuesday: { open: '09:00', close: '20:00', closed: false },
+                        wednesday: { open: '09:00', close: '20:00', closed: false },
+                        thursday: { open: '09:00', close: '20:00', closed: false },
+                        friday: { open: '09:00', close: '20:00', closed: false },
+                        saturday: { open: '09:00', close: '20:00', closed: false },
+                        sunday: { open: '09:00', close: '20:00', closed: true },
+                      });
+                      toast.success(timeFormat === '12' ? 'Applied Mon–Sat (09:00 AM – 08:00 PM)' : 'Applied Mon–Sat (09:00 – 20:00)');
+                    }}
+                    className="px-2 py-1 rounded-lg bg-white border border-slate-200 hover:border-indigo-400 text-indigo-700 font-bold text-[11px] shadow-2xs whitespace-nowrap cursor-pointer transition-all"
+                  >
+                    Mon–Sat
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBusinessHours({
+                        monday: { open: '09:00', close: '21:00', closed: false },
+                        tuesday: { open: '09:00', close: '21:00', closed: false },
+                        wednesday: { open: '09:00', close: '21:00', closed: false },
+                        thursday: { open: '09:00', close: '21:00', closed: false },
+                        friday: { open: '09:00', close: '21:00', closed: false },
+                        saturday: { open: '09:00', close: '21:00', closed: false },
+                        sunday: { open: '09:00', close: '21:00', closed: false },
+                      });
+                      toast.success(timeFormat === '12' ? 'Applied All 7 Days (09:00 AM – 09:00 PM)' : 'Applied All 7 Days (09:00 – 21:00)');
+                    }}
+                    className="px-2 py-1 rounded-lg bg-white border border-slate-200 hover:border-emerald-400 text-emerald-700 font-bold text-[11px] shadow-2xs whitespace-nowrap cursor-pointer transition-all"
+                  >
+                    All Days
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBusinessHours({
+                        monday: { open: '00:00', close: '23:59', closed: false },
+                        tuesday: { open: '00:00', close: '23:59', closed: false },
+                        wednesday: { open: '00:00', close: '23:59', closed: false },
+                        thursday: { open: '00:00', close: '23:59', closed: false },
+                        friday: { open: '00:00', close: '23:59', closed: false },
+                        saturday: { open: '00:00', close: '23:59', closed: false },
+                        sunday: { open: '00:00', close: '23:59', closed: false },
+                      });
+                      toast.success('Applied 24/7 Always Open');
+                    }}
+                    className="px-2 py-1 rounded-lg bg-white border border-slate-200 hover:border-slate-400 text-slate-700 font-bold text-[11px] shadow-2xs whitespace-nowrap cursor-pointer transition-all"
+                  >
+                    24/7
+                  </button>
                 </div>
-                <div className="flex gap-3 mt-4">
-                  <button type="button" onClick={() => setStep(3)} className="px-6 py-4 border border-slate-300 text-slate-700 rounded-2xl font-bold text-sm bg-white hover:bg-slate-50">← Back</button>
-                  <button type="submit" className={btnPrimary}>Next: Verification &amp; Documents →</button>
+
+                {/* Right: 12h vs 24h Segmented Pill */}
+                <div className="flex items-center bg-white p-0.5 rounded-lg border border-slate-200 shrink-0 text-xs font-bold shadow-2xs">
+                  <button
+                    type="button"
+                    onClick={() => setTimeFormat('12')}
+                    className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                      timeFormat === '12'
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    12h
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTimeFormat('24')}
+                    className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                      timeFormat === '24'
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    24h
+                  </button>
+                </div>
+              </div>
+
+              {/* Weekly Schedule Systematic Card */}
+              <form onSubmit={e => { e.preventDefault(); setStep(5); }} className="space-y-4">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs divide-y divide-slate-100 overflow-hidden">
+                  {/* Table Header for Systematic Alignment */}
+                  <div className="px-3.5 py-2.5 bg-slate-50/80 flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                    <span className="w-20 sm:w-24 shrink-0">Day</span>
+                    <span className="w-12 text-center shrink-0">Status</span>
+                    <span className="flex-1 text-right">
+                      Hours ({timeFormat === '12' ? '12h AM/PM' : '24h'})
+                    </span>
+                  </div>
+
+                  {Object.keys(businessHours).map((day) => {
+                    const dayData = (businessHours as any)[day];
+                    const isOpen = !dayData.closed;
+
+                    const getTimeOptions = (currentVal: string) => {
+                      const exists = STANDARD_TIME_OPTIONS_12H.some(opt => opt.value === currentVal);
+                      if (!exists && currentVal) {
+                        return [...STANDARD_TIME_OPTIONS_12H, { value: currentVal, label: formatTo12Hour(currentVal) }].sort((a, b) => a.value.localeCompare(b.value));
+                      }
+                      return STANDARD_TIME_OPTIONS_12H;
+                    };
+
+                    return (
+                      <div 
+                        key={day} 
+                        className={`px-3.5 py-2.5 flex items-center justify-between gap-2 transition-colors ${
+                          !isOpen ? 'bg-slate-50/40' : 'hover:bg-slate-50/30'
+                        }`}
+                      >
+                        {/* Column 1: Day Name */}
+                        <div className="w-20 sm:w-24 shrink-0">
+                          <span className={`capitalize font-bold text-xs sm:text-sm ${isOpen ? 'text-slate-900' : 'text-slate-400'}`}>
+                            {day}
+                          </span>
+                        </div>
+
+                        {/* Column 2: Status Toggle (Compact Green Switch) */}
+                        <div className="w-12 shrink-0 flex justify-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setBusinessHours({
+                                ...businessHours,
+                                [day]: { ...dayData, closed: !dayData.closed }
+                              });
+                            }}
+                            title={isOpen ? `${day} is Open (Click to Close)` : `${day} is Closed (Click to Open)`}
+                            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                              isOpen ? 'bg-emerald-500 shadow-xs' : 'bg-slate-200'
+                            }`}
+                          >
+                            <span
+                              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${
+                                isOpen ? 'translate-x-4' : 'translate-x-0'
+                              }`}
+                            />
+                          </button>
+                        </div>
+
+                        {/* Column 3: Hours (Always fits comfortably inside the box) */}
+                        <div className="flex-1 flex justify-end items-center min-w-0">
+                          {isOpen ? (
+                            <div className="flex items-center gap-1 sm:gap-1.5">
+                              {timeFormat === '12' ? (
+                                <>
+                                  <select
+                                    value={dayData.open}
+                                    onChange={e => setBusinessHours({
+                                      ...businessHours,
+                                      [day]: { ...dayData, open: e.target.value }
+                                    })}
+                                    className="w-[84px] sm:w-[92px] px-1.5 sm:px-2 py-1 rounded-lg border border-slate-200 bg-white text-[11px] sm:text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 cursor-pointer text-center shadow-2xs"
+                                  >
+                                    {getTimeOptions(dayData.open).map(opt => (
+                                      <option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <span className="text-slate-400 font-bold text-[10px] sm:text-xs">to</span>
+                                  <select
+                                    value={dayData.close}
+                                    onChange={e => setBusinessHours({
+                                      ...businessHours,
+                                      [day]: { ...dayData, close: e.target.value }
+                                    })}
+                                    className="w-[84px] sm:w-[92px] px-1.5 sm:px-2 py-1 rounded-lg border border-slate-200 bg-white text-[11px] sm:text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 cursor-pointer text-center shadow-2xs"
+                                  >
+                                    {getTimeOptions(dayData.close).map(opt => (
+                                      <option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </>
+                              ) : (
+                                <>
+                                  <input 
+                                    type="time" 
+                                    value={dayData.open} 
+                                    onChange={e => setBusinessHours({
+                                      ...businessHours, 
+                                      [day]: { ...dayData, open: e.target.value }
+                                    })} 
+                                    className="w-[84px] sm:w-[92px] px-1 sm:px-2 py-1 rounded-lg border border-slate-200 bg-white text-[11px] sm:text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 text-center shadow-2xs" 
+                                  />
+                                  <span className="text-slate-400 font-bold text-[10px] sm:text-xs">to</span>
+                                  <input 
+                                    type="time" 
+                                    value={dayData.close} 
+                                    onChange={e => setBusinessHours({
+                                      ...businessHours, 
+                                      [day]: { ...dayData, close: e.target.value }
+                                    })} 
+                                    className="w-[84px] sm:w-[92px] px-1 sm:px-2 py-1 rounded-lg border border-slate-200 bg-white text-[11px] sm:text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 text-center shadow-2xs" 
+                                  />
+                                </>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-xs font-semibold text-slate-400 italic px-2 py-1">
+                              Closed
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Form Buttons */}
+                <div className="flex items-center gap-3 pt-2">
+                  <button 
+                    type="button" 
+                    onClick={() => setStep(3)} 
+                    className="px-5 py-3 border border-slate-200 text-slate-700 rounded-xl font-bold text-sm bg-white hover:bg-slate-50 transition-all shadow-2xs"
+                  >
+                    ← Back
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="flex-1 py-3 px-6 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-xl font-bold text-sm shadow-xs transition-all flex items-center justify-center gap-2"
+                  >
+                    Next: Verification &amp; Documents →
+                  </button>
                 </div>
               </form>
             </div>
@@ -972,128 +1377,226 @@ export default function SellerOnboarding() {
           {/* STEP 5: DOCUMENTS & VERIFICATION */}
           {step === 5 && (
             <div className="bg-transparent py-4">
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-slate-900 mb-1">🚀 Final Step: Verification</h2>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-slate-900 mb-1">🚀 Final Step: Verification &amp; KYC</h2>
                 <p className="text-slate-500 text-sm">
-                  {primaryOffering === 'SERVICE'
-                    ? 'Review your details. GSTIN and Aadhaar documentation are optional for services.'
-                    : 'Provide your GSTIN and Aadhaar documentation to verify your merchant store.'}
+                  Verify your store identity with GST or Aadhaar documentation to activate your merchant account.
                 </p>
               </div>
-              <form onSubmit={handleFinalSubmit} className="flex flex-col gap-6">
+              <form onSubmit={handleFinalSubmit} className="flex flex-col gap-5">
                 
                 {/* Documentation Section */}
                 <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                     <div>
                       <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                         <ShieldCheck className="w-4 h-4 text-emerald-600" />
                         Business Documentation &amp; Identity
                       </h3>
                       <p className="text-[11px] text-slate-500 mt-0.5">
-                        {primaryOffering === 'SERVICE'
-                          ? 'GST and Aadhaar verification is optional for service providers'
-                          : 'GST and Aadhaar verification for active merchant onboarding'}
+                        Choose whether your business is GST-registered or use Aadhaar KYC
                       </p>
                     </div>
-                    {primaryOffering === 'SERVICE' && (
-                      <span className="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold shrink-0">
-                        Optional for Services
-                      </span>
-                    )}
                   </div>
 
-                  {/* GSTIN (15-Char) */}
+                  {/* 1. Registration Mode Selector: GST vs Aadhaar */}
                   <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className={labelClasses}>
-                        GSTIN (15-Char) {primaryOffering === 'SERVICE' ? <span className="text-slate-400 font-normal lowercase">(optional)</span> : <span className="text-slate-400 font-normal lowercase">(if registered)</span>}
-                      </label>
-                      {primaryOffering === 'SERVICE' && (
-                        <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded">Optional</span>
-                      )}
-                    </div>
-                    <input 
-                      type="text" 
-                      maxLength={15}
-                      value={gstNumber} 
-                      onChange={e => {
-                        const val = e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, '');
-                        setGstNumber(val);
-                        if (val.length === 15) setPanNumber(val.substring(2, 12));
-                      }} 
-                      placeholder="e.g. 22AAAAA0000A1Z5" 
-                      className={inputClasses} 
-                    />
-                  </div>
-
-                  {/* Aadhaar Number (12-Digit) */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className={labelClasses}>
-                        Aadhaar Number (12-Digit) {primaryOffering === 'SERVICE' ? <span className="text-slate-400 font-normal lowercase">(optional)</span> : <span className="text-red-500">*</span>}
-                      </label>
-                      {primaryOffering === 'SERVICE' && (
-                        <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded">Optional</span>
-                      )}
-                    </div>
-                    <input 
-                      type="text" 
-                      maxLength={14}
-                      value={aadharNumber} 
-                      onChange={e => setAadharNumber(formatAadhaarInput(e.target.value))} 
-                      placeholder="XXXX XXXX XXXX" 
-                      className={inputClasses} 
-                    />
-                  </div>
-
-                  {/* Document Proof Upload */}
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <label className={labelClasses}>
-                        Upload Real ID Proof Document {primaryOffering === 'SERVICE' ? <span className="text-slate-400 font-normal lowercase">(optional)</span> : <span className="text-red-500">*</span>}
-                      </label>
-                      <select
-                        value={idProofType}
-                        onChange={e => setIdProofType(e.target.value as any)}
-                        className="text-xs bg-slate-100 border border-slate-200 rounded-lg p-1.5 font-semibold text-slate-700 outline-none"
+                    <label className="text-xs font-bold text-slate-700 block mb-1.5">
+                      Business Registration Status *
+                    </label>
+                    <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200/80">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHasGstRegistration(true);
+                          setIdProofType('GST');
+                          if (idProofType === 'AADHAAR') {
+                            setIdProofUrl('');
+                            setIdProofFileName('');
+                          }
+                        }}
+                        className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                          hasGstRegistration
+                            ? 'bg-white text-indigo-700 shadow-2xs border border-slate-200/80'
+                            : 'text-slate-500 hover:text-slate-800'
+                        }`}
                       >
-                        <option value="AADHAAR">Aadhaar Card</option>
-                        <option value="GST">GST Certificate</option>
-                      </select>
+                        <Building2 className="w-3.5 h-3.5" />
+                        <span>I have GSTIN</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHasGstRegistration(false);
+                          setIdProofType('AADHAAR');
+                          if (idProofType === 'GST') {
+                            setIdProofUrl('');
+                            setIdProofFileName('');
+                          }
+                        }}
+                        className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                          !hasGstRegistration
+                            ? 'bg-white text-indigo-700 shadow-2xs border border-slate-200/80'
+                            : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        <User className="w-3.5 h-3.5" />
+                        <span>No GST (Aadhaar Mandatory)</span>
+                      </button>
                     </div>
-
-                    {!idProofUrl ? (
-                      <label className="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer bg-white text-center transition-all">
-                        <input 
-                          type="file" 
-                          accept="image/png,image/jpeg,image/webp,application/pdf"
-                          onChange={handleDocumentUpload} 
-                          disabled={isUploadingDoc}
-                          className="hidden" 
-                        />
-                        <UploadCloud className="w-7 h-7 text-slate-400 mb-1" />
-                        <span className="text-xs font-bold text-slate-700">
-                          {isUploadingDoc ? 'Uploading...' : `Upload Real ${idProofType === 'GST' ? 'GST Certificate' : 'AADHAAR Card'}`}
-                        </span>
-                        <span className="text-[10px] text-slate-400 mt-0.5">PDF, PNG, JPG (Max 10MB)</span>
-                      </label>
-                    ) : (
-                      <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
-                          <FileCheck className="w-4 h-4 text-emerald-600" />
-                          <span>{idProofFileName || `${idProofType === 'GST' ? 'GST Certificate' : 'Aadhaar Card'} Attached`}</span>
-                        </div>
-                        <button 
-                          type="button" 
-                          onClick={() => { setIdProofUrl(''); setIdProofFileName(''); }}
-                          className="text-xs font-bold text-rose-600 hover:underline cursor-pointer"
-                        >
-                          Change
-                        </button>
-                      </div>
-                    )}
                   </div>
+
+                  {/* 2. When GST Registration is Active */}
+                  {hasGstRegistration ? (
+                    <div className="space-y-4 pt-1">
+                      {/* GSTIN Field */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className={labelClasses}>
+                            GSTIN (15-Character) <span className="text-red-500">*</span>
+                          </label>
+                          <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                            No Aadhaar Required with GST
+                          </span>
+                        </div>
+                        <input 
+                          type="text" 
+                          maxLength={15}
+                          value={gstNumber} 
+                          onChange={e => {
+                            const val = e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, '');
+                            setGstNumber(val);
+                            if (val.length === 15) setPanNumber(val.substring(2, 12));
+                          }} 
+                          placeholder="e.g. 22AAAAA0000A1Z5" 
+                          className={inputClasses} 
+                        />
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          ✓ Verified GST registered businesses are exempt from mandatory Aadhaar submission.
+                        </p>
+                      </div>
+
+                      {/* GST Certificate Upload (Mandatory with GST) */}
+                      <div>
+                        <label className={`${labelClasses} block mb-1.5`}>
+                          Upload GST Certificate (Form REG-06) <span className="text-red-500">*</span>
+                        </label>
+
+                        {!idProofUrl ? (
+                          <label className="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer bg-white text-center transition-all">
+                            <input 
+                              type="file" 
+                              accept="image/png,image/jpeg,image/webp,application/pdf"
+                              onChange={handleDocumentUpload} 
+                              disabled={isUploadingDoc}
+                              className="hidden" 
+                            />
+                            <UploadCloud className="w-7 h-7 text-indigo-500 mb-1" />
+                            <span className="text-xs font-bold text-slate-800">
+                              {isUploadingDoc ? 'Uploading...' : 'Upload Official GST Registration Certificate *'}
+                            </span>
+                            <span className="text-[10px] text-slate-400 mt-0.5">PDF, PNG, JPG (Max 10MB)</span>
+                          </label>
+                        ) : (
+                          <div className="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-200 flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-xs font-bold text-indigo-950">
+                              <FileCheck className="w-4 h-4 text-indigo-600 shrink-0" />
+                              <span className="truncate max-w-[240px] sm:max-w-[300px]">
+                                {idProofFileName || 'GST Certificate Attached'}
+                              </span>
+                            </div>
+                            <button 
+                              type="button" 
+                              onClick={() => { setIdProofUrl(''); setIdProofFileName(''); }}
+                              className="text-xs font-bold text-rose-600 hover:underline cursor-pointer ml-2"
+                            >
+                              Change
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Optional Aadhaar Field if Merchant Wishes to Add */}
+                      <div className="pt-2 border-t border-slate-100">
+                        <label className="text-[11px] font-semibold text-slate-500 block mb-1">
+                          Aadhaar Number <span className="text-slate-400 font-normal">(Optional - Not required with GST)</span>
+                        </label>
+                        <input 
+                          type="text" 
+                          maxLength={14}
+                          value={aadharNumber} 
+                          onChange={e => setAadharNumber(formatAadhaarInput(e.target.value))} 
+                          placeholder="XXXX XXXX XXXX (Optional)" 
+                          className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/50 text-slate-700 outline-none focus:bg-white focus:border-indigo-400" 
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    /* 3. When No GST Registration: Aadhaar Number + Aadhaar Document are STRICTLY MANDATORY */
+                    <div className="space-y-4 pt-1">
+                      <div className="p-3 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-900 text-xs flex items-start gap-2">
+                        <span className="text-base shrink-0">ℹ️</span>
+                        <span className="leading-snug">
+                          <strong>Aadhaar KYC Mandatory:</strong> Businesses without GST registration must provide a valid 12-digit Aadhaar Card number and upload an official document copy for identity verification.
+                        </span>
+                      </div>
+
+                      {/* Aadhaar Number Field (Mandatory) */}
+                      <div>
+                        <label className={labelClasses}>
+                          Aadhaar Card Number (12-Digit) <span className="text-red-500">*</span>
+                        </label>
+                        <input 
+                          type="text" 
+                          maxLength={14}
+                          value={aadharNumber} 
+                          onChange={e => setAadharNumber(formatAadhaarInput(e.target.value))} 
+                          placeholder="XXXX XXXX XXXX" 
+                          className={inputClasses} 
+                        />
+                      </div>
+
+                      {/* Aadhaar Document Upload (Mandatory) */}
+                      <div>
+                        <label className={`${labelClasses} block mb-1.5`}>
+                          Upload Aadhaar Card (Front/Back) <span className="text-red-500">*</span>
+                        </label>
+
+                        {!idProofUrl ? (
+                          <label className="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer bg-white text-center transition-all">
+                            <input 
+                              type="file" 
+                              accept="image/png,image/jpeg,image/webp,application/pdf"
+                              onChange={handleDocumentUpload} 
+                              disabled={isUploadingDoc}
+                              className="hidden" 
+                            />
+                            <UploadCloud className="w-7 h-7 text-emerald-600 mb-1" />
+                            <span className="text-xs font-bold text-slate-800">
+                              {isUploadingDoc ? 'Uploading...' : 'Upload Official Aadhaar Card Document *'}
+                            </span>
+                            <span className="text-[10px] text-slate-400 mt-0.5">PDF, PNG, JPG (Max 10MB)</span>
+                          </label>
+                        ) : (
+                          <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-xs font-bold text-emerald-950">
+                              <FileCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                              <span className="truncate max-w-[240px] sm:max-w-[300px]">
+                                {idProofFileName || 'Aadhaar Card Document Attached'}
+                              </span>
+                            </div>
+                            <button 
+                              type="button" 
+                              onClick={() => { setIdProofUrl(''); setIdProofFileName(''); }}
+                              className="text-xs font-bold text-rose-600 hover:underline cursor-pointer ml-2"
+                            >
+                              Change
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Simple One-Time Merchant Registration Fee Card */}
@@ -1144,27 +1647,171 @@ export default function SellerOnboarding() {
                   </div>
                 )}
 
-                {/* Simple Legal Terms Checkbox */}
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 mt-3">
-                  <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-600 select-none">
-                    <input
-                      type="checkbox"
-                      required
-                      className="mt-0.5 w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 shrink-0"
-                    />
-                    <span className="leading-snug">
-                      I agree to the <Link href="/terms" target="_blank" className="font-semibold text-emerald-600 underline hover:text-emerald-700">Terms of Service</Link> &amp; Seller Agreement.
-                    </span>
-                  </label>
+                {/* Mandatory Terms & Conditions Checkbox (Must Read Before Ticking) */}
+                <div className={`p-4 rounded-2xl border transition-all ${
+                  termsAccepted 
+                    ? 'bg-emerald-50/70 border-emerald-200' 
+                    : 'bg-slate-50 border-slate-200/90'
+                }`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-2.5">
+                      <input
+                        type="checkbox"
+                        id="mandatoryTermsCheckbox"
+                        checked={termsAccepted}
+                        onChange={(e) => {
+                          if (!hasReadTerms) {
+                            setShowTermsModal(true);
+                            toast('Please read the mandatory terms before accepting', { icon: '📜' });
+                          } else {
+                            setTermsAccepted(e.target.checked);
+                          }
+                        }}
+                        className="mt-0.5 w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 shrink-0 cursor-pointer"
+                      />
+                      <div>
+                        <label 
+                          htmlFor="mandatoryTermsCheckbox" 
+                          className="text-xs font-semibold text-slate-800 leading-snug cursor-pointer select-none"
+                        >
+                          I have read and agree to the <button type="button" onClick={() => setShowTermsModal(true)} className="font-bold text-indigo-600 underline hover:text-indigo-700">Terms of Service &amp; Seller Agreement</button> <span className="text-red-500">*</span>
+                        </label>
+                        <div className="mt-1">
+                          {hasReadTerms ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              Reviewed and accepted
+                            </span>
+                          ) : (
+                            <span className="text-[11px] font-semibold text-amber-700 flex items-center gap-1">
+                              <span>⚠️</span> Mandatory: Read terms to enable agreement
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowTermsModal(true)}
+                      className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-indigo-400 text-indigo-700 font-bold text-xs shadow-2xs whitespace-nowrap cursor-pointer transition-all flex items-center gap-1 shrink-0"
+                    >
+                      <BookOpen className="w-3.5 h-3.5" />
+                      <span>{hasReadTerms ? 'Re-read Terms' : 'Read Terms *'}</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex gap-3 mt-4">
+                <div className="flex gap-3 mt-3">
                   <button type="button" onClick={() => setStep(4)} className="px-6 py-4 border border-slate-300 text-slate-700 rounded-2xl font-bold text-sm bg-white hover:bg-slate-50">← Back</button>
                   <button type="submit" disabled={isSubmitting} className={btnPrimary}>
                     {isSubmitting ? 'Submitting...' : (!registrationFeeConfig?.isEnabled || registrationFeeConfig?.effectiveFee === 0 ? 'Complete Free Registration ✓' : `Pay ₹${registrationFeeConfig.effectiveFee} & Submit Registration ✓`)}
                   </button>
                 </div>
               </form>
+
+              {/* Mandatory Terms & Conditions Modal */}
+              {showTermsModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+                  <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[88vh]">
+                    {/* Header */}
+                    <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+                          <BookOpen className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-bold text-slate-900">MarkatVerse Merchant Agreement</h3>
+                          <p className="text-[11px] text-slate-500 font-medium">Terms of Service &amp; Partner Code of Conduct</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowTermsModal(false)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    {/* Scrollable Terms Content */}
+                    <div className="p-6 overflow-y-auto space-y-4 text-xs text-slate-600 leading-relaxed">
+                      <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-900 text-xs font-medium">
+                        ⚠️ <strong>Mandatory Compliance:</strong> Please review all clauses below. Checking the agreement certifies that you operate a verified business and accept our merchant policies.
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                          <span>1.</span> Business Identity &amp; KYC Verification
+                        </h4>
+                        <p>
+                          You certify that all provided details (GSTIN or Aadhaar ID) and accompanying documentation are genuine, valid, and registered under your legal identity. Misrepresentation or submission of forged documents leads to immediate account termination and legal reporting.
+                        </p>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                          <span>2.</span> Zero Listing Commission &amp; Fair Pricing
+                        </h4>
+                        <p>
+                          MarkatVerse operates a 0% commission model on product listings. In return, sellers agree that prices listed on MarkatVerse must match or offer competitive value compared to over-the-counter retail storefront rates.
+                        </p>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                          <span>3.</span> Order Fulfillment &amp; Queue Management
+                        </h4>
+                        <p>
+                          Merchants agree to honor digital queue tokens, local order pickups, and delivery timelines generated through the platform. Systematic cancellations or refusal to serve customers will impact merchant quality score.
+                        </p>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                          <span>4.</span> Customer Privacy &amp; Data Protection
+                        </h4>
+                        <p>
+                          Customer phone numbers, delivery addresses, and personal identifiable information must strictly be used solely for order processing and cannot be harvested, stored, or sold for marketing.
+                        </p>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                          <span>5.</span> Registration Fee &amp; Lifetime Access
+                        </h4>
+                        <p>
+                          The one-time onboarding fee covers lifetime storefront setup, TrustSEAL verification, and access to the SmartQueue engine. This fee is non-refundable once the store is verified and published.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Footer with Mandatory Read & Accept button */}
+                    <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setShowTermsModal(false)}
+                        className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-100 transition-all cursor-pointer"
+                      >
+                        Close
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHasReadTerms(true);
+                          setTermsAccepted(true);
+                          setShowTermsModal(false);
+                          toast.success('Terms & Conditions reviewed and accepted!');
+                        }}
+                        className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>I Have Read All Terms → Agree &amp; Accept</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

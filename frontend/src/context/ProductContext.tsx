@@ -509,6 +509,364 @@ export const defaultProducts: Product[] = [
     badge: 'Enterprise',
     badgeColor: 'badge-blue',
     isPremium: true
+  },
+  {
+    id: 'hyderabadi-dum-biryani',
+    name: 'Authentic Royal Hyderabadi Dum Biryani (Family Pack)',
+    price: 449,
+    originalPrice: 650,
+    discount: '31% OFF',
+    rating: '4.8',
+    reviews: '2.8K',
+    seller: 'Paradise Biryani Hub',
+    location: 'Hyderabad, Telangana',
+    category: 'Food & Dining',
+    subcategory: 'Biryani & Mughlai',
+    badge: 'Bestseller',
+    badgeColor: 'badge-gold',
+    image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'wood-fired-farmhouse-pizza',
+    name: 'Artisan Wood-Fired Farmhouse Pizza (12-inch)',
+    price: 399,
+    originalPrice: 599,
+    discount: '33% OFF',
+    rating: '4.7',
+    reviews: '1.4K',
+    seller: 'Bella Napoli Pizzeria',
+    location: 'Bengaluru, Karnataka',
+    category: 'Food & Dining',
+    subcategory: 'Italian & Pizza',
+    badge: 'Trending',
+    badgeColor: 'badge-red',
+    image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'specialty-arabica-coffee-beans',
+    name: 'Artisanal Roasted Arabica Coffee Beans (500g)',
+    price: 549,
+    originalPrice: 799,
+    discount: '31% OFF',
+    rating: '4.9',
+    reviews: '950',
+    seller: 'Blue Mountain Roasters',
+    location: 'Chikmagalur, Karnataka',
+    category: 'Food & Dining',
+    subcategory: 'Cafes & Beverages',
+    badge: 'Organic',
+    badgeColor: 'badge-emerald',
+    image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'samsung-galaxy-s24-ultra',
+    name: 'Samsung Galaxy S24 Ultra 5G (Titanium Gray, 256GB)',
+    price: 109999,
+    originalPrice: 129999,
+    discount: '15% OFF',
+    rating: '4.9',
+    reviews: '4.3K',
+    seller: 'Samsung Official Store',
+    location: 'Mumbai, Maharashtra',
+    category: 'Mobiles',
+    subcategory: 'Smartphones',
+    badge: 'Flagship',
+    badgeColor: 'badge-purple',
+    isPremium: true,
+    image: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'oneplus-12-5g',
+    name: 'OnePlus 12 5G (Silky Black, 16GB RAM, 512GB)',
+    price: 64999,
+    originalPrice: 69999,
+    discount: '7% OFF',
+    rating: '4.8',
+    reviews: '2.1K',
+    seller: 'OnePlus Store',
+    location: 'Bengaluru, Karnataka',
+    category: 'Mobiles',
+    subcategory: 'Smartphones',
+    badge: 'Bestseller',
+    badgeColor: 'badge-gold',
+    image: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'apple-iphone-15-pro',
+    name: 'Apple iPhone 15 Pro (Natural Titanium, 128GB)',
+    price: 119900,
+    originalPrice: 134900,
+    discount: '11% OFF',
+    rating: '4.9',
+    reviews: '5.8K',
+    seller: 'Imagine Apple Reseller',
+    location: 'Delhi, NCR',
+    category: 'Mobiles',
+    subcategory: 'Smartphones',
+    badge: 'Hot Deal',
+    badgeColor: 'badge-red',
+    isPremium: true,
+    image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'macbook-air-m2',
+    name: 'Apple MacBook Air 13.6-inch M2 Chip (8GB RAM, 256GB SSD)',
+    price: 89990,
+    originalPrice: 99900,
+    discount: '10% OFF',
+    rating: '4.9',
+    reviews: '3.1K',
+    seller: 'Apple Authorised Store',
+    location: 'Bengaluru, Karnataka',
+    category: 'Electronics',
+    subcategory: 'Laptops',
+    badge: 'Apple Silicon',
+    badgeColor: 'badge-purple',
+    isPremium: true,
+    image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'sony-bravia-4k-tv',
+    name: 'Sony Bravia 55-inch 4K Ultra HD Smart LED Google TV',
+    price: 54990,
+    originalPrice: 79990,
+    discount: '31% OFF',
+    rating: '4.8',
+    reviews: '1.9K',
+    seller: 'Sony Center',
+    location: 'Mumbai, Maharashtra',
+    category: 'Electronics',
+    subcategory: 'Television',
+    badge: '4K HDR',
+    badgeColor: 'badge-gold',
+    image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'anarkali-kurti-set',
+    name: "Women's Pure Cotton Embroidered Anarkali Kurti with Dupatta",
+    price: 1299,
+    originalPrice: 2999,
+    discount: '57% OFF',
+    rating: '4.7',
+    reviews: '2.4K',
+    seller: 'Rivaaz Ethnic Weaves',
+    location: 'Jaipur, Rajasthan',
+    category: 'Fashion',
+    subcategory: 'Women Ethnic',
+    badge: 'Festive Collection',
+    badgeColor: 'badge-pink',
+    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'white-sneakers-classic',
+    name: 'Classic Leather Streetwear Sneakers (Unisex)',
+    price: 1799,
+    originalPrice: 3499,
+    discount: '49% OFF',
+    rating: '4.6',
+    reviews: '1.5K',
+    seller: 'Urban Kicks Co.',
+    location: 'Delhi, NCR',
+    category: 'Fashion',
+    subcategory: 'Footwear',
+    badge: 'Trending',
+    badgeColor: 'badge-blue',
+    image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'solid-wood-coffee-table',
+    name: 'Modern Solid Sheesham Wood Center Coffee Table',
+    price: 4499,
+    originalPrice: 8999,
+    discount: '50% OFF',
+    rating: '4.8',
+    reviews: '820',
+    seller: 'Royal Oak Furniture',
+    location: 'Jodhpur, Rajasthan',
+    category: 'Home',
+    subcategory: 'Furniture',
+    badge: 'Handcrafted',
+    badgeColor: 'badge-gold',
+    image: 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'egyptian-cotton-bedsheet',
+    name: '300 TC Egyptian Cotton King Size Bedsheet with 2 Pillow Covers',
+    price: 1199,
+    originalPrice: 2499,
+    discount: '52% OFF',
+    rating: '4.7',
+    reviews: '3.1K',
+    seller: 'LinenCraft India',
+    location: 'Panipat, Haryana',
+    category: 'Home',
+    subcategory: 'Bedding & Linen',
+    badge: '100% Cotton',
+    badgeColor: 'badge-emerald',
+    image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'vitamin-c-glow-serum',
+    name: '10% Vitamin C Face Glow Serum with Hyaluronic Acid (30ml)',
+    price: 449,
+    originalPrice: 799,
+    discount: '44% OFF',
+    rating: '4.7',
+    reviews: '3.2K',
+    seller: 'DermaGlow Lab',
+    location: 'Mumbai, Maharashtra',
+    category: 'Beauty',
+    subcategory: 'Skincare',
+    badge: 'Top Rated',
+    badgeColor: 'badge-gold',
+    image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'matte-liquid-lipstick-set',
+    name: 'Velvet Matte Liquid Lipstick Combo (Set of 4 Nude Shades)',
+    price: 699,
+    originalPrice: 1299,
+    discount: '46% OFF',
+    rating: '4.6',
+    reviews: '1.8K',
+    seller: 'Luxe Beauty',
+    location: 'Delhi, NCR',
+    category: 'Beauty',
+    subcategory: 'Makeup',
+    badge: 'Trending',
+    badgeColor: 'badge-pink',
+    image: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'organic-argan-hair-oil',
+    name: 'Pure Moroccan Cold-Pressed Argan Hair Serum & Treatment',
+    price: 599,
+    originalPrice: 999,
+    discount: '40% OFF',
+    rating: '4.8',
+    reviews: '980',
+    seller: 'Botanical Herbals',
+    location: 'Kochi, Kerala',
+    category: 'Beauty',
+    subcategory: 'Haircare',
+    badge: 'Organic',
+    badgeColor: 'badge-emerald',
+    image: 'https://images.unsplash.com/photo-1608248597359-0098e98e21cf?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'doorstep-car-wash-detailing',
+    name: 'Premium Doorstep Foam Car Wash & Interior Deep Detailing',
+    price: 799,
+    originalPrice: 1499,
+    discount: '47% OFF',
+    rating: '4.9',
+    reviews: '1.7K',
+    seller: 'Speedy Auto Spa',
+    location: 'Bengaluru, Karnataka',
+    primaryType: 'SERVICE',
+    category: 'Auto',
+    subcategory: 'Car Wash & Detailing',
+    badge: 'Doorstep Service',
+    badgeColor: 'badge-blue',
+    image: 'https://images.unsplash.com/photo-1607860108855-64acf2078ed9?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'castrol-synthetic-engine-oil',
+    name: 'Castrol EDGE Full Synthetic Engine Oil 5W-40 (4L)',
+    price: 2199,
+    originalPrice: 3200,
+    discount: '31% OFF',
+    rating: '4.8',
+    reviews: '4.1K',
+    seller: 'AutoZone Spares',
+    location: 'Pune, Maharashtra',
+    category: 'Auto',
+    subcategory: 'Car Parts & Lubricants',
+    badge: 'Genuine OEM',
+    badgeColor: 'badge-gold',
+    image: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'vega-dot-certified-helmet',
+    name: 'Vega Bolt Full Face DOT Certified Helmet (Matte Black)',
+    price: 1899,
+    originalPrice: 2499,
+    discount: '24% OFF',
+    rating: '4.7',
+    reviews: '2.5K',
+    seller: 'MotoGear Hub',
+    location: 'Chennai, Tamil Nadu',
+    category: 'Auto',
+    subcategory: 'Rider Accessories',
+    badge: 'Safety Certified',
+    badgeColor: 'badge-emerald',
+    image: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'rubber-hex-dumbbell-set',
+    name: 'Professional Rubber Hex Dumbbells Pair (10kg x 2)',
+    price: 2499,
+    originalPrice: 4200,
+    discount: '40% OFF',
+    rating: '4.8',
+    reviews: '1.9K',
+    seller: 'FitPro Sports',
+    location: 'Jalandhar, Punjab',
+    category: 'Sports',
+    subcategory: 'Gym & Fitness',
+    badge: 'Heavy Duty',
+    badgeColor: 'badge-blue',
+    image: 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'nivia-storm-football',
+    name: 'Nivia Storm FIFA Standard Match Football (Size 5)',
+    price: 749,
+    originalPrice: 1199,
+    discount: '38% OFF',
+    rating: '4.6',
+    reviews: '3.7K',
+    seller: 'AllStar Sports',
+    location: 'Meerut, UP',
+    category: 'Sports',
+    subcategory: 'Outdoor Games',
+    badge: 'Official Match Ball',
+    badgeColor: 'badge-gold',
+    image: 'https://images.unsplash.com/photo-1511886929837-354d827aae26?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'boldfit-anti-tear-yoga-mat',
+    name: 'Boldfit Premium TPE Anti-Skid Yoga Mat (6mm with Strap)',
+    price: 899,
+    originalPrice: 1699,
+    discount: '47% OFF',
+    rating: '4.8',
+    reviews: '5.1K',
+    seller: 'ZenFitness',
+    location: 'Bengaluru, Karnataka',
+    category: 'Sports',
+    subcategory: 'Yoga & Wellness',
+    badge: 'Eco Friendly',
+    badgeColor: 'badge-emerald',
+    image: 'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=800&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'bridal-makeup-package',
+    name: 'Complete Bridal HD Makeup & Hair Styling Package',
+    price: 8999,
+    originalPrice: 15000,
+    discount: '40% OFF',
+    rating: '4.9',
+    reviews: '420',
+    seller: 'Glamour Glow Studio',
+    location: 'Delhi, NCR',
+    primaryType: 'SERVICE',
+    category: 'Salon & Spa',
+    subcategory: 'Bridal Makeup',
+    badge: 'Celebrity Artist',
+    badgeColor: 'badge-pink',
+    isPremium: true,
+    image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=800&auto=format&fit=crop&q=80'
   }
 ];
 
@@ -1504,7 +1862,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const { isSectorActive } = useSettings();
 
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>(defaultProducts);
   const [categories, setCategories] = useState<Category[]>(defaultCategories);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [userLocation, setUserLocation] = useState<string>('');
@@ -1515,13 +1873,23 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   // Restore client-side cache immediately post-hydration (prevents SSR hydration mismatch)
   useEffect(() => {
     try {
-      const cached = localStorage.getItem('mv_cache_products');
+      const cached = localStorage.getItem('mv_cache_products_v3') || localStorage.getItem('mv_cache_products');
       if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setProducts(parsed);
-          setIsLoading(false);
-        }
+        try {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const map = new Map<string, Product>();
+            defaultProducts.forEach(p => map.set(p.id, p));
+            parsed.forEach((p: Product) => {
+              if (p && p.id) {
+                map.set(p.id, { ...(map.get(p.id) || {}), ...p });
+              }
+            });
+            const merged = Array.from(map.values());
+            setProducts(merged);
+            setIsLoading(false);
+          }
+        } catch {}
       }
       const cachedLoc = localStorage.getItem('mv_user_location');
       if (cachedLoc) setUserLocation(cachedLoc);
@@ -1671,23 +2039,29 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
           rawItems = data;
         }
 
-        if (rawItems.length > 0) {
-          const mappedData = rawItems.map((item: any) => ({
-            ...item,
-            seller: item.sellerName,
-            category: item.categoryName,
-            subcategory: item.subcategory,
-            primaryType: (item.type === 'SERVICE' || item.primaryType === 'SERVICE') ? 'SERVICE' : (item.primaryType || 'PRODUCT'),
-            image: item.image || item.sku || undefined,
-            images: item.images || (item.image ? [item.image] : []),
-            isPremium: false,
-            isB2B: item.isB2B,
-            moq: item.moq,
-            status: item.status
-          }));
-          setProducts(mappedData);
+                if (rawItems.length > 0) {
+          const defaultMap = new Map<string, Product>();
+          defaultProducts.forEach(p => defaultMap.set(p.id, p));
+          rawItems.forEach((item: any) => {
+            const mapped = {
+              ...item,
+              seller: item.sellerName || item.seller,
+              category: item.categoryName || item.category,
+              subcategory: item.subcategory,
+              primaryType: (item.type === 'SERVICE' || item.primaryType === 'SERVICE') ? 'SERVICE' : (item.primaryType || 'PRODUCT'),
+              image: item.image || item.sku || undefined,
+              images: item.images || (item.image ? [item.image] : []),
+              isPremium: item.isPremium ?? false,
+              isB2B: item.isB2B,
+              moq: item.moq,
+              status: item.status
+            };
+            defaultMap.set(item.id, mapped);
+          });
+          const mergedList = Array.from(defaultMap.values());
+          setProducts(mergedList);
           try {
-            localStorage.setItem('mv_cache_products', JSON.stringify(mappedData));
+            localStorage.setItem('mv_cache_products_v3', JSON.stringify(mergedList));
           } catch {}
         }
       })

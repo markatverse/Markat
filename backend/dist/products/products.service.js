@@ -132,6 +132,9 @@ let ProductsService = class ProductsService {
                     ]
                 });
             }
+            else if (catLower === 'services' || catLower === 'all services') {
+                andConditions.push({ type: 'SERVICE' });
+            }
             else if (catLower === 'salon & spa' || catLower === 'salon, spa & beauty' || catLower.includes('wellness') || catLower === 'salon') {
                 andConditions.push({
                     OR: [
@@ -160,6 +163,65 @@ let ProductsService = class ProductsService {
                         { categoryName: { contains: 'automobile', mode: 'insensitive' } },
                         { categoryName: { contains: 'car wash', mode: 'insensitive' } },
                         { categoryName: { contains: 'logistics', mode: 'insensitive' } }
+                    ]
+                });
+            }
+            else if (catLower === 'mobiles' || catLower === 'mobile' || catLower.includes('phone')) {
+                andConditions.push({
+                    OR: [
+                        { categoryName: { in: ['Mobiles', 'Mobile', 'Smartphones'] } },
+                        { categoryName: { contains: 'mobile', mode: 'insensitive' } },
+                        { subcategory: { contains: 'mobile', mode: 'insensitive' } },
+                        { subcategory: { contains: 'smartphone', mode: 'insensitive' } },
+                        { name: { contains: 'phone', mode: 'insensitive' } },
+                        { name: { contains: 'galaxy', mode: 'insensitive' } },
+                        { name: { contains: 'iphone', mode: 'insensitive' } }
+                    ]
+                });
+            }
+            else if (catLower === 'food & dining' || catLower === 'food' || catLower.includes('dining') || catLower.includes('restaurant')) {
+                andConditions.push({
+                    OR: [
+                        { categoryName: { in: ['Food & Dining', 'Food', 'Restaurant', 'Restaurants', 'Bakery', 'Cafes'] } },
+                        { categoryName: { contains: 'food', mode: 'insensitive' } },
+                        { categoryName: { contains: 'dining', mode: 'insensitive' } },
+                        { categoryName: { contains: 'restaurant', mode: 'insensitive' } },
+                        { subcategory: { contains: 'biryani', mode: 'insensitive' } },
+                        { subcategory: { contains: 'pizza', mode: 'insensitive' } }
+                    ]
+                });
+            }
+            else if (catLower === 'beauty' || catLower === 'cosmetics' || catLower.includes('skincare')) {
+                andConditions.push({
+                    OR: [
+                        { categoryName: { in: ['Beauty', 'Cosmetics', 'Skincare', 'Salon & Spa'] } },
+                        { categoryName: { contains: 'beauty', mode: 'insensitive' } },
+                        { categoryName: { contains: 'cosmetic', mode: 'insensitive' } },
+                        { categoryName: { contains: 'skincare', mode: 'insensitive' } },
+                        { subcategory: { contains: 'skincare', mode: 'insensitive' } },
+                        { subcategory: { contains: 'makeup', mode: 'insensitive' } }
+                    ]
+                });
+            }
+            else if (catLower === 'auto' || catLower === 'automobile' || catLower.includes('vehicle') || catLower.includes('car wash')) {
+                andConditions.push({
+                    OR: [
+                        { categoryName: { in: ['Auto', 'Automobile', 'Vehicles', 'Automotive', 'Automobile & Car Wash', 'Transport'] } },
+                        { categoryName: { contains: 'auto', mode: 'insensitive' } },
+                        { categoryName: { contains: 'car wash', mode: 'insensitive' } },
+                        { subcategory: { contains: 'car', mode: 'insensitive' } },
+                        { subcategory: { contains: 'detailing', mode: 'insensitive' } }
+                    ]
+                });
+            }
+            else if (catLower === 'sports' || catLower.includes('fitness') || catLower === 'gym') {
+                andConditions.push({
+                    OR: [
+                        { categoryName: { in: ['Sports', 'Fitness', 'Sports & Fitness', 'Gym & Fitness'] } },
+                        { categoryName: { contains: 'sports', mode: 'insensitive' } },
+                        { categoryName: { contains: 'fitness', mode: 'insensitive' } },
+                        { subcategory: { contains: 'gym', mode: 'insensitive' } },
+                        { subcategory: { contains: 'fitness', mode: 'insensitive' } }
                     ]
                 });
             }
