@@ -24,7 +24,8 @@ import {
   Receipt,
   Info,
   Lock,
-  ArrowRight
+  ArrowRight,
+  QrCode
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getApiUrl } from '@/utils/api';
