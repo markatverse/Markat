@@ -20,13 +20,13 @@ let ProductsController = class ProductsController {
     create(data) {
         return this.productsService.create(data);
     }
-    findAll(location, lat, lng, radius, page, limit, q, search, category, subcategory, type, isB2B, minPrice, maxPrice, sortBy) {
+    findAll(location, lat, lng, radius, page, limit, q, search, category, subcategory, type, isB2B, filter, b2b, minPrice, maxPrice, sortBy) {
         return this.productsService.findAll(location, lat ? parseFloat(lat) : undefined, lng ? parseFloat(lng) : undefined, radius ? parseFloat(radius) : undefined, page ? parseInt(page) : 1, limit ? parseInt(limit) : 50, {
             q: q || search,
             category,
             subcategory,
             type,
-            isB2B: isB2B !== undefined ? isB2B === 'true' : undefined,
+            isB2B: isB2B !== undefined ? isB2B === 'true' : (b2b === 'true' || filter === 'b2b' ? true : undefined),
             minPrice: minPrice ? parseFloat(minPrice) : undefined,
             maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
             sortBy,
@@ -72,11 +72,13 @@ __decorate([
     __param(9, Query('subcategory')),
     __param(10, Query('type')),
     __param(11, Query('isB2B')),
-    __param(12, Query('minPrice')),
-    __param(13, Query('maxPrice')),
-    __param(14, Query('sortBy')),
+    __param(12, Query('filter')),
+    __param(13, Query('b2b')),
+    __param(14, Query('minPrice')),
+    __param(15, Query('maxPrice')),
+    __param(16, Query('sortBy')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], ProductsController.prototype, "findAll", null);
 __decorate([

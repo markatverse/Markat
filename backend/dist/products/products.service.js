@@ -98,39 +98,106 @@ let ProductsService = class ProductsService {
             return cached.data;
         }
         const skip = (page - 1) * limit;
-        const where = { status: 'ACTIVE' };
+        const andConditions = [{ status: 'ACTIVE' }];
         if (filters?.q && filters.q.trim()) {
             const q = filters.q.trim();
-            where.OR = [
-                { name: { contains: q, mode: 'insensitive' } },
-                { categoryName: { contains: q, mode: 'insensitive' } },
-                { subcategory: { contains: q, mode: 'insensitive' } },
-                { sellerName: { contains: q, mode: 'insensitive' } },
-                { description: { contains: q, mode: 'insensitive' } },
-            ];
+            andConditions.push({
+                OR: [
+                    { name: { contains: q, mode: 'insensitive' } },
+                    { categoryName: { contains: q, mode: 'insensitive' } },
+                    { subcategory: { contains: q, mode: 'insensitive' } },
+                    { sellerName: { contains: q, mode: 'insensitive' } },
+                    { description: { contains: q, mode: 'insensitive' } },
+                ]
+            });
         }
         if (filters?.category && filters.category !== 'All Categories') {
-            where.categoryName = { contains: filters.category, mode: 'insensitive' };
+            const catLower = filters.category.toLowerCase().trim();
+            if (catLower === 'construction materials' || catLower === 'construction' || catLower.includes('infrastructure')) {
+                andConditions.push({
+                    OR: [
+                        { categoryName: { contains: 'construction', mode: 'insensitive' } },
+                        { categoryName: { contains: 'building', mode: 'insensitive' } },
+                        { subcategory: { contains: 'cement', mode: 'insensitive' } }
+                    ]
+                });
+            }
+            else if (catLower === 'home services' || catLower.includes('retail & home') || catLower === 'repair') {
+                andConditions.push({
+                    OR: [
+                        { categoryName: { in: ['Home Services', 'Cleaner', 'Mechanic', 'Carpenter', 'Electrician', 'Plumber', 'Painter'] } },
+                        { categoryName: { contains: 'clean', mode: 'insensitive' } },
+                        { categoryName: { contains: 'repair', mode: 'insensitive' } },
+                        { categoryName: { contains: 'plumb', mode: 'insensitive' } }
+                    ]
+                });
+            }
+            else if (catLower === 'salon & spa' || catLower === 'salon, spa & beauty' || catLower.includes('wellness') || catLower === 'salon') {
+                andConditions.push({
+                    OR: [
+                        { categoryName: { in: ['Salon & Parlour', 'Spa', 'Beauty', 'Salon'] } },
+                        { categoryName: { contains: 'salon', mode: 'insensitive' } },
+                        { categoryName: { contains: 'spa', mode: 'insensitive' } },
+                        { categoryName: { contains: 'beauty', mode: 'insensitive' } }
+                    ]
+                });
+            }
+            else if (catLower === 'events & planning' || catLower === 'top organizers' || catLower.includes('organizer') || catLower === 'events') {
+                andConditions.push({
+                    OR: [
+                        { categoryName: { in: ['Event Planner', 'Photographer', 'Events & Planning'] } },
+                        { categoryName: { contains: 'event', mode: 'insensitive' } },
+                        { categoryName: { contains: 'planner', mode: 'insensitive' } },
+                        { categoryName: { contains: 'photograph', mode: 'insensitive' } }
+                    ]
+                });
+            }
+            else if (catLower === 'transport' || catLower === 'mobility & freight' || catLower.includes('freight') || catLower === 'logistics') {
+                andConditions.push({
+                    OR: [
+                        { categoryName: { in: ['Transport', 'Car Wash & Automobile', 'Car Wash', 'Automotive Parts & Accessories', 'Rentals', 'Logistics'] } },
+                        { categoryName: { contains: 'transport', mode: 'insensitive' } },
+                        { categoryName: { contains: 'automobile', mode: 'insensitive' } },
+                        { categoryName: { contains: 'car wash', mode: 'insensitive' } },
+                        { categoryName: { contains: 'logistics', mode: 'insensitive' } }
+                    ]
+                });
+            }
+            else {
+                andConditions.push({ categoryName: { contains: filters.category, mode: 'insensitive' } });
+            }
         }
         if (filters?.subcategory) {
-            where.subcategory = { contains: filters.subcategory, mode: 'insensitive' };
+            andConditions.push({ subcategory: { contains: filters.subcategory, mode: 'insensitive' } });
         }
         if (filters?.type && filters.type !== 'all') {
-            where.type = filters.type.toUpperCase() === 'SERVICES' ? 'SERVICE' : 'PRODUCT';
+            andConditions.push({ type: filters.type.toUpperCase() === 'SERVICES' ? 'SERVICE' : 'PRODUCT' });
         }
         if (filters?.isB2B !== undefined) {
-            where.isB2B = filters.isB2B;
+            if (filters.isB2B) {
+                andConditions.push({
+                    OR: [
+                        { isB2B: true },
+                        { categoryName: { in: ['Construction', 'Agriculture', 'Industrial Machinery & Tools', 'B2B'] } }
+                    ]
+                });
+            }
+            else {
+                andConditions.push({ isB2B: false });
+            }
         }
         if (filters?.minPrice !== undefined || filters?.maxPrice !== undefined) {
-            where.price = {};
+            const priceCond = {};
             if (filters?.minPrice !== undefined && !isNaN(filters.minPrice))
-                where.price.gte = filters.minPrice;
+                priceCond.gte = filters.minPrice;
             if (filters?.maxPrice !== undefined && !isNaN(filters.maxPrice))
-                where.price.lte = filters.maxPrice;
+                priceCond.lte = filters.maxPrice;
+            andConditions.push({ price: priceCond });
         }
         if (location && location.trim() && !lat) {
-            where.location = { contains: location.trim(), mode: 'insensitive' };
+            andConditions.push({ location: { contains: location.trim(), mode: 'insensitive' } });
         }
+        const where = { AND: andConditions };
         let orderBy = { createdAt: 'desc' };
         if (filters?.sortBy === 'price_low')
             orderBy = { price: 'asc' };
